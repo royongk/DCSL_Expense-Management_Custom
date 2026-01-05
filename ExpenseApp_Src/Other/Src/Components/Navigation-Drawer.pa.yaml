@@ -1,0 +1,267 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  Navigation-Drawer:
+    DefinitionType: CanvasComponent
+    CustomProperties:
+      CountNoification:
+        PropertyKind: Input
+        DisplayName: CountNoification
+        Description: Count of unread notifications
+        DataType: Text
+        Default: ="Text"
+      MenuItems:
+        PropertyKind: Input
+        DisplayName: MenuItems
+        Description: Hold items for navigation Drawer
+        DataType: Table
+        Default: |-
+          =Table({
+                  Index : 1,
+                  ScreenName: 'Profile - Notification Screen',
+                  Icon : Notification,
+                  Value : "Notifications"
+              },
+              {
+                  Index : 2,
+                  ScreenName: 'Profile - Change Legal Entity Screen',
+                  Icon : ChangeLE,
+                  Value : "Change legal entity"
+              },
+              {
+                  Index : 3,
+                  ScreenName: 'Profile - About Screen',
+                  Icon : About,
+                  Value : "About"
+              }
+          )
+      UserEmailValue:
+        PropertyKind: Input
+        DisplayName: UserEmailValue
+        Description: Email of the User
+        DataType: Text
+        Default: ="Text"
+      UserImageValue:
+        PropertyKind: Input
+        DisplayName: UserImageValue
+        Description: Image of the logged in User
+        DataType: Image
+        Default: =SampleImage
+      UserLegalEntityValue:
+        PropertyKind: Input
+        DisplayName: UserLegalEntityValue
+        Description: Value of selected legal entity
+        DataType: Text
+        Default: ="Text"
+      UserNameValue:
+        PropertyKind: Input
+        DisplayName: UserNameValue
+        Description: Name of the User
+        DataType: Text
+        Default: ="Text"
+      unreadNotificationVisibility:
+        PropertyKind: Input
+        DisplayName: unreadNotificationVisibility
+        Description: Viisbility control variable
+        DataType: Boolean
+        Default: =true
+    Properties:
+      Fill: =RGBA(255, 255, 255, 100)
+      Height: =App.Height
+      Width: =App.Width * 0.8
+    Children:
+      - Container1:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.ExtraBold
+            Height: =App.Height
+            LayoutDirection: =LayoutDirection.Horizontal
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Visible: =false
+            Width: =11
+            X: =500
+            Y: =3
+      - Gallery1:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =App.Height - Gallery1.Y
+            Items: ='Navigation-Drawer'.MenuItems
+            OnSelect: =Navigate(ThisItem.ScreenName)
+            TemplateSize: =Gallery1.Height * 0.1035
+            Width: =App.Width * 0.8
+            Y: =Max(UserImage.Y,UserLegalEntity.Y) + UserLegalEntity.Height * 2
+          Children:
+            - NavigationItemImage:
+                Control: Image@2.2.3
+                Properties:
+                  AccessibleLabel: =Concatenate("Select " , ThisItem.Value)
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Height: =NavigationItemImage.Width
+                  Image: =ThisItem.Icon
+                  OnSelect: =Select(Parent)
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  TabIndex: =0
+                  Width: =Gallery1.TemplateHeight * 0.394
+                  X: ='Navigation-Drawer'.Width * 0.0566
+                  Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+            - Title1:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  DisplayMode: =DisplayMode.View
+                  Font: =Font.'Open Sans'
+                  Height: =Self.Size * 1.8
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Gallery1.TemplateHeight * 0.195
+                  TabIndex: =0
+                  Text: =ThisItem.Value
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =Parent.TemplateWidth - 173
+                  X: =NavigationItemImage.X + NavigationItemImage.Width + 'Navigation-Drawer'.Width * 0.0198
+                  Y: =(Parent.TemplateHeight - (Self.Size * 1.8 )) / 2 + 2
+            - Separator1:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 0, 255, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Height: =8
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - Self.Height
+            - scr01_shp_GalleryBaseSeparator_2:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(225, 225, 225, 1)
+                  Height: =1
+                  Width: =Parent.TemplateWidth
+                  Y: =Rectangle1.Height - 1
+            - Rectangle1:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: =Concatenate("Select " , ThisItem.Value)
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(56, 96, 178, 0%)
+                  Height: =Gallery1.Height * 0.0978
+                  OnSelect: =Select(Parent)
+                  TabIndex: =0
+                  Width: ='Navigation-Drawer'.Width
+                  Y: =4
+      - UserImage:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =UserImage.Width
+            Image: ='Navigation-Drawer'.UserImageValue
+            ImagePosition: =ImagePosition.Fill
+            OnSelect: |-
+              =Set(
+                  gblnavigationDrawerVisibility,
+                  true
+              )
+            RadiusBottomLeft: =Self.Height
+            RadiusBottomRight: =Self.Height
+            RadiusTopLeft: =Self.Height
+            RadiusTopRight: =Self.Height
+            Width: =App.Height*0.073
+            X: ='Navigation-Drawer'.Width * 0.0292
+            Y: =App.Height * 0.0132
+      - UserName:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: =DisplayMode.View
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =App.Height * 0.0308
+            Size: =App.Height * 0.0194
+            Text: ='Navigation-Drawer'.UserNameValue
+            Width: ='Navigation-Drawer'.Width - UserImage.X - UserImage.Width - 'Navigation-Drawer'.Width * 0.0125
+            Wrap: =false
+            X: =UserImage.X + UserImage.Width + 4
+            Y: =App.Height * 0.0105
+      - UserLegalEntity:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(110, 110, 110, 1)
+            DisplayMode: =DisplayMode.View
+            Font: =Font.'Open Sans'
+            Height: =UserEmail.Height
+            Size: =App.Height * 0.0133
+            Text: ='Navigation-Drawer'.UserLegalEntityValue
+            Width: =UserEmail.Width
+            Wrap: =false
+            X: =UserName.X
+            Y: =UserEmail.Y + UserEmail.Height + UserLegalEntity.Height / 5
+      - UserEmail:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(110, 110, 110, 1)
+            DisplayMode: =DisplayMode.View
+            Font: =Font.'Open Sans'
+            Height: =App.Height * 0.0223
+            Size: =App.Height * 0.0133
+            Text: ='Navigation-Drawer'.UserEmailValue
+            Width: =UserName.Width
+            Wrap: =false
+            X: =UserName.X
+            Y: =UserName.Y + UserName.Height + UserEmail.Height/5
+      - VerifyImage:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =VerifyImage.Width
+            Image: =Verify
+            Visible: =false
+            Width: ='Navigation-Drawer'.Width * 0.0468
+            X: =UserImage.X + UserImage.Width - 'Navigation-Drawer'.Width * 0.0429
+            Y: =UserImage.Y + UserImage.Height - App.Height * 0.0193
+      - notificationCountBackgroundRedImage:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(255, 255, 255, 1)
+            BorderStyle: =BorderStyle.Dotted
+            Height: =notificationCountBackgroundRedImage.Width
+            Image: =redCircle
+            Visible: ='Navigation-Drawer'.unreadNotificationVisibility
+            Width: =(App.Height - Gallery1.Y) * 0.0297
+            X: ='Navigation-Drawer'.Width * 0.0566 +Gallery1.TemplateHeight * 0.394 / 2
+            Y: =Gallery1.Y + Gallery1.TemplateHeight * 0.394 / 2
+      - countOfNotificationLabel:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =Color.White
+            DisplayMode: =DisplayMode.View
+            Font: =Font.'Open Sans'
+            Height: =notificationCountBackgroundRedImage.Height
+            Size: =notificationCountBackgroundRedImage.Width * 0.4
+            Text: ='Navigation-Drawer'.CountNoification
+            Visible: ='Navigation-Drawer'.unreadNotificationVisibility
+            Width: ='Navigation-Drawer'.Width * 0.085
+            X: =notificationCountBackgroundRedImage.X - (countOfNotificationLabel.Width - notificationCountBackgroundRedImage.Width) / 2
+            Y: =notificationCountBackgroundRedImage.Y

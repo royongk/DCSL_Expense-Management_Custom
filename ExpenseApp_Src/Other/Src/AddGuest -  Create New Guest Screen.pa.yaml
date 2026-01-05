@@ -1,0 +1,249 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  AddGuest -  Create New Guest Screen:
+    Properties:
+      Fill: =RGBA(244, 244, 244, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+    Children:
+      - BackgroundForButtons:
+          Control: Rectangle@2.3.0
+          Group: FootorButtonGroup
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =App.Height * 0.2024
+            OnSelect: =
+            Width: =App.Width
+            Y: =App.Height - Self.Height
+      - SaveAndAddButton:
+          Control: Classic/Button@2.2.0
+          Group: FootorButtonGroup
+          Properties:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            BorderThickness: =4
+            Color: =RGBA(34, 102, 227, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: =
+            Fill: =Color.White
+            Font: =Font.'Segoe UI'
+            Height: =App.Height * 0.0704
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |
+              =UpdateContext({varGuestPatchCallErrors: Blank()});
+              If(
+                  IsBlank(NameInputText.Text),
+                  Notify(
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_GuestNameIsRequiredLabel',
+                      NotificationType.Error,
+                      gblParams.notificationTime
+                  ),
+                  IfError(
+                  Patch(
+                      'Guest Against an Expense Line for Expense Mobile (mserp)',
+                      Defaults('Guest Against an Expense Line for Expense Mobile (mserp)'),
+                      {
+                          'Organization/Country':  CompanyInputText.Text,
+                          Name: NameInputText.Text,
+                          Title: DesignationInputText.Text,
+                          ExpTransNumberAttach: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                      }
+                  )
+                  ,
+                  UpdateContext(
+                      {
+                          varGuestPatchCallErrors: Substitute(
+                              Match(
+                                  FirstError.Details.HttpResponse,
+                                  """message"":""([^""]*)"""
+                              ).FullMatch,
+                              """message"":""",
+                              ""
+                          )
+                      }
+                  )
+              );
+              If(
+                  !IsBlank(varGuestPatchCallErrors),
+                  Notify(
+                      Left(
+                          varGuestPatchCallErrors,
+                          Len(varGuestPatchCallErrors) - 1
+                      ),
+                      NotificationType.Error,
+                      gblParams.notificationTime
+                  ),
+                  Refresh('Previous guest Lists for Expense Mobile (mserp)')
+              );
+                  Back(Transition.Pop);
+                  Reset(NameInputText);
+                  Reset(DesignationInputText);
+                  Reset(CompanyInputText)
+              );
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =App.Height * 0.0211
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SaveAndAddLabel'
+            Width: =App.Width * 0.891
+            X: =App.Width / 2 - SaveAndAddButton.Width/2
+            Y: =BackgroundForButtons.Y + BackgroundForButtons.Height * 0.100
+      - CancelButton:
+          Control: Classic/Button@2.2.0
+          Group: FootorButtonGroup
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: =
+            Fill: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            Height: =App.Height * 0.0704
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |-
+              =Back(Transition.Pop);
+              Reset(NameInputText);
+              Reset(DesignationInputText);
+              Reset(CompanyInputText)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =App.Height * 0.0211
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+            Width: =App.Width * 0.891
+            X: =SaveAndAddButton.X
+            Y: =SaveAndAddButton.Y + SaveAndAddButton.Height * 1.25
+      - header-navigation-PolicyViolation_4:
+          Control: CanvasComponent
+          ComponentName: header-navigation-PolicyViolation_3
+          Properties:
+            BackButtonClicked: |-
+              =Back(Transition.Pop);
+              Reset(NameInputText);
+              Reset(DesignationInputText);
+              Reset(CompanyInputText)
+            Fill: =Color.White
+            HeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateNewGuestLabel'
+            Height: =82
+            Width: =App.Width
+      - CreateNewGuestForm:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =App.Height * 0.416
+            LayoutDirection: =LayoutDirection.Vertical
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =App.Width
+            Y: =122
+          Children:
+            - NameInputContainer:
+                Control: GroupContainer@1.3.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.Start
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =NameInputLabel.Height
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMinHeight: =NameInputLabel.Height
+                  LayoutMinWidth: =App.Width
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =App.Width
+                Children:
+                  - StarVisible:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Open Sans'
+                        LayoutMinHeight: =Parent.LayoutMinHeight
+                        Text: ="*"
+                        Width: =DesigantionInputLabel.PaddingLeft
+                  - NameInputLabel:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Open Sans'
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NameLabel'
+                        Width: =App.Width - StarVisible.Width
+            - NameInputText:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  AlignInContainer: =AlignInContainer.Center
+                  BorderColor: =RGBA(255, 255, 255, 1)
+                  Default: =""
+                  Font: =Font.'Open Sans'
+                  Height: =App.Height * 0.06162
+                  HintText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterGuestNameLabel'
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  Width: =App.Width * 0.875
+            - DesigantionInputLabel:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  PaddingLeft: =(App.Width - DesignationInputText.Width) / 2
+                  Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DesignationLabel'
+                  Width: =App.Width
+            - DesignationInputText:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  AlignInContainer: =AlignInContainer.Center
+                  BorderColor: =RGBA(255, 255, 255, 1)
+                  Default: =""
+                  Font: =Font.'Open Sans'
+                  Height: =App.Height * 0.06162
+                  HintText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterGuestsDesignationLabel'
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  Width: =App.Width * 0.875
+            - CompanyInputLabel:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  PaddingLeft: =(App.Width - CompanyInputText.Width) / 2
+                  Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CompanyLabel'
+                  Width: =App.Width
+            - CompanyInputText:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  AlignInContainer: =AlignInContainer.Center
+                  BorderColor: =RGBA(255, 255, 255, 1)
+                  Default: =""
+                  Font: =Font.'Open Sans'
+                  Height: =App.Height * 0.06162
+                  HintText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterCompanyNameLabel'
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  Width: =App.Width * 0.875

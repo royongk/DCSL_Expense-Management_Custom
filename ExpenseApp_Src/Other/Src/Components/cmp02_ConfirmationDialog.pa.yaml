@@ -1,0 +1,252 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  cmp02_ConfirmationDialog:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      LegalEntity:
+        PropertyKind: Input
+        DisplayName: LegalEntity
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      OnLeftButtonClick:
+        PropertyKind: Event
+        DisplayName: OnLeftButtonClick
+        Description: A custom property
+        ReturnType: Text
+        Default: ="Text"
+      OnRightButtonClick:
+        PropertyKind: Event
+        DisplayName: OnRightButtonClick
+        Description: A custom property
+        ReturnType: Text
+        Default: ="Text"
+        Parameters:
+          - SelectedExpense:
+              Description: A parameter
+              IsOptional: true
+              DataType: Text
+              Default: ="Text"
+          - SelectedReceiptNumber:
+              Description: A parameter
+              IsOptional: true
+              DataType: Text
+              Default: ="Text"
+          - LegalEntity:
+              Description: A parameter
+              IsOptional: true
+              DataType: Text
+              Default: ="Text"
+          - SelectedList:
+              Description: SelectedList
+              IsOptional: true
+              DataType: Table
+              Default: =
+      SelectedExpense:
+        PropertyKind: Input
+        DisplayName: SelectedExpense
+        Description: A custom property
+        DataType: Text
+        Default: =
+      SelectedList:
+        PropertyKind: Input
+        DisplayName: SelectedList
+        Description: List of selected items
+        DataType: Text
+        Default: ="Text"
+      SelectedReceiptNumber:
+        PropertyKind: Input
+        DisplayName: SelectedReceiptNumber
+        Description: A custom property
+        DataType: Text
+        Default: =
+      controlName:
+        PropertyKind: Input
+        DisplayName: controlName
+        Description: Name of the control when used on screen
+        DataType: Text
+        Default: ="Text"
+      parmInDescriptionText:
+        PropertyKind: Input
+        DisplayName: parmInDescriptionText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      parmInHeaderText:
+        PropertyKind: Input
+        DisplayName: parmInHeaderText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      parmInLeftButtonColor:
+        PropertyKind: Input
+        DisplayName: parmInLeftButtonColor
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(0, 0, 0, 1)
+      parmInLeftButtonText:
+        PropertyKind: Input
+        DisplayName: parmInLeftButtonText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      parmInRightButtonColor:
+        PropertyKind: Input
+        DisplayName: parmInRightButtonColor
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(0, 0, 0, 1)
+      parmInRightButtonText:
+        PropertyKind: Input
+        DisplayName: parmInRightButtonText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      returnFocus:
+        PropertyKind: Input
+        DisplayName: returnFocus
+        Description: Specifies control to return focus to on closing control
+        DataType: Text
+        Default: ="Text"
+    Properties:
+      Height: =App.Height
+      Width: =Max(App.Width, App.MinScreenWidth)
+    Children:
+      - cmp02_shp_DialogOuter:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(0, 0, 0, 0.2)
+            Height: =Parent.Height
+            Width: =Parent.Width
+      - A11yFocusTrap1:
+          Control: CodeComponent
+          ComponentName: msdyn_ExpenseMobile.Controls.A11yFocusTrap
+          Properties:
+            Activate: =cmp02_ConfirmationDialog.Visible
+            ActivationDelay: =1000
+            ContainerName: =cmp02_ConfirmationDialog.controlName
+            ReturnFocus: =cmp02_ConfirmationDialog.returnFocus
+            X: =40
+            Y: =40
+      - btnContainer:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =Color.White
+            Height: =316
+            LayoutDirection: =LayoutDirection.Vertical
+            RadiusBottomLeft: =5
+            RadiusBottomRight: =5
+            RadiusTopLeft: =5
+            RadiusTopRight: |+
+              =5
+            X: |+
+              =(Parent.Width - Self.Width)/2
+            Y: =(Parent.Height - Self.Height)/2
+          Children:
+            - cmp02_lbl_DialogHeading:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  FillPortions: =1
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =65
+                  Size: =25
+                  Text: =cmp02_ConfirmationDialog.parmInHeaderText
+                  Width: =Parent.Width
+                  X: =2
+                  Y: =370
+            - cmp02_lbl_DialogDescription:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  FillPortions: =1
+                  Font: =Font.'Segoe UI'
+                  Height: =95
+                  PaddingBottom: =0
+                  PaddingTop: =0
+                  Size: =19
+                  Text: =cmp02_ConfirmationDialog.parmInDescriptionText
+                  Width: =Parent.Width
+                  X: =89
+                  Y: =72
+            - Container26:
+                Control: GroupContainer@1.3.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =30
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - cmp02_btn_DialogLeftButton:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =Self.Color
+                        Color: =cmp02_ConfirmationDialog.parmInLeftButtonColor
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        Fill: =Color.White
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Normal
+                        Height: =66
+                        HoverBorderColor: =Self.BorderColor
+                        HoverColor: =Self.Color
+                        HoverFill: =Self.Fill
+                        OnSelect: =cmp02_ConfirmationDialog.OnLeftButtonClick()
+                        PressedBorderColor: =Self.Color
+                        PressedFill: =Self.Fill
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =23
+                        Text: =cmp02_ConfirmationDialog.parmInLeftButtonText
+                        Width: =210
+                        X: =92
+                        Y: =560
+                  - cmp02_btn_DialogRightButon:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =Self.Color
+                        Color: =cmp02_ConfirmationDialog.parmInRightButtonColor
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        Fill: =Color.White
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Normal
+                        Height: =66
+                        HoverBorderColor: =Self.BorderColor
+                        HoverColor: =Self.Color
+                        HoverFill: =Self.Fill
+                        OnSelect: =cmp02_ConfirmationDialog.OnRightButtonClick(cmp02_ConfirmationDialog.SelectedExpense, cmp02_ConfirmationDialog.SelectedReceiptNumber, cmp02_ConfirmationDialog.LegalEntity, cmp02_ConfirmationDialog.SelectedList)
+                        PressedBorderColor: =Self.Color
+                        PressedFill: =Self.Fill
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =23
+                        Text: =cmp02_ConfirmationDialog.parmInRightButtonText
+                        Width: =210
+                        X: =252
+                        Y: =560

@@ -1,0 +1,118 @@
+"'Profile - About Screen' As screen":
+    Fill: =RGBA(248, 248, 248, 1)
+
+    "'About Screen Top header' As 'header-navigation-PolicyViolation'":
+        BackButtonClicked: |-
+            =If(IsBlank(gblScreenName),
+            Navigate('Expenses - List Screen'),
+            Navigate(gblScreenName)
+            )
+        Fill: =Color.White
+        HeaderText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AboutLabel'
+        Width: =Max(App.Width, App.MinScreenWidth)
+
+    MobileAppLogo As image:
+        DisplayMode: =DisplayMode.View
+        Height: ='Profile - About Screen'.Height * 0.15
+        Image: =ExpenseManagementLogo
+        Width: ='Profile - About Screen'.Width * 0.23
+        X: =App.Width/2 - MobileAppLogo.Width/2
+        Y: ='About Screen Top header'.Height + MobileAppNameLabel.Height * 0.4
+        ZIndex: =2
+
+    MobileAppNameLabel As label:
+        DisplayMode: =DisplayMode.View
+        FontWeight: =FontWeight.Bold
+        Height: ='Profile - About Screen'.Height * 0.053
+        Size: =21
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseManagementLabel'
+        Width: =320
+        X: ='Profile - About Screen'.Width/2 - MobileAppNameLabel.Width/2
+        Y: =MobileAppLogo.Y + MobileAppLogo.Height + 4
+        ZIndex: =3
+
+    BackgroundRectangle As rectangle:
+        DisplayMode: =DisplayMode.View
+        Fill: =Color.White
+        Height: =SessionIdValue.Height + AppVersionValue.Height * 1.8
+        Width: =App.Width
+        Y: =MobileAppNameLabel.Y + MobileAppNameLabel.Height + 55
+        ZIndex: =4
+
+    AppVersionLabel As label:
+        Height: =58
+        Size: =21
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AppVersionLabel'
+        Width: =236
+        X: =24
+        Y: =BackgroundRectangle.Y + 13
+        ZIndex: =5
+
+    Session_Id_label As label:
+        Height: =72
+        Size: =21
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SessionIdLabel'
+        Width: =148
+        X: =24
+        Y: =AppVersionValue.Y + AppVersionValue.Height
+        ZIndex: =6
+
+    AppVersionValue As label:
+        Align: =Align.Right
+        DisplayMode: =DisplayMode.View
+        Height: =70
+        Size: =21
+        Text: =LookUp(Solutions, Name = "msdyn_ExpenseMobileApp", Version)
+        Width: =App.Width * 0.54
+        X: |-
+            =//AppVersionLabel.X + AppVersionLabel.Width + AppVersionLabel.Height * 0.6
+            App.Width - AppVersionValue.Width - 2
+        Y: =BackgroundRectangle.Y + 13
+        ZIndex: =7
+
+    SessionIdValue As label:
+        Align: =Align.Right
+        Height: =58
+        Size: =21
+        Text: =Host.SessionID
+        Width: =App.Width * 0.54
+        X: |-
+            =//AppVersionLabel.X + AppVersionLabel.Width + AppVersionLabel.Height * 0.6
+            App.Width - SessionIdValue.Width - 2
+        Y: =AppVersionValue.Y + AppVersionValue.Height
+        ZIndex: =8
+
+    AboutScreenDoneButton As button:
+        DisplayMode: |
+            =DisplayMode.Edit
+        Fill: =RGBA(34, 102, 227, 1)
+        Font: =Font.'Segoe UI'
+        Height: =87
+        OnSelect: |-
+            =If(IsBlank(gblScreenName),
+            Navigate('Expenses - List Screen'),
+            Navigate(gblScreenName)
+            )
+        Size: =24
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'
+        Width: =Parent.Width -  Self.X*2
+        X: =40
+        Y: =Parent.Height - Self.Height - 25
+        ZIndex: =10
+
+    CopySessionIdIcon As icon.Copy:
+        AccessibleLabel: ="Copy session id"
+        Height: =32
+        Icon: =Icon.Copy
+        OnSelect: =Copy(Host.SessionID)
+        TabIndex: =0
+        Width: =38
+        X: =172
+        Y: =AppVersionValue.Y + AppVersionValue.Height + 13 
+        ZIndex: =11
+

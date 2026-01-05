@@ -1,0 +1,194 @@
+cmp_ApprovalsFooter_3 As CanvasComponent:
+    OnApprovalsButtonClick():
+        ThisProperty:
+            Default: ="Text"
+    OnDelegateButtonClick():
+        ThisProperty:
+            Default: ="Text"
+    OnRejectButtonClick():
+        ThisProperty:
+            Default: =true
+    ApprovalText: ="Text"
+    DelegateText: ="Text"
+    DisplayMode: =true
+    Fill: =RGBA(250, 249, 248, 1)
+    Height: =100
+    IsDelegateVisible: =true
+    OnReset: =Set(varSelectedTab,cmp_ApprovalsFooter_3.paramInDefaultSelectedTab)
+    paramInDefaultSelectedTab: =2
+    paramOutSelectedTabIndex: =
+    RejectText: ="Text"
+    Width: =Max(App.Width, App.MinScreenWidth)
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    cmp_footer_img_Approve_3 As image:
+        DisplayMode: |-
+            =If(
+                cmp_ApprovalsFooter_3.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Height: =40.96
+        Image: =ApprovalIcon
+        OnSelect: =cmp_ApprovalsFooter_3.OnApprovalsButtonClick()
+        Width: =40.96
+        X: =(delegateRegion_5.X + approveRegion_5.X)/2 - 20
+        Y: =14.88
+        ZIndex: =1
+
+    cmp_footer_img_Delegate_3 As image:
+        DisplayMode: |-
+            =If(
+                cmp_ApprovalsFooter_3.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Height: =40.96
+        Image: =DelegateIcon
+        OnSelect: =cmp_ApprovalsFooter_3.OnDelegateButtonClick()
+        Visible: =cmp_ApprovalsFooter_3.IsDelegateVisible
+        Width: =40.96
+        X: =(rejectRegion_5.X + delegateRegion_5.X)/2 - 20
+        Y: =16.59
+        ZIndex: =2
+
+    cmp_footer_img_Reject_3 As image:
+        DisplayMode: |-
+            =If(
+                cmp_ApprovalsFooter_3.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Height: =40.96
+        Image: =RejectIcon
+        OnSelect: =cmp_ApprovalsFooter_3.OnRejectButtonClick()
+        Width: =40.96
+        X: =(rejectRegion_5.X + Parent.Width)/2 - 20
+        Y: =14.88
+        ZIndex: =3
+
+    cmp_footer_lbl_Approve_3 As label:
+        Align: =Align.Center
+        Color: =RGBA(34, 102, 227, 1)
+        DisplayMode: |-
+            =If(
+                cmp_ApprovalsFooter_3.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Font: =Font.'Segoe UI'
+        Height: =28
+        PaddingBottom: =0
+        PaddingLeft: =0
+        PaddingTop: =0
+        Size: =16
+        Text: =cmp_ApprovalsFooter_3.ApprovalText
+        Width: =App.Width / 3
+        Wrap: =false
+        Y: =60
+        ZIndex: =4
+
+    cmp_footer_lbl_Delegate_3 As label:
+        Align: =Align.Center
+        Color: =RGBA(34, 102, 227, 1)
+        DisplayMode: |-
+            =If(
+                cmp_ApprovalsFooter_3.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Font: =Font.'Segoe UI'
+        Height: =28
+        PaddingBottom: =0
+        PaddingLeft: =0
+        PaddingTop: =0
+        Size: =16
+        Text: =cmp_ApprovalsFooter_3.DelegateText
+        Visible: =cmp_ApprovalsFooter_3.IsDelegateVisible
+        Width: =App.Width / 3
+        Wrap: =false
+        X: =cmp_footer_lbl_Approve_3.Width
+        Y: =60
+        ZIndex: =5
+
+    cmp_footer_lbl_Reject_3 As label:
+        Align: =Align.Center
+        Color: |
+            =RGBA(165, 33, 33, 1)
+        DisplayMode: |-
+            =If(
+                cmp_ApprovalsFooter_3.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Font: =Font.'Segoe UI'
+        Height: =28
+        PaddingBottom: =0
+        PaddingLeft: =0
+        PaddingTop: =0
+        Size: =16
+        Text: =cmp_ApprovalsFooter_3.RejectText
+        Width: =App.Width / 3
+        Wrap: =false
+        X: =cmp_footer_lbl_Delegate_3.Width + cmp_footer_lbl_Delegate_3.X
+        Y: =60
+        ZIndex: =6
+
+    delegateRegion_5 As rectangle:
+        AccessibleLabel: ="Select to delegate current workitem"
+        DisplayMode: |-
+            =If(
+                cmp_ApprovalsFooter_3.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Fill: =RGBA(0, 0, 0, 0)
+        FocusedBorderThickness: =0
+        Height: =Parent.Height
+        HoverFill: =
+        OnSelect: =Select(cmp_footer_img_Delegate_3)
+        PressedFill: =
+        TabIndex: =0
+        Width: =Parent.Width/3
+        X: =Self.Width
+        ZIndex: =9
+
+    approveRegion_5 As rectangle:
+        AccessibleLabel: ="Select to approve current workitem"
+        DisplayMode: |-
+            =If(
+                cmp_ApprovalsFooter_3.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Fill: =RGBA(0, 0, 0, 0)
+        FocusedBorderThickness: =0
+        Height: =Parent.Height
+        HoverFill: =
+        OnSelect: =Select(cmp_footer_img_Approve_3)
+        PressedFill: =
+        TabIndex: =0
+        Width: =Parent.Width/3
+        ZIndex: =10
+
+    rejectRegion_5 As rectangle:
+        AccessibleLabel: ="Select to reject current workitem"
+        DisplayMode: |-
+            =If(
+                cmp_ApprovalsFooter_3.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Fill: =RGBA(0, 0, 0, 0)
+        FocusedBorderThickness: =0
+        Height: =Parent.Height
+        HoverFill: =
+        OnSelect: =Select(cmp_footer_img_Reject_3)
+        PressedFill: =
+        TabIndex: =0
+        Width: =Parent.Width/3
+        X: =2 * Self.Width
+        ZIndex: =11
+

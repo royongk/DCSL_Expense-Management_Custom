@@ -1,0 +1,632 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Approvals - Filters Screen:
+    Properties:
+      Fill: |+
+        =RGBA(244, 244, 244, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+    Children:
+      - scr25_cmb_DateFilter:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            ChevronBackground: =RGBA(56, 96, 178, 1)
+            ChevronFill: =RGBA(255, 255, 255, 1)
+            ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            ChevronHoverFill: =RGBA(255, 255, 255, 1)
+            DefaultSelectedItems: =colSelectedFilterOptions
+            DisplayFields: =["title"]
+            Font: =Font.'Open Sans'
+            HoverFill: =RGBA(186, 202, 226, 1)
+            IsSearchable: =false
+            Items: =collApprovedFilterOptions
+            PressedColor: =RGBA(255, 255, 255, 1)
+            PressedFill: =RGBA(0, 18, 107, 1)
+            SearchFields: =["title"]
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =RGBA(56, 96, 178, 1)
+            TabIndex: =-1
+            Visible: =false
+            Y: =637
+      - scr25_shp_ButtonCard:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(248, 248, 248, 1)
+            Height: =250
+            Width: =Parent.Width
+            Y: =Parent.Height-scr25_shp_ButtonCard.Height
+      - scr25_btn_Cancel:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            Color: |+
+              =RGBA(34, 102, 227, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =Color.White
+            Font: =Font.'Segoe UI'
+            Height: =76
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |-
+              =Select(scr25_lbl_ClearAll);
+              Navigate('Approvals - List Screen')
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Size: =19.15
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+            Width: =Parent.Width -  Self.X*2
+            X: =40
+            Y: =scr25_shp_ButtonCard.Y + 140
+      - scr25_btn_ApplyFilter:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: |
+              =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            Height: =76
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |+
+              =//Store the values context variables
+              //Navigate(scr21_ApprovalsList)
+              UpdateContext({varSelectedUsers : scr25_cmb_User.SelectedItems});
+              UpdateContext({varSelectedProjects : scr25_cmb_Project.SelectedItems});
+              UpdateContext({
+                  varMinMaxAmounts : {
+                          minAmount : Coalesce(Value(scr25_txt_MinAmount.Text), 0), 
+                          maxAmount : Coalesce(Value(scr25_txt_MaxAmount.Text), 1000000)
+                  }
+              });
+              UpdateContext({varDateFilter : First(SortByColumns(colSelectedFilterOptions, "number")).number}); 
+              Navigate('Approvals - List Screen', ScreenTransition.None, 
+                  {
+                      varSelectedUsers : varSelectedUsers, 
+                      varSelectedProjects : varSelectedProjects,
+                      varMinMaxAmounts : varMinMaxAmounts,
+                      varDateFilter : varDateFilter,
+                      varFiltersApplied : ((!IsBlank(varSelectedUsers) && !IsEmpty(varSelectedUsers)) ||
+                                           (!IsBlank(varSelectedProjects) && !IsEmpty(varSelectedProjects)) ||
+                                           (varMinMaxAmounts.minAmount <> 0 || varMinMaxAmounts.maxAmount <> 1000000) ||
+                                           (!IsBlank(varSelectedProjects) && !IsEmpty(varSelectedProjects)))
+                  }
+              )
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =19.15
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApplyLabel'
+            Width: =Parent.Width -  Self.X*2
+            X: =40
+            Y: |-
+              =
+              scr25_shp_ButtonCard.Y + 35
+      - Filters:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =scr25_shp_ButtonCard.Y - Self.Y
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =15
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =scr25_hdr_TopHeader.Height
+          Children:
+            - User:
+                Control: GroupContainer@1.3.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =150
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMinWidth: =Parent.Width
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingLeft: =15
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Container16:
+                      Control: GroupContainer@1.3.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =75
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - scr25_img_User:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =userIcon
+                              Width: =22
+                              X: =scr17_txt_Description_1.X
+                              Y: =scr25_cmb_User.Y - (15 + Self.Height)
+                        - scr25_lbl_User:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_UserLabel'
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =300
+                              X: |-
+                                =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                                8
+                              Y: =scr25_img_User.Y - 5
+                  - scr25_cmb_User:
+                      Control: Classic/ComboBox@2.4.0
+                      Properties:
+                        AccessibleLabel: ="Dropdown to filter user"
+                        BorderColor: =gblParams.dropDownBorderColor
+                        BorderThickness: =gblParams.dorpDownBorderThickness
+                        ChevronBackground: =RGBA(56, 96, 178, 1)
+                        ChevronFill: =RGBA(255, 255, 255, 1)
+                        ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                        ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                        DisplayFields: =["Value","mserp_description"]
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Open Sans'
+                        Height: =gblParams.dropDownHeight
+                        HoverFill: =gblParams.dropDownHoverFill
+                        InputTextPlaceholder: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterUserNameLabel'
+                        Items: =Distinct(Filter(workItemsAssignedToMe[@mserp_creatinguser],!IsBlank(CreatingUser) && CreatingUser <> ""),CreatingUser)
+                        NoSelectionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterUserNameLabel'
+                        OnChange: =
+                        OnSelect: |-
+                          =UpdateContext({varOnSelectTriggered: true});
+                        PressedColor: =RGBA(255, 255, 255, 1)
+                        PressedFill: =RGBA(0, 18, 107, 1)
+                        SearchFields: =["Value"]
+                        SelectionColor: =Color.Black
+                        SelectionFill: =gblParams.dropDownBorderColor
+                        SelectionTagColor: =RGBA(0, 0, 0, 1)
+                        Size: =24
+                        Width: =Parent.Width - 2 * Self.X
+                        X: =40
+                        Y: =158
+            - Project:
+                Control: GroupContainer@1.3.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =150
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMinWidth: =Parent.Width
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingLeft: =15
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Container17:
+                      Control: GroupContainer@1.3.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =75
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - scr25_img_Project:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =projectIcon
+                              Width: =22
+                              X: =scr17_txt_Description_1.X
+                              Y: =scr25_cmb_Project.Y - (15 + Self.Height)
+                        - scr25_lbl_Project:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ProjectLabel'
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =300
+                              X: |-
+                                =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                                8
+                              Y: =scr25_img_Project.Y - 5
+                  - scr25_cmb_Project:
+                      Control: Classic/ComboBox@2.4.0
+                      Properties:
+                        AccessibleLabel: ="Dropdown to filter by project"
+                        BorderColor: =gblParams.dropDownBorderColor
+                        BorderThickness: =gblParams.dorpDownBorderThickness
+                        ChevronBackground: =RGBA(56, 96, 178, 1)
+                        ChevronFill: =RGBA(255, 255, 255, 1)
+                        ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                        ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                        DisplayFields: =["Value","mserp_description"]
+                        FocusedBorderThickness: =2
+                        Font: =Font.'Open Sans'
+                        Height: =gblParams.dropDownHeight
+                        HoverFill: =gblParams.dropDownHoverFill
+                        InputTextPlaceholder: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectNameLabel'
+                        Items: =Distinct(Filter(workItemsAssignedToMe[@mserp_projectname],!IsBlank('Project name') && 'Project name' <> ""),'Project name')
+                        NoSelectionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectNameLabel'
+                        OnChange: =
+                        OnSelect: |-
+                          =UpdateContext({varOnSelectTriggered: true});
+                        PressedColor: =RGBA(255, 255, 255, 1)
+                        PressedFill: =RGBA(0, 18, 107, 1)
+                        SearchFields: =["Value"]
+                        SelectionColor: =Color.Black
+                        SelectionFill: =gblParams.dropDownBorderColor
+                        SelectionTagColor: =RGBA(0, 0, 0, 1)
+                        Size: =24
+                        Width: =Parent.Width - 2 * Self.X
+                        X: =40
+                        Y: =303
+            - Amount:
+                Control: GroupContainer@1.3.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =275
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMinWidth: =Parent.Width
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingLeft: =15
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Container19:
+                      Control: GroupContainer@1.3.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width - Self.X * 2
+                      Children:
+                        - scr25_img_Amount:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =amountIcon
+                              Width: =22
+                              X: =scr17_txt_Description_1.X
+                              Y: =scr25_txt_MinAmount.Y - (35 + Self.Height)
+                        - scr25_lbl_Amount:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              TabIndex: =0
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AmountLabel'
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =300
+                              X: |-
+                                =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                                8
+                              Y: =scr25_img_Amount.Y - 5
+                  - scr25_shp_AmountSeparator:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =RGBA(200, 200, 200, 1)
+                        Height: =0.85
+                        Width: |+
+                          =Parent.Width -  Self.X*2
+                        X: =40
+                        Y: =scr25_img_Amount.Y + scr25_img_Amount.Height + 7
+                  - Container21:
+                      Control: GroupContainer@1.3.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =100
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =50
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width - Self.X * 2
+                      Children:
+                        - scr25_lbl_MinAmount:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =83
+                              Size: =18
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_MinimumAmountLabel'
+                              Width: =250
+                              X: =36
+                              Y: =478
+                        - scr25_txt_MinAmount:
+                            Control: Classic/TextInput@2.3.2
+                            Properties:
+                              AccessibleLabel: ="Textbox to filter by minimum amount"
+                              BorderColor: =gblParams.dropDownBorderColor
+                              Default: =
+                              Font: =Font.'Open Sans'
+                              Height: =gblParams.dropDownHeight
+                              HintText: ="0"
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              OnChange: =
+                              Size: =24
+                              Width: =290
+                              X: =310
+                              Y: =493
+                  - Container23:
+                      Control: GroupContainer@1.3.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =100
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width - Self.X * 2
+                      Children:
+                        - scr25_lbl_MaxAmount:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =83
+                              Size: =18
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_MaximumAmountLabel'
+                              Width: =250
+                              X: =36
+                              Y: =561
+                        - scr25_txt_MaxAmount:
+                            Control: Classic/TextInput@2.3.2
+                            Properties:
+                              AccessibleLabel: ="Textbox to filter by maximum amount"
+                              BorderColor: =gblParams.dropDownBorderColor
+                              Default: =
+                              Font: =Font.'Open Sans'
+                              Height: =gblParams.dropDownHeight
+                              HintText: ="10000000"
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              Size: =24
+                              Width: =290
+                              X: =274
+                              Y: =95
+            - Date:
+                Control: GroupContainer@1.3.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMinWidth: =Parent.Width
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingLeft: =15
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Container24:
+                      Control: GroupContainer@1.3.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width -  Self.X*2
+                      Children:
+                        - scr25_img_DateFilter:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =dateIcon
+                              Width: =22
+                              X: =scr17_txt_Description_1.X
+                              Y: =scr25_glr_DateFilterOptions.Y - (15 + Self.Height)
+                        - scr25_lbl_DateFilter:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DateLabel'
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =300
+                              X: |-
+                                =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                                8
+                              Y: =scr25_img_DateFilter.Y - 5
+                  - scr25_shp_DateSeparator:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =RGBA(200, 200, 200, 1)
+                        Height: =0.85
+                        Width: =scr25_cmb_Project.Width
+                        X: |+
+                          =40
+                        Y: =scr25_img_DateFilter.Y + scr25_img_DateFilter.Height + 7
+                  - scr25_glr_DateFilterOptions:
+                      Control: Gallery@2.15.0
+                      Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                      Properties:
+                        AccessibleLabel: ="Choose date "
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =182
+                        Items: =collApprovedFilterOptions
+                        OnSelect: =
+                        TemplateSize: =77
+                        Width: |+
+                          =Parent.Width -  Self.X*2
+                        WrapCount: =2
+                        Y: =711
+                      Children:
+                        - scr25_chk_DataSelect:
+                            Control: Classic/CheckBox@2.1.0
+                            Properties:
+                              BorderColor: =gblParams.dropDownBorderColor
+                              CheckboxBackgroundFill: |-
+                                =If(
+                                    Self.Value,
+                                    gblParams.dropDownBorderColor,
+                                    Color.White
+                                )
+                              CheckboxBorderColor: =gblParams.dropDownBorderColor
+                              CheckboxSize: =50
+                              CheckmarkFill: =Color.White
+                              Default: =ThisItem in colSelectedFilterOptions
+                              DisplayMode: |+
+                                =DisplayMode.Edit
+                              FocusedBorderThickness: |+
+                                =0
+                              Font: =Font.'Open Sans'
+                              Height: |+
+                                =50
+                              HoverBorderColor: =Color
+                              HoverColor: =RGBA(0, 18, 107, 1)
+                              OnCheck: =Collect(colSelectedFilterOptions, ThisItem)
+                              OnSelect: =
+                              OnUncheck: =Remove(colSelectedFilterOptions, ThisItem)
+                              Size: =18
+                              Text: =ThisItem.title
+                              X: =28
+                              Y: =10
+      - scr25_hdr_TopHeader:
+          Control: CanvasComponent
+          ComponentName: hdr02_Header
+          Properties:
+            Fill: =scr25_hdr_TopHeader.paramFill
+            Height: =82
+            Width: =Max(App.Width, App.MinScreenWidth)
+            paramColor: =RGBA(0, 0, 0, 1)
+            paramFill: =RGBA(255, 255, 255, 1)
+            paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterLabel'
+      - scr25_ico_Back:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =icongconfig_backbutton.Color
+            Fill: =icongconfig_backbutton.Fill
+            Height: =icongconfig_backbutton.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: =Select(scr25_btn_Cancel)
+            TabIndex: =0
+            Width: =icongconfig_backbutton.Width
+            X: =22
+            Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
+      - scr25_lbl_ClearAll:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |+
+              =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            FontWeight: =FontWeight.Semibold
+            Height: =82
+            OnSelect: |-
+              =Reset(scr25_cmb_Project);
+              Reset(scr25_cmb_User);
+              Reset(scr25_txt_MaxAmount);
+              Reset(scr25_txt_MinAmount);
+              Reset(scr25_cmb_DateFilter);
+              Clear(colSelectedFilterOptions)
+            Size: =16
+            TabIndex: =0
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ClearAllLabel'
+            Width: =193
+            X: =(Parent.Width - Self.Width)

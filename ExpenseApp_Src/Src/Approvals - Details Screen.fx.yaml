@@ -1,0 +1,1180 @@
+"'Approvals - Details Screen' As screen":
+    Fill: =RGBA(244, 244, 244, 1)
+
+    scr22_shp_Rectangle As rectangle:
+        Fill: =Color.White
+        Height: =115
+        Visible: =false
+        Width: |
+            =Parent.Width
+        Y: =scr22_hdr_TopHeader.Height + scr22_btn_TabView.Height - 2
+        ZIndex: =1
+
+    scr22_cmp_ApprovalsFooter As cmp_ApprovalsFooter_3:
+        ApprovalText: |-
+            =Upper(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApproveLabel')
+        DelegateText: |-
+            =Upper(GlobalLabels.Labels.'15062:LocalizedName,msdyn_DelegateLabel')
+        Height: =135
+        OnApprovalsButtonClick: |-
+            =Navigate('Approvals - Action Screen', ScreenTransition.None, {varAction : 1, varNavigatedFrom: "scr22"});
+        OnDelegateButtonClick: |-
+            =Navigate('Approvals - Delegate Screen', ScreenTransition.None, {varNavigatedFrom : "scr22"})
+        OnRejectButtonClick: |-
+            =Navigate('Approvals - Action Screen', ScreenTransition.None, {varAction : 2, varNavigatedFrom: "scr22"});
+        RejectText: |-
+            =Upper(GlobalLabels.Labels.'15062:LocalizedName,msdyn_RejectLabel')
+        Y: =Parent.Height - Self.Height
+        ZIndex: =2
+
+    TotalsContainer_ReportDetails As groupContainer.horizontalAutoLayoutContainer:
+        Fill: =RGBA(250, 249, 248, 1)
+        Height: |
+            =100
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutGap: =10
+        LayoutMode: =LayoutMode.Auto
+        PaddingLeft: =15
+        PaddingRight: =15
+        Width: =Parent.Width
+        Y: =scr22_cmp_ApprovalsFooter.Y - Self.Height
+        ZIndex: =3
+
+        scr22_img_Totals As image:
+            Height: =21
+            Image: =ShapeTotal
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =320
+            LayoutMinWidth: =320
+            Width: =28
+            X: =39
+            Y: =
+            ZIndex: =1
+
+        scr22_lbl_Totals As label:
+            Font: =Font.'Segoe UI'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =560
+            Size: =19.15
+            TabIndex: =0
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_TotalLabel'
+            Width: =120
+            X: =scr22_img_Totals.X + scr22_img_Totals.Width + 9
+            Y: =936
+            ZIndex: =2
+
+        scr22_lbl_TotalAmount As label:
+            Align: =Align.Right
+            BorderColor: =RGBA(0, 0, 0, 1)
+            FillPortions: =1
+            Font: =Font.'Segoe UI'
+            FontWeight: =FontWeight.Bold
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =300
+            OnSelect: =
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =21
+            TabIndex: =0
+            Text: |
+                =/*Concatenate(
+                    If(
+                        !IsBlank(varSelectedWorkItem),
+                        Text(
+                            Value(varSelectedWorkItem.AmountMST),
+                            "#,#0.00",
+                            varDefaultLanguage
+                        ),
+                        Text(
+                            Value("0"),
+                            "#,#0.00",
+                            varDefaultLanguage
+                        )
+                    ),
+                    " ",
+                    LookUp(
+                        'Currencies (mserp)',
+                        'Currency code' = varDefaultCurrency,
+                        'Currency code'
+                    )
+                )*/
+                Concatenate(Text(Value(varSelectedWorkItem.TotalAmount),"#,#0.00", varDefaultLanguage), " ", varSelectedWorkItem.AmountCurrency)
+            VerticalAlign: =VerticalAlign.Top
+            Width: =250
+            X: =scr17_btn_SaveDraft_1.X + scr17_btn_SaveDraft_1.Width - Self.Width
+            Y: =936
+            ZIndex: =3
+
+    WorkItemDetails As groupContainer.verticalAutoLayoutContainer:
+        Height: =TotalsContainer_ReportDetails.Y - Self.Y
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutMode: =LayoutMode.Auto
+        LayoutOverflowY: =LayoutOverflow.Scroll
+        Visible: =varSelectedTab = 1
+        Width: =Parent.Width
+        Y: =scr22_btn_TabView.Height + scr22_btn_TabView.Y
+        ZIndex: =4
+
+        Details As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Fill: =Color.White
+            FillPortions: =0
+            Height: =125
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            Width: =Parent.Width
+            ZIndex: =1
+
+            Container6_4 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =Parent.Height
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width
+                ZIndex: =1
+
+                shpBorder_14 As rectangle:
+                    Fill: =Color.Transparent
+                    Height: =Parent.Height
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    Width: =10
+                    ZIndex: =1
+
+                scr22_img_UserImage_1 As image:
+                    AlignInContainer: =AlignInContainer.Center
+                    Height: =45
+                    Image: =blankImage
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    OnSelect: =
+                    RadiusBottomLeft: =45
+                    RadiusBottomRight: =45
+                    RadiusTopLeft: =45
+                    RadiusTopRight: =45
+                    Visible: =varSelectedTab = 1
+                    Width: =45
+                    X: =scr21_chk_Select.X
+                    Y: =scr22_shp_Rectangle.Y + (scr22_shp_Rectangle.Height - Self.Height)/2
+                    ZIndex: =2
+
+                shpBorder_12 As rectangle:
+                    Fill: =Color.Transparent
+                    Height: =Parent.Height
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    Width: =10
+                    ZIndex: =3
+
+                Container7_4 As groupContainer.verticalAutoLayoutContainer:
+                    Height: =225
+                    LayoutDirection: =LayoutDirection.Vertical
+                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =112
+                    LayoutMinWidth: =175
+                    LayoutMode: =LayoutMode.Auto
+                    ZIndex: =4
+
+                    scr22_lbl_Purpose_1 As label:
+                        Font: =Font.'Segoe UI'
+                        Height: =34
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        OnSelect: =
+                        Size: =21
+                        Text: =varSelectedWorkItem.Purpose
+                        Visible: =varSelectedTab = 1
+                        Width: =250
+                        Wrap: =false
+                        X: =scr21_chk_Select.X + scr21_chk_Select.Width + 10
+                        Y: =scr22_shp_Rectangle.Y + 22
+                        ZIndex: =1
+
+                    scr22_lbl_Owner_1 As label:
+                        Font: =Font.'Segoe UI'
+                        Height: =32
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        OnSelect: =
+                        Size: =21
+                        Text: =varSelectedWorkItem.CreatingUser
+                        Visible: =varSelectedTab = 1
+                        Width: =371
+                        Wrap: =false
+                        X: =scr21_chk_Select.X + scr21_chk_Select.Width + 10
+                        Y: =
+                        ZIndex: =2
+
+                Container9_4 As groupContainer.verticalAutoLayoutContainer:
+                    FillPortions: =0
+                    Height: =225
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutDirection: =LayoutDirection.Vertical
+                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =112
+                    LayoutMinWidth: =250
+                    LayoutMode: =LayoutMode.Auto
+                    Width: =250
+                    ZIndex: =5
+
+                    scr22_lbl_ProjDetails_1 As label:
+                        Align: =Align.Right
+                        Font: =Font.'Segoe UI'
+                        Height: =39
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        OnSelect: =
+                        Size: =21
+                        Text: =varSelectedWorkItem.'Project name'
+                        Visible: =varSelectedTab = 1
+                        Width: =250
+                        Wrap: =false
+                        X: =Parent.Width - Self.Width - 50
+                        Y: =
+                        ZIndex: =1
+
+                    scr22_lbl_Date_1 As label:
+                        Align: =Align.Right
+                        Color: |
+                            =RGBA(102, 102, 102, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =29
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        OnSelect: =
+                        Size: =16.5
+                        Text: |-
+                            =Text(
+                                DateValue(varSelectedWorkItem.'Payment date'),
+                                "mmm dd, yyyy"
+                            )
+                        Visible: =varSelectedTab = 1
+                        X: =scr22_lbl_ProjDetails_1.X +scr22_lbl_ProjDetails_1.Width - Self.Width
+                        Y: =scr22_lbl_ProjDetails_1.Y + scr22_lbl_ProjDetails_1.Height
+                        ZIndex: =2
+
+        Description As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =150
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingTop: =15
+            Width: =Parent.Width
+            X: =40
+            Y: =40
+            ZIndex: =2
+
+            scr22_lbl_Description_1 As label:
+                Font: =Font.'Segoe UI'
+                Height: =32
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                PaddingBottom: =0
+                PaddingTop: =0
+                Size: =18
+                Text: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DescriptionLabel'
+                VerticalAlign: =VerticalAlign.Top
+                Visible: =varSelectedTab = 1
+                Width: =200
+                X: =20
+                Y: =scr22_shp_Rectangle.Y + scr22_shp_Rectangle.Height + 15
+                ZIndex: =1
+
+            scr22_lbl_DescriptionText_1 As label:
+                Color: |
+                    =RGBA(110, 110, 110, 1)
+                Fill: =Color.White
+                Height: =80
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                PaddingLeft: =20
+                Size: =21
+                Text: =varSelectedWorkItem.Description
+                Visible: =varSelectedTab = 1
+                Width: =Parent.Width
+                Y: =scr22_lbl_Description_1.Y + scr22_lbl_Description_1.Height + 15
+                ZIndex: =2
+
+        Justification As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =175
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =20
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingTop: =10
+            Width: =Parent.Width
+            X: =60
+            Y: =60
+            ZIndex: =3
+
+            scr22_lbl_Justification_1 As label:
+                Font: =Font.'Segoe UI'
+                Height: =32
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                PaddingBottom: =0
+                PaddingTop: =0
+                Size: =18
+                Text: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_JustificationLabel'
+                VerticalAlign: =VerticalAlign.Top
+                Visible: =varSelectedTab = 1
+                Width: =200
+                X: =20
+                Y: =
+                ZIndex: =1
+
+            scr22_lbl_JustificationText_1 As label:
+                Color: |
+                    =RGBA(110, 110, 110, 1)
+                Fill: =Color.White
+                Height: =105
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                PaddingLeft: =20
+                PaddingTop: =15
+                Size: =21
+                Text: =varSelectedWorkItem.ApproverJustification
+                VerticalAlign: =VerticalAlign.Top
+                Visible: =varSelectedTab = 1
+                Width: =Parent.Width
+                Y: =scr22_lbl_Justification_1.Y + scr22_lbl_Justification_1.Height + 15
+                ZIndex: =2
+
+        AttachedExpenses As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =225
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingTop: =10
+            Width: =Parent.Width
+            X: =80
+            Y: =80
+            ZIndex: =4
+
+            scr22_lbl_NumberOfAttachedExp_1 As label:
+                Font: =Font.'Segoe UI'
+                Height: =32
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                PaddingBottom: =0
+                PaddingTop: =0
+                Size: =18
+                Text: |-
+                    =If(
+                        varSelectedWorkItem.AttachedExpenseCount = 0,
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoAttachedExpensesLabel',
+                        Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachedExpensesCountLabel', "$", varSelectedWorkItem.AttachedExpenseCount) 
+                    )
+                VerticalAlign: =VerticalAlign.Top
+                Visible: =varSelectedTab = 1
+                Width: =350
+                X: =20
+                Y: =
+                ZIndex: =1
+
+            "scr22_glr_AttachedExpenses_1 As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver4.0'":
+                '#CopilotOverlayLabel': ="Filtered"
+                AccessibleLabel: ="List of expenses against work item"
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Fill: =Color.White
+                FocusedBorderColor: =
+                FocusedBorderThickness: =0
+                Height: =
+                Items: =Filter(colExpensesAgainstWorkItem, 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+                Layout: =Layout.Vertical
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =287
+                LayoutMinWidth: =Parent.Width
+                OnSelect: |
+                    =
+                    Concurrent(
+                        Set(
+                            varIsCreate,
+                            false
+                        ),
+                        Set(
+                            varReceiptImage,  //set as receiptUrl of attached expense
+                            Blank()
+                        )
+                    );
+                    Set(
+                        varExpenseAgainstWorkItem,
+                        LookUp('Expense Lines Attached to a Report for Approvals (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                    );
+                    Set(
+                        varReceiptImage,
+                        LookUp(receiptsAgainstWorkItems,ExpenseLineAttachedTo = varExpenseAgainstWorkItem.'Expense transaction number (mserp_exptransnumber)',CapturedDocument)
+                    );
+                    Set(
+                        varFileFormat,
+                        LookUp(receiptsAgainstWorkItems,ExpenseLineAttachedTo = varExpenseAgainstWorkItem.'Expense transaction number (mserp_exptransnumber)',FileExtension)
+                    );
+                    Set(
+                        varSelectedReceiptNumber,
+                        Blank()
+                    );
+                    If(
+                        varExpenseAgainstWorkItem.PolicyViolationCount,
+                        ClearCollect(
+                            colPolViolations,
+                            Split(varExpenseAgainstWorkItem.PolicyViolationMessage, "~|~")
+                        );
+                        UpdateContext({varMaxViolationLevel : varExpenseAgainstWorkItem.PolicyViolationsLevel});
+                        UpdateContext({varNumViolation : varExpenseAgainstWorkItem.PolicyViolationCount}),
+                        Clear(colPolViolations);
+                        UpdateContext({varMaxViolationLevel : 0});
+                        UpdateContext({varNumViolation : 0})
+                    );
+                    UpdateContext({testVar : varExpenseAgainstWorkItem});
+                    Navigate('Expenses - View Only Screen', ScreenTransition.None, {varNavigatedFrom : "scr22", varMaxViolationLevel : varMaxViolationLevel, varNumViolation : varNumViolation})
+                ShowScrollbar: =false
+                TemplatePadding: =0
+                TemplateSize: =129
+                Visible: =varSelectedTab = 1
+                Width: =Parent.Width
+                Y: =scr22_lbl_NumberOfAttachedExp_1.Y + scr22_lbl_NumberOfAttachedExp_1.Height + 10 
+                ZIndex: =2
+
+                scr22_img_Category_1 As image:
+                    Height: =30
+                    Image: |-
+                        =If(
+                            Value(ThisItem.PolicyViolationsLevel) = 0,
+                            LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').icon,
+                            Value(ThisItem.PolicyViolationsLevel) > 0 && Value(ThisItem.PolicyViolationsLevel) <= 2,
+                            LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').iconYellow,
+                            Value(ThisItem.PolicyViolationsLevel) > 2,
+                            LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').iconRed
+                        )
+                    OnSelect: =Select(Parent)
+                    Width: =50
+                    X: =16
+                    Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+                    ZIndex: =6
+
+                scr22_lbl_Merchant_1 As label:
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =37
+                    LineHeight: =1
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =21
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: |-
+                        =If(
+                            ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
+                            Concatenate("Perdiem - ", ThisItem.Location),
+                            ThisItem.Merchant
+                        )
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =373
+                    Wrap: =false
+                    X: =71
+                    Y: =40
+                    ZIndex: =7
+
+                scr22_shp_Seprator_1 As rectangle:
+                    Fill: =RGBA(225, 225, 225, 1)
+                    Height: =1
+                    Width: =Parent.TemplateWidth
+                    Y: =Parent.TemplateHeight - 1
+                    ZIndex: =8
+
+                scr22_lbl_Amount_1 As label:
+                    Align: =Align.Right
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Bold
+                    Height: =41
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =21
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: |
+                        =Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", ThisItem.'Currency (mserp_exchangecode)')
+                        //LookUp('Currencies (mserp)', 'Currency code' = ThisItem.'Currency (mserp_exchangecode)', 'Currency code')
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =250
+                    Wrap: =false
+                    X: =Parent.Width - scr22_lbl_Amount_1.Width - 15
+                    Y: =scr22_lbl_Merchant_1.Y
+                    ZIndex: =9
+
+                scr22_lbl_Date_3 As label:
+                    Align: =Align.Right
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: |
+                        =RGBA(102, 102, 102, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =28
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =16.5
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: |-
+                        =Text(
+                            DateValue(ThisItem.'Transaction date'),
+                            "mmm dd, yyyy"
+                        )
+                    VerticalAlign: =VerticalAlign.Top
+                    Wrap: =false
+                    X: =scr22_lbl_Amount_1.X + scr22_lbl_Amount_1.Width - Self.Width
+                    Y: =86
+                    ZIndex: =10
+
+                scr22_lbl_ProjectName_1 As label:
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: |
+                        =RGBA(102, 102, 102, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =Self.Size*1.8
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =18
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: =ThisItem.ProjectName
+                    VerticalAlign: =VerticalAlign.Top
+                    Visible: =!(scr22_lbl_Warning_1.Visible)
+                    Width: =scr22_lbl_Merchant_1.Width
+                    Wrap: =false
+                    X: =scr22_lbl_Merchant_1.X
+                    Y: =scr22_lbl_Merchant_1.Y + scr22_lbl_Merchant_1.Height + 4
+                    ZIndex: =11
+
+                scr22_lbl_Warning_1 As label:
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: |-
+                        =If(
+                            Value(ThisItem.PolicyViolationsLevel) <= 2,
+                            RGBA(152, 111, 11, 1),
+                            RGBA(217, 44, 44, 1)
+                        )
+                    Font: =Font.'Segoe UI'
+                    Height: =Self.Size * 1.8
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =18
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: |-
+                        =If(
+                            Value(ThisItem.PolicyViolationCount) > 0,
+                            Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_FoundPolicyViolationLabel', "$", Text(ThisItem.PolicyViolationCount))
+                        )
+                            
+                    VerticalAlign: =VerticalAlign.Top
+                    Visible: |-
+                        =//ThisItem.receiptsAttached ="Yes" 
+                        Value(ThisItem.PolicyViolationCount) > 0
+                    Width: =scr22_lbl_Merchant_1.Width
+                    Wrap: =false
+                    X: =scr22_lbl_Merchant_1.X
+                    Y: =scr22_lbl_Merchant_1.Y + scr22_lbl_Merchant_1.Height + 4
+                    ZIndex: =12
+
+    "scr22_glr_ReceiptGrid As gallery.'BrowseLayout_Vertical_OneImageTwoColumnVariant_ver4.0'":
+        '#CopilotOverlayLabel': ="Filtered"
+        AccessibleLabel: ="Grid of receipts against workitem"
+        BorderColor: =RGBA(166, 166, 166, 1)
+        Height: =TotalsContainer_ReportDetails.Y - Self.Y
+        Items: |
+            =/*Filter(
+                receiptsAgainstWorkItems,
+                ExpenseLineAttachedTo in colExpensesAgainstWorkItem[@mserp_exptransnumber]
+            )*/ //colAttachmentToReport
+            colReceiptAttachToExpenseApprovals
+        Layout: =Layout.Vertical
+        OnSelect: |
+            =Set(
+                varFileFormat,
+                ThisItem.FileExtension
+            );
+            Set(
+                varSelectedReceiptNumber,
+                ThisItem.EntRecId
+            );
+            Set(
+                varReceiptImage,
+                ThisItem.CapturedDocument
+            );
+            Set(
+                VarCurrentReceiptRowNumber,
+                LookUp(
+                    colReceiptAttachToExpenseApprovals,
+                    EntRecId = ThisItem.EntRecId,
+                    RowNumber
+                )
+            );
+            Navigate('Receipts - Select Expense Screen');
+        TemplatePadding: =10
+        TemplateSize: =281
+        Visible: =varSelectedTab = 2
+        Width: =Parent.Width
+        WrapCount: =2
+        Y: =scr22_btn_TabView.Y + scr22_btn_TabView.Height
+        ZIndex: =5
+
+        scr21_ico_Attach As image:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            DisabledBorderColor: =RGBA(0, 134, 208, 1)
+            DisplayMode: |
+                =DisplayMode.Edit
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =24
+            Image: =AttachIconEnabled
+            OnSelect: =Select(Parent)
+            Width: =24
+            X: =24
+            Y: =scr22_lbl_WhiteFill.Y + scr22_lbl_WhiteFill.Height
+            ZIndex: =1
+
+        scr22_crd_ReceiptGrid_1 As image:
+            Height: =263
+            Image: =icnWhiteRectangleSmall
+            ImagePosition: =ImagePosition.Center
+            OnSelect: =Select(Parent)
+            Width: =286
+            Y: =17
+            ZIndex: =2
+
+        scr22_lbl_AttachGrid_1 As label:
+            Color: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            Height: =39
+            OnSelect: =Select(Parent)
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =18
+            Text: =ThisItem.Description
+            Width: =244
+            Wrap: =false
+            X: =24
+            Y: =scr22_lbl_WhiteFill.Y + scr22_lbl_WhiteFill.Height-9
+            ZIndex: =3
+
+        scr22_lbl_WhiteFill As label:
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =12
+            OnSelect: =Select(Parent)
+            Size: =21
+            Text: =
+            Width: =scr22_img_ReceiptGrid.Width
+            X: |
+                =scr22_img_ReceiptGrid.X
+            Y: =scr22_img_ReceiptGrid.Y + scr22_img_ReceiptGrid.Height
+            ZIndex: =4
+
+        scr22_img_ReceiptGrid As image:
+            Fill: |-
+                =/*If(
+                    ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                    RGBA(0, 0, 0, 0),
+                    RGBA(229, 229, 229, 1)
+                )*/
+            Height: =200
+            Image: |-
+                =If(
+                    ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                    ThisItem.CapturedDocument,
+                    ThisItem.FileExtension in ["xlsx", "xls"],
+                    IconExcel,
+                    ThisItem.FileExtension in ["docx", "doc"],
+                    IconWord,
+                    ThisItem.FileExtension = "pdf",
+                    IconPDF,
+                    ThisItem.FileExtension = "txt",
+                    IconTxt,
+                    IconMail
+                )
+            ImagePosition: |-
+                =/*If(
+                    scr09_img_ReceiptList.Image = ThisItem.receiptUrl,
+                    ImagePosition.Fill,
+                    ImagePosition.Center
+                )*/
+                
+                ImagePosition.Center
+            OnSelect: =
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Width: =scr22_crd_ReceiptGrid_1.Width - 3
+            X: =2.5
+            Y: =17
+            ZIndex: =5
+
+        scr22_shp_SelectRegion_3 As rectangle:
+            AccessibleLabel: ="View receipt"
+            Fill: =RGBA(0, 0, 0, 0)
+            Height: =276
+            OnSelect: |-
+                =Set(
+                    varFileFormat,
+                    ThisItem.FileExtension
+                );
+                Set(
+                    varReceiptImage,
+                    ThisItem.CapturedDocument
+                );
+                Set(
+                    VarCurrentReceiptRowNumber,
+                    LookUp(
+                        colReceiptAttachToExpenseApprovals,
+                        EntRecId = ThisItem.EntRecId,
+                        RowNumber
+                    )
+                );
+                Navigate('Approvals - View Receipt Screen');
+            Width: =300
+            Y: =3
+            ZIndex: =6
+
+    "galReportLevelTimeline As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+        '#CopilotOverlayLabel': ="Filtered"
+        DelayItemLoading: =true
+        Fill: =Color.White
+        Height: =TotalsContainer.Y - (Self.Y)
+        Items: =SortByColumns(reviewedByForReport,"index",SortOrder.Descending)
+        Layout: =Layout.Vertical
+        LoadingSpinner: =LoadingSpinner.Data
+        TemplateFill: =Color.White
+        TemplatePadding: =0
+        TemplateSize: |
+            =250
+        Visible: =varSelectedTab = 3
+        Width: =Parent.Width
+        Y: =scr22_btn_TabView_1.Y + scr22_btn_TabView_1.Height + scr22_shp_Seprator_2.Height
+        ZIndex: =6
+
+        timeLineContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+            Height: =250
+            LayoutMode: =LayoutMode.Auto
+            Width: =Parent.Width
+            ZIndex: =1
+
+            userImgContainer_1 As groupContainer.verticalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =Parent.Height
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGap: =5
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =Parent.Height
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                PaddingTop: =10
+                Width: =100
+                ZIndex: =1
+
+                imgUserReportTimeline As image:
+                    AlignInContainer: =AlignInContainer.Center
+                    Height: =45
+                    Image: |-
+                        =blankImage
+                        //LookUp(userImages,User=ThisItem.assignedTo,UserImage)
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    OnSelect: =
+                    RadiusBottomLeft: =45
+                    RadiusBottomRight: =45
+                    RadiusTopLeft: =45
+                    RadiusTopRight: =45
+                    Width: =45
+                    X: =scr21_chk_Select.X
+                    Y: =scr21_chk_Select.Y 
+                    ZIndex: =2
+
+                shpSeparatorReportTimeline As rectangle:
+                    AlignInContainer: =AlignInContainer.Center
+                    Fill: =RGBA(225, 225, 225, 1)
+                    Height: =Parent.Height - imgUserReportTimeline.Height - 2*Parent.LayoutGap - Parent.PaddingTop
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =1
+                    Visible: =ThisItem.index <> First(reviewedByForReport).index
+                    Width: =3
+                    ZIndex: =3
+
+            msgDetailsContainer_1 As groupContainer.verticalAutoLayoutContainer:
+                Height: =lblMessageReportTimeline.Height + lblCommentReportTimeline.Height
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGap: =5
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =Parent.Height
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                LayoutOverflowY: =LayoutOverflow.Scroll
+                ZIndex: =2
+
+                lblMessageReportTimeline As label:
+                    AutoHeight: =true
+                    FillPortions: =1
+                    Height: =70
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingTop: =10
+                    Size: =21
+                    Text: =ThisItem.message
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+                lblCommentReportTimeline As label:
+                    AutoHeight: =true
+                    FillPortions: =1
+                    Height: =70
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    Size: =21
+                    Text: =ThisItem.comment
+                    Width: =Parent.Width
+                    ZIndex: =2
+
+            dateContainer_1 As groupContainer.verticalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =Parent.Height
+                LayoutAlignItems: =LayoutAlignItems.End
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =Parent.Height
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =200
+                ZIndex: =3
+
+                lblDateReportTimeline As label:
+                    Align: =Align.Right
+                    AutoHeight: =true
+                    Color: |
+                        =RGBA(102, 102, 102, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =70
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    OnSelect: =
+                    PaddingRight: =20
+                    PaddingTop: =10
+                    Size: =21
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: |-
+                        =Text(
+                            DateValue(ThisItem.createdDateTime, "en-GB"),
+                            "mmm dd, yyyy"
+                        )
+                    Width: =Parent.Width
+                    ZIndex: =2
+
+    scr22_shp_Seprator_3 As rectangle:
+        Fill: =RGBA(225, 225, 225, 1)
+        Height: =1
+        Width: =Parent.Width
+        Y: =scr22_btn_TabView_1.Y  + scr22_btn_TabView_1.Height
+        ZIndex: =17
+
+    scr22_hdr_TopHeader As hdr02_Header_3:
+        Fill: =scr22_hdr_TopHeader.paramFill
+        paramFill: =RGBA(255, 255, 255, 1)
+        paramTitle: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReportLabel'
+        ZIndex: =19
+
+    HeaderTabGroup As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =20
+
+        scr22_btn_TabView As rectangle:
+            Fill: =Color.White
+            Height: =50
+            Width: =Parent.Width
+            Y: =scr22_hdr_TopHeader.Height-2
+            ZIndex: =7
+
+        scr22_btn_FakeButton As button:
+            DisabledFill: =Color.Transparent
+            Fill: =Color.Transparent
+            Height: =scr22_btn_TabView.Height
+            HoverFill: =Color.Transparent
+            Size: =24
+            TabIndex: =-1
+            Text: =
+            Visible: =false
+            Width: =500
+            X: =(Parent.Width - Self.Width)/2
+            Y: =scr22_btn_TabView.Y
+            ZIndex: =8
+
+        scr22_shp_TimelineBorder As rectangle:
+            Fill: |
+                =RGBA(34, 102, 227, 1)
+            Height: =3
+            Visible: =varSelectedTab = 3
+            Width: =scr22_shp_TimelineRegion.Width
+            X: =scr22_shp_TimelineRegion.X
+            Y: =scr22_btn_FakeButton.Y + scr22_btn_FakeButton.Height - Self.Height
+            ZIndex: =9
+
+        scr22_shp_AttachmentsBorder As rectangle:
+            Fill: |
+                =RGBA(34, 102, 227, 1)
+            Height: =3
+            Visible: =varSelectedTab = 2
+            Width: =scr22_shp_AttachmentsRegion.Width
+            X: =scr22_shp_AttachmentsRegion.X
+            Y: =scr22_btn_FakeButton.Y + scr22_btn_FakeButton.Height - Self.Height
+            ZIndex: =10
+
+        scr22_shp_DetailsBorder As rectangle:
+            Fill: |
+                =RGBA(34, 102, 227, 1)
+            Height: =3
+            Visible: =varSelectedTab = 1
+            Width: =scr22_shp_DetailsRegion.Width
+            X: =scr22_shp_DetailsRegion.X
+            Y: =scr22_btn_FakeButton.Y + scr22_btn_FakeButton.Height - Self.Height
+            ZIndex: =11
+
+        scr22_lbl_Details As label:
+            Align: =Align.Center
+            Color: |-
+                =If(
+                    varSelectedTab=1,
+                    RGBA(34,102,227,1),
+                    RGBA(110,110,110,1)
+                )
+            FontWeight: =FontWeight.Semibold
+            Height: =scr22_btn_TabView.Height
+            OnSelect: |-
+                =UpdateContext({varSelectedTab:1})
+            Size: =16
+            TabIndex: =0
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetailsLabel'
+            Width: =scr22_btn_FakeButton.Width/3
+            X: =scr22_btn_FakeButton.X
+            Y: =scr22_btn_TabView.Y
+            ZIndex: =12
+
+        scr22_shp_DetailsRegion As rectangle:
+            AccessibleLabel: |-
+                =
+                If(
+                    varSelectedTab = 1,
+                    "Details, selected. "
+                )
+            Fill: =Color.Transparent
+            FocusedBorderThickness: =0
+            Height: =scr22_lbl_Details.Height
+            OnSelect: |-
+                =UpdateContext({varSelectedTab:1})
+            TabIndex: =0
+            Width: =scr22_lbl_Details.Width
+            X: =scr22_lbl_Details.X
+            Y: =scr22_lbl_Details.Y
+            ZIndex: =13
+
+        scr22_lbl_Attachments As label:
+            Align: =Align.Center
+            Color: |-
+                =If(
+                    varSelectedTab=2,
+                    RGBA(34,102,227,1),
+                    RGBA(110,110,110,1)
+                )
+            FontWeight: =FontWeight.Semibold
+            Height: =scr22_btn_TabView.Height
+            OnSelect: |-
+                =UpdateContext({varSelectedTab:2})
+            Size: =16
+            TabIndex: =0
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachmentsLabel'
+            Width: =scr22_btn_FakeButton.Width/3
+            X: =scr22_btn_FakeButton.X + (Self.Width)
+            Y: =scr22_btn_TabView.Y
+            ZIndex: =14
+
+        scr22_shp_AttachmentsRegion As rectangle:
+            AccessibleLabel: |-
+                =
+                If(
+                    varSelectedTab = 2,
+                    "Attachments, selected. "
+                )
+            Fill: =Color.Transparent
+            FocusedBorderThickness: =0
+            Height: =scr22_lbl_Attachments.Height
+            OnSelect: |+
+                =UpdateContext({varSelectedTab:2});
+                ClearCollect(
+                    colAttachmentToReport,
+                    Filter(
+                    receiptsAgainstWorkItems,
+                    ExpenseLineAttachedTo in colExpensesAgainstWorkItem[@'Expense transaction number (mserp_exptransnumber)']
+                )
+                );
+                /*ForAll( 
+                    colAttachmentToReport,
+                    ClearCollect(
+                        colAttachmentToReportPrevAndNext,
+                        {
+                            RowNumber: ,
+                            FileExtension: 
+                            
+                        }
+                    )
+                )*/
+                ClearCollect(colReceiptAttachToExpenseApprovals,ForAll(Sequence(CountRows(colAttachmentToReport)),Patch(Last(FirstN((colAttachmentToReport),Value)),{RowNumber:Value})));
+                
+            TabIndex: =0
+            Width: =scr22_lbl_Attachments.Width
+            X: =scr22_lbl_Attachments.X
+            Y: =scr22_lbl_Attachments.Y
+            ZIndex: =15
+
+        scr22_lbl_Timeline_ApprovalDetails As label:
+            Align: =Align.Center
+            Color: |-
+                =If(
+                    varSelectedTab=3,
+                    RGBA(34,102,227,1),
+                    RGBA(110,110,110,1)
+                )
+            FontWeight: =FontWeight.Semibold
+            Height: =scr22_btn_TabView.Height
+            OnSelect: |-
+                =UpdateContext({varSelectedTab:3})
+            Size: =16
+            TabIndex: =0
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_TimelineLabel'
+            Width: =scr22_btn_FakeButton.Width/3
+            X: =scr22_btn_FakeButton.X + (2 * Self.Width)
+            Y: =scr22_btn_TabView.Y
+            ZIndex: =16
+
+        scr22_shp_TimelineRegion As rectangle:
+            AccessibleLabel: |-
+                =
+                If(
+                    varSelectedTab = 3,
+                    "Timeline, selected. "
+                )
+            Fill: =Color.Transparent
+            FocusedBorderThickness: =0
+            Height: =scr22_lbl_Timeline_ApprovalDetails.Height
+            OnSelect: |-
+                =UpdateContext({varSelectedTab:3})
+            TabIndex: =0
+            Width: =scr22_lbl_Timeline_ApprovalDetails.Width
+            X: =scr22_lbl_Timeline_ApprovalDetails.X
+            Y: =scr22_lbl_Timeline_ApprovalDetails.Y
+            ZIndex: =18
+
+    scr22_ico_Back As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =icongconfig_backbutton.Color
+        Fill: =icongconfig_backbutton.Fill
+        Height: =icongconfig_backbutton.Height
+        Icon: =Icon.ChevronLeft
+        OnSelect: |
+            =Navigate('Approvals - List Screen');
+        TabIndex: =0
+        Width: =icongconfig_backbutton.Width
+        X: =22
+        Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
+        ZIndex: =21
+

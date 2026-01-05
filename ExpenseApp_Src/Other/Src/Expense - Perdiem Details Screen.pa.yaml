@@ -1,0 +1,805 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Expense - Perdiem Details Screen:
+    Properties:
+      Fill: =RGBA(244, 244, 244, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |+
+        =/*ClearCollect(
+            dsPerdiemDetails,
+            AddColumns(
+                'PerDiem Data Lines for Expense Lines (mserp)',
+                "isGalleryVisible",
+                false,
+                "isDirty",
+                false
+            )
+        );*/
+        UpdateContext(
+            {
+                isDirty : false,
+                locNavigateBack: false
+            }
+        )
+    Children:
+      - buttonDetailsContainer:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =RGBA(248, 248, 248, 1)
+            Height: =250
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =5
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =Parent.Height - Self.Height
+          Children:
+            - mealsAndIncidentalsContainer:
+                Control: GroupContainer@1.3.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =70
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  PaddingLeft: =15
+                  PaddingRight: =15
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =!isDirty
+                Children:
+                  - lblMealsIncidentals:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        LayoutMinWidth: =250
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,MealsAndIncidentalsLabel'
+                  - lblMealsIncidentalsAmount:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Text: |+
+                          =Concatenate(Text(Sum(dsPerdiemDetails,'Meals and incidentals'), "#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+
+
+                        Width: =250
+            - totalsContainer:
+                Control: GroupContainer@1.3.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =70
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  PaddingLeft: =15
+                  PaddingRight: =15
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =!isDirty
+                Children:
+                  - lblTotals:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        LayoutMinWidth: =250
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_TotalLabel'
+                  - lblTotalsAmount:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Text: |+
+                          =Concatenate(Text(varSelectedExpenseDoc.'Amount (mserp_amountmst)', "#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+
+
+                        Width: =250
+            - footerButtonsContainer:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                Children:
+                  - btnSavePerdiems:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(34, 102, 227, 1)
+                        Color: |+
+                          =RGBA(34, 102, 227, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        DisplayMode: |-
+                          =If(
+                              locDisableSaveButton,
+                              DisplayMode.Disabled,
+                              DisplayMode.Edit
+                          )
+                        Fill: =Color.White
+                        Font: =Font.'Segoe UI'
+                        Height: =76
+                        HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                        HoverColor: =RGBA(255, 255, 255, 1)
+                        HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                        OnSelect: |
+                          =//navigate to previous screen
+                          Clear(perDiemCalcErrors);
+                          // if any fields have been altered update the perdiems entity
+                          // collect errors if any in perDiemCalcErrors
+                          If(
+                              isDirty,
+                              ForAll(
+                                  Filter(dsPerdiemDetails,isDirty) As dirtyPerdiemLines,
+                                  IfError(
+                                      Patch(
+                                          [@'PerDiem Data Lines for Expense Lines (mserp)'],
+                                          LookUp(
+                                              [@'PerDiem Data Lines for Expense Lines (mserp)'],
+                                              EntRecId = dirtyPerdiemLines.EntRecId
+                                          ),
+                                          {
+                                              Breakfast: dirtyPerdiemLines.Breakfast,
+                                              Lunch: dirtyPerdiemLines.Lunch,
+                                              Dinner: dirtyPerdiemLines.Dinner
+                                          }
+                                      ),
+                                      First(
+                                          Collect( 
+                                              perDiemCalcErrors,
+                                              {
+                                                  statusCode : FirstError.Details.HttpStatusCode,
+                                                  response : FirstError.Details.HttpResponse
+                                              }
+                                          ) 
+                                      )
+                                  )
+                              );
+                              UpdateContext({isDirty : false});
+                          );
+                          If(
+                              // if there are errors present
+                              CountRows(
+                                  Distinct(
+                                      perDiemCalcErrors,
+                                      statusCode
+                                  )
+                              ) >= 1,
+                              // show distinct errors
+                              ForAll(
+                                  perDiemCalcErrors,
+                                  If(
+                                      Text(ThisRecord.statusCode) <> NotFoundStatusCode,
+                                      Notify(
+                                          Substitute(
+                                              Match(
+                                                  ThisRecord.response,
+                                                  """message"":""([^""]*)"""
+                                              ).FullMatch,
+                                              """message"":",
+                                              ""
+                                          ),
+                                          NotificationType.Error
+                                      )
+                                  )
+                              ),
+                              // since no errors are present navigate back to previous screen
+                              // update dsPerDiemDetails and varSelectedExpenseDoc
+                              UpdateContext({isDirty: false});
+                              ClearCollect(
+                                  dsPerdiemDetails,
+                                  AddColumns(
+                                      Filter(
+                                          [@'PerDiem Data Lines for Expense Lines (mserp)'],
+                                          'Expense transaction number' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                      ),
+                                      isGalleryVisible,
+                                      false,
+                                      isDirty,
+                                      false
+                                  )
+                              );
+                              Set(
+                                  varSelectedExpenseDoc,
+                                  LookUp([@'Expense lines (mserp)'],'Expense transaction number (mserp_exptransnumber)'=varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')
+                              );
+                              Navigate('Expenses - Edit Screen', ScreenTransition.None, {varSalesTaxAmount : varSelectedExpenseDoc.'Actual sales tax amount'})
+                              // add navigation logic based on where we have navigated from -> simply Back() might do
+                          );
+                        PressedBorderColor: =Self.Fill
+                        PressedColor: =Self.Fill
+                        PressedFill: =Self.Color
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =19.15
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,SaveLabel'
+                        Width: =Parent.Width -  Self.X*2
+                        X: =40*1
+                        Y: |-
+                          =If(
+                              isDirty,
+                              btnCalculatePerdiems_1.Y + btnCalculatePerdiems_1.Height + 25,
+                              10
+                          )
+                  - btnCalculatePerdiems:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(34, 102, 227, 1)
+                        Color: =RGBA(255, 255, 255, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        Fill: |
+                          =RGBA(34, 102, 227, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =76
+                        HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                        HoverColor: =RGBA(255, 255, 255, 1)
+                        HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                        OnSelect: |-
+                          =//context variable to disable save button as long as there are network calls ongoing
+                          UpdateContext({locDisableSaveButton : true});
+                          // clear error list
+                          Clear(perDiemCalcErrors);
+                          // for all dirty perdiem lines
+                          // patch the breakfast, lunch and dinner values
+                          // if error collect them in perDiemCalcErrors
+                          ForAll(
+                              Filter(dsPerdiemDetails,isDirty) As dirtyPerdiemLines,
+                              IfError(
+                                  Patch(
+                                      [@'PerDiem Data Lines for Expense Lines (mserp)'],
+                                      LookUp(
+                                          [@'PerDiem Data Lines for Expense Lines (mserp)'],
+                                          EntRecId = dirtyPerdiemLines.EntRecId
+                                      ),
+                                      {
+                                          Breakfast: dirtyPerdiemLines.Breakfast,
+                                          Lunch: dirtyPerdiemLines.Lunch,
+                                          Dinner: dirtyPerdiemLines.Dinner
+                                      }
+                                  ),
+                                  First(
+                                      Collect(
+                                          perDiemCalcErrors,
+                                          {
+                                              statusCode: FirstError.Details.HttpStatusCode,
+                                              response: FirstError.Details.HttpResponse
+                                          }
+                                      )
+                                  )
+                              )
+                          );
+                          If(
+                              // if there are errors present
+                              CountRows(
+                                  Distinct(
+                                      perDiemCalcErrors,
+                                      statusCode
+                                  )
+                              ) >= 1,
+                              // show distinct errors
+                              ForAll(
+                                  perDiemCalcErrors,
+                                  If(
+                                      Text(ThisRecord.statusCode) <> NotFoundStatusCode,
+                                      Notify(
+                                          Substitute(
+                                              Match(
+                                                  ThisRecord.response,
+                                                  """message"":""([^""]*)"""
+                                              ).FullMatch,
+                                              """message"":",
+                                              ""
+                                          ),
+                                          NotificationType.Error
+                                      )
+                                  )
+                              ),
+                              // since no errors are present update dsPerDiemDetails and varSelectedExpenseDoc
+                              UpdateContext({isDirty: false});
+                              ClearCollect(
+                                  dsPerdiemDetails,
+                                  AddColumns(
+                                      Filter(
+                                          [@'PerDiem Data Lines for Expense Lines (mserp)'],
+                                          'Expense transaction number' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                      ),
+                                      isGalleryVisible,
+                                      false,
+                                      isDirty,
+                                      false
+                                  )
+                              );
+                              Set(
+                                  varSelectedExpenseDoc,
+                                  LookUp([@'Expense lines (mserp)'],'Expense transaction number (mserp_exptransnumber)'=varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')
+                              )
+                          );
+                          UpdateContext({locDisableSaveButton : false});
+                        PressedBorderColor: =Self.Fill
+                        PressedColor: =Self.Fill
+                        PressedFill: =Self.Color
+                        Size: =19.15
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,CalculateMealsAndIncidentalsLabel'
+                        Visible: =isDirty
+                        Width: |+
+                          =Parent.Width -  Self.X*2
+                        X: =40*1
+                        Y: =36
+      - Gallery4_1:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Flexible_SocialFeed_ver5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =Min(buttonDetailsContainer.Y - Self.Y, Self.AllItemsCount * Self.TemplateHeight)
+            Items: =SortByColumns(dsPerdiemDetails,"mserp_transdate",SortOrder.Ascending)
+            ShowScrollbar: =false
+            TemplatePadding: =15
+            TemplateSize: =400
+            Width: =Parent.Width
+            Y: =buttonsContainer.Height + buttonsContainer.Y
+          Children:
+            - shpPerdiemItemSeparator_2:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(225, 225, 225, 1)
+                  Height: =1
+                  Width: =Parent.Width - 2 * Self.X
+                  X: =5
+                  Y: =perdiemDetailsContainer_2.Height
+            - perdiemDetailsContainer_2:
+                Control: GroupContainer@1.3.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Height: =dateAmountContainer_2.Height + lblNumMeals_2.Height + If(ThisItem.isGalleryVisible, mealsToggleContainer.Height, 0)
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingLeft: =10
+                  PaddingRight: =10
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - dateAmountContainer_2:
+                      Control: GroupContainer@1.3.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =lblPerdiemAmount_2.Height
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMinWidth: =Parent.Width - (Parent.PaddingLeft*2)
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - lblPerdiemDate_2:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(71, 69, 64, 1)
+                              DisabledColor: =RGBA(186, 186, 186, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =Self.Size * 1.8
+                              LayoutMinWidth: =150
+                              OnSelect: =
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: |-
+                                =Text(
+                                    DateValue(ThisItem.'Transaction date'),
+                                    "mmm dd, yyyy"
+                                )
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =150
+                              X: =16
+                              Y: =
+                        - lblPerdiemAmount_2:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Right
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Text: |+
+                                =Concatenate(Text(Value(ThisItem.'Meals and incidentals'), "#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+
+
+                              Width: =250
+                        - icnInteractPerdiemGal_2:
+                            Control: Classic/Icon@2.5.0
+                            Properties:
+                              AccessibleLabel: =Self.Tooltip
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(166, 166, 166, 1)
+                              Height: =50
+                              Icon: =Icon.ChevronDown
+                              OnSelect: |-
+                                =Patch(
+                                    dsPerdiemDetails,
+                                    ThisItem,
+                                    {
+                                        isGalleryVisible:!ThisItem.isGalleryVisible
+                                    }
+                                )
+                              PaddingBottom: =16
+                              PaddingLeft: =16
+                              PaddingRight: =16
+                              PaddingTop: =16
+                              Tooltip: ="View item details"
+                              Width: =50
+                              X: =
+                              Y: =
+                  - lblNumMeals_2:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(110, 110, 110, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =40
+                        Size: =14
+                        Text: =Concatenate(ThisItem.Breakfast + ThisItem.Dinner + ThisItem.Lunch, " meal(s)")
+                        Width: =Parent.Width
+                  - mealsToggleContainer:
+                      Control: GroupContainer@1.3.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        LayoutDirection: =LayoutDirection.Vertical
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Visible: =ThisItem.isGalleryVisible
+                        X: =40
+                        Y: =40
+                      Children:
+                        - breakfastContainer:
+                            Control: GroupContainer@1.3.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =70
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              PaddingLeft: =25
+                              PaddingRight: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width
+                            Children:
+                              - lblBreakfast:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =RGBA(71, 69, 64, 1)
+                                    DisabledColor: =RGBA(186, 186, 186, 1)
+                                    FillPortions: =1
+                                    Font: =Font.'Segoe UI'
+                                    Height: =Self.Size * 1.8
+                                    LayoutMinWidth: =200
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =18
+                                    Text: =GlobalLabels.Labels.'15062:LocalizedName,BreakfastLabel'
+                                    VerticalAlign: =VerticalAlign.Top
+                                    Width: =
+                                    X: =103
+                                    Y: =
+                              - tglBreakfast:
+                                  Control: Classic/Toggle@2.1.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Default: =!ThisItem.Breakfast
+                                    FalseText: =
+                                    FocusedBorderThickness: =0
+                                    Font: =Font.'Open Sans'
+                                    OnChange: =
+                                    OnCheck: =
+                                    OnSelect: |-
+                                      =UpdateContext({isDirty : true});
+                                      Patch(
+                                          dsPerdiemDetails,
+                                          ThisItem,
+                                          {
+                                              Breakfast : If(!tglBreakfast.Value, 1, 0),
+                                              isDirty: true   
+                                          }
+                                      )
+                                    ShowLabel: =false
+                                    Size: =15
+                                    TrueFill: =RGBA(56, 96, 178, 1)
+                                    TrueText: =
+                        - lunchContainer:
+                            Control: GroupContainer@1.3.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =70
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              PaddingLeft: =25
+                              PaddingRight: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width
+                            Children:
+                              - lblLunch:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =RGBA(71, 69, 64, 1)
+                                    DisabledColor: =RGBA(186, 186, 186, 1)
+                                    FillPortions: =1
+                                    Font: =Font.'Segoe UI'
+                                    Height: =Self.Size * 1.8
+                                    LayoutMinWidth: =200
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =18
+                                    Text: =GlobalLabels.Labels.'15062:LocalizedName,LunchLabel'
+                                    VerticalAlign: =VerticalAlign.Top
+                                    Width: =
+                                    X: =103
+                                    Y: =
+                              - tglLunch:
+                                  Control: Classic/Toggle@2.1.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Default: =!ThisItem.Lunch
+                                    FalseText: =
+                                    FocusedBorderThickness: =0
+                                    Font: =Font.'Open Sans'
+                                    OnChange: =
+                                    OnCheck: =
+                                    OnSelect: |-
+                                      =UpdateContext({isDirty : true});
+                                      Patch(
+                                          dsPerdiemDetails,
+                                          ThisItem,
+                                          {
+                                              Lunch : If(!tglLunch.Value, 1, 0),
+                                              isDirty: true
+                                          }
+                                      )
+                                    ShowLabel: =false
+                                    Size: =15
+                                    TrueFill: =RGBA(56, 96, 178, 1)
+                                    TrueText: =
+                        - dinnerContainer:
+                            Control: GroupContainer@1.3.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =70
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              PaddingLeft: =25
+                              PaddingRight: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width
+                            Children:
+                              - lblDinner:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =RGBA(71, 69, 64, 1)
+                                    DisabledColor: =RGBA(186, 186, 186, 1)
+                                    FillPortions: =1
+                                    Font: =Font.'Segoe UI'
+                                    Height: =Self.Size * 1.8
+                                    LayoutMinWidth: =200
+                                    PaddingBottom: =0
+                                    PaddingLeft: =0
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =18
+                                    Text: =GlobalLabels.Labels.'15062:LocalizedName,DinnerLabel'
+                                    VerticalAlign: =VerticalAlign.Top
+                                    Width: =
+                                    X: =103
+                                    Y: =
+                              - tglDinner:
+                                  Control: Classic/Toggle@2.1.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Default: =!ThisItem.Dinner
+                                    FalseText: =
+                                    FocusedBorderThickness: =0
+                                    Font: =Font.'Open Sans'
+                                    OnChange: =
+                                    OnCheck: =
+                                    OnSelect: |-
+                                      =UpdateContext({isDirty : true});
+                                      Patch(
+                                          dsPerdiemDetails,
+                                          ThisItem,
+                                          {
+                                              Dinner : If(!tglDinner.Value, 1, 0),
+                                              isDirty: true
+                                          }
+                                      )
+                                    ShowLabel: =false
+                                    Size: =15
+                                    TrueFill: =RGBA(56, 96, 178, 1)
+                                    TrueText: =
+      - buttonsContainer:
+          Control: GroupContainer@1.3.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =70
+            LayoutDirection: =LayoutDirection.Horizontal
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =cmp_perDiemHdr.Height
+          Children:
+            - img_ShowHideAll:
+                Control: Image@2.2.3
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Height: =Parent.Height
+                  Image: |-
+                    =If(
+                        lbl_ShowHideAll.Text = GlobalLabels.Labels.'15062:LocalizedName,ShowAllLabel',
+                        icnShowAll,
+                        icnHideAll
+                    )
+                  ImagePosition: =ImagePosition.Center
+                  Width: =Self.Height
+            - lbl_ShowHideAll:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: |+
+                    =RGBA(34, 102, 227, 1)
+                  FillPortions: =1
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =Parent.Height
+                  LayoutMinWidth: =250
+                  OnSelect: "=If(\r\n    Self.Text = GlobalLabels.Labels.'15062:LocalizedName,ShowAllLabel',\r\n    UpdateIf(\r\n        dsPerdiemDetails,\r\n        true,\r\n        {\r\n            isGalleryVisible: true\r\n        }\r\n    ),\r\n    Self.Text = GlobalLabels.Labels.'15062:LocalizedName,HideAllLabel',\r\n    UpdateIf(\r\n        dsPerdiemDetails,\r\n        true,\r\n        {\r\n            isGalleryVisible: false\r\n        }\r\n    )\r\n)\r\n    "
+                  Size: =16
+                  Text: |-
+                    =If(
+                        CountRows(Filter(dsPerdiemDetails, isGalleryVisible = false)) > 0,
+                        GlobalLabels.Labels.'15062:LocalizedName,ShowAllLabel',
+                        CountRows(Filter(dsPerdiemDetails, isGalleryVisible = false)) = 0,
+                        GlobalLabels.Labels.'15062:LocalizedName,HideAllLabel'
+                    )
+                  Width: =250
+            - img_IncludeExcludeAll:
+                Control: Image@2.2.3
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Height: =Parent.Height
+                  Image: =icnUnselected
+                  ImagePosition: =ImagePosition.Center
+                  Visible: =false
+                  Width: =Self.Height
+            - lbl_IncludeExcludeAll:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: |+
+                    =RGBA(34, 102, 227, 1)
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =Parent.Height
+                  LayoutMinWidth: =50
+                  Size: =16
+                  Text: ="Exclude All"
+                  Visible: =false
+                  Width: =150
+      - cmp_perDiemHdr:
+          Control: CanvasComponent
+          ComponentName: hdr02_Header_4
+          Properties:
+            Fill: =cmp_perDiemHdr.paramFill
+            Height: =82
+            Width: =Max(App.Width, App.MinScreenWidth)
+            paramColor: =RGBA(0, 0, 0, 1)
+            paramFill: =RGBA(255, 255, 255, 1)
+            paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,MealExclusionsLabel'
+      - ico_perDiemDetails_back:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =icongconfig_backbutton.Color
+            Fill: =icongconfig_backbutton.Fill
+            Height: =icongconfig_backbutton.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: |-
+              =If(
+                  isDirty,
+                  UpdateContext({locNavigateBack : true}),
+                  Navigate('Expenses - Edit Screen', ScreenTransition.None, {varSalesTaxAmount : varSelectedExpenseDoc.'Actual sales tax amount'})
+              )
+            TabIndex: =0
+            Width: =icongconfig_backbutton.Width
+            X: =22*1
+            Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
+      - cmpNavigateBack:
+          Control: CanvasComponent
+          ComponentName: cmp02_ConfirmationDialog
+          Properties:
+            Height: =App.Height
+            LegalEntity: ="Text"
+            OnLeftButtonClick: |-
+              =UpdateContext({locNavigateBack: false});
+            OnRightButtonClick: |+
+              =UpdateContext({locNavigateBack: false});
+              Navigate('Expenses - Edit Screen', ScreenTransition.None, {varSalesTaxAmount : varSelectedExpenseDoc.'Actual sales tax amount'})
+
+            SelectedExpense: =
+            SelectedList: ="Text"
+            SelectedReceiptNumber: =
+            Visible: =locNavigateBack
+            Width: =Max(App.Width, App.MinScreenWidth)
+            controlName: ="cmpNavigateBack"
+            parmInDescriptionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_LeaveScreenConsequenceLabel'
+            parmInHeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_LeaveScreenConfirmationLabel'
+            parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+            parmInLeftButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoOptionLabel'
+            parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+            parmInRightButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_YesOptionLabel'
+            returnFocus: ="scr03_ico_Back_1"

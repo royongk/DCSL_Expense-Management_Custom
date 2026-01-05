@@ -1,0 +1,578 @@
+"'Approvals - Action Screen' As screen":
+    Fill: |
+        =RGBA(244, 244, 244, 1)
+    OnVisible: |-
+        =Reset(scr23_txt_Comments);
+        Reset(scr23_txt_Justification)
+
+    scr23_shp_ButtonsCard As rectangle:
+        Fill: =RGBA(248, 248, 248, 1)
+        Height: =250
+        Width: =Parent.Width
+        Y: =Parent.Height-scr23_shp_ButtonsCard.Height
+        ZIndex: =1
+
+    scr23_btn_Cancel As button:
+        BorderColor: =RGBA(34, 102, 227, 1)
+        Color: |
+            =RGBA(34, 102, 227, 1)
+        Fill: =Color.White
+        Font: =Font.'Segoe UI'
+        Height: =76
+        OnSelect: |-
+            =//navigate to previous screen
+            If(
+                varNavigatedFrom = "scr21",
+                Navigate('Approvals - List Screen'),
+                Navigate('Approvals - Details Screen');
+            )
+        RadiusBottomLeft: =8
+        RadiusBottomRight: =8
+        RadiusTopLeft: =8
+        RadiusTopRight: =8
+        Size: =19.15
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+        Width: |
+            =Parent.Width -  Self.X*2
+        X: =40
+        Y: =scr23_shp_ButtonsCard.Y + 140
+        ZIndex: =2
+
+    scr23_btn_RejectAction As button:
+        BorderColor: =RGBA(195, 39, 39, 1)
+        Color: |
+            =RGBA(195, 39, 39, 1)
+        Fill: =RGBA(255, 255, 255, 1)
+        Font: =Font.'Segoe UI'
+        Height: =76
+        HoverFill: =ColorFade(Self.Color, 20%)
+        OnSelect: |
+            =Clear(actionErrors);
+            Set(
+                gblNavigationDrawerVisibility,
+                false
+            );
+            ForAll(
+                colSelectedWorkItemIds,
+                With(
+                    {
+                        varSelectedRecord : LookUp(
+                            'Submitted Reports for Approvals (mserp)',
+                            WorkItemRecId = colSelectedWorkItemIds[@workItemRecId]
+                        )
+                    },
+                    IfError(
+                        Patch(
+                            'Submitted Reports for Approvals (mserp)',
+                            varSelectedRecord,
+                            {
+                                Action: "Reject",
+                                WorkflowComment:scr23_txt_Justification.Text    
+                            }
+                        ),
+                        First(
+                            Collect( 
+                                actionErrors,
+                                {
+                                    statusCode : FirstError.Details.HttpStatusCode,
+                                    response : FirstError.Details.HttpResponse
+                                }
+                            ) 
+                        )
+                    )
+                )
+            );
+            RemoveIf(
+                actionErrors,
+                Text(statusCode) = NotFoundStatusCode
+            );
+            If(
+                CountRows(Distinct(actionErrors, statusCode)) >= 1,
+                ForAll(
+                    actionErrors,
+                    If(
+                        Text(ThisRecord.statusCode) <> NotFoundStatusCode,
+                        Notify(
+                            Substitute( 
+                                Match(ThisRecord.response, """message"":""([^""]*)""").FullMatch, 
+                                """message"":", "" 
+                            ),
+                            NotificationType.Error
+                        )
+                    )
+                ),
+                Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_RejectSuccessfulLabel', NotificationType.Success);
+                Navigate('Approvals - List Screen')
+            );
+        Size: =19.15
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_RejectLabel'
+        Visible: =varAction = 2
+        Width: |
+            =Parent.Width -  Self.X*2
+        X: =40
+        Y: |-
+            =
+            scr23_shp_ButtonsCard.Y + 35
+        ZIndex: =3
+
+    scr23_btn_ApproveAction As button:
+        BorderColor: =RGBA(34, 102, 227, 1)
+        Color: |
+            =RGBA(34, 102, 227, 1)
+        Fill: =RGBA(255, 255, 255, 1)
+        Font: =Font.'Segoe UI'
+        Height: =76
+        OnSelect: |-
+            =Clear(actionErrors);
+            Set(
+                gblNavigationDrawerVisibility,
+                false
+            );
+            ForAll(
+                colSelectedWorkItemIds,
+                With(
+                    {
+                        varSelectedRecord : LookUp(
+                            'Submitted Reports for Approvals (mserp)',
+                            WorkItemRecId = colSelectedWorkItemIds[@workItemRecId]
+                        )
+                    },
+                    IfError(
+                        Patch(
+                            'Submitted Reports for Approvals (mserp)',
+                            varSelectedRecord,
+                            {
+                                Action: "Approve",
+                                WorkflowComment:scr23_txt_Comments.Text,
+                                ApproverJustification: scr23_txt_Justification.Text  
+                            }
+                        ),
+                        First(
+                            Collect( 
+                                actionErrors,
+                                {
+                                    statusCode : FirstError.Details.HttpStatusCode,
+                                    response : FirstError.Details.HttpResponse
+                                }
+                            ) 
+                        )
+                    )
+                )
+            );
+            RemoveIf(
+                actionErrors,
+                Text(statusCode) = NotFoundStatusCode
+            );
+            If(
+                CountRows(Distinct(actionErrors, statusCode)) >= 1,
+                ForAll(
+                    actionErrors,
+                    If(
+                        Text(ThisRecord.statusCode) <> NotFoundStatusCode,
+                        Notify(
+                            Substitute( 
+                                Match(ThisRecord.response, """message"":""([^""]*)""").FullMatch, 
+                                """message"":", "" 
+                            ),
+                            NotificationType.Error
+                        )
+                    )
+                ),
+                Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalSuccessfulLabel', NotificationType.Success);
+                Navigate('Approvals - List Screen')
+            )
+        Size: =19.15
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApproveLabel'
+        Visible: =varAction = 1
+        Width: |
+            =Parent.Width -  Self.X*2
+        X: =40
+        Y: =scr23_btn_RejectAction.Y
+        ZIndex: =4
+
+    ActionDetails As groupContainer.verticalAutoLayoutContainer:
+        Height: =scr23_shp_ButtonsCard.Y - Self.Y
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =10
+        LayoutMode: =LayoutMode.Auto
+        LayoutOverflowY: =LayoutOverflow.Scroll
+        Width: =Parent.Width
+        Y: =scr23_hdr_TopHeader.Height
+        ZIndex: =5
+
+        JustificationContainer As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =275
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            PaddingLeft: =25
+            Width: =Parent.Width
+            ZIndex: =1
+
+            Container20 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.Start
+                FillPortions: =0
+                Height: =75
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =10
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =scr23_txt_Justification.Width
+                X: =scr23_txt_Justification.X
+                ZIndex: =1
+
+                scr23_img_Justification As image:
+                    Height: =22
+                    Image: |-
+                        =If(
+                            varAction = 1,
+                            JustificationIcon,
+                            CommentsIcon
+                        )
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Width: =22
+                    X: =scr17_txt_Description_1.X
+                    Y: =scr23_txt_Justification.Y - (15 + scr23_img_Justification.Height)
+                    ZIndex: =1
+
+                scr23_lbl_Justification As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =If(
+                            varAction = 1,
+                            GlobalLabels.Labels.'15062:LocalizedName,msdyn_JustificationOptionalLabel',
+                            GlobalLabels.Labels.'15062:LocalizedName,msdyn_CommentsOptionalLabel'
+                        )
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =300
+                    X: |-
+                        =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                        8
+                    Y: =scr23_img_Justification.Y - 5
+                    ZIndex: =2
+
+            scr23_txt_Justification As text:
+                AccessibleLabel: |-
+                    =If(
+                        scr23_txt_Comments.Visible,
+                        "textbox to enter justification",
+                        "textbox to enter comments"
+                    )
+                AlignInContainer: =AlignInContainer.Start
+                BorderColor: =RGBA(255, 255, 255, 1)
+                BorderThickness: =0
+                Default: =
+                FocusedBorderThickness: =0
+                Font: =Font.'Segoe UI'
+                Height: =190
+                HintText: |-
+                    =Switch(
+                        varAction,
+                        2,
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterCommentsLabel',
+                        1,
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterJustificationLabel'
+                    )
+                HoverFill: =
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                Mode: =TextMode.MultiLine
+                OnChange: |-
+                    =RemoveIf(colReportPostDetails, fieldName = "Description");
+                    Collect(
+                        colReportPostDetails,
+                        {
+                            fieldName: "Description",
+                            fieldValue: scr23_txt_Justification.Text,
+                            fieldType: "String"
+                        }
+                    )
+                OnSelect: |
+                    =UpdateContext({ctLabel1 : false});
+                    UpdateContext({ctLabel2 : false});
+                    UpdateContext({ctLabel3 : true});
+                RadiusBottomLeft: =0
+                RadiusBottomRight: =0
+                RadiusTopLeft: =0
+                RadiusTopRight: =0
+                Reset: =true
+                Size: =24
+                Width: =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr17_hdr_TopHeader_1.Height + 66
+                ZIndex: =2
+
+        CommentsContainer As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =250
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            PaddingLeft: =25
+            Visible: =varAction = 1
+            Width: =Parent.Width
+            ZIndex: =2
+
+            Container22 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =75
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =10
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                ZIndex: =1
+
+                scr23_img_Comments As image:
+                    Height: =22
+                    Image: =CommentsIcon
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =varAction = 1
+                    Width: =22
+                    X: =scr17_txt_Description_1.X
+                    Y: =scr23_txt_Comments.Y - (15 + Self.Height)
+                    ZIndex: =1
+
+                scr23_lbl_Comments As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CommentsOptionalLabel'
+                    VerticalAlign: =VerticalAlign.Top
+                    Visible: =varAction = 1
+                    Width: =300
+                    X: |-
+                        =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                        8
+                    Y: =scr23_img_Comments.Y - 5
+                    ZIndex: =2
+
+            scr23_txt_Comments As text:
+                AccessibleLabel: ="Textbox to enter comments"
+                BorderColor: =RGBA(255, 255, 255, 1)
+                BorderThickness: =0
+                Default: =
+                FocusedBorderThickness: =0
+                Font: =Font.'Segoe UI'
+                Height: =150
+                HintText: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterCommentsLabel'
+                HoverFill: =
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                Mode: =TextMode.MultiLine
+                OnChange: |-
+                    =RemoveIf(colReportPostDetails, fieldName = "Description");
+                    Collect(
+                        colReportPostDetails,
+                        {
+                            fieldName: "Description",
+                            fieldValue: scr23_txt_Comments.Text,
+                            fieldType: "String"
+                        }
+                    )
+                OnSelect: |
+                    =UpdateContext({ctLabel1 : false});
+                    UpdateContext({ctLabel2 : false});
+                    UpdateContext({ctLabel3 : true});
+                RadiusBottomLeft: =0
+                RadiusBottomRight: =0
+                RadiusTopLeft: =0
+                RadiusTopRight: =0
+                Reset: =true
+                Size: =24
+                TabIndex: =If(Self.Visible, 0, -1)
+                Visible: =varAction = 1
+                Width: |
+                    =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr17_hdr_TopHeader_1.Height + 332 
+                ZIndex: =2
+
+        AttachedExpensesContainer As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =scr23_shp_ButtonsCard.Y - Self.Y
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            Width: =Parent.Width
+            ZIndex: =4
+
+            scr23_shpBorder As rectangle:
+                Fill: =RGBA(0, 0, 0, 0)
+                FillPortions: =1
+                Height: =250
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =0
+                Width: =Parent.Width
+                Y: =Parent.Height-scr23_shpBorder.Height
+                ZIndex: =1
+
+            "scr23_SelectedWorkItems_1 As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver4.0'":
+                '#CopilotOverlayLabel': ="Filtered"
+                AccessibleLabel: ="List of selected work items"
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Fill: =RGBA(244, 244, 244, 1)
+                Height: =Self.TemplateHeight * Self.AllItemsCount
+                Items: |-
+                    =Filter(
+                        workItemsAssignedToMe,'Expense report number' in colSelectedWorkItemIds[@expenseReportNumber]
+                    )
+                Layout: =Layout.Vertical
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =Self.TemplateHeight * Self.AllItemsCount
+                LayoutMinWidth: =320
+                LoadingSpinner: =LoadingSpinner.Data
+                ShowScrollbar: =false
+                TemplateFill: =Color.White
+                TemplateSize: =125
+                Width: =Max(Parent.Width, App.Width)
+                Y: =Parent.Height - Self.Height
+                ZIndex: =2
+
+                reportOwner_3 As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    OnSelect: =Select(Parent)
+                    Size: =21
+                    Text: =ThisItem.CreatingUser
+                    Width: =371
+                    Wrap: =false
+                    X: =scr21_img_UserImage_3.X + scr21_img_UserImage_3.Width + 10
+                    Y: =reportDate_3.Y
+                    ZIndex: =3
+
+                reportPurpose_3 As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =34
+                    OnSelect: =Select(Parent)
+                    Size: =21
+                    Text: =ThisItem.Purpose
+                    Width: =250
+                    Wrap: =false
+                    X: =scr21_img_UserImage_3.X + scr21_img_UserImage_3.Width + 10
+                    Y: =22
+                    ZIndex: =4
+
+                reportDate_3 As label:
+                    Align: =Align.Right
+                    Color: |
+                        =RGBA(102, 102, 102, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =29
+                    OnSelect: =Select(Parent)
+                    Size: =16.5
+                    Text: |-
+                        =Text(
+                            DateValue(ThisItem.CreatedDate),
+                            "mmm dd, yyyy"
+                        )
+                    X: =reportAmount_3.X +reportAmount_3.Width - Self.Width
+                    Y: =reportAmount_3.Y + reportAmount_3.Height + 10
+                    ZIndex: =5
+
+                reportAmount_3 As label:
+                    Align: =Align.Right
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Bold
+                    Height: =39
+                    OnSelect: =Select(Parent)
+                    Size: =21
+                    Text: |
+                        =Concatenate(Text(Value(ThisItem.TotalAmount),"#,#0.00", varDefaultLanguage), " ", ThisItem.AmountCurrency)
+                    Width: =250
+                    X: =Parent.Width - Self.Width - 50
+                    Y: =22
+                    ZIndex: =6
+
+                scr21_img_UserImage_3 As image:
+                    Height: =45
+                    Image: =User().Image
+                    OnSelect: =Select(Parent)
+                    RadiusBottomLeft: =45
+                    RadiusBottomRight: =45
+                    RadiusTopLeft: =45
+                    RadiusTopRight: =45
+                    Width: =45
+                    X: =25
+                    Y: =41
+                    ZIndex: =8
+
+    scr23_hdr_TopHeader As hdr02_Header:
+        Fill: =scr23_hdr_TopHeader.paramFill
+        paramFill: =RGBA(255, 255, 255, 1)
+        paramTitle: |-
+            =Switch(
+                varAction,
+                1,
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ConfirmApprovalLabel',
+                2,
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ConfirmRejectionLabel'
+            )
+        ZIndex: =6
+
+    scr23_ico_Back_3 As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =icongconfig_backbutton.Color
+        Fill: =icongconfig_backbutton.Fill
+        Height: =icongconfig_backbutton.Height
+        Icon: =Icon.ChevronLeft
+        OnSelect: =Select(scr23_btn_Cancel)
+        TabIndex: =0
+        Width: =icongconfig_backbutton.Width
+        X: =22
+        Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
+        ZIndex: =7
+

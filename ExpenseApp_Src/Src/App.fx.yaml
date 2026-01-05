@@ -1,0 +1,357 @@
+App As appinfo:
+    BackEnabled: =false
+    ConfirmExit: =true
+    ConfirmExitMessage: ="You want to exit the application?"
+    Formulas: |+
+        =// order of the field on the view/edit expense screens
+        expenseCategoryFieldOrder_Y = 1;
+        expenseCategoryDescriptionOrder_Y = 2;
+        companyFieldOrder_Y = 3;
+        employeeJustificationFieldOrder_Y = 4;
+        perDiemFromDateFieldOrder_Y = 5;
+        perDiemToDateFieldOrder_Y = 6;
+        employeeFieldOrder_Y = 7;
+        breakfastFieldOrder_Y = 8;
+        lunchFieldOrder_Y = 8;
+        dinnerFieldOrder_Y = 8;
+        locationFieldOrder_Y = 9;
+        transactionAmountFieldOrder_Y = 10;
+        currencyFieldOrder_Y = 10;
+        mileageFieldOrder_Y = 11;
+        transactionDateFieldOrder_Y = 12;
+        expenseTypeFieldOrder_Y = 12;
+        vehicleTypeFieldOrder_Y = 13;
+        noOfPassengerFieldOrder_Y = 14;
+        paymentMethodFieldOrder_Y = 15;
+        ratePerMileFieldOrder_Y = 16;
+        fromAddressFieldOrder_Y = 17;
+        toAddressFieldOrder_Y = 18;
+        merchantFieldOrder_Y = 19;
+        legalEntityFieldOrder_Y = 20;
+        intercompanyProjectCategoryFieldOrder_Y = 21;
+        projectIdFieldOrder_Y = 22;
+        billableFieldOrder_Y = 23;
+        activityNumberFieldOrder_Y = 24;
+        countryFieldOrder_Y = 25;
+        stateFieldOrder_Y = 26;
+        cityFieldOrder_Y = 27;
+        zipCodeFieldOrder_Y = 28;
+        salesTaxGroupFieldOrder_Y = 29;
+        itemSalesTaxGroupFieldOrder_Y = 30;
+        taxIncludedToggleFieldOrder_Y = 31;
+        actualSalesTaxFieldOrder_Y = 32;
+        netTransactionAmountFieldOrder_Y = 33;
+        locationOfEntertainmentFieldOrder_Y = 34;
+        hotelBillIssuedToFiedlOrder_Y = 35;
+        reimbursementAmountFieldOrder_Y = 36;
+        invoiceAmountFieldOrder_Y = 37;
+        additionalInfoFieldOrder_Y = 38;
+        reasonFieldOrder_Y = 39;
+        internalNoteFieldOrder_Y = 40;
+        purposeFieldOrder_Y = 41;
+        receiptNumberFieldOrder_Y = 42;
+        ticketNumberFieldOrder_Y = 43;
+        ticketUsedFieldOrder_Y = 44;
+        ticketClassFieldOrder_Y = 45;
+        carRentalCheckoutdateFieldOrder_Y = 46;
+        carRentalReturnDateFieldOrder_Y = 47;
+        checkoutLocationFieldOrder_Y = 48;
+        vehicleClassFieldOrder_Y = 49;
+        checkInDatedateFieldOrder_Y = 50;
+        checkoutdateFieldOrder_Y = 51;
+        numberOfNightsFieldOrder_Y = 52;
+        totalTaxAmounFieldOrder_Y = 53;
+        totalRoomRentFieldOrder_Y = 54;
+        travelAgencyFieldOrder_Y = 55;
+        travelAgencyInvoiceNumberFieldOrder_Y = 56;
+        domesticFlightFieldOrder_Y = 57;
+        serviceClassFieldOrder_Y = 58;
+        ticketIssueDateFieldOrder_Y = 59;
+        defaultDimensionDisplayValueFieldOrder_Y = 60; 
+        
+        gblIsProjectValidationFlag = LookUp('Expense management parameters (mserp)','Company Code' = varSelectedLegalEntity).'Enable project validations' = 'NoYes (mserp)'.Yes;
+        
+        
+    MinScreenWidth: =320
+    OnStart: |-
+        =ClearCollect(
+            dsTimePeriods,
+            {
+                Value : "AM"
+            },
+            {
+                Value : "PM"
+            }
+        );
+        Set(
+            gblNavigationDrawerVisibility,
+            false
+        );
+        ForAll(
+            Filter('Expense category (mserp)', Inactive = 'NoYes (mserp)'.No),
+            Collect(
+                dsCategoryImages,
+                {
+                    expenseType : ThisRecord.'Expense type',
+                    icon : 
+                        Switch(
+                            ThisRecord.'Expense type',
+                            'TrvExpType (mserp)'.'Cash advance returns',
+                            Cash,
+                            'TrvExpType (mserp)'.'Per diem',
+                            perdiem,
+                            'TrvExpType (mserp)'.Mileage,
+                            Mileage,
+                            'TrvExpType (mserp)'.Personal,
+                            Personal,
+                            'TrvExpType (mserp)'.Airline,
+                            Airline,
+                            'TrvExpType (mserp)'.'Car rental',
+                            CarRental,
+                            'TrvExpType (mserp)'.Conference,
+                            Conference,
+                            'TrvExpType (mserp)'.Entertainment,
+                            Entertainment,
+                            'TrvExpType (mserp)'.Hotel,
+                            Hotel,
+                            'TrvExpType (mserp)'.Meals,
+                            Meals,
+                            'TrvExpType (mserp)'.'Gift certificates/Tangible gifts',
+                            Gift,
+                            Misc
+                        ),
+                    iconRed : 
+                        Switch(
+                            ThisRecord.'Expense type',
+                            'TrvExpType (mserp)'.'Cash advance returns',
+                            Cash_1,
+                            'TrvExpType (mserp)'.'Per diem',
+                            perdiemRed,
+                            'TrvExpType (mserp)'.Mileage,
+                            Mileage_1,
+                            'TrvExpType (mserp)'.Personal,
+                            Personal_1,
+                            'TrvExpType (mserp)'.Airline,
+                            Airline_1,
+                            'TrvExpType (mserp)'.'Car rental',
+                            CarRental_1,
+                            'TrvExpType (mserp)'.Conference,
+                            Conference_1,
+                            'TrvExpType (mserp)'.Entertainment,
+                            Entertainment_1,
+                            'TrvExpType (mserp)'.Hotel,
+                            Hotel_1,
+                            'TrvExpType (mserp)'.Meals,
+                            Meals_1,
+                            'TrvExpType (mserp)'.'Gift certificates/Tangible gifts',
+                            Gift_1,
+                            Misc_1
+                        ),
+                    iconYellow : 
+                        Switch(
+                            ThisRecord.'Expense type',
+                            'TrvExpType (mserp)'.'Cash advance returns',
+                            Cash_2,
+                            'TrvExpType (mserp)'.'Per diem',
+                            perdiemWarning,
+                            'TrvExpType (mserp)'.Mileage,
+                            Mileage_2,
+                            'TrvExpType (mserp)'.Personal,
+                            Personal_2,
+                            'TrvExpType (mserp)'.Airline,
+                            Airline_2,
+                            'TrvExpType (mserp)'.'Car rental',
+                            CarRental_2,
+                            'TrvExpType (mserp)'.Conference,
+                            Conference_2,
+                            'TrvExpType (mserp)'.Entertainment,
+                            Entertainment_2,
+                            'TrvExpType (mserp)'.Hotel,
+                            Hotel_2,
+                            'TrvExpType (mserp)'.Meals,
+                            Meals_2,
+                            'TrvExpType (mserp)'.'Gift certificates/Tangible gifts',
+                            Gift_2,
+                            Misc_2
+                        )
+                }
+            )
+        );
+        
+        Set(
+            gblWarningOnEdit,
+            true
+        );
+        Set(
+            gblWarningOnCreate,
+            true
+        );
+        
+        Set(
+            gblParams,
+            {
+                dropDownHeight : 60,
+                dorpDownBorderThickness : 2,
+                dropDownBorderColor : RGBA(34, 102, 227, 1),
+                dropDownLabelColor : Color.Black,
+                dropDownHoverFill : RGBA(204, 222, 255, 1),
+                errorMessageSize : 18,
+                dropDownFontSize : 24,
+                expenseDataCardViewOnly: RGBA(110, 110, 110, 1),
+                notificationTime : 6000
+            }
+        );
+        Set(
+            varSelectedTab,
+            2
+        );
+        
+        ClearCollect(
+            labelTableLookUp,
+            {
+                fieldName : "",
+                labelName : "",
+                localisedLabelName : "",
+                visible : true,
+                required : false
+            }
+        );
+        Clear(labelTableLookUp);
+        Clear(gblExpenseReportFieldVisibilityLookup); 
+        Clear(gblExpenseReportFieldVisibilityReImaginedLookup);
+        Set(   
+            userRecord,
+            LookUp('Expense mobile master data (mserp)',Email = User().Email)
+        );
+        Set(
+            varDefaultSalesTaxGroupUserContext,
+            userRecord.WorkerDefaultTaxGroup
+        );
+        Set(
+            varDefaultLegalEntity,
+            userRecord.UserPreferredLegalEntity
+        );
+        Set(
+            varDefaultLanguage,
+            userRecord.UserPreferredLanguage
+        );
+        Clear(collectionCountries);
+        
+        Collect(
+            collectionCountries,
+            ForAll(
+                Filter('Country Region Translation for Expense Mobile (mserp)', Language = varDefaultLanguage) As countryRegion,
+                {
+                    Code: countryRegion.'Country/region',
+                    Name: countryRegion.'Short name'
+                }
+            )
+        );
+        
+        If(
+            LookUp('Legal entities (mserp)',Company = varDefaultLegalEntity,IsEmployed) = 'NoYes (mserp)'.Yes,
+            Set(
+                varSelectedLegalEntity, Upper(Text(varDefaultLegalEntity))
+            ),
+            Set(
+                varSelectedLegalEntity, Blank()
+            )
+        );
+        
+        ClearCollect(
+            collectionICLE,
+            ForAll(
+            Split(LookUp('Legal entities (mserp)', Upper(Company) = varSelectedLegalEntity,IntercompanyLEs), ",") As legalEntityAlias,
+            {
+                Value: Upper(legalEntityAlias.Value)
+            }
+            )
+        );
+        If(
+            !IsBlank(varSelectedLegalEntity),
+            Set(
+                varDefaultCurrency,
+                LookUp('Legal entities (mserp)',Company = varSelectedLegalEntity, Currency)
+            )
+        );
+        ////////////////Concurrent API calls to get master data and expense lines data//////////////////
+        If(
+            IsBlank(varSelectedLegalEntity),
+            Notify(
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
+                NotificationType.Error,
+                gblParams.notificationTime
+            )
+        );
+        Set(
+            varOCREnabled,
+            userRecord.IsExpenseOCREnabled = 'NoYes (mserp)'.Yes
+        );
+        Set(
+            NotFoundStatusCode,
+            "404"
+        );
+        ClearCollect(
+            dsReceiptImages,
+            {
+                docuRefRecId : "",
+                base64 : ""
+            }
+        );
+        Clear(dsReceiptImages);
+        ClearCollect(
+           dsDrafts,
+           [
+               'Document status (mserp)'.Draft,
+               'Document status (mserp)'.Cancelled,
+               'Document status (mserp)'.Rejected,
+               'Document status (mserp)'.None
+           ]
+        );
+        ClearCollect(
+           dsInReview,
+           [
+               'Document status (mserp)'. Submitted,
+               'Document status (mserp)'.'In review',
+               'Document status (mserp)'.Matched
+           ]
+        );
+        ClearCollect(
+           dsApproved,
+           [
+               'Document status (mserp)'.Approved,
+               'Document status (mserp)'.'Processed for payment'
+           ]
+        );
+        Set(
+            blankImage,
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAADBQTFRFpaWl////5ubmrKystLS0zMzM8fHx3NzcpKSkvLy8+fn5/f39oaGhxMTE09PTp6enixYligAAAx9JREFUeNrsmst25CAMRM1bSID//28Hd3LmkTOOES46G9cmiyxuC8pClL1tjx49evTo0aNHjx49+lFR13uJpRzI/QP9PjbtzufQukKo3jnqv+MdXFebjZFNlwhHa4N3y9FELlgxL33+MYZjqm7pihfy4aPUfyQsHb0vLHqv1pyJm98Xkck1PuWKkVgXkX06574Uw14W1OvT99heNLcFNXtrroUn0whX2HAAm9s1MSMSrtB6t8DmS9c4dVjGlUyUrRlWwm1zcQqukQDrnqWyKMDWFVTHsgpuf6YqCpxZw4WVTHszOnEuBbLSUQk2YQPYi7q1tGDrEAUX7UofTQSyxUkN5rxjtli05FYQ59IUmH4GnAgBVpu6gzcEWCbAO6ZiLVoSYOo79li92A0CthOuRpjLTYARs8DRuUTfMgFgauqCrUcciyWrvZUcQU4Jq3yY+nmMmfWCdos9aOjyuhFEUBco7dDVRy7UXJ2jrm2hBnrdEBIz7ro4dEn93bWgV+ThxWbrkXHE0b7G+pfN2It5cWPbHOuGzSJoc0lGuPiArxxk/r5Vdu6CvGlz7XzePBwgMa9J2Mo3iWLncvJlRb0fz3OLZxXHQMu4veYQz5JMm92i/PYVVcdza0cb/IYnF/I18lUG0fB5ucuWP8x76uvjfxYb1dPm28DgdaDZ5q3guMEOD3zCAZZz+aQZBOR4oDHLrMwi2GBa2BGg6iZrlt60bxdc1dzP1xM30bW3jImbueFwx9zUuUamuHyHTMeoNcV9OWz+IlNmAp8/ZJ512FQW8DfZ+skoIN3hHmdl8jR19jKbe5I2lxaLuauJt1DFWwOQfpvp5gb/idqU25wjgqtf7N0aDFiXS3RnRQOStP1trePLXKApObDBqY2nXt4KEDyeTZRqoBofChIWPJpOKNOlAX8Nvl6lZsAaa1/kIxo89sqv3D8O/2OvoZQYD7YjjzJ+pYdyVaIgePBAdE6gg1j9skD7CQRsEqEVWzzyiQZlXsAVCZe2DrJgqfuIffUk72nFSsv1hxLOrgFfjV6LvCWX7irZrAGbC3dRNYv0FfxLgAEAUtErPzTrdUYAAAAASUVORK5CYII="
+        );
+        Set(
+            userImage,
+            LookUp('View User image for Expense Mobile (mserp)',User = userRecord.ID,UserImage)
+        );
+        Set(
+            gblDatePickerResolutionFactor,
+            0.0186
+        );
+        Set(
+            gblMin,
+            -79228162514264337593543950335
+        );
+        Set(
+            gblMax,
+            79228162514264337593543950335
+        );
+        // 260105 - 에러 수정
+        Set(mileageResponse, "")
+    StartScreen: ='Expenses - List Screen_Custom'
+    Theme: =PowerAppsTheme
+
+    Host As hostControl.DefaultHostControlVariant:
+        OnCancel: =false
+        OnEdit: =false
+        OnNew: =false
+        OnSave: =false
+        OnView: =false
+

@@ -1,0 +1,166 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  ExpenseInfo:
+    DefinitionType: CanvasComponent
+    CustomProperties:
+      Amount1:
+        PropertyKind: Input
+        DisplayName: Amount1
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      Amount2:
+        PropertyKind: Input
+        DisplayName: Amount2
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      CostType:
+        PropertyKind: Input
+        DisplayName: CostType
+        Description: Expense Category
+        DataType: Text
+        Default: ="Text"
+      Currency1:
+        PropertyKind: Input
+        DisplayName: Currency1
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      Currency2:
+        PropertyKind: Input
+        DisplayName: Currency2
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      HeaderText1:
+        PropertyKind: Input
+        DisplayName: HeaderText1
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      HeaderText2:
+        PropertyKind: Input
+        DisplayName: HeaderText2
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      IconVisibleFlag:
+        PropertyKind: Input
+        DisplayName: IconVisibleFlag
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      Mileage:
+        PropertyKind: Input
+        DisplayName: Mileage
+        Description: Distance Travelled
+        DataType: Text
+        Default: ="Text"
+      NoOfPassengers:
+        PropertyKind: Input
+        DisplayName: NoOfPassengers
+        Description: Number of Passengers as per the rate tier setup.
+        DataType: Text
+        Default: ="Text"
+      OnReload:
+        PropertyKind: Event
+        DisplayName: OnReload
+        Description: A custom property
+        ReturnType: Text
+        Default: ="Text"
+      RowId:
+        PropertyKind: Input
+        DisplayName: RowId
+        Description: Rowid of the entity
+        DataType: Text
+        Default: ="Text"
+      TransactionDate:
+        PropertyKind: Input
+        DisplayName: TransactionDate
+        Description: Transaction date of the expense
+        DataType: Text
+        Default: ="Text"
+      VehicleType:
+        PropertyKind: Input
+        DisplayName: VehicleType
+        Description: Vehicle Type as per rate tier setup.
+        DataType: Text
+        Default: ="Text"
+    Properties:
+      Fill: =RGBA(231, 231, 231, 0.8)
+      Height: =180
+      Width: =Max(App.Width, App.MinScreenWidth)
+    Children:
+      - HeaderText1:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =Amount1.Height
+            Text: =ExpenseInfo.HeaderText1
+            Width: =(App.Width - refreshButton.Width - refreshButton.X) /2
+            X: |-
+              =If(refreshButton.Visible,
+              refreshButton.X + refreshButton.Width + 5,
+              25
+              )
+      - HeaderText2:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =Amount1.Height
+            Text: =ExpenseInfo.HeaderText2
+            Width: =HeaderText1.Width
+            X: |-
+              =If(refreshButton.Visible,
+              refreshButton.X + refreshButton.Width + 5,
+              25
+              )
+            Y: =HeaderText1.Height
+      - Amount1:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Right
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =62
+            Text: =ExpenseInfo.Amount1
+            Width: =(App.Width - refreshButton.Width - refreshButton.X) /2
+            X: =App.Width - Self.Width
+      - Amount2:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Right
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =Amount1.Height
+            Text: =ExpenseInfo.Amount2
+            Width: =Amount1.Width
+            X: =Amount1.X
+            Y: =Amount1.Height
+      - refreshButton:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Refresh"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            Height: =37
+            Icon: =Icon.Sync
+            OnSelect: =ExpenseInfo.OnReload()
+            Visible: =ExpenseInfo.IconVisibleFlag
+            Width: =33
+            X: =14
+            Y: =HeaderText2.Y + (HeaderText2.Y - HeaderText1.Y - HeaderText1.Height)*2
