@@ -14,8 +14,9 @@
         UpdateContext({curBillIssuedToSelected: varSelectedExpenseDoc.'Hotel bill issued to'});
         UpdateContext({taxModifiedByUser: false});
         UpdateContext({varLoadingSpinner : true});
-        // Initialize remaining amount as numeric to prevent Error/Text comparisons later
-        UpdateContext({varRemainingAmount: Value(Coalesce(varSelectedExpenseDoc.'Remaining amount', 0))});
+        // varRemainingAmount는 Navigate 파라미터로 전달됨
+        // 파라미터가 없을 경우 기본값 0 사용
+        UpdateContext({varRemainingAmount: Coalesce(varRemainingAmount, 0)});
         If(
             !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
             UpdateContext(

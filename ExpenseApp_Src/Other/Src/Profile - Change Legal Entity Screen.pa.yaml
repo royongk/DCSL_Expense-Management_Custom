@@ -66,7 +66,7 @@ Screens:
             HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
             HoverColor: =RGBA(255, 255, 255, 1)
             HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-            OnSelect: |
+            OnSelect: |+
               =UpdateContext({locChangeLEDialogVisilibilty : true})
             PressedBorderColor: =Self.Fill
             PressedColor: =Self.Fill
@@ -169,7 +169,7 @@ Screens:
             LegalEntity: ="Text"
             OnLeftButtonClick: |-
               =UpdateContext({locChangeLEDialogVisilibilty : false})
-            OnRightButtonClick: |
+            OnRightButtonClick: |+
               =Set(
                   varSelectedLegalEntity,
                   Upper(legalEntityDropdown.Selected.Company)
@@ -230,7 +230,7 @@ Screens:
             Visible: =locChangeLEDialogVisilibilty
             Width: =Max(App.Width, App.MinScreenWidth)
             controlName: ="confirmationDialogToChangeLE"
-            parmInDescriptionText: |
+            parmInDescriptionText: |+
               =Substitute(Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_YourPreferredEntityWillBeChangedFrom', "$", currentCompany), "#", selectedLegalEntityValue.Text)
               //Concatenate("Your preferred entity will be changed from ",currentCompany," to ",selectedLegalEntityValue.Text)
             parmInHeaderText: ="Change legal entity?"

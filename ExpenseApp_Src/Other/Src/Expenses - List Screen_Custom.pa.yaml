@@ -88,13 +88,13 @@ Screens:
           Control: CanvasComponent
           ComponentName: emptyStateComponent
           Properties:
-            Height: |
+            Height: |+
               =350
             Visible: =!scr01_glr_ListExpense_1.Visible
             Width: =Self.Height
-            X: |
+            X: |+
               =(Parent.Width - Self.Width)/2
-            Y: |
+            Y: |+
               =scr01_glr_ListExpense_1.Y + (Parent.Height - scr01_hdr_TopHeader_1.Height - scr01_cmp_Footer_1.Height - Self.Height)/2
             subTitle: =GlobalLabels_1.Labels.'15062:LocalizedName,msdyn_AddExpensesToStartReportsLabel'
             title: =GlobalLabels_1.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
@@ -132,7 +132,7 @@ Screens:
             AccessibleLabel: ="List of draft expenses"
             BorderColor: =RGBA(0, 18, 107, 1)
             Default: ={}
-            Height: "=If(\n    varCntSelect,\n    Min(Parent.Height - scr01_hdr_TopHeader_1.Height - scr01_shp_BaseRectangle_1.Height-scr01_shp_Rectangle_1.Height, Self.TemplateHeight * CountRows(Self.AllItems)),\n    Min(Parent.Height - scr01_hdr_TopHeader_1.Height - scr01_cmp_Footer_1.Height,Self.TemplateHeight * CountRows(Self.AllItems)) \n    \n)"
+            Height: "=If(\r\n    varCntSelect,\r\n    Min(Parent.Height - scr01_hdr_TopHeader_1.Height - scr01_shp_BaseRectangle_1.Height-scr01_shp_Rectangle_1.Height, Self.TemplateHeight * CountRows(Self.AllItems)),\r\n    Min(Parent.Height - scr01_hdr_TopHeader_1.Height - scr01_cmp_Footer_1.Height,Self.TemplateHeight * CountRows(Self.AllItems)) \r\n    \r\n)"
             Items: |+
               =Filter(
                   SortByColumns('Expense lines (mserp)', "mserp_transdate", SortOrder.Descending),
@@ -401,7 +401,7 @@ Screens:
                                     Align: =Align.Center
                                     AutoHeight: =true
                                     BorderColor: =RGBA(0, 18, 107, 1)
-                                    Color: |
+                                    Color: |+
                                       =RGBA(102, 102, 102, 1)
                                     Font: =Font.'Segoe UI'
                                     OnSelect: =Select(scr01_shp_SelectRegion_4)
@@ -953,7 +953,7 @@ Screens:
             Text: |
               ="Create expense report"
             Visible: =varCntSelect
-            Width: |
+            Width: |+
               =Parent.Width -  Self.X*2
             X: =40
             Y: =scr01_shp_BaseRectangle_1.Y + (scr01_shp_BaseRectangle_1.Height - Self.Height)/2

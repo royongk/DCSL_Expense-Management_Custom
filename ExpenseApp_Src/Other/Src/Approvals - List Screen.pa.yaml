@@ -65,7 +65,7 @@ Screens:
           Control: CanvasComponent
           ComponentName: emptyStateComponent_7
           Properties:
-            Height: |
+            Height: |+
               =350
             Visible: |-
               =Switch(
@@ -76,7 +76,7 @@ Screens:
                   !(galExpenseLineItems.AllItemsCount > 0 && varcntSelectedStatus = 2)
               )
             Width: =Self.Height
-            X: |
+            X: |+
               =(Parent.Width - Self.Width)/2
             Y: =scr21_hdr_TopHeader_1.Height + (Parent.Height - scr21_hdr_TopHeader_1.Height - scr21_cmp_Footer.Height - Self.Height)/2
             subTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoPendingApprovalsLabel'
@@ -86,7 +86,7 @@ Screens:
           ComponentName: cmp_Footer_4
           Properties:
             ApprovalsAccessibleLabel: ="Text"
-            ApprovalsText: |
+            ApprovalsText: |+
               =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
             DisplayMode: =!IsBlank(varSelectedLegalEntity)
             ExpenseAccessibleLabel: ="Text"
@@ -614,7 +614,7 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
-                        Color: |
+                        Color: |+
                           =RGBA(102, 102, 102, 1)
                         Font: =Font.'Segoe UI'
                         Height: =45
@@ -668,7 +668,7 @@ Screens:
                       Properties:
                         Align: =Align.Right
                         BorderColor: =RGBA(0, 18, 107, 1)
-                        Color: |
+                        Color: |+
                           =RGBA(102, 102, 102, 1)
                         Font: =Font.'Segoe UI'
                         Height: =29
@@ -694,7 +694,7 @@ Screens:
                         Height: =39
                         OnSelect: =Select(scr21_shp_SelectRegion)
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                        Text: |
+                        Text: |+
                           =Concatenate(Text(Value(ThisItem.TotalAmount),"#,#0.00", varDefaultLanguage), " ", ThisItem.AmountCurrency)
                         Width: =250
                         X: =Parent.Width - Self.Width - 50
@@ -817,7 +817,7 @@ Screens:
                         ('Transaction amount' >= Coalesce(varMinMaxAmounts.minAmount, gblMin) && 'Transaction amount' <= Coalesce(varMinMaxAmounts.maxAmount, gblMax))
                     ),"mserp_transdate",SortOrder.Descending)
                   LayoutMinWidth: =Parent.Width
-                  OnSelect: |
+                  OnSelect: |+
                     =
                     Concurrent(
                         Set(
@@ -1066,7 +1066,7 @@ Screens:
                                           Align: =Align.Right
                                           AutoHeight: =true
                                           BorderColor: =RGBA(0, 18, 107, 1)
-                                          Color: |
+                                          Color: |+
                                             =RGBA(102, 102, 102, 1)
                                           Font: =Font.'Segoe UI'
                                           OnSelect: =
@@ -1138,7 +1138,7 @@ Screens:
             firstIconAction: =true
             paramAvatar: =Coalesce(userImage, blankImage)
             paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
-            refreshIconAction: "=Refresh('Submitted Reports for Approvals (mserp)');\nRefresh('View/Approve/Reject Expense Lines for Approvals (mserp)');\nConcurrent(\n    UpdateContext({varCntSelect: false}),\n    Clear(colSelectedWorkItemIds);\n    Clear(colSelectedLineItemIds);\n    ClearCollect(\n        workItemsAssignedToMe,\n        Filter(\n            'Submitted Reports for Approvals (mserp)',\n            User = userRecord.ID && 'Document status' = 'Document status (mserp)'.'In review'\n        )\n    );\n    ClearCollect(\n        lineItemsAssignedToMe,\n        Filter(\n            'View/Approve/Reject Expense Lines for Approvals (mserp)',User = userRecord.ID\n        )\n    );\n    ClearCollect(\n        receiptsAgainstWorkItems,\n        'View Attached Receipts to Expense Lines (mserp)'\n    );\n    If(\n        IsEmpty(collApprovedFilterOptions),\n        ClearCollect(\n        collApprovedFilterOptions,\n        {\n            number: 1,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneWeekLabel'  \n        },\n        {\n            number: 2,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneMonthLabel'  \n        },\n        {\n            number: 3,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterSixMonthsLabel'\n        },\n        {\n            number: 4,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneYearLabel'\n        }\n    )\n    );\n    \n)"
+            refreshIconAction: "=Refresh('Submitted Reports for Approvals (mserp)');\r\nRefresh('View/Approve/Reject Expense Lines for Approvals (mserp)');\r\nConcurrent(\r\n    UpdateContext({varCntSelect: false}),\r\n    Clear(colSelectedWorkItemIds);\r\n    Clear(colSelectedLineItemIds);\r\n    ClearCollect(\r\n        workItemsAssignedToMe,\r\n        Filter(\r\n            'Submitted Reports for Approvals (mserp)',\r\n            User = userRecord.ID && 'Document status' = 'Document status (mserp)'.'In review'\r\n        )\r\n    );\r\n    ClearCollect(\r\n        lineItemsAssignedToMe,\r\n        Filter(\r\n            'View/Approve/Reject Expense Lines for Approvals (mserp)',User = userRecord.ID\r\n        )\r\n    );\r\n    ClearCollect(\r\n        receiptsAgainstWorkItems,\r\n        'View Attached Receipts to Expense Lines (mserp)'\r\n    );\r\n    If(\r\n        IsEmpty(collApprovedFilterOptions),\r\n        ClearCollect(\r\n        collApprovedFilterOptions,\r\n        {\r\n            number: 1,\r\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneWeekLabel'  \r\n        },\r\n        {\r\n            number: 2,\r\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneMonthLabel'  \r\n        },\r\n        {\r\n            number: 3,\r\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterSixMonthsLabel'\r\n        },\r\n        {\r\n            number: 4,\r\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneYearLabel'\r\n        }\r\n    )\r\n    );\r\n    \r\n)"
             secondIcon: =icnFilter
             secondIconAccessibleLabel: ="Filter"
             secondIconAction: |-
