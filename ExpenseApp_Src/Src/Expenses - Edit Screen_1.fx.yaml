@@ -35,50 +35,65 @@
             !varIsCreate && gblIsProjectValidationFlag,
             Clear(colGetProjectsBasedOnResourceCategory);
             UpdateContext({
-                // Defensive: wrap connector call with IfError to ensure we don't pass Error into MatchAll/Text
-                varGetProjectsBasedOnResourceCategory :
-                IfError(
-                    'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategoryv2(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',
-                        {
-                            employeeLegalEntity: varSelectedLegalEntity,
-                            interCompanyLegalEntity: varSelectedExpenseDoc.'Legal entity',
-                            categoryId: 
-                            If(
-                                IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE),varSelectedExpenseDoc.'Intercompany project category',varSelectedExpenseDoc.'Expense category (mserp_costtype)')),
-                                "",
-                                If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE),varSelectedExpenseDoc.'Intercompany project category',varSelectedExpenseDoc.'Expense category (mserp_costtype)')
-                            )
-                        }).return,
-                    ""
-                )
+                varGetProjectsBasedOnResourceCategory:
+                    IfError(
+                        'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategoryv2(
+                            LookUp('Expense mobile master data (mserp)', Email = User().Email).'Expense mobile master data (mserp)',
+                            {
+                                employeeLegalEntity: varSelectedLegalEntity,
+                                interCompanyLegalEntity: varSelectedExpenseDoc.'Legal entity',
+                                categoryId:
+                                    If(
+                                        IsBlank(
+                                            If(
+                                                Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE),
+                                                varSelectedExpenseDoc.'Intercompany project category',
+                                                varSelectedExpenseDoc.'Expense category (mserp_costtype)'
+                                            )
+                                        ),
+                                        "",
+                                        If(
+                                            Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE),
+                                            varSelectedExpenseDoc.'Intercompany project category',
+                                            varSelectedExpenseDoc.'Expense category (mserp_costtype)'
+                                        )
+                                    )
+                            }
+                        ).return,
+                        Blank()
+                    )
             });
             If(
-                !IsBlankOrError(varGetProjectsBasedOnResourceCategory),
+                !IsBlank(varGetProjectsBasedOnResourceCategory),
+                Clear(colGetProjectsBasedOnResourceCategory);
                 Collect(
-                    colGetProjectsBasedOnResourceCategory ,
+                    colGetProjectsBasedOnResourceCategory,
                     ForAll(
-                        MatchAll(varGetProjectsBasedOnResourceCategory, "\{""projId"":""(?<projId>[^""]*)"",""projName"":""(?<projName>[^""]*)""\}") As ProjectListFromCol,
+                        MatchAll(
+                            varGetProjectsBasedOnResourceCategory,
+                            "\{""projId"":""(?<projId>[^""]*)"",""projName"":""(?<projName>[^""]*)""\}"
+                        ) As ProjectListFromCol,
                         {
-                            projectId: Text(ProjectListFromCol.projId),
-                            projectName: Text(ProjectListFromCol.projName)
+                            projectId: Text(ProjectListFromCol.SubMatches.projId),
+                            projectName: Text(ProjectListFromCol.SubMatches.projName)
                         }
                     )
                 )
             );
-            
             If(
-                !IsBlankOrError(curProjIdSelected),
+                !IsBlank(curProjIdSelected),
                 UpdateContext({
-                    // Defensive: If connector errors, store blank instead of Error
-                    varProjectHierarchyId : IfError(
-                        'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojecthierarchyid(userRecord.'Expense mobile master data (mserp)',
-                            {
-                                interCompanyLegalEntity: curIntercompanyLE,
-                                projId: curProjIdSelected
-                            }
-                        ).return,
-                        ""
-                    )
+                    varProjectHierarchyId:
+                        IfError(
+                            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojecthierarchyid(
+                                userRecord.'Expense mobile master data (mserp)',
+                                {
+                                    interCompanyLegalEntity: curIntercompanyLE,
+                                    projId: curProjIdSelected
+                                }
+                            ).return,
+                            Blank()
+                        )
                 })
             );
         );
