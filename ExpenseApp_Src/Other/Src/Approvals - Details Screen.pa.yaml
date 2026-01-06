@@ -19,7 +19,7 @@ Screens:
             Fill: =Color.White
             Height: =115
             Visible: =false
-            Width: |+
+            Width: |
               =Parent.Width
             Y: =scr22_hdr_TopHeader.Height + scr22_btn_TabView.Height - 2
       - scr22_cmp_ApprovalsFooter:
@@ -48,7 +48,7 @@ Screens:
           Properties:
             DropShadow: =DropShadow.None
             Fill: =RGBA(250, 249, 248, 1)
-            Height: |+
+            Height: |
               =100
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Horizontal
@@ -278,7 +278,7 @@ Screens:
                                   Properties:
                                     Align: =Align.Right
                                     BorderColor: =RGBA(0, 18, 107, 1)
-                                    Color: |+
+                                    Color: |
                                       =RGBA(102, 102, 102, 1)
                                     Font: =Font.'Segoe UI'
                                     Height: =29
@@ -333,7 +333,7 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
-                        Color: |+
+                        Color: |
                           =RGBA(110, 110, 110, 1)
                         Fill: =Color.White
                         Font: =Font.'Open Sans'
@@ -383,7 +383,7 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
-                        Color: |+
+                        Color: |
                           =RGBA(110, 110, 110, 1)
                         Fill: =Color.White
                         Font: =Font.'Open Sans'
@@ -818,7 +818,7 @@ Screens:
             Height: =TotalsContainer.Y - (Self.Y)
             Items: =SortByColumns(reviewedByForReport,"index",SortOrder.Descending)
             TemplateFill: =Color.White
-            TemplateSize: |+
+            TemplateSize: |
               =250
             Visible: =varSelectedTab = 3
             Width: =Parent.Width
@@ -937,7 +937,7 @@ Screens:
                               Align: =Align.Right
                               AutoHeight: =true
                               BorderColor: =RGBA(0, 18, 107, 1)
-                              Color: |+
+                              Color: |
                                 =RGBA(102, 102, 102, 1)
                               Font: =Font.'Segoe UI'
                               OnSelect: =
@@ -987,7 +987,7 @@ Screens:
           Group: HeaderTabGroup
           Properties:
             BorderColor: =RGBA(0, 18, 107, 1)
-            Fill: |+
+            Fill: |
               =RGBA(34, 102, 227, 1)
             Height: =3
             Visible: =varSelectedTab = 3
@@ -999,7 +999,7 @@ Screens:
           Group: HeaderTabGroup
           Properties:
             BorderColor: =RGBA(0, 18, 107, 1)
-            Fill: |+
+            Fill: |
               =RGBA(34, 102, 227, 1)
             Height: =3
             Visible: =varSelectedTab = 2
@@ -1011,7 +1011,7 @@ Screens:
           Group: HeaderTabGroup
           Properties:
             BorderColor: =RGBA(0, 18, 107, 1)
-            Fill: |+
+            Fill: |
               =RGBA(34, 102, 227, 1)
             Height: =3
             Visible: =varSelectedTab = 1
@@ -1095,7 +1095,7 @@ Screens:
             Fill: =Color.Transparent
             FocusedBorderThickness: =0
             Height: =scr22_lbl_Attachments.Height
-            OnSelect: "=UpdateContext({varSelectedTab:2});\r\nClearCollect(\r\n    colAttachmentToReport,\r\n    Filter(\r\n    receiptsAgainstWorkItems,\r\n    ExpenseLineAttachedTo in colExpensesAgainstWorkItem[@'Expense transaction number (mserp_exptransnumber)']\r\n)\r\n);\r\n/*ForAll( \r\n    colAttachmentToReport,\r\n    ClearCollect(\r\n        colAttachmentToReportPrevAndNext,\r\n        {\r\n            RowNumber: ,\r\n            FileExtension: \r\n            \r\n        }\r\n    )\r\n)*/\r\nClearCollect(colReceiptAttachToExpenseApprovals,ForAll(Sequence(CountRows(colAttachmentToReport)),Patch(Last(FirstN((colAttachmentToReport),Value)),{RowNumber:Value})));\r\n\r\n"
+            OnSelect: "=UpdateContext({varSelectedTab:2});\nClearCollect(\n    colAttachmentToReport,\n    Filter(\n    receiptsAgainstWorkItems,\n    ExpenseLineAttachedTo in colExpensesAgainstWorkItem[@'Expense transaction number (mserp_exptransnumber)']\n)\n);\n/*ForAll( \n    colAttachmentToReport,\n    ClearCollect(\n        colAttachmentToReportPrevAndNext,\n        {\n            RowNumber: ,\n            FileExtension: \n            \n        }\n    )\n)*/\nClearCollect(colReceiptAttachToExpenseApprovals,ForAll(Sequence(CountRows(colAttachmentToReport)),Patch(Last(FirstN((colAttachmentToReport),Value)),{RowNumber:Value})));\n\n"
             TabIndex: =0
             Width: =scr22_lbl_Attachments.Width
             X: =scr22_lbl_Attachments.X
