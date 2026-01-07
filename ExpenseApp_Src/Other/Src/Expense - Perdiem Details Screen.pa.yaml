@@ -30,7 +30,7 @@ Screens:
         )
     Children:
       - buttonDetailsContainer:
-          Control: GroupContainer@1.3.0
+          Control: GroupContainer@1.4.0
           Variant: AutoLayout
           Properties:
             DropShadow: =DropShadow.None
@@ -46,7 +46,7 @@ Screens:
             Y: =Parent.Height - Self.Height
           Children:
             - mealsAndIncidentalsContainer:
-                Control: GroupContainer@1.3.0
+                Control: GroupContainer@1.4.0
                 Variant: AutoLayout
                 Properties:
                   DropShadow: =DropShadow.None
@@ -54,6 +54,8 @@ Screens:
                   Height: =70
                   LayoutAlignItems: =LayoutAlignItems.Center
                   LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
                   PaddingLeft: =15
                   PaddingRight: =15
                   RadiusBottomLeft: =0
@@ -69,6 +71,8 @@ Screens:
                         FillPortions: =1
                         Font: =Font.'Segoe UI'
                         FontWeight: =FontWeight.Semibold
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
                         LayoutMinWidth: =250
                         Text: =GlobalLabels.Labels.'15062:LocalizedName,MealsAndIncidentalsLabel'
                   - lblMealsIncidentalsAmount:
@@ -78,13 +82,15 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         Font: =Font.'Segoe UI'
                         FontWeight: =FontWeight.Semibold
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
                         Text: |+
                           =Concatenate(Text(Sum(dsPerdiemDetails,'Meals and incidentals'), "#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
 
 
                         Width: =250
             - totalsContainer:
-                Control: GroupContainer@1.3.0
+                Control: GroupContainer@1.4.0
                 Variant: AutoLayout
                 Properties:
                   DropShadow: =DropShadow.None
@@ -92,6 +98,8 @@ Screens:
                   Height: =70
                   LayoutAlignItems: =LayoutAlignItems.Center
                   LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
                   PaddingLeft: =15
                   PaddingRight: =15
                   RadiusBottomLeft: =0
@@ -107,6 +115,8 @@ Screens:
                         FillPortions: =1
                         Font: =Font.'Segoe UI'
                         FontWeight: =FontWeight.Semibold
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
                         LayoutMinWidth: =250
                         Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_TotalLabel'
                   - lblTotalsAmount:
@@ -116,16 +126,20 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         Font: =Font.'Segoe UI'
                         FontWeight: =FontWeight.Semibold
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
                         Text: |+
                           =Concatenate(Text(varSelectedExpenseDoc.'Amount (mserp_amountmst)', "#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
 
 
                         Width: =250
             - footerButtonsContainer:
-                Control: GroupContainer@1.3.0
+                Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   DropShadow: =DropShadow.None
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
                   RadiusBottomLeft: =0
                   RadiusBottomRight: =0
                   RadiusTopLeft: =0
@@ -379,7 +393,7 @@ Screens:
                   X: =5
                   Y: =perdiemDetailsContainer_2.Height
             - perdiemDetailsContainer_2:
-                Control: GroupContainer@1.3.0
+                Control: GroupContainer@1.4.0
                 Variant: AutoLayout
                 Properties:
                   DropShadow: =DropShadow.None
@@ -395,7 +409,7 @@ Screens:
                   Width: =Parent.Width
                 Children:
                   - dateAmountContainer_2:
-                      Control: GroupContainer@1.3.0
+                      Control: GroupContainer@1.4.0
                       Variant: AutoLayout
                       Properties:
                         DropShadow: =DropShadow.None
@@ -403,6 +417,8 @@ Screens:
                         Height: =lblPerdiemAmount_2.Height
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
                         LayoutMinWidth: =Parent.Width - (Parent.PaddingLeft*2)
                         RadiusBottomLeft: =0
                         RadiusBottomRight: =0
@@ -418,6 +434,8 @@ Screens:
                               FillPortions: =1
                               Font: =Font.'Segoe UI'
                               Height: =Self.Size * 1.8
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
                               LayoutMinWidth: =150
                               OnSelect: =
                               PaddingBottom: =0
@@ -441,6 +459,8 @@ Screens:
                               BorderColor: =RGBA(0, 18, 107, 1)
                               Font: =Font.'Segoe UI'
                               FontWeight: =FontWeight.Bold
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
                               Text: |+
                                 =Concatenate(Text(Value(ThisItem.'Meals and incidentals'), "#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
 
@@ -454,6 +474,8 @@ Screens:
                               Color: =RGBA(166, 166, 166, 1)
                               Height: =50
                               Icon: =Icon.ChevronDown
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
                               OnSelect: |-
                                 =Patch(
                                     dsPerdiemDetails,
@@ -477,16 +499,20 @@ Screens:
                         Color: =RGBA(110, 110, 110, 1)
                         Font: =Font.'Segoe UI'
                         Height: =40
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
                         Size: =14
                         Text: =Concatenate(ThisItem.Breakfast + ThisItem.Dinner + ThisItem.Lunch, " meal(s)")
                         Width: =Parent.Width
                   - mealsToggleContainer:
-                      Control: GroupContainer@1.3.0
+                      Control: GroupContainer@1.4.0
                       Variant: AutoLayout
                       Properties:
                         DropShadow: =DropShadow.None
                         FillPortions: =0
                         LayoutDirection: =LayoutDirection.Vertical
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
                         RadiusBottomLeft: =0
                         RadiusBottomRight: =0
                         RadiusTopLeft: =0
@@ -496,7 +522,7 @@ Screens:
                         Y: =40
                       Children:
                         - breakfastContainer:
-                            Control: GroupContainer@1.3.0
+                            Control: GroupContainer@1.4.0
                             Variant: AutoLayout
                             Properties:
                               DropShadow: =DropShadow.None
@@ -504,6 +530,8 @@ Screens:
                               Height: =70
                               LayoutAlignItems: =LayoutAlignItems.Center
                               LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
                               PaddingLeft: =25
                               PaddingRight: =5
                               RadiusBottomLeft: =0
@@ -521,6 +549,8 @@ Screens:
                                     FillPortions: =1
                                     Font: =Font.'Segoe UI'
                                     Height: =Self.Size * 1.8
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
                                     LayoutMinWidth: =200
                                     PaddingBottom: =0
                                     PaddingLeft: =0
@@ -540,6 +570,8 @@ Screens:
                                     FalseText: =
                                     FocusedBorderThickness: =0
                                     Font: =Font.'Open Sans'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
                                     OnChange: =
                                     OnCheck: =
                                     OnSelect: |-
@@ -557,7 +589,7 @@ Screens:
                                     TrueFill: =RGBA(56, 96, 178, 1)
                                     TrueText: =
                         - lunchContainer:
-                            Control: GroupContainer@1.3.0
+                            Control: GroupContainer@1.4.0
                             Variant: AutoLayout
                             Properties:
                               DropShadow: =DropShadow.None
@@ -565,6 +597,8 @@ Screens:
                               Height: =70
                               LayoutAlignItems: =LayoutAlignItems.Center
                               LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
                               PaddingLeft: =25
                               PaddingRight: =5
                               RadiusBottomLeft: =0
@@ -582,6 +616,8 @@ Screens:
                                     FillPortions: =1
                                     Font: =Font.'Segoe UI'
                                     Height: =Self.Size * 1.8
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
                                     LayoutMinWidth: =200
                                     PaddingBottom: =0
                                     PaddingLeft: =0
@@ -601,6 +637,8 @@ Screens:
                                     FalseText: =
                                     FocusedBorderThickness: =0
                                     Font: =Font.'Open Sans'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
                                     OnChange: =
                                     OnCheck: =
                                     OnSelect: |-
@@ -618,7 +656,7 @@ Screens:
                                     TrueFill: =RGBA(56, 96, 178, 1)
                                     TrueText: =
                         - dinnerContainer:
-                            Control: GroupContainer@1.3.0
+                            Control: GroupContainer@1.4.0
                             Variant: AutoLayout
                             Properties:
                               DropShadow: =DropShadow.None
@@ -626,6 +664,8 @@ Screens:
                               Height: =70
                               LayoutAlignItems: =LayoutAlignItems.Center
                               LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
                               PaddingLeft: =25
                               PaddingRight: =5
                               RadiusBottomLeft: =0
@@ -643,6 +683,8 @@ Screens:
                                     FillPortions: =1
                                     Font: =Font.'Segoe UI'
                                     Height: =Self.Size * 1.8
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
                                     LayoutMinWidth: =200
                                     PaddingBottom: =0
                                     PaddingLeft: =0
@@ -662,6 +704,8 @@ Screens:
                                     FalseText: =
                                     FocusedBorderThickness: =0
                                     Font: =Font.'Open Sans'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
                                     OnChange: =
                                     OnCheck: =
                                     OnSelect: |-
@@ -679,7 +723,7 @@ Screens:
                                     TrueFill: =RGBA(56, 96, 178, 1)
                                     TrueText: =
       - buttonsContainer:
-          Control: GroupContainer@1.3.0
+          Control: GroupContainer@1.4.0
           Variant: AutoLayout
           Properties:
             DropShadow: =DropShadow.None
@@ -704,6 +748,8 @@ Screens:
                         icnHideAll
                     )
                   ImagePosition: =ImagePosition.Center
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
                   Width: =Self.Height
             - lbl_ShowHideAll:
                 Control: Label@2.5.1
@@ -715,6 +761,8 @@ Screens:
                   Font: =Font.'Segoe UI'
                   FontWeight: =FontWeight.Semibold
                   Height: =Parent.Height
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
                   LayoutMinWidth: =250
                   OnSelect: "=If(\n    Self.Text = GlobalLabels.Labels.'15062:LocalizedName,ShowAllLabel',\n    UpdateIf(\n        dsPerdiemDetails,\n        true,\n        {\n            isGalleryVisible: true\n        }\n    ),\n    Self.Text = GlobalLabels.Labels.'15062:LocalizedName,HideAllLabel',\n    UpdateIf(\n        dsPerdiemDetails,\n        true,\n        {\n            isGalleryVisible: false\n        }\n    )\n)\n    "
                   Size: =16
@@ -733,6 +781,8 @@ Screens:
                   Height: =Parent.Height
                   Image: =icnUnselected
                   ImagePosition: =ImagePosition.Center
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
                   Visible: =false
                   Width: =Self.Height
             - lbl_IncludeExcludeAll:
@@ -744,6 +794,8 @@ Screens:
                   Font: =Font.'Segoe UI'
                   FontWeight: =FontWeight.Semibold
                   Height: =Parent.Height
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
                   LayoutMinWidth: =50
                   Size: =16
                   Text: ="Exclude All"
