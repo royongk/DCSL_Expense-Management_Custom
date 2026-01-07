@@ -275,10 +275,12 @@ App As appinfo:
             )
         );
         ////////////////Concurrent API calls to get master data and expense lines data//////////////////
+        // Note: GlobalLabels is not accessible at App level, using hardcoded fallback
+        // The actual localized label will be displayed when StartScreen (Expenses - List Screen_Custom) loads
         If(
             IsBlank(varSelectedLegalEntity),
             Notify(
-                GlobalLabels.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
+                "We couldn't find employment", // Fallback message - actual localization handled by screen-level GlobalLabels_1
                 NotificationType.Error,
                 gblParams.notificationTime
             )
