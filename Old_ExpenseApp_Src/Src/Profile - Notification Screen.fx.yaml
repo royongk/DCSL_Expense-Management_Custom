@@ -1,0 +1,702 @@
+"'Profile - Notification Screen' As screen":
+    Fill: =RGBA(244, 244, 244, 1)
+    OnVisible: |
+        =Refresh('Expense mobile notifications (mserp)');
+        /* The purpose of adding a collection is that even if the entity is refreshed while being on the List Notification Screen, but as the user has still not seen the notification, it should not be deleted. Bottom line is whatever list of notification user is currently seeing on screen will only be deleted or marked as read*/
+        ClearCollect(
+            colExpenseNoticationInfo,
+            ForAll(
+                Filter('Expense mobile notifications (mserp)',NotifiedEmailId = User().Email) As ExpenseNotification,
+                {
+                    RecId: ExpenseNotification.EntRecId,
+                    ReadMessage: ExpenseNotification.Read
+                }
+            )
+        );
+        Refresh('Submitted Reports for Approvals (mserp)');
+        ClearCollect(
+            workItemsAssignedToMe,
+            Filter(
+                'Submitted Reports for Approvals (mserp)',
+                User = userRecord.ID && 'Document status' = 'Document status (mserp)'.'In review'
+            )
+        );
+
+    emptyStateComponentNotification As emptyStateComponent:
+        Height: =(App.Height - 'Notification Screen Header'.Height - 'Buttons - Notification Screen Buttons'.Height)  * 0.422
+        subTitle: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoNotificationLabel'
+        title: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
+        Visible: =!NotificationGallery.Visible
+        X: =App.Width / 2 - emptyStateComponentNotification.Width / 2
+        Y: =(App.Height - 'Notification Screen Header'.Height - 'Buttons - Notification Screen Buttons'.Height) / 2 - emptyStateComponentNotification.Height / 2
+
+    "'Buttons - Notification Screen Buttons' As groupContainer.manualLayoutContainer":
+        Fill: =Color.White
+        Height: =App.Height * 0.198
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        Width: =Parent.Width
+        Y: =App.Height - 'Buttons - Notification Screen Buttons'.Height
+        ZIndex: =2
+
+        MarkAllAsReadButton As button:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            Color: |
+                =RGBA(34, 102, 227, 1)
+            Fill: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Segoe UI'
+            Height: =DoneButton.Height
+            OnSelect: |
+                =ForAll(
+                    colExpenseNoticationInfo,
+                    If( (LookUp(
+                            'Expense mobile notifications (mserp)',
+                            EntRecId = colExpenseNoticationInfo[@RecId]
+                        ).Read) = 'NoYes (mserp)'.No,
+                    Patch(
+                        'Expense mobile notifications (mserp)',
+                        LookUp(
+                            'Expense mobile notifications (mserp)',
+                            EntRecId = colExpenseNoticationInfo[@RecId]
+                        ),
+                        {
+                            Read: 'NoYes (mserp)'.Yes
+                        }
+                    )
+                    )
+                );
+            Size: =19.15
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_MarkAllAsReadLabel'
+            Width: |
+                =Parent.Width -  Self.X*2
+            X: =DoneButton.X
+            Y: =DoneButton.Y + DoneButton.Height + 'Buttons - Notification Screen Buttons'.Height * 0.0889 
+            ZIndex: =1
+
+        DoneButton As button:
+            Fill: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            Height: ='Buttons - Notification Screen Buttons'.Height * 0.338
+            OnSelect: |-
+                =If(IsBlank(gblScreenName),
+                Navigate('Expenses - List Screen'),
+                Navigate(gblScreenName)
+                );
+                
+                Refresh('Expense mobile notifications (mserp)');
+                /* The purpose of adding a collection is that even if the entity is refreshed while being on the List Notification Screen, but as the user has still not seen the notification, it should not be deleted. Bottom line is whatever list of notification user is currently seeing on screen will only be deleted or marked as read*/
+                ClearCollect(
+                    colExpenseNoticationInfo,
+                    ForAll(
+                        Filter('Expense mobile notifications (mserp)',NotifiedEmailId = User().Email) As ExpenseNotification,
+                        {
+                            RecId: ExpenseNotification.EntRecId,
+                            ReadMessage: ExpenseNotification.Read
+                        }
+                    )
+                );
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Size: =19.15
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'
+            Width: |
+                =Parent.Width -  Self.X*2
+            X: =App.Width * 0.0625
+            Y: ='Buttons - Notification Screen Buttons'.Height * 0.0889
+            ZIndex: =2
+
+    "'Notification Screen Header' As 'header-navigation-PolicyViolation'":
+        BackButtonClicked: |
+            =If(IsBlank(gblScreenName),
+            Navigate('Expenses - List Screen'),
+            Navigate(gblScreenName)
+            );
+            
+            Refresh('Expense mobile notifications (mserp)');
+            /* The purpose of adding a collection is that even if the entity is refreshed while being on the List Notification Screen, but as the user has still not seen the notification, it should not be deleted. Bottom line is whatever list of notification user is currently seeing on screen will only be deleted or marked as read*/
+            ClearCollect(
+                colExpenseNoticationInfo,
+                ForAll(
+                    Filter('Expense mobile notifications (mserp)',NotifiedEmailId = User().Email) As ExpenseNotification,
+                    {
+                        RecId: ExpenseNotification.EntRecId,
+                        ReadMessage: ExpenseNotification.Read
+                    }
+                )
+            );
+        Fill: =Color.White
+        HeaderText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NotificationsLabel'
+        Width: =App.Width
+        ZIndex: =3
+
+    clearAllLabel As label:
+        Color: =RGBA(34, 102, 227, 1)
+        DisplayMode: |-
+            =If(
+                NotificationGallery.Visible,
+                DisplayMode.Edit,
+                DisplayMode.Disabled
+            )
+        FontWeight: =FontWeight.Semibold
+        Height: =48
+        OnSelect: =RemoveIf('Expense mobile notifications (mserp)', EntRecId in colExpenseNoticationInfo[@RecId])
+        Size: =18
+        TabIndex: =0
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ClearAllLabel'
+        Width: =126
+        X: =App.Width - clearAllLabel.Width
+        Y: =17
+        ZIndex: =4
+
+    "NotificationGallery As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+        '#CopilotOverlayLabel': ="Filtered"
+        DelayItemLoading: =true
+        Fill: =RGBA(0,0,0,0)
+        Height: =App.Height - 'Notification Screen Header'.Height - 'Buttons - Notification Screen Buttons'.Height - App.Height * 0.0282
+        Items: |-
+            =Filter(
+                SortByColumns('Expense mobile notifications (mserp)',"mserp_eventtimestamp",SortOrder.Descending),
+                NotifiedEmailId = User().Email
+            )
+        Layout: =Layout.Vertical
+        LoadingSpinner: =LoadingSpinner.Data
+        OnSelect: |
+            =If(
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Reports,
+            Set(
+                varSelectedReport,
+                LookUp('Expense reports (mserp)','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
+            );
+            If(
+                IsBlank(varSelectedReport),
+                UpdateContext({locSelectedReportDiffLE : LookUp('Expense reports (mserp)', 'Expense report number' = ThisItem.'Expense report number')});
+                If(!IsBlank(locSelectedReportDiffLE),
+                    Notify(
+                    Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportNotExistPleaseNavigateLabel',"$",locSelectedReportDiffLE.LegalEntity_DataArea),
+                    NotificationType.Warning
+                ),
+                Notify(
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportDoesNotExistLabel',
+                    NotificationType.Error
+                )
+                )
+            ,
+            Set(
+                varSelectedReportStatusItem,
+                varSelectedReport.'Document status'
+            );
+            Clear(colAttachedExpensesForReport);
+            ForAll(
+                Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
+                Collect(
+                    colAttachedExpensesForReport,
+                    LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+                )
+            );
+            ClearCollect(
+                colAttachedExpenses,
+                colAttachedExpensesForReport
+            );
+            
+            If(
+                varSelectedReportStatusItem in dsDrafts,
+                Navigate('Reports - Edit Screen'),
+                Navigate('Reports - View Only Screen');
+            )),
+            ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Approvals && ThisItem.'Document type' = 'Expense document types (mserp)'.'Expense report',
+            //hold the details of the selected work item in a record to be referenced
+            Set(
+                varSelectedWorkItem,
+                LookUp(workItemsAssignedToMe,'Expense report number' = ThisItem.'Expense report number')
+            );
+            If(IsBlank(varSelectedWorkItem),
+                Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoActionRequiredForApprovalLabel',
+                NotificationType.Warning
+                ),
+            
+            ClearCollect(
+                colExpensesAgainstWorkItem,
+                Filter(
+                    'Expense Lines Attached to a Report for Approvals (mserp)',
+                    'Expense report number (mserp_expnumber)' = varSelectedWorkItem.'Expense report number' &&
+                    ReferenceDataAreaId = varSelectedWorkItem.ReferenceDataAreaId &&
+                    User = userRecord.ID
+                )
+            );
+            ClearCollect(
+                colSelectedWorkItemIds,
+                {
+                    expenseReportNumber : varSelectedWorkItem.'Expense report number',
+                    workItemRecId : varSelectedWorkItem.WorkItemRecId
+                }
+            );
+            Clear(reviewedByForReport);
+            UpdateContext({
+                flowResponse:
+                'Submitted Reports for Approvals (mserp)'.mserp_trvexpmobilereportapprovalentity_getworkflowtimeline(varSelectedWorkItem.'Submitted Reports for Approvals (mserp)').return
+            });
+            ClearCollect(recordIndex, {idx : 1});
+            ForAll(
+                Table(
+                    ParseJSON(
+                        flowResponse
+                    )
+                ),
+                Collect(
+                    reviewedByForReport,
+                    {
+                        message: Text(ThisRecord.Value.Message),       
+                        comment : Text(ThisRecord.Value.Comment),
+                        createdDateTime : Text(ThisRecord.Value.CreatedDateTime),
+                        assignedTo : Text(ThisRecord.Value.User),
+                        index: First(recordIndex).idx
+                    }
+                );
+                Patch(
+                    recordIndex,
+                    First(recordIndex),
+                    {
+                        idx : First(recordIndex).idx + 1
+                    }
+                )     
+            );
+            ClearCollect(recordIndex, {idx : 1});
+            //navigate to the report details screen
+            Navigate('Approvals - Details Screen', ScreenTransition.Fade, {varSelectedTab : 1})
+            );,
+            
+            ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Approvals && ThisItem.'Document type' = 'Expense document types (mserp)'.'Expense line',
+            //Navigate to line for approvals
+            
+            Set(
+                varSelectedLineItem,
+                LookUp('View/Approve/Reject Expense Lines for Approvals (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number')
+            );
+            If(
+                IsBlank(varSelectedLineItem),
+                Notify(
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoActionRequiredForApprovalLabel',
+                    NotificationType.Warning
+                ),
+                Concurrent(
+                    Set(
+                        varIsCreate,
+                        false
+                    ),
+                    Set(
+                        varReceiptImage,  //set as receiptUrl of attached expense
+                        Blank()
+                    )
+                );
+                Set(
+                    varReceiptImage,
+                    LookUp('View privilege for Receipts attached to Expense Lines for Approvals (mserp)', EntRecId = Value(varSelectedLineItem.AttachedReceiptId),CapturedDocument)
+                );
+                Set(
+                    varFileFormat,
+                    LookUp('View privilege for Receipts attached to Expense Lines for Approvals (mserp)', EntRecId = Value(varSelectedLineItem.AttachedReceiptId),FileExtension)
+                );
+                Set(
+                    varSelectedReceiptNumber,
+                    Blank()
+                );
+                ClearCollect(
+                    colSelectedLineItemIds,
+                    {
+                        transactionId : ThisItem.'Expense transaction number'
+                    }
+                );
+                Clear(reviewedBy);
+                UpdateContext({
+                    flowResponse:
+                    'View/Approve/Reject Expense Lines for Approvals (mserp)'.mserp_trvexpmobilelineapprovalentity_getworkflowtimeline(varSelectedLineItem.'View/Approve/Reject Expense Lines for Approvals (mserp)').return
+                });
+                ClearCollect(recordIndex, {idx : 1});
+                ForAll(
+                    Table(
+                        ParseJSON(
+                            flowResponse
+                        )
+                    ),
+                    Collect(
+                        reviewedBy,
+                        {
+                            message: Text(ThisRecord.Value.Message),       
+                            comment : Text(ThisRecord.Value.Comment),
+                            createdDateTime : Text(ThisRecord.Value.CreatedDateTime),
+                            assignedTo : Text(ThisRecord.Value.User),
+                            index : First(recordIndex).idx
+                        }
+                    );
+                    Patch(
+                        recordIndex,
+                        First(recordIndex),
+                        {
+                            idx : First(recordIndex).idx + 1
+                        }
+                    )
+                );
+                ClearCollect(recordIndex, {idx : 1});
+                Navigate('Approvals - Line Details Screen', ScreenTransition.Fade, {varSelectedTab : 1})
+            )
+            ,
+            ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Expenses,
+            
+            //set details for the next screen 
+            Concurrent(
+                Set(
+                    varIsCreate,
+                    false
+                ),
+                Set(
+                    varReceiptImage,
+                    Blank()
+                )
+            );
+            // assign the expense to a varSelectedExpenseDoc
+            Set(
+                varSelectedExpenseDoc,
+                LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number' && 'Company Code' = varSelectedLegalEntity)
+            );
+            If(
+                IsBlank(varSelectedExpenseDoc),
+                UpdateContext({locSelectedExpenseDiffLE : LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number')});
+                If(
+                    !IsBlank(locSelectedExpenseDiffLE),
+                    Notify(
+                    Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseNotExistPleaseNavigateLabel',"$",locSelectedExpenseDiffLE.'Company Code'),
+                    NotificationType.Warning
+                ),
+                Notify(
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseDoesNotExistLabel',
+                    NotificationType.Warning
+                )
+                ),
+                !IsBlank(varSelectedExpenseDoc.'Expense report number (mserp_expnumber)'),
+                Notify(
+                Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseLineAlreadyAttachedToAReportLabel',"$",varSelectedExpenseDoc.'Expense report number (mserp_expnumber)'),
+                NotificationType.Warning),
+                
+            // populating base64 to show image on selection of expense
+            Set(
+                varReceiptImage,
+                LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument) 
+            );
+            Set(
+                varFileFormat,
+                LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),FileExtension)
+            );
+            // collect policy violations
+            If(
+                varSelectedExpenseDoc.PolicyViolationCount,
+                ClearCollect(
+                    colPolViolations,
+                    Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                );
+                UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
+                UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                Clear(colPolViolations);
+                UpdateContext({varMaxViolationLevel : 0});
+                UpdateContext({varNumViolation : 0})
+            );
+            
+            Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : Blank(), varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation})
+            
+            )
+            );
+            Patch(
+                'Expense mobile notifications (mserp)',
+                LookUp(
+                    'Expense mobile notifications (mserp)',
+                    EntRecId = ThisItem.EntRecId
+                ),
+                {Read: 'NoYes (mserp)'.Yes}
+            )
+        TemplatePadding: =0
+        TemplateSize: =Button1.Height + Separator4.Height + Container4.Height
+        Visible: =Self.AllItemsCount > 0
+        Width: =App.Width - App.Width * 0.03125
+        X: =App.Width * 0.01875
+        Y: ='Notification Screen Header'.Height + App.Height * 0.0140
+        ZIndex: =5
+
+        Container4 As groupContainer.verticalAutoLayoutContainer:
+            DropShadow: =DropShadow.Regular
+            Height: =7
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMode: =LayoutMode.Auto
+            Width: =Button1.Width - (NotificationGallery.Width - Button1.Width + 1) * 2
+            X: =11
+            Y: =Button1.Y + Button1.Height - Self.Height
+            ZIndex: =1
+
+        Button1 As button:
+            DisplayMode: =DisplayMode.View
+            Fill: |-
+                =If(ThisItem.Read = 'NoYes (mserp)'.No,
+                    Color.White,
+                    RGBA(250, 249, 248, 1)
+                )    
+            Height: =notificationMessageLabel.Height + documentTypeLabel.Height * 3 - 15
+            HoverFill: =Color.White
+            OnSelect: =Select(Parent)
+            Size: =24
+            Text: =
+            Width: =NotificationGallery.Width - 11
+            ZIndex: =2
+
+        documentTypeImage As image:
+            AccessibleLabel: ="Select notification"
+            Height: =30
+            Image: |
+                =If(ThisItem.Read = 'NoYes (mserp)'.No,
+                If(ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Reports && (ThisItem.'Event type'='Expense mobile notification event types (mserp)'.'Work item assigned to queue' || ThisItem.'Event type'='Expense mobile notification event types (mserp)'.'Workflow completed'),
+                SelectedReport,
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Reports && (ThisItem.'Event type'='Expense mobile notification event types (mserp)'.'Work item returned'),
+                WarningReports,
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Reports && (ThisItem.'Event type'='Expense mobile notification event types (mserp)'.'Work item rejected'),
+                RejectedReports,
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Expenses && (ThisItem.'Event type'='Expense mobile notification event types (mserp)'.'Work item assigned to queue' || ThisItem.'Event type'='Expense mobile notification event types (mserp)'.'Workflow completed'),
+                IcnFooterExpenseSelected,
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Expenses && (ThisItem.'Event type'='Expense mobile notification event types (mserp)'.'Work item returned'),
+                ReturnedExpenseIcon,
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Expenses && (ThisItem.'Event type'='Expense mobile notification event types (mserp)'.'Work item rejected'),
+                RejectedExpenseIcon,
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Expenses,
+                IcnFooterExpenseSelected,
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Approvals ,
+                approvalSelected
+                ),
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Reports,
+                IcnFooterReportsUnSelected,
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Expenses,
+                ExpensesUnselected,
+                ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Approvals ,
+                approvalsIcon
+                )
+            OnSelect: =Select(Parent)
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            TabIndex: =0
+            Width: =20
+            X: =Button1.Width *  0.0411
+            Y: =Button1.Y + 17
+            ZIndex: =3
+
+        documentTypeLabel As label:
+            BorderColor: =RGBA(0, 0, 0, 1)
+            Color: =RGBA(110, 110, 110, 1)
+            DisabledColor: =RGBA(186, 186, 186, 1)
+            Height: =27
+            OnSelect: =Select(Parent)
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =14
+            TabIndex: =0
+            Text: =ThisItem.'Notification type'
+            VerticalAlign: =VerticalAlign.Top
+            Width: =Button1.Width * 0.509
+            X: =documentTypeImage.X + documentTypeImage.Width + Button1.Width * 0.0164
+            Y: =Button1.Y + 20
+            ZIndex: =4
+
+        notificationMessageLabel As label:
+            BorderColor: =RGBA(0, 0, 0, 1)
+            Color: |
+                =If(
+                    ThisItem.Read = 'NoYes (mserp)'.No,
+                    RGBA(71, 69, 64, 1),
+                    RGBA(110, 110, 110, 1)
+                )
+            DisabledColor: =RGBA(186, 186, 186, 1)
+            FontWeight: |-
+                =If(
+                    ThisItem.Read = 'NoYes (mserp)'.No,
+                    FontWeight.Bold,
+                    FontWeight.Semibold
+                )
+            Height: =94
+            OnSelect: =Select(Parent)
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =18
+            TabIndex: =0
+            Text: =ThisItem.NotificationLine1
+            VerticalAlign: =VerticalAlign.Top
+            Width: =Button1.Width * 0.898
+            X: =49
+            Y: =53
+            ZIndex: =5
+
+        Separator4 As rectangle:
+            BorderColor: =RGBA(0, 0, 255, 1)
+            Fill: =RGBA(248, 248, 248, 1)
+            Height: =8
+            OnSelect: =Select(Parent)
+            TabIndex: =0
+            Width: =Parent.TemplateWidth
+            Y: =Parent.TemplateHeight - Self.Height
+            ZIndex: =6
+
+        AgoLabel As label:
+            Color: =RGBA(110, 110, 110, 1)
+            Height: =documentTypeLabel.Height
+            OnSelect: =Select(Parent)
+            Size: =14
+            TabIndex: =0
+            Text: |-
+                =If(
+                    DateDiff(
+                        DateAdd(
+                            ThisItem.EventTimeStamp,
+                            -TimeZoneOffset(),
+                            TimeUnit.Minutes
+                        ),
+                        Now(),
+                        TimeUnit.Seconds
+                    ) < 60,
+                    Substitute(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_SecondAgoLabel',
+                        "$",
+                        DateDiff(
+                            DateAdd(
+                                ThisItem.EventTimeStamp,
+                                -TimeZoneOffset(),
+                                TimeUnit.Minutes
+                            ),
+                            Now(),
+                            TimeUnit.Seconds
+                        )
+                    ),
+                    DateDiff(
+                        DateAdd(
+                            ThisItem.EventTimeStamp,
+                            -TimeZoneOffset(),
+                            TimeUnit.Minutes
+                        ),
+                        Now(),
+                        TimeUnit.Minutes
+                    ) < 60,
+                    Substitute(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_MinuteAgoLabel',
+                        "$",
+                        DateDiff(
+                            DateAdd(
+                                ThisItem.EventTimeStamp,
+                                -TimeZoneOffset(),
+                                TimeUnit.Minutes
+                            ),
+                            Now(),
+                            TimeUnit.Minutes
+                        )
+                    ),
+                    DateDiff(
+                        DateAdd(
+                            ThisItem.EventTimeStamp,
+                            -TimeZoneOffset(),
+                            TimeUnit.Minutes
+                        ),
+                        Now(),
+                        TimeUnit.Hours
+                    ) < 24,
+                    Substitute(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_HourAgoLabel',
+                        "$",
+                        DateDiff(
+                            DateAdd(
+                                ThisItem.EventTimeStamp,
+                                -TimeZoneOffset(),
+                                TimeUnit.Minutes
+                            ),
+                            Now(),
+                            TimeUnit.Hours
+                        )
+                    ),
+                    DateDiff(
+                        DateAdd(
+                            ThisItem.EventTimeStamp,
+                            -TimeZoneOffset(),
+                            TimeUnit.Minutes
+                        ),
+                        Now(),
+                        TimeUnit.Days
+                    ) <= 30,
+                    Substitute(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_DayAgoLabel',
+                        "$",
+                        DateDiff(
+                            DateAdd(
+                                ThisItem.EventTimeStamp,
+                                -TimeZoneOffset(),
+                                TimeUnit.Minutes
+                            ),
+                            Now(),
+                            TimeUnit.Days
+                        )
+                    ),
+                    DateDiff(
+                        DateAdd(
+                            ThisItem.EventTimeStamp,
+                            -TimeZoneOffset(),
+                            TimeUnit.Minutes
+                        ),
+                        Now(),
+                        TimeUnit.Months
+                    ) < 12,
+                    Substitute(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_MonthAgoLabel',
+                        "$",
+                        DateDiff(
+                            DateAdd(
+                                ThisItem.EventTimeStamp,
+                                -TimeZoneOffset(),
+                                TimeUnit.Minutes
+                            ),
+                            Now(),
+                            TimeUnit.Months
+                        )
+                    ),
+                    DateDiff(
+                        DateAdd(
+                            ThisItem.EventTimeStamp,
+                            -TimeZoneOffset(),
+                            TimeUnit.Minutes
+                        ),
+                        Now(),
+                        TimeUnit.Years
+                    ) >= 12,
+                    Substitute(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_YearAgoLabel',
+                        "$",
+                        DateDiff(
+                            DateAdd(
+                                ThisItem.EventTimeStamp,
+                                -TimeZoneOffset(),
+                                TimeUnit.Minutes
+                            ),
+                            Now(),
+                            TimeUnit.Years
+                        )
+                    )
+                )
+            Width: =Button1.Width * 0.194
+            X: =Button1.Width * 0.791
+            Y: =documentTypeLabel.Y
+            ZIndex: =7
+

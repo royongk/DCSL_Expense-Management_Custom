@@ -1,0 +1,264 @@
+"'Receipts - Receipt Preview Screen' As screen":
+    Fill: =RGBA(229, 229, 229, 1)
+    OnVisible: |-
+        =UpdateContext({
+            varReceiptSizeOk:true
+            }
+            )
+
+    imageView_footer_rectangle_2 As rectangle:
+        Fill: =RGBA(37, 36, 35, 1)
+        Height: =278
+        Width: =Max(App.Width, App.MinScreenWidth)
+        Y: =Parent.Height - Self.Height
+        ZIndex: =1
+
+    scr12_btn_AttachToAnExpense As button:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderThickness: =3
+        Fill: =RGBA(33, 33, 33, 1)
+        Height: =88
+        HoverColor: =Self.Color
+        HoverFill: =Self.Fill
+        OnSelect: |
+            =
+            
+            UpdateContext({varText : JSON(scr12_img_PreviewReceipt.Image,JSONFormat.IncludeBinaryData)});
+            If(
+                !IsBlank(varText) || !IsMatch(varText, ""),
+                UpdateContext({varB64 : Mid(varText, Find(",", varText) + 1, Len(varText) - Find(",", varText) - 1)});
+                UpdateContext({varType : Mid(varText, Find(":", varText) + 1, (Find(";", varText) - 1) - (Find(":", varText) + 1) + 1)});
+                UpdateContext({varExtension : Mid(varType, Find("/", varType) + 1)}); 
+            );
+            IfError(
+                Set(
+                    gblCreatedReceiptResponse,
+                    'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_uploadlargeimage(
+                        LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', 
+                        {
+                            imageBase64: varB64,
+                            ContentType: varType,
+                            FileExtension: varExtension,
+                            FileName: If(IsMatch( varReceiptFileName, "\.",MatchOptions.Contains),varReceiptFileName, Concatenate(varReceiptFileName,".",varExtension))
+                        }
+                    )
+                ),
+                UpdateContext({varCreateReceiptError : FirstError})
+            );
+            If(
+                IsBlank(varCreateReceiptError),
+                Notify(
+                    Concatenate(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptCreatedSuccessfullyLabel'),
+                    NotificationType.Success , 
+                    gblParams.notificationTime
+                );
+                Set(
+                    varSelectedReceiptNumber,
+                    Value(ParseJSON(gblCreatedReceiptResponse.return).DocuRefRecId)
+                ),
+                
+                Notify(
+                    Substitute(
+                        Match(varCreateReceiptError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                        """message"":", 
+                        Blank()
+                    ),
+                    NotificationType.Error, 
+                    gblParams.notificationTime
+                )  
+            );
+            UpdateContext({varCreateReceiptError:Blank()});
+            Clear(colFileSplit);
+            Clear(colDeviceAttachedFile);
+            Navigate('Receipts - Select Expense Screen')
+        PressedBorderColor: =Self.BorderColor
+        PressedColor: =Self.Color
+        PressedFill: =Self.Fill
+        Size: =22
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachToAnExpenseLabel'
+        Width: =Parent.Width -  Self.X*2
+        X: =40
+        Y: =scr012_btn_Done.Y + scr012_btn_Done.Height + 30
+        ZIndex: =2
+
+    scr012_btn_Done As button:
+        Fill: =RGBA(34, 102, 227, 1)
+        Height: =87
+        OnSelect: |+
+            =/*
+            if varSelectedReceiptNumber is not blank do not save the receipt just navigate back to receipt list screen
+            */
+            
+            If(
+                IsBlank(varSelectedReceiptNumber),
+                UpdateContext({varText : JSON(scr12_img_PreviewReceipt.Image,JSONFormat.IncludeBinaryData)});
+                If(
+                    !IsBlank(varText) || !IsMatch(varText, ""),
+                    UpdateContext({varB64 : Mid(varText, Find(",", varText) + 1, Len(varText) - Find(",", varText) - 1)});
+                    UpdateContext({varType : Mid(varText, Find(":", varText) + 1, (Find(";", varText) - 1) - (Find(":", varText) + 1) + 1)});
+                    UpdateContext({varExtension : Mid(varType, Find("/", varType) + 1)});
+                    
+                );
+                IfError(
+                'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_uploadlargeimage(
+                LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', 
+                {
+                    imageBase64: varB64,
+                    ContentType: varType,
+                    FileExtension: varExtension,
+                    FileName: If(IsMatch( varReceiptFileName, "\.",MatchOptions.Contains),varReceiptFileName, Concatenate(varReceiptFileName,".",varExtension))
+                }
+            ),
+                    UpdateContext(
+                        {
+                            varOnSaveReceiptError : FirstError
+                        }
+                    );
+                );
+                If(
+                    IsBlank(varOnSaveReceiptError),
+                    Notify(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptCreatedSuccessfullyLabel',
+                        NotificationType.Success,
+                        gblParams.notificationTime
+                    ),
+                    Notify(
+                        Substitute(
+                            Match(varOnSaveReceiptError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                            """message"":", 
+                            Blank()
+                        ),
+                        NotificationType.Error, 
+                        gblParams.notificationTime
+                    )   
+                );
+            );
+            UpdateContext({varOnSaveReceiptError:Blank()});
+            Clear(colFileSplit);
+            Clear(colDeviceAttachedFile);
+            Navigate('Receipts - List Screen', Transition.Push);
+            Refresh('Expense Mobile Unattached Document Entity (mserp)');
+            
+        Size: =24
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SaveReceiptLabel'
+        Width: =Parent.Width -  Self.X*2
+        X: =40
+        Y: =imageView_footer_rectangle_2.Y + 35
+        ZIndex: =3
+
+    scr12_lbl_NoPreview As label:
+        Align: =Align.Center
+        Font: =Font.'Segoe UI'
+        Height: =64
+        Size: =18
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilePreviewNotSupportedLabel'
+            //GlobalLabels.Labels.PreviewNotSupported
+        Visible: =!(scr12_pdfViewer.Visible || scr12_img_PreviewReceipt.Visible)
+        Width: =406     
+        X: |
+            =(Parent.Width - Self.Width)/2
+        Y: =scr12_img_NoPreview.Y + scr12_img_NoPreview.Height + 10 
+        ZIndex: =4
+
+    scr12_img_NoPreview As image:
+        Height: =85
+        Image: |-
+            =If(
+                varFileFormat in ["xlsx", "xls"],
+                IconExcel,
+                varFileFormat in ["docx", "doc"],
+                IconWord,
+                varFileFormat = "txt",
+                IconTxt,
+                IconMail
+            )
+        Visible: =scr12_lbl_NoPreview.Visible
+        Width: =85
+        X: |
+            =(Parent.Width - Self.Width)/2
+        Y: =scr12_img_PreviewReceipt.Y + (scr12_img_PreviewReceipt.Height - Self.Height)/2
+        ZIndex: =5
+
+    scr12_img_PreviewReceipt As image:
+        ApplyEXIFOrientation: =false
+        Height: =imageView_footer_rectangle_2.Y - Self.Y
+        Image: =varReceiptImage
+        Visible: =varFileFormat in ["jpeg","png","jpg","bmp","tiff"] && !IsBlank(varReceiptImage)
+        Width: =Parent.Width
+        Y: =82
+        ZIndex: =6
+
+    scr12_pdfViewer As pdfViewer:
+        BorderColor: =RGBA(0, 0, 0, 1)
+        Document: =varReceiptImage
+        Fill: =RGBA(0, 0, 0, 0.5)
+        Height: =scr12_img_PreviewReceipt.Height
+        Visible: =varFileFormat = "pdf"  && !IsBlank(varReceiptImage)
+        Width: =scr12_img_PreviewReceipt.Width      
+        X: =scr12_img_PreviewReceipt.X
+        Y: =scr12_img_PreviewReceipt.Y
+        ZIndex: =7
+
+    scr05_hdr_TopHeader_1 As hdr02_Header:
+        Fill: =scr05_hdr_TopHeader_1.paramFill
+        paramColor: =RGBA(255, 255, 255, 1)
+        paramFill: |
+            =RGBA(33, 33, 33, 1)
+        paramTitle: |
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CaptureReceiptLabel'
+        ZIndex: =8
+
+    scr12_lbl_Retake As label:
+        Align: =Align.Center
+        Color: =RGBA(255, 255, 255, 1)
+        Font: =Font.'Segoe UI'
+        FontWeight: =FontWeight.Semibold
+        Height: =33
+        OnSelect: |-
+            =Set(
+                varReceiptImage, 
+                Blank()
+            );
+            Set(
+                varFileFormat, 
+                Blank()
+            );
+            Clear(colFileSplit);
+            Clear(colDeviceAttachedFile);
+            Back()
+        Size: =17
+        TabIndex: =0
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_RetakeLabel'
+        Width: =110
+        X: =(Parent.Width - Self.Width)
+        Y: =24
+        ZIndex: =9
+
+    scr12_ico_Back_2 As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =Color.White
+        Fill: =icongconfig_backbutton.Fill
+        Height: =icongconfig_backbutton.Height
+        Icon: =Icon.ChevronLeft
+        OnSelect: |-
+            =Set(
+                varReceiptImage, 
+                Blank()
+            );
+            Set(
+                varFileFormat, 
+                Blank()
+            );
+            Clear(colFileSplit);
+            Clear(colDeviceAttachedFile);
+            Navigate('Receipts - Capture Receipt Screen');
+        TabIndex: =0
+        Width: =icongconfig_backbutton.Width
+        X: =22.5
+        Y: =(scr02_hdr_TopHeader.Height-Self.Height)/2
+        ZIndex: =10
+

@@ -87,7 +87,7 @@ Screens:
             RadiusTopLeft: =18
             RadiusTopRight: =18
             Visible: =!IsBlank(varReceiptImage)
-            Width: |
+            Width: |+
               =Parent.Width -  Self.X*2
             X: =24
             Y: |-
@@ -111,7 +111,7 @@ Screens:
             RadiusTopLeft: =8
             RadiusTopRight: =8
             Visible: '=IsBlank(varReceiptImage) '
-            Width: |
+            Width: |+
               =Parent.Width -  Self.X*2
             X: =44
             Y: =scr03_img_NoReceiptOuter_1.Y +(scr03_img_NoReceiptOuter_1.Height-scr03_img_NoReceiptInner_1.Height)/2
@@ -136,7 +136,7 @@ Screens:
             TabIndex: =0
             Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
             Visible: '=IsBlank(varReceiptImage) '
-            Width: |
+            Width: |+
               =Parent.Width -  Self.X*2
             X: =26
             Y: =scr03_img_NoReceiptOuter_1.Y
@@ -275,7 +275,7 @@ Screens:
             Text: |
               =Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_PolicyViolationExistsLabel', "$", Text(varNumViolation))
             Visible: =varNumViolation > 0
-            Width: |
+            Width: |+
               =Parent.Width
             Y: =scr03_hdr_TopHeader_1.Height
       - Expense Entr Container:
@@ -295,7 +295,7 @@ Screens:
             RadiusBottomRight: =0
             RadiusTopLeft: =0
             RadiusTopRight: =0
-            Width: |
+            Width: |+
               =Parent.Width
             Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
           Children:
@@ -598,7 +598,7 @@ Screens:
                               HintText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterCategoryDescriptionLabel'
                               HoverBorderColor: =RGBA(0, 18, 107, 1)
                               HoverFill: =gblParams.dropDownHoverFill
-                              MaxLength: |
+                              MaxLength: |+
                                 =Parent.MaxLength
                               PaddingLeft: =5
                               RadiusBottomLeft: =0
@@ -1423,7 +1423,7 @@ Screens:
                         Update: =Coalesce(Value(DataCardValue1_1.Text), Blank())
                         Visible: =false
                         Width: =Parent.Width
-                        X: |
+                        X: |+
                           =1
                         Y: =employeeFieldOrder_Y
                       Children:
@@ -2748,7 +2748,7 @@ Screens:
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_vehicletype)
                         Required: =false
                         Update: =VehicleTypeCombobox.Selected.Value
-                        Visible: |
+                        Visible: |+
                           =If(IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate  && 'Rate type' = 'Rate type (mserp)'.Mileage).'To date'),
                           currExpenseType = 'TrvExpType (mserp)'.Mileage && !IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate && 'Rate type' = 'Rate type (mserp)'.Mileage)),
                           currExpenseType = 'TrvExpType (mserp)'.Mileage && !IsBlank(LookUp('Mileage rate tiers (mserp)', 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate && ('To date' >= DatePickerCanvas1_18.SelectedDate) && 'Rate type' = 'Rate type (mserp)'.Mileage))
@@ -2875,7 +2875,7 @@ Screens:
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_numberofpassengers)
                         Required: =false
                         Update: =Value(DataCardValue63.Text)
-                        Visible: |
+                        Visible: |+
                           =If(IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate  && 'Rate type' = 'Rate type (mserp)'.Passenger).'To date'),
                           currExpenseType = 'TrvExpType (mserp)'.Mileage && !IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate && 'Rate type' = 'Rate type (mserp)'.Passenger)),
                           currExpenseType = 'TrvExpType (mserp)'.Mileage && !IsBlank(LookUp('Mileage rate tiers (mserp)', 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate && ('To date' >= DatePickerCanvas1_18.SelectedDate) && 'Rate type' = 'Rate type (mserp)'.Passenger))
@@ -4366,7 +4366,7 @@ Screens:
                               PressedColor: =RGBA(255, 255, 255, 1)
                               PressedFill: =RGBA(0, 18, 107, 1)
                               Reset: =true
-                              SearchFields: =[""]
+                              SearchFields: =["mserp_activitynumber","mserp_purpose"]
                               SelectMultiple: =false
                               SelectionColor: =Color.Black
                               SelectionFill: =gblParams.dropDownBorderColor
@@ -4786,7 +4786,7 @@ Screens:
                               Height: =gblParams.dropDownHeight
                               HoverFill: =gblParams.dropDownHoverFill
                               InputTextPlaceholder: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterStateProvinceLabel'
-                              Items: |
+                              Items: |+
                                 =Filter('States (mserp)', 'Country/region' = ComboBox1_17.Selected.Code)
                               NoSelectionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterStateProvinceLabel'
                               OnChange: |-
@@ -5262,7 +5262,7 @@ Screens:
                               Height: =gblParams.dropDownHeight
                               HoverFill: =RGBA(186, 202, 226, 1)
                               InputTextPlaceholder: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterZIPPostalCodeLabel'
-                              Items: |
+                              Items: |+
                                 =Filter('ZIP code (mserp)','Country/region' = ComboBox1_17.Selected.Code)
                               NoSelectionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterZIPPostalCodeLabel'
                               OnChange: |-
@@ -5394,7 +5394,7 @@ Screens:
                                     LookUp('Sales tax group description (mserp)','Sales tax group'= varSelectedExpenseDoc.'Sales tax group'),
                                     LookUp('Sales tax group description (mserp)','Sales tax group'= Coalesce(varDefaultSalesTaxGroup,varDefaultSalesTaxGroupUserContext))
                                 )
-                              DisplayFields: =[""]
+                              DisplayFields: =["mserp_salestaxgroup","mserp_description"]
                               FocusedBorderThickness: =2
                               Font: =Font.'Open Sans'
                               Height: =gblParams.dropDownHeight
@@ -5466,7 +5466,7 @@ Screens:
                                 =UpdateContext({varOnSelectTriggered: true});
                               PressedColor: =RGBA(255, 255, 255, 1)
                               PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =[""]
+                              SearchFields: =["mserp_salestaxgroup","mserp_description"]
                               SelectMultiple: =false
                               SelectionColor: =Color.Black
                               SelectionFill: =gblParams.dropDownBorderColor
@@ -9050,7 +9050,7 @@ Screens:
             PaddingBottom: =20
             PaddingLeft: =(App.Width - scr03_btn_Done_1.Width)/2
             PaddingRight: =(App.Width - scr03_btn_Done_1.Width)/2
-            PaddingTop: |
+            PaddingTop: |+
               =10
             RadiusBottomLeft: =0
             RadiusBottomRight: =0
@@ -9081,12 +9081,12 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         Color: =RGBA(0, 18, 107, 1)
-                        DisplayMode: |
+                        DisplayMode: |+
                           =DisplayMode.Edit
                         Icon: =Icon.Sync
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
-                        OnSelect: "=// if it is of meal type per trip, then invoke odata action to get amountCurr values\nUpdateContext({msCallStartedForSalestaxCalculation : true});\nIf(\n    userRecord.IsReImaginedPerDiemEnabled  = 'NoYes (mserp)'.Yes,\n    Clear(dsPerdiemActionResponse);\n    UpdateContext({onReloadButtonClick : true});\n    \n    UpdateContext(\n    {\n        locPerdiemActionResponse : 'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_calcmealpertripreduction(LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n        {\n            DateFrom: Text('Per diem from date_DataCard1'.Update, \"yyyy-mm-dd HH:mm:ss\"),\n            DateTo: Text('Per diem to date_DataCard1'.Update, \"yyyy-mm-dd HH:mm:ss\"),\n            CostType: \"Perdiem\",\n            Location: cmbPerdiemLocation.Selected.EntRecId,\n            DedBreakfast: DataCardValue1.Text,\n            DedLunch: DataCardValue2.Text,\n            DedDinner: DataCardValue3.Text\n        }).return\n    }\n    );\n    UpdateContext({locPerdiemActionResponse : Concatenate(\"[\", locPerdiemActionResponse, \"]\")});\n    ForAll(\n    Table(\n        ParseJSON(\n            locPerdiemActionResponse\n        )\n    ),\n    Collect(\n        dsPerdiemActionResponse,\n        {\n            amountCurr: Text(ThisRecord.Value.AmountCurr),       \n            amountMST : Text(ThisRecord.Value.AmountMST),\n            exchangeCode : Text(ThisRecord.Value.ExchangeCode),\n            warnings : Text(ThisRecord.Value.Warnings)\n        }\n    )\n    );\n    If(\n    !IsBlank(First(dsPerdiemActionResponse).warnings),\n    // there are errors in odata action show them\n    Notify(\n        Text(First(dsPerdiemActionResponse).warnings),\n        NotificationType.Warning,\n        gblParams.notificationTime\n    ),\n    // no errors, proceed to calculate tax based on the latest fetched transaction amount from odata action\n    UpdateContext({locPerdiemAmountCurr : First(dsPerdiemActionResponse).amountCurr});\n    If(\n        !IsBlank(ComboBox1_15.Selected) && !IsBlank(ComboBox1_16.Selected),\n        //if sales tax group and item sales tax group are not blank issue a call to get the sales tax amount \n        UpdateContext({taxModifiedByUser:false});\n        UpdateContext\n        (\n            {\n                varSalesTaxAmount : \n                IfError(\n                    Value(\n                        'Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\n                        LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n                        {\n                            TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                            TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                            ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                            TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                            AmountCurr : If(IsBlank(First(dsPerdiemActionResponse).amountCurr), \"0\", First(dsPerdiemActionResponse).amountCurr),\n                            LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                            TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n                        }).return,\"en-US\"\n                    ),\n                    UpdateContext(\n                        {\n                            varErrorActualTaxCal : \n                            Substitute(\n                                Match(\n                                    FirstError.Details.HttpResponse,\n                                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                                ).FullMatch,\n                                \"\"\"message\"\":\"\"\",\n                                \"\"\n                            )      \n                        }\n                    )\n                )\n            }\n        );\n        // show errors if any\n        If(\n            !IsBlank(varErrorActualTaxCal),\n            Notify(\n                Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n                NotificationType.Error,\n                gblParams.notificationTime\n            )\n        )\n    );\n    );\n    \n    ,\n    Notify(\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarningOnCreate',\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\nUpdateContext({msCallStartedForSalestaxCalculation : false})"
+                        OnSelect: "=// if it is of meal type per trip, then invoke odata action to get amountCurr values\r\nUpdateContext({msCallStartedForSalestaxCalculation : true});\r\nIf(\r\n    userRecord.IsReImaginedPerDiemEnabled  = 'NoYes (mserp)'.Yes,\r\n    Clear(dsPerdiemActionResponse);\r\n    UpdateContext({onReloadButtonClick : true});\r\n    \r\n    UpdateContext(\r\n    {\r\n        locPerdiemActionResponse : 'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_calcmealpertripreduction(LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\r\n        {\r\n            DateFrom: Text('Per diem from date_DataCard1'.Update, \"yyyy-mm-dd HH:mm:ss\"),\r\n            DateTo: Text('Per diem to date_DataCard1'.Update, \"yyyy-mm-dd HH:mm:ss\"),\r\n            CostType: \"Perdiem\",\r\n            Location: cmbPerdiemLocation.Selected.EntRecId,\r\n            DedBreakfast: DataCardValue1.Text,\r\n            DedLunch: DataCardValue2.Text,\r\n            DedDinner: DataCardValue3.Text\r\n        }).return\r\n    }\r\n    );\r\n    UpdateContext({locPerdiemActionResponse : Concatenate(\"[\", locPerdiemActionResponse, \"]\")});\r\n    ForAll(\r\n    Table(\r\n        ParseJSON(\r\n            locPerdiemActionResponse\r\n        )\r\n    ),\r\n    Collect(\r\n        dsPerdiemActionResponse,\r\n        {\r\n            amountCurr: Text(ThisRecord.Value.AmountCurr),       \r\n            amountMST : Text(ThisRecord.Value.AmountMST),\r\n            exchangeCode : Text(ThisRecord.Value.ExchangeCode),\r\n            warnings : Text(ThisRecord.Value.Warnings)\r\n        }\r\n    )\r\n    );\r\n    If(\r\n    !IsBlank(First(dsPerdiemActionResponse).warnings),\r\n    // there are errors in odata action show them\r\n    Notify(\r\n        Text(First(dsPerdiemActionResponse).warnings),\r\n        NotificationType.Warning,\r\n        gblParams.notificationTime\r\n    ),\r\n    // no errors, proceed to calculate tax based on the latest fetched transaction amount from odata action\r\n    UpdateContext({locPerdiemAmountCurr : First(dsPerdiemActionResponse).amountCurr});\r\n    If(\r\n        !IsBlank(ComboBox1_15.Selected) && !IsBlank(ComboBox1_16.Selected),\r\n        //if sales tax group and item sales tax group are not blank issue a call to get the sales tax amount \r\n        UpdateContext({taxModifiedByUser:false});\r\n        UpdateContext\r\n        (\r\n            {\r\n                varSalesTaxAmount : \r\n                IfError(\r\n                    Value(\r\n                        'Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\r\n                        LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\r\n                        {\r\n                            TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\r\n                            TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\r\n                            ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\r\n                            TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\r\n                            AmountCurr : If(IsBlank(First(dsPerdiemActionResponse).amountCurr), \"0\", First(dsPerdiemActionResponse).amountCurr),\r\n                            LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\r\n                            TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\r\n                        }).return,\"en-US\"\r\n                    ),\r\n                    UpdateContext(\r\n                        {\r\n                            varErrorActualTaxCal : \r\n                            Substitute(\r\n                                Match(\r\n                                    FirstError.Details.HttpResponse,\r\n                                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\r\n                                ).FullMatch,\r\n                                \"\"\"message\"\":\"\"\",\r\n                                \"\"\r\n                            )      \r\n                        }\r\n                    )\r\n                )\r\n            }\r\n        );\r\n        // show errors if any\r\n        If(\r\n            !IsBlank(varErrorActualTaxCal),\r\n            Notify(\r\n                Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\r\n                NotificationType.Error,\r\n                gblParams.notificationTime\r\n            )\r\n        )\r\n    );\r\n    );\r\n    \r\n    ,\r\n    Notify(\r\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarningOnCreate',\r\n        NotificationType.Error,\r\n        gblParams.notificationTime\r\n    )\r\n);\r\nUpdateContext({msCallStartedForSalestaxCalculation : false})"
                         PaddingBottom: =15
                         PaddingLeft: =10
                         PaddingRight: =10
@@ -9112,7 +9112,7 @@ Screens:
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         LayoutMinWidth: =396
-                        Text: |
+                        Text: |+
                           =Concatenate(Text(Value(Coalesce(DataCardValue4_1.Text, "0")), "#,#0.00", varDefaultLanguage), " ", ComboBox1_12.Selected.mserp_currencycode)
                         Width: =100
             - GuestItemizationContainer:
@@ -9175,7 +9175,7 @@ Screens:
                         HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
-                        OnSelect: "=UpdateContext({msCallStartedForSalestaxCalculation: true});\nIf( \n    locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,\n    UpdateContext({locCategoryChange : true}),\n    UpdateContext({locAllowNavigationBack: false});\n    SubmitForm(EditExpenseForm);\n    If(\n        // there are no errors, then proceed with picking the updated/created expense\n        // no need to notify as the OnFailure and OnSuccess of the form should take care of it\n        IsBlank(Last(Split(Text(EditExpenseForm.Error), \":\")).Value) || \n        Last(Split(Text(EditExpenseForm.Error), \":\")).Value = \"\",\n        Set(\n            varSelectedExpenseDoc,\n            EditExpenseForm.LastSubmit\n        );\n        \n        Navigate('AddGuest - Add Guest to Expense Screen',Transition.None,{currExpenseType : currExpenseType, varNavigatedFrom : varNavigatedFrom})\n)\n);\n\n\n"
+                        OnSelect: "=UpdateContext({msCallStartedForSalestaxCalculation: true});\r\nIf( \r\n    locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,\r\n    UpdateContext({locCategoryChange : true}),\r\n    UpdateContext({locAllowNavigationBack: false});\r\n    SubmitForm(EditExpenseForm);\r\n    If(\r\n        // there are no errors, then proceed with picking the updated/created expense\r\n        // no need to notify as the OnFailure and OnSuccess of the form should take care of it\r\n        IsBlank(Last(Split(Text(EditExpenseForm.Error), \":\")).Value) || \r\n        Last(Split(Text(EditExpenseForm.Error), \":\")).Value = \"\",\r\n        Set(\r\n            varSelectedExpenseDoc,\r\n            EditExpenseForm.LastSubmit\r\n        );\r\n        \r\n        Navigate('AddGuest - Add Guest to Expense Screen',Transition.None,{currExpenseType : currExpenseType, varNavigatedFrom : varNavigatedFrom})\r\n)\r\n);\r\n\r\n\r\n"
                         PressedBorderColor: =Self.Fill
                         PressedColor: =Self.Fill
                         PressedFill: =Self.Color
@@ -9203,7 +9203,7 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(34, 102, 227, 1)
                         BorderThickness: =7
-                        Color: |
+                        Color: |+
                           =RGBA(34, 102, 227, 1)
                         DisabledBorderColor: =RGBA(166, 166, 166, 1)
                         DisplayMode: |-
@@ -9243,7 +9243,7 @@ Screens:
                 Properties:
                   BorderColor: =RGBA(34, 102, 227, 1)
                   BorderThickness: =4
-                  Color: |
+                  Color: |+
                     =RGBA(34, 102, 227, 1)
                   DisabledBorderColor: =RGBA(166, 166, 166, 1)
                   DisplayMode: |-

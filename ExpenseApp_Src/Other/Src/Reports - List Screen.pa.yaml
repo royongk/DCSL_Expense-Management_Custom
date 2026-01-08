@@ -63,13 +63,13 @@ Screens:
           Control: CanvasComponent
           ComponentName: emptyStateComponent
           Properties:
-            Height: |
+            Height: |+
               =350
             Visible: =scr16_Reports_1.AllItemsCount <= 0
             Width: =Self.Height
-            X: |
+            X: |+
               =(Parent.Width - Self.Width)/2
-            Y: |
+            Y: |+
               =scr16_Reports_1.Y + (Parent.Height - scr16_hdr_TopHeader.Height - scr16_cmp_Footer_1.Height - Self.Height)/2 - scr16_lbl_DummyLabel.Height
             subTitle: |-
               =Switch(
@@ -103,7 +103,7 @@ Screens:
                   scr16_cmp_Footer_1.Y - Self.Y,
                   Self.TemplateHeight * CountRows(Self.AllItems)
               )
-            Items: |
+            Items: |+
               =SortByColumns(
                   Filter(
                       Switch(
@@ -304,7 +304,7 @@ Screens:
                                   Properties:
                                     AutoHeight: =true
                                     BorderColor: =RGBA(0, 18, 107, 1)
-                                    Color: |
+                                    Color: |+
                                       =If(
                                           ThisItem.'Document status' = 'Document status (mserp)'.Rejected,
                                           RGBA(165, 33, 33, 1),
@@ -462,7 +462,7 @@ Screens:
             OnReceiptsButtonClick: |-
               =UpdateContext({varcntShowFilter : false});
               Set(varSelectedTab, 1); Navigate('Receipts - List Screen',ScreenTransition.Fade)
-            OnReportsButtonClick: |
+            OnReportsButtonClick: |+
               =UpdateContext({varcntShowFilter : false});
               Set(varSelectedTab, 3); 
               Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})

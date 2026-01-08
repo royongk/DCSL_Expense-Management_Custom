@@ -1,0 +1,414 @@
+"'Itemization - Create Itemize Expense Screen' As screen":
+    Fill: =RGBA(244, 244, 244, 1)
+
+    ItemizationFooterCreateItemizeExpenseScreen As ItemizationFooter:
+        ButtonName: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SaveLabel'
+        ItemizedAmountLabel: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ItemizedAmountLabel'
+        itemizedAmountValue: |-
+            =If(
+                !IsBlank(
+                    Sum(
+                        dsItemizations,
+                        DailyRate * Quantity
+                    )
+                ),
+                Concatenate(
+                    Text(
+                        Value(
+                            Sum(
+                                dsItemizations,
+                                DailyRate * Quantity
+                            )
+                        ),
+                        "#,#0.00",
+                        varDefaultLanguage
+                    ),
+                    " ",
+                    If(
+                        varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                    varSelectedExpenseDoc.'Currency (mserp_exchangecode)',
+                    varSelectedExpenseDoc.'Local currency'
+                    )
+                ),
+                Concatenate(
+                    Text(
+                        Value(0),
+                        "#,#0.00",
+                        varDefaultLanguage
+                    ),
+                    " ",
+                    If(
+                        varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                    varSelectedExpenseDoc.'Currency (mserp_exchangecode)',
+                    varSelectedExpenseDoc.'Local currency'
+                    )
+                )
+            )
+        OnButtonClick: |
+            =UpdateContext({locDuplicateItemizedExpense: false});
+            If(
+                IsBlank(StartDatePicker.SelectedDate),
+                    Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_DateIsRequiredLabel',
+                    NotificationType.Error,
+                    gblParams.notificationTime),
+                IsBlank(SubCategoryList.Selected),
+                    Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubcategoryIsRequiredLabel',
+                    NotificationType.Error,
+                    gblParams.notificationTime),
+                IsBlank(DailyRateInput.Text),
+                    Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_AmountIsRequiredLabel',
+                    NotificationType.Error,
+                    gblParams.notificationTime),
+                IsBlank(QuantityInput.Text),
+                    Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_QuantityIsRequiredLabel',
+                    NotificationType.Error,
+                    gblParams.notificationTime),
+            If(
+                locEditItemizeExpense,
+                If(
+                    SubCategoryList.Selected.SubCategoryRecId <> gblCurrentItemizeExpense.SubCategoryRecId || Text(
+                        StartDatePicker.SelectedDate,
+                        "yyyy-mm-dd hh:mm:ssZ"
+                    ) <> gblCurrentItemizeExpense.StartDate,
+                    If(
+                        !IsBlank(
+                            LookUp(
+                                dsItemizations,
+                                SubCategoryRecId = SubCategoryList.Selected.SubCategoryRecId && StartDate = Text(
+                                    StartDatePicker.SelectedDate,
+                                    "yyyy-mm-dd hh:mm:ssZ"
+                                )
+                            )
+                        ),
+                        UpdateContext({locDuplicateItemizedExpense: true})
+                    )        
+                ),
+                If(
+                IsBlank(
+                    LookUp(
+                        dsItemizations,
+                        StartDate = Text(
+                            StartDatePicker.SelectedDate,
+                            "yyyy-mm-dd hh:mm:ssZ"
+                        ) && SubCategoryRecId = SubCategoryList.Selected.SubCategoryRecId
+                    )
+                ),
+                Collect (
+                    dsItemizations,
+                    {
+                        StartDate: Text(
+                            StartDatePicker.SelectedDate,
+                            "yyyy-mm-dd hh:mm:ssZ"
+                        ),
+                        SubCategoryRecId: SubCategoryList.Selected.SubCategoryRecId,
+                        SubCategoryName: SubCategoryList.Selected.'Expense subcategory name',
+                        DailyRate: Value(DailyRateInput.Text),
+                        Quantity: Value(QuantityInput.Text),
+                        ItemizationGroupId: Blank()
+                    }
+                );
+                Set(isDirtyItemization, true)
+                ,
+                UpdateContext({locDuplicateItemizedExpense: true});
+                )
+            );
+            If(
+                !locDuplicateItemizedExpense && locEditItemizeExpense,
+                UpdateContext({locItemizationGroupId : LookUp(dsItemizations, StartDate = Text(
+                            gblCurrentItemizeExpense.StartDate,
+                            "yyyy-mm-dd hh:mm:ssZ"
+                        ) && SubCategoryRecId = gblCurrentItemizeExpense.SubCategoryRecId).ItemizationGroupId});
+                    RemoveIf(dsItemizations,StartDate = Text(
+                            gblCurrentItemizeExpense.StartDate,
+                            "yyyy-mm-dd hh:mm:ssZ"
+                        ) && SubCategoryRecId = gblCurrentItemizeExpense.SubCategoryRecId);
+                    Collect(
+                        dsItemizations,
+                        {
+                            StartDate: Text(
+                            StartDatePicker.SelectedDate,
+                            "yyyy-mm-dd hh:mm:ssZ"
+                        ),
+                        SubCategoryRecId: SubCategoryList.Selected.SubCategoryRecId,
+                        SubCategoryName: SubCategoryList.Selected.'Expense subcategory name',
+                        DailyRate: Value(DailyRateInput.Text),
+                        Quantity: Value(QuantityInput.Text),
+                        ItemizationGroupId: locItemizationGroupId
+                        }
+                    );
+                    UpdateContext({locItemizationGroupId : Blank()});
+                    Set(isDirtyItemization, true);
+            );
+            If(!locDuplicateItemizedExpense,
+                    Back();
+                    Set(
+                    gblCurrentItemizeExpense,
+                    Blank()
+                    );
+                    UpdateContext({locEditItemizeExpense : false});
+                    Reset(SubCategoryList);
+                    Reset(StartDatePicker);
+                    Reset(DailyRateInput);
+                    Reset(QuantityInput),
+                    Notify(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ItemizationWithSameStartDateAndSubcategoryExistsLabel',
+                        NotificationType.Error,
+                        gblParams.notificationTime
+                    )
+            )
+            );
+        RemainingAmountLabel: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_RemainingAmountLabel'
+        RemainingAmountValue: |-
+            =If(
+                varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                Concatenate(
+                    Text(
+                        Value(
+                            varSelectedExpenseDoc.'Transaction amount' - Sum(
+                                dsItemizations,
+                                DailyRate * Quantity
+                            )
+                        ),
+                        "#,#0.00",
+                        varDefaultLanguage
+                    ),
+                    " ",
+                    varSelectedExpenseDoc.'Currency (mserp_exchangecode)'
+                ),
+                Concatenate(
+                    Text(
+                        Value(
+                            varSelectedExpenseDoc.'Local amount' - Sum(
+                                dsItemizations,
+                                DailyRate * Quantity
+                            )
+                        ),
+                        "#,#0.00",
+                        varDefaultLanguage
+                    ),
+                    " ",
+                    varSelectedExpenseDoc.'Local currency'
+                )
+            )
+        subCategoryRecid: =SubCategoryList.Selected.SubCategoryRecId
+        Y: =App.Height - Self.Height
+
+    "'header-navigation-PolicyViolation_2' As 'header-navigation-PolicyViolation_1'":
+        Fill: =Color.White
+        HeaderText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateItemizationLabel'
+        OnBackIconSelect: |-
+            =Reset(SubCategoryList);
+            Reset(StartDatePicker);
+            Reset(DailyRateInput);
+            Reset(QuantityInput);
+            Set(
+                gblCurrentItemizeExpense,
+                Blank()
+            );
+            UpdateContext({locEditItemizeExpense : false});
+            Back()
+        Width: =App.Width
+        ZIndex: =2
+
+    cancelText As label:
+        Align: =Align.Center
+        Color: =RGBA(34, 102, 227, 1)
+        FontWeight: =FontWeight.Semibold
+        Height: =47
+        OnSelect: |-
+            =Reset(SubCategoryList);
+            Reset(StartDatePicker);
+            Reset(DailyRateInput);
+            Reset(QuantityInput);
+            Set(
+                gblCurrentItemizeExpense,
+                Blank()
+            );
+            UpdateContext({locEditItemizeExpense : false});
+            Back()
+        Size: =18
+        TabIndex: =0
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+        Width: =140
+        X: =App.Width - Self.Width
+        Y: ='header-navigation-PolicyViolation_2'.Height / 2 - cancelText.Height / 2
+        ZIndex: =3
+
+    ItemizationFormContainer As groupContainer.verticalAutoLayoutContainer:
+        Height: =App.Height * 0.31
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        PaddingTop: =ItemizationFormContainer.Height * 0.0299
+        Width: =App.Width
+        Y: ='header-navigation-PolicyViolation_2'.Height
+        ZIndex: =4
+
+        StartDateLabel As label:
+            Height: =ItemizationFormContainer.Height * 0.1194
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =560
+            Size: =ItemizationFormContainer.Height * 0.0596
+            TabIndex: =0
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_StartDateLabel'
+            Width: =App.Width
+            ZIndex: =1
+
+        "StartDatePicker As '날짜 선택'":
+            Appearance: ="FilledDarker"
+            BasePaletteColor: =
+            BorderColor: =
+            BorderStyle: =""
+            DisplayMode: =DisplayMode.Edit
+            Fill: =
+            FontColor: =
+            FontSize: =App.Height * 0.0228
+            Height: =ItemizationFormContainer.Height * 0.179
+            IsEditable: =true
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =32
+            LayoutMinWidth: =320
+            SelectedDate: |-
+                =If(IsBlank(gblCurrentItemizeExpense),
+                varSelectedExpenseDoc.'Transaction date',
+                gblCurrentItemizeExpense.StartDate
+                )
+            Width: =ItemizationFormContainer.Width
+            X: =0
+            Y: =0
+            ZIndex: =2
+
+        SubCategoryNamelabel As label:
+            Height: =ItemizationFormContainer.Height * 0.1194
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =560
+            Size: =ItemizationFormContainer.Height * 0.0596
+            TabIndex: =0
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubcategoryLabel'
+            Width: =App.Width
+            ZIndex: =3
+
+        SubCategoryList As combobox:
+            BorderThickness: =0
+            DefaultSelectedItems: =LookUp('Expense subcategory (mserp)', SubCategoryRecId = gblCurrentItemizeExpense.SubCategoryRecId)
+            DisplayFields: =["mserp_sharedsubcategoryname","mserp_expensecategory"]
+            Height: =ItemizationFormContainer.Height * 0.179
+            Items: =SortByColumns(Filter('Expense subcategory (mserp)', 'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)' && 'Company Code' = varSelectedLegalEntity && Inactive = 'NoYes (mserp)'.No ),"mserp_displayorder",SortOrder.Ascending,"mserp_subcategoryrecid",SortOrder.Ascending)
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =575
+            NoSelectionText: ="Find items"
+            SearchFields: =["mserp_sharedsubcategoryname"]
+            SearchItems: =Search(SortByColumns(Filter('Expense subcategory (mserp)','Expense category'=varSelectedExpenseDoc.'Expense category (mserp_costtype)'&&'Company Code'=varSelectedLegalEntity&&Inactive='NoYes (mserp)'.No),"mserp_displayorder",SortOrder.Ascending,"mserp_subcategoryrecid",SortOrder.Ascending),SubCategoryList.SearchText,'Expense subcategory name')
+            SelectMultiple: =false
+            Size: =24
+            Template: =ListItemTemplate.Double
+            Width: =ItemizationFormContainer.Width
+            X: =12
+            ZIndex: =4
+
+        Container2 As groupContainer.horizontalAutoLayoutContainer:
+            FillPortions: =0
+            Height: =ItemizationFormContainer.Height * 0.1194
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =40
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            Width: =600
+            ZIndex: =5
+
+            DailyRateLabel As label:
+                Height: =ItemizationFormContainer.Height * 0.1194
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                Size: =ItemizationFormContainer.Height * 0.0596
+                TabIndex: =0
+                Text: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DailyRateLabel'
+                Width: =Container2.Width / 2
+                ZIndex: =1
+
+            QuanityLabel As label:
+                Height: =ItemizationFormContainer.Height * 0.1194
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                PaddingLeft: =40
+                Size: =ItemizationFormContainer.Height * 0.0596
+                TabIndex: =0
+                Text: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_QuantityLabel'
+                Width: =Container2.Width / 2
+                ZIndex: =2
+
+        Container4_1 As groupContainer.horizontalAutoLayoutContainer:
+            FillPortions: =0
+            Height: =ItemizationFormContainer.Height * 0.179
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            Width: =600
+            X: =-50
+            ZIndex: =6
+
+            DailyRateInput As text:
+                BorderThickness: =0
+                Default: =gblCurrentItemizeExpense.DailyRate
+                Format: =TextFormat.Number
+                Height: =ItemizationFormContainer.Height * 0.179
+                HintText: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterUnitRate'
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =260
+                Reset: =true
+                Size: =24
+                Width: =Container2.Width / 2 - 20
+                ZIndex: =1
+
+            QuantityInput As text:
+                AlignInContainer: =AlignInContainer.Start
+                BorderThickness: =0
+                Default: |-
+                    =If(IsBlank(gblCurrentItemizeExpense),
+                    1,
+                    gblCurrentItemizeExpense.Quantity
+                    )
+                Height: =ItemizationFormContainer.Height * 0.179
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                Reset: =true
+                Size: =24
+                Width: =Container2.Width / 2 
+                X: =5
+                ZIndex: =2
+

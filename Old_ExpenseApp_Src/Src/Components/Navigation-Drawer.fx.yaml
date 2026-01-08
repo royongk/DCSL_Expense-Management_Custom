@@ -1,0 +1,208 @@
+"'Navigation-Drawer' As CanvasComponent":
+    CountNoification: ="Text"
+    Fill: =RGBA(255, 255, 255, 100)
+    Height: =App.Height
+    MenuItems: |-
+        =Table({
+                Index : 1,
+                ScreenName: 'Profile - Notification Screen',
+                Icon : Notification,
+                Value : "Notifications"
+            },
+            {
+                Index : 2,
+                ScreenName: 'Profile - Change Legal Entity Screen',
+                Icon : ChangeLE,
+                Value : "Change legal entity"
+            },
+            {
+                Index : 3,
+                ScreenName: 'Profile - About Screen',
+                Icon : About,
+                Value : "About"
+            }
+        )
+    unreadNotificationVisibility: =true
+    UserEmailValue: ="Text"
+    UserImageValue: =SampleImage
+    UserLegalEntityValue: ="Text"
+    UserNameValue: ="Text"
+    Width: =App.Width * 0.8
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    Container1 As groupContainer.horizontalAutoLayoutContainer:
+        DropShadow: =DropShadow.ExtraBold
+        Height: =App.Height
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        Visible: =false
+        Width: =11
+        X: =500
+        Y: =3
+        ZIndex: =1
+
+    "Gallery1 As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+        '#CopilotOverlayLabel': ="Filtered"
+        DelayItemLoading: =true
+        Height: =App.Height - Gallery1.Y
+        Items: ='Navigation-Drawer'.MenuItems
+        Layout: =Layout.Vertical
+        LoadingSpinner: =LoadingSpinner.Data
+        OnSelect: =Navigate(ThisItem.ScreenName)
+        TemplatePadding: =0
+        TemplateSize: =Gallery1.Height * 0.1035
+        Width: =App.Width * 0.8
+        Y: =Max(UserImage.Y,UserLegalEntity.Y) + UserLegalEntity.Height * 2
+        ZIndex: =2
+
+        NavigationItemImage As image:
+            AccessibleLabel: =Concatenate("Select " , ThisItem.Value)
+            Height: =NavigationItemImage.Width
+            Image: =ThisItem.Icon
+            OnSelect: =Select(Parent)
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            TabIndex: =0
+            Width: =Gallery1.TemplateHeight * 0.394
+            X: ='Navigation-Drawer'.Width * 0.0566
+            Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+            ZIndex: =1
+
+        Title1 As label:
+            BorderColor: =RGBA(0, 0, 0, 1)
+            Color: =RGBA(71, 69, 64, 1)
+            DisabledColor: =RGBA(186, 186, 186, 1)
+            DisplayMode: =DisplayMode.View
+            Height: =Self.Size * 1.8
+            OnSelect: =Select(Parent)
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =Gallery1.TemplateHeight * 0.195
+            TabIndex: =0
+            Text: =ThisItem.Value
+            VerticalAlign: =VerticalAlign.Top
+            Width: =Parent.TemplateWidth - 173
+            X: =NavigationItemImage.X + NavigationItemImage.Width + 'Navigation-Drawer'.Width * 0.0198
+            Y: =(Parent.TemplateHeight - (Self.Size * 1.8 )) / 2 + 2
+            ZIndex: =2
+
+        Separator1 As rectangle:
+            BorderColor: =RGBA(0, 0, 255, 1)
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =8
+            OnSelect: =Select(Parent)
+            Width: =Parent.TemplateWidth
+            Y: =Parent.TemplateHeight - Self.Height
+            ZIndex: =5
+
+        scr01_shp_GalleryBaseSeparator_2 As rectangle:
+            Fill: =RGBA(225, 225, 225, 1)
+            Height: =1
+            Width: =Parent.TemplateWidth
+            Y: =Rectangle1.Height - 1
+            ZIndex: =7
+
+        Rectangle1 As rectangle:
+            AccessibleLabel: =Concatenate("Select " , ThisItem.Value)
+            Fill: =RGBA(56, 96, 178, 0%)
+            Height: =Gallery1.Height * 0.0978
+            OnSelect: =Select(Parent)
+            TabIndex: =0
+            Width: ='Navigation-Drawer'.Width
+            Y: =4
+            ZIndex: =8
+
+    UserImage As image:
+        Height: =UserImage.Width
+        Image: ='Navigation-Drawer'.UserImageValue
+        ImagePosition: =ImagePosition.Fill
+        OnSelect: |-
+            =Set(
+                gblnavigationDrawerVisibility,
+                true
+            )
+        RadiusBottomLeft: =Self.Height
+        RadiusBottomRight: =Self.Height
+        RadiusTopLeft: =Self.Height
+        RadiusTopRight: =Self.Height
+        Width: =App.Height*0.073
+        X: ='Navigation-Drawer'.Width * 0.0292
+        Y: =App.Height * 0.0132
+        ZIndex: =3
+
+    UserName As label:
+        DisplayMode: =DisplayMode.View
+        FontWeight: =FontWeight.Bold
+        Height: =App.Height * 0.0308
+        Size: =App.Height * 0.0194
+        Text: ='Navigation-Drawer'.UserNameValue
+        Width: ='Navigation-Drawer'.Width - UserImage.X - UserImage.Width - 'Navigation-Drawer'.Width * 0.0125
+        Wrap: =false
+        X: =UserImage.X + UserImage.Width + 4
+        Y: =App.Height * 0.0105
+        ZIndex: =4
+
+    UserLegalEntity As label:
+        Color: =RGBA(110, 110, 110, 1)
+        DisplayMode: =DisplayMode.View
+        Height: =UserEmail.Height
+        Size: =App.Height * 0.0133
+        Text: ='Navigation-Drawer'.UserLegalEntityValue
+        Width: =UserEmail.Width
+        Wrap: =false
+        X: =UserName.X
+        Y: =UserEmail.Y + UserEmail.Height + UserLegalEntity.Height / 5
+        ZIndex: =5
+
+    UserEmail As label:
+        Color: =RGBA(110, 110, 110, 1)
+        DisplayMode: =DisplayMode.View
+        Height: =App.Height * 0.0223
+        Size: =App.Height * 0.0133
+        Text: ='Navigation-Drawer'.UserEmailValue
+        Width: =UserName.Width
+        Wrap: =false
+        X: =UserName.X
+        Y: =UserName.Y + UserName.Height + UserEmail.Height/5
+        ZIndex: =6
+
+    VerifyImage As image:
+        Height: =VerifyImage.Width
+        Image: =Verify
+        Visible: =false
+        Width: ='Navigation-Drawer'.Width * 0.0468
+        X: =UserImage.X + UserImage.Width - 'Navigation-Drawer'.Width * 0.0429
+        Y: =UserImage.Y + UserImage.Height - App.Height * 0.0193
+        ZIndex: =7
+
+    notificationCountBackgroundRedImage As image:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderStyle: =BorderStyle.Dotted
+        Height: =notificationCountBackgroundRedImage.Width
+        Image: =redCircle
+        Visible: ='Navigation-Drawer'.unreadNotificationVisibility
+        Width: =(App.Height - Gallery1.Y) * 0.0297
+        X: ='Navigation-Drawer'.Width * 0.0566 +Gallery1.TemplateHeight * 0.394 / 2
+        Y: =Gallery1.Y + Gallery1.TemplateHeight * 0.394 / 2
+        ZIndex: =8
+
+    countOfNotificationLabel As label:
+        Align: =Align.Center
+        Color: =Color.White
+        DisplayMode: =DisplayMode.View
+        Height: =notificationCountBackgroundRedImage.Height
+        Size: =notificationCountBackgroundRedImage.Width * 0.4
+        Text: ='Navigation-Drawer'.CountNoification
+        Visible: ='Navigation-Drawer'.unreadNotificationVisibility
+        Width: ='Navigation-Drawer'.Width * 0.085
+        X: =notificationCountBackgroundRedImage.X - (countOfNotificationLabel.Width - notificationCountBackgroundRedImage.Width) / 2
+        Y: =notificationCountBackgroundRedImage.Y
+        ZIndex: =9
+

@@ -1,0 +1,209 @@
+"'Expenses - Capture Receipt Screen' As screen":
+    Fill: =RGBA(255, 255, 255, 1)
+    OnVisible: |-
+        =Set(varReceiptImage, Blank());
+        Set(varFileFormat, Blank());
+        UpdateContext({varCam : LookUp(bsea_cam_ReceiptClick.AvailableDevices, "back" in Lower(Name) || "rear" in Lower(Name), Id)})
+
+    imageCapture_footer_rectangle As rectangle:
+        Fill: =RGBA(33, 33, 33, 1)
+        Height: |
+            =290//Max(App.Height, App.MinScreenHeight)/5
+        Width: =Max(App.Width, App.MinScreenWidth)
+        Y: =Parent.Height - Self.Height
+        ZIndex: =1
+
+    scr02_btn_SelectExistingBorder As button:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderThickness: =3
+        Fill: =RGBA(33, 33, 33, 1)
+        Height: =88
+        HoverColor: =Self.Color
+        HoverFill: =Self.Fill
+        OnSelect: =Navigate('Expenses - Select Existing Receipt Screen')
+        PressedBorderColor: =Self.BorderColor
+        PressedColor: =Self.Color
+        PressedFill: =Self.Fill
+        Size: =22
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectExistingLabel'
+        Width: |
+            =Parent.Width -  Self.X*2
+        X: =54
+        Y: =Parent.Height - Self.Height - 35
+        ZIndex: =2
+
+    lbl_imge_help As label:
+        Align: =Align.Center
+        Color: =RGBA(255, 255, 255, 1)
+        Font: =Font.'Segoe UI'
+        Height: =31
+        Size: =17
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptEntirelyInViewLabel'
+        Width: =Parent.Width
+        Y: =imageCapture_footer_rectangle.Y + (imageCapture_footer_rectangle.Height - Self.Height)/2 - 35
+        ZIndex: =3
+
+    bsea_cam_ReceiptClick As camera:
+        AccessibleLabel: ="Take receipt image"
+        BorderColor: =RGBA(255, 255, 255, 1)
+        Camera: =Coalesce(varCam, 0)
+        Height: =imageCapture_footer_rectangle.Y - Self.Y
+        OnSelect: =Select(scr02_icn_CameraIcon)
+        StreamRate: =100
+        Width: =App.Width
+        Y: =82
+        ZIndex: =4
+
+    img_click_outer_ring_2 As image:
+        Height: =108
+        Image: ='Ellipse 3_1'
+        Width: =141
+        X: =(Parent.Width - Self.Width)/2
+        Y: =imageCapture_footer_rectangle.Y - (Self.Height/2)
+        ZIndex: =5
+
+    img_click_outer_ring_1 As image:
+        Height: =92
+        Image: ='Ellipse 2_1'
+        Width: =153
+        X: =(Parent.Width - Self.Width)/2
+        Y: =imageCapture_footer_rectangle.Y - (Self.Height/2)
+        ZIndex: =6
+
+    scr02_img_ClickInner As image:
+        Height: =77
+        Image: ='Ellipse 1_1'
+        OnSelect: |-
+            =Set(varReceiptImage,bsea_cam_ReceiptClick.Stream); 
+            Set(
+                varFileFormat,
+                "png"
+            );
+            Set(varReceiptFileName,Concatenate( "Receipt-",Text(GUID())));
+            Navigate('Expenses - Preview Receipt Screen', ScreenTransition.None)
+        Width: =94
+        X: =(Parent.Width - Self.Width)/2
+        Y: =imageCapture_footer_rectangle.Y - (Self.Height/2)
+        ZIndex: =7
+
+    scr02_icn_CameraIcon As image:
+        AccessibleLabel: ="Click receipt image"
+        Height: =22 * Value(lbconfig_resolution_factor.Text)
+        Image: =Icon_Camera
+        OnSelect: |-
+            =Set(varReceiptImage,bsea_cam_ReceiptClick.Stream); 
+            Set(
+                varFileFormat,
+                "png"
+            );
+            Set(varReceiptFileName,Concatenate( "Receipt-",Text(GUID())));
+            Navigate('Expenses - Preview Receipt Screen', BorderStyle.None)
+        TabIndex: =0
+        Width: =24 * Value(lbconfig_resolution_factor.Text)
+        X: =(Parent.Width - Self.Width)/2
+        Y: =imageCapture_footer_rectangle.Y - (Self.Height/2)
+        ZIndex: =8
+
+    scr02_img_CameraSwitchOuter As image:
+        AccessibleLabel: ="Switch camera"
+        Height: =68*1
+        Image: ='Ellipse 3_1'
+        OnSelect: |-
+            =If(
+                CountRows(bsea_cam_ReceiptClick.AvailableDevices),
+                UpdateContext({varCam : Mod(Value(varCam) + 1, CountRows(bsea_cam_ReceiptClick.AvailableDevices))})
+            )
+        TabIndex: =0
+        Width: =68*1
+        X: =(Parent.Width/2 - Self.Width)/2
+        Y: =imageCapture_footer_rectangle.Y - (Self.Height/2)
+        ZIndex: =9
+
+    scr02_img_CameraSwitchInner As image:
+        Height: =58
+        Image: ='Ellipse 1_1'
+        OnSelect: |-
+            =If(
+                CountRows(bsea_cam_ReceiptClick.AvailableDevices),
+                UpdateContext({varCam : Mod(Value(varCam) + 1, CountRows(bsea_cam_ReceiptClick.AvailableDevices))})
+            )
+        Width: =58
+        X: =(Parent.Width/2 - Self.Width)/2
+        Y: =imageCapture_footer_rectangle.Y - (Self.Height/2)
+        ZIndex: =10
+
+    scr02_img_CameraSwitch As image:
+        Height: =27.27
+        Image: =CameraSwitchIcon
+        OnSelect: |-
+            =If(
+                CountRows(bsea_cam_ReceiptClick.AvailableDevices),
+                UpdateContext({varCam : Mod(Value(varCam) + 1, CountRows(bsea_cam_ReceiptClick.AvailableDevices))})
+            )
+        Width: =27.27
+        X: =(Parent.Width/2 - Self.Width)/2
+        Y: =imageCapture_footer_rectangle.Y - (Self.Height/2)
+        ZIndex: =11
+
+    scr02_hdr_TopHeader As hdr02_Header:
+        Fill: =scr02_hdr_TopHeader.paramFill
+        paramColor: =RGBA(255, 255, 255, 1)
+        paramFill: |
+            =RGBA(33, 33, 33, 1)
+        paramTitle: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NewExpenseLabel'
+        ZIndex: =12
+
+    scr02_lbl_Skip As label:
+        Align: =Align.Center
+        Color: =RGBA(255, 255, 255, 1)
+        Font: =Font.'Segoe UI'
+        FontWeight: =FontWeight.Semibold
+        Height: =33
+        OnSelect: |
+            =
+            Set(
+                varReceiptImage,
+                Blank()
+            );
+            Set(
+                varFileFormat,
+                Blank()
+            );
+            If(
+                !IsBlank(OCRresponse),
+                Set(
+                    OCRresponse,
+                    Blank()
+                )
+            );
+            If(
+                varNavigateFromExpense = "NavigatedFromItemizedEditExpense",
+                Navigate('Itemization - Itemized Expense Edit Screen'),
+                Navigate('Expenses - Edit Screen_1',ScreenTransition.Fade,{locItemizeButtonVisibilityFlag : false})
+            )
+        Size: =17
+        TabIndex: =0
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SkipLabel'
+        Width: =scr02_hdr_TopHeader.Width * 0.21875
+        Wrap: =false
+        X: =(Parent.Width - Self.Width) - 15
+        Y: =24
+        ZIndex: =13
+
+    scr02_ico_Back As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =Color.White
+        Fill: =icongconfig_backbutton.Fill
+        Height: =icongconfig_backbutton.Height
+        Icon: =Icon.ChevronLeft
+        OnSelect: =Back();
+        TabIndex: =0
+        Width: =icongconfig_backbutton.Width
+        X: =22.5
+        Y: =(scr02_hdr_TopHeader.Height-Self.Height)/2
+        ZIndex: =14
+

@@ -1178,6 +1178,110 @@
                         35
                     ZIndex: =4
 
+            Container2_1 As groupContainer.manualLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: |-
+                    =If(
+                        CountRows(colAttachedExpenses) > 0,
+                        0,
+                        125
+                    )
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =0
+                LayoutMinWidth: =250
+                Width: =Parent.Width
+                ZIndex: =3
+
+                scr17_btn_AttachExpenses_1 As button:
+                    BorderThickness: =0
+                    Color: =RGBA(34, 102, 227, 1)
+                    Fill: =RGBA(255, 255, 255, 1)
+                    FocusedBorderThickness: =0
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Normal
+                    Height: =60
+                    HoverBorderColor: =
+                    HoverColor: =Self.Color
+                    HoverFill: =
+                    OnSelect: |
+                        =If(
+                            varIsCreateReport,
+                            IfError(
+                                Set(
+                                    varSelectedReport,
+                                    Patch(
+                                        'Expense reports (mserp)',
+                                        Defaults('Expense reports (mserp)'),
+                                        {
+                                            Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                    Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                            Description: scr17_txt_Description_1.Text,
+                                            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
+                                            'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                        }
+                                    )
+                                ),
+                                UpdateContext({
+                                        varCreateError : 
+                                        Substitute(
+                                            Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                            """message"":", 
+                                            ""
+                                        )
+                                    }
+                                )
+                            )
+                        );
+                        If(
+                            IsBlank(varCreateError),
+                            Navigate('Reports - Attach Expenses Screen', ScreenTransition.None, {varCntBack_scr17: true}),
+                            Notify(
+                                Substitute(varCreateError, """", ""),
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            )
+                        );
+                        
+                        Set(varIsCreateReport,
+                            false
+                        );
+                    PressedBorderColor: =
+                    PressedColor: =Self.Color
+                    PressedFill: =
+                    RadiusBottomLeft: =6
+                    RadiusBottomRight: =6
+                    RadiusTopLeft: =6
+                    RadiusTopRight: =6
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachExpensesLabel'
+                    Visible: |-
+                        =If(
+                            CountRows(colAttachedExpenses) > 0,
+                            false,
+                            true
+                        )
+                    Width: =280
+                    X: |
+                        =(Parent.Width - Self.Width)/2
+                    Y: =40
+                    ZIndex: =3
+
+                scr17_img_Plus_1 As image:
+                    AccessibleLabel: =
+                    Height: =22
+                    Image: =Shapeplus
+                    OnSelect: =Navigate('Reports - Attach Expenses Screen');
+                    Visible: =scr17_btn_AttachExpenses_1.Visible
+                    Width: =22
+                    X: =scr17_btn_AttachExpenses_1.X + 23
+                    Y: =scr17_btn_AttachExpenses_1.Y + 19
+                    ZIndex: =4
+
             "scr17_glr_AttachedExpenses_4 As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver4.0'":
                 '#CopilotOverlayLabel': ="Filtered"
                 AccessibleLabel: ="List of attached expenses"
@@ -1259,7 +1363,7 @@
                     )
                 Width: =Parent.Width
                 Y: =Container2_1.Y + Container2_1.Height
-                ZIndex: =2
+                ZIndex: =5
 
                 scr17_img_Category_4 As image:
                     Height: =30
@@ -1410,110 +1514,6 @@
                     X: =scr17_lbl_Merchant_4.X
                     Y: =scr17_lbl_Merchant_4.Y + scr17_lbl_Merchant_4.Height + 4
                     ZIndex: =12
-
-            Container2_1 As groupContainer.manualLayoutContainer:
-                AlignInContainer: =AlignInContainer.SetByContainer
-                FillPortions: =0
-                Height: |-
-                    =If(
-                        CountRows(colAttachedExpenses) > 0,
-                        0,
-                        125
-                    )
-                LayoutGridColumns: =6
-                LayoutGridRows: =6
-                LayoutMaxHeight: =
-                LayoutMaxWidth: =
-                LayoutMinHeight: =0
-                LayoutMinWidth: =250
-                Width: =Parent.Width
-                ZIndex: =3
-
-                scr17_btn_AttachExpenses_1 As button:
-                    BorderThickness: =0
-                    Color: =RGBA(34, 102, 227, 1)
-                    Fill: =RGBA(255, 255, 255, 1)
-                    FocusedBorderThickness: =0
-                    Font: =Font.'Segoe UI'
-                    FontWeight: =FontWeight.Normal
-                    Height: =60
-                    HoverBorderColor: =
-                    HoverColor: =Self.Color
-                    HoverFill: =
-                    OnSelect: |
-                        =If(
-                            varIsCreateReport,
-                            IfError(
-                                Set(
-                                    varSelectedReport,
-                                    Patch(
-                                        'Expense reports (mserp)',
-                                        Defaults('Expense reports (mserp)'),
-                                        {
-                                            Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                    Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                            Description: scr17_txt_Description_1.Text,
-                                            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
-                                            'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
-                                        }
-                                    )
-                                ),
-                                UpdateContext({
-                                        varCreateError : 
-                                        Substitute(
-                                            Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                            """message"":", 
-                                            ""
-                                        )
-                                    }
-                                )
-                            )
-                        );
-                        If(
-                            IsBlank(varCreateError),
-                            Navigate('Reports - Attach Expenses Screen', ScreenTransition.None, {varCntBack_scr17: true}),
-                            Notify(
-                                Substitute(varCreateError, """", ""),
-                                NotificationType.Error,
-                                gblParams.notificationTime
-                            )
-                        );
-                        
-                        Set(varIsCreateReport,
-                            false
-                        );
-                    PressedBorderColor: =
-                    PressedColor: =Self.Color
-                    PressedFill: =
-                    RadiusBottomLeft: =6
-                    RadiusBottomRight: =6
-                    RadiusTopLeft: =6
-                    RadiusTopRight: =6
-                    Size: =18
-                    Text: |-
-                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachExpensesLabel'
-                    Visible: |-
-                        =If(
-                            CountRows(colAttachedExpenses) > 0,
-                            false,
-                            true
-                        )
-                    Width: =280
-                    X: |
-                        =(Parent.Width - Self.Width)/2
-                    Y: =40
-                    ZIndex: =3
-
-                scr17_img_Plus_1 As image:
-                    AccessibleLabel: =
-                    Height: =22
-                    Image: =Shapeplus
-                    OnSelect: =Navigate('Reports - Attach Expenses Screen');
-                    Visible: =scr17_btn_AttachExpenses_1.Visible
-                    Width: =22
-                    X: =scr17_btn_AttachExpenses_1.X + 23
-                    Y: =scr17_btn_AttachExpenses_1.Y + 19
-                    ZIndex: =4
 
     scr17_hdr_TopHeader_1 As hdr02_Header:
         Fill: =scr17_hdr_TopHeader_1.paramFill

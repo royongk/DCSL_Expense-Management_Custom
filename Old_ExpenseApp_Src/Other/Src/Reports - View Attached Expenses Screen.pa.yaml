@@ -1,0 +1,297 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Reports - View Attached Expenses Screen:
+    Properties:
+      Fill: =RGBA(229, 229, 229, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+    Children:
+      - scr19_btn_Done:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Open Sans'
+            Height: =88
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |-
+              =If(
+                  varSelectedReportStatusItem in dsDrafts,
+                  Navigate('Reports - Edit Screen');
+                  UpdateContext({varExpenseReportNumber : varSelectedReport.'Expense report number'});
+                  Set(
+                      varSelectedReport,
+                      LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber)
+                  ),
+                  Navigate('Reports - View Only Screen')
+              )
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'
+            Width: |
+              =Parent.Width -  Self.X*2
+            X: =40
+            Y: =Parent.Height - Self.Height - 25
+      - scr19_glr_AttachedExpenses:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver4.0
+          Properties:
+            AccessibleLabel: ="List of attached expenses"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DelayItemLoading: =false
+            Fill: =Color.White
+            FocusedBorderColor: =
+            FocusedBorderThickness: =0
+            Height: =Min((Self.TemplateHeight) * CountRows(Self.AllItems), scr19_btn_Done.Y - Self.Y - 25)
+            Items: =colAttachedExpenses
+            LoadingSpinner: =LoadingSpinner.None
+            OnSelect: "=\n//set details for the next screen \nConcurrent(\n    Set(\n        varIsCreate,\n        false\n    ),\n    Set(\n        varReceiptImage,\n        Blank()\n    )\n);\nIf(\n    varSelectedReportStatusItem in dsDrafts,\n    //assign the expense to a varSelectedExpenseDoc\n    Set(\n        varSelectedExpenseDoc,\n        LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')\n    );\n    Set(\n        varReceiptImage,\n        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)\n    );\n\n    Set(\n        varSelectedReceiptNumber,\n        Blank()\n    );\n    Set(\n        varExpenseAgainstWorkItem,\n        Blank()\n    );\n    //collect policy violations\n    If(\n        varSelectedExpenseDoc.PolicyViolationCount,\n        ClearCollect(\n            colPolViolations,\n            Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, \"~|~\")\n        );\n        UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});\n        UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),\n        Clear(colPolViolations);\n        UpdateContext({varMaxViolationLevel : 0});\n        UpdateContext({varNumViolation : 0})\n    );\n    \n    Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : \"scr19\", varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation}),\n    \n    Set(\n        varSelectedExpenseDoc,\n        LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')\n    );\n\n    Set(\n        varReceiptImage,\n        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)\n    );\n    Set(\n        varFileFormat,\n        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)\n    );\n    Set(\n            varSelectedReceiptNumber,\n            Blank()\n    );\n    If(\n        varSelectedExpenseDoc.PolicyViolationCount,\n        ClearCollect(\n            colPolViolations,\n            Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, \"~|~\")\n        );\n        UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});\n        UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),\n        Clear(colPolViolations);\n        UpdateContext({varMaxViolationLevel : 0});\n        UpdateContext({varNumViolation : 0})\n    );\n    Navigate('Expenses - View Only Screen', ScreenTransition.None, {varNavigatedFrom : \"scr19\", varMaxViolationLevel : varMaxViolationLevel, varNumViolation : varNumViolation})\n)"
+            TemplateSize: =129
+            Visible: |+
+              =/*If(
+                  CountRows(colAttachedExpenses) > 0,
+                  true,
+                  false
+              );*/
+              true
+
+            Width: =Parent.Width
+            Y: =scr19_hdr_TopHeader.Height + 67
+          Children:
+            - scr19_img_Category:
+                Control: Image@2.2.3
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Height: =30
+                  Image: |-
+                    =If(
+                        Value(ThisItem.PolicyViolationsLevel) = 0,
+                        LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').icon,
+                        Value(ThisItem.PolicyViolationsLevel) > 0 && Value(ThisItem.PolicyViolationsLevel) <= 2,
+                        LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').iconYellow,
+                        Value(ThisItem.PolicyViolationsLevel) > 2,
+                        LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').iconRed
+                    )
+                  OnSelect: =Select(Parent)
+                  Width: =50
+                  X: =16
+                  Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+            - scr19_lbl_Merchant:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =37
+                  LineHeight: =1
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: |-
+                    =If(
+                        ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
+                        Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
+                        ThisItem.Merchant
+                    )
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =373
+                  X: =71
+                  Y: =40
+            - scr19_shp_Seprator:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(225, 225, 225, 1)
+                  Height: =1
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - 1
+            - scr19_lbl_Amount:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Right
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Bold
+                  Height: =46
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: |+
+                    =Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", LookUp('Currencies (mserp)', 'Currency code' = ThisItem.'Currency (mserp_exchangecode)', 'Currency code'))
+
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =250
+                  X: =Parent.Width - Self.Width - 15
+                  Y: =40
+            - scr19_lbl_Date:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Right
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: |
+                    =RGBA(102, 102, 102, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =28
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =16.5
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: |-
+                    =Text(
+                        DateValue(ThisItem.'Transaction date'),
+                        "mmm dd, yyyy"
+                    )
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =150
+                  X: '=scr19_lbl_Amount.X + scr19_lbl_Amount.Width - Self.Width '
+                  Y: =86
+            - scr19_lbl_ProjectName:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: |
+                    =RGBA(102, 102, 102, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =Self.Size * 1.8
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =18
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.ProjectName
+                  VerticalAlign: =VerticalAlign.Top
+                  Visible: =!(scr19_lbl_Warning.Visible)
+                  Width: =scr19_lbl_Merchant.Width
+                  X: =scr19_lbl_Merchant.X
+                  Y: =scr19_lbl_Merchant.Y + scr19_lbl_Merchant.Height + 4
+            - scr19_lbl_Warning:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: |-
+                    =If(
+                        Value(ThisItem.PolicyViolationsLevel) <= 2,
+                        RGBA(152, 111, 11, 1),
+                        RGBA(217, 44, 44, 1)
+                    )
+                  Font: =Font.'Segoe UI'
+                  Height: =Self.Size * 1.8
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =18
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: |-
+                    =If(
+                        Value(ThisItem.PolicyViolationCount) > 0,
+                        Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_FoundPolicyViolationLabel', "$", Text(ThisItem.PolicyViolationCount))
+                    )
+                  VerticalAlign: =VerticalAlign.Top
+                  Visible: =(Value(ThisItem.PolicyViolationCount) > 0)
+                  Width: =scr19_lbl_Merchant.Width
+                  X: =scr19_lbl_Merchant.X
+                  Y: =scr19_lbl_Merchant.Y + scr19_lbl_Merchant.Height + 4
+      - scr19_EditAttachedExpenses:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: |-
+              =DisplayMode.Edit
+              /*
+              If(
+                  IsMatch(varSelectedReportStatus, "create"),
+                  Edit,
+                  View
+              )
+              */
+            Fill: ='Reports - Edit Screen'.Fill
+            FocusedBorderThickness: =2
+            Font: =Font.'Open Sans'
+            Height: =45
+            HoverBorderColor: =
+            HoverColor: =Self.Color
+            HoverFill: =
+            OnSelect: |-
+              =Navigate('Reports - Attach Expenses Screen', ScreenTransition.None, {varCntBack_scr17 : false});
+            PressedBorderColor: =Self.BorderColor
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            Size: =16
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EditLabel'
+            Visible: =varSelectedReportStatusItem in dsDrafts
+            Width: =130
+            X: =(Parent.Width - Self.Width) - 15
+            Y: =93
+      - scr19_lbl_NumAttachedExp:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Segoe UI'
+            Height: =32
+            Size: =18
+            Text: |-
+              =If(
+                  CountRows(colAttachedExpenses) = 0,
+                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoAttachedExpensesLabel',
+                  Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachedExpensesCountLabel',"$",CountRows(colAttachedExpenses))
+              )
+            Width: =500
+            X: =22
+            Y: =scr19_hdr_TopHeader.Height + 17.5
+      - scr19_hdr_TopHeader:
+          Control: CanvasComponent
+          ComponentName: hdr02_Header
+          Properties:
+            Fill: =scr19_hdr_TopHeader.paramFill
+            Height: =82
+            Width: =Max(App.Width, App.MinScreenWidth)
+            paramColor: =RGBA(0, 0, 0, 1)
+            paramFill: =RGBA(255, 255, 255, 1)
+            paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewAttachedExpensesLabel'
+      - scr19_ico_Back:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =icongconfig_backbutton.Color
+            Fill: =icongconfig_backbutton.Fill
+            Height: =icongconfig_backbutton.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: |-
+              =If(
+                  varSelectedReportStatusItem in dsDrafts,
+                  Navigate('Reports - Edit Screen'),
+                  Navigate('Reports - View Only Screen')
+              )
+            TabIndex: =0
+            Width: =icongconfig_backbutton.Width
+            X: =22
+            Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2

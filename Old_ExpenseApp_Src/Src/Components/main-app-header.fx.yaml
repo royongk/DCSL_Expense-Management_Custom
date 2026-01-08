@@ -1,0 +1,224 @@
+"'main-app-header' As CanvasComponent":
+    firstIconAction():
+        ThisProperty:
+            Default: =true
+    OnSelectButton():
+        ThisProperty:
+            Default: =true
+    refreshIconAction():
+        ThisProperty:
+            Default: =true
+    secondIconAction():
+        ThisProperty:
+            Default: =true
+    thirdIconAction():
+        ThisProperty:
+            Default: =true
+    Fill: =Color.White
+    firstIcon: ="Text"
+    firstIconAccessibleLabel: ="Text"
+    Height: =85
+    NavigationDrawerVisibility: =true
+    paramAvatar: =User().Image
+    paramTitle: ="Text"
+    secondIcon: ="Text"
+    secondIconAccessibleLabel: ="Text"
+    thirdIcon: ="Text"
+    thirdIconAccessibleLabel: ="Text"
+    Width: =Max(App.Width, App.MinScreenWidth)
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    cmpVerticalContainer As groupContainer.verticalAutoLayoutContainer:
+        Height: =Parent.Height
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        Width: =Parent.Width
+        ZIndex: =4
+
+        cmpHorizontalContainer As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =Parent.Height - cmp_footer_rct_Seprator_3.Height
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =Parent.Height
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            Width: =Parent.Width
+            ZIndex: =1
+
+            shpBorder_1 As rectangle:
+                Fill: =Color.Transparent
+                Height: =Parent.Height
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinWidth: =28
+                Width: =28
+                ZIndex: =1
+
+            userImage_1 As image:
+                AccessibleLabel: ="Profile"
+                AlignInContainer: =AlignInContainer.Center
+                Height: =42
+                Image: ='main-app-header'.paramAvatar
+                ImagePosition: =ImagePosition.Fill
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =320
+                LayoutMinWidth: =320
+                OnSelect: |-
+                    ='main-app-header'.OnSelectButton();
+                    Set(
+                        gblnavigationDrawerVisibility,
+                        true
+                    )
+                RadiusBottomLeft: =Self.Height
+                RadiusBottomRight: =Self.Height
+                RadiusTopLeft: =Self.Height
+                RadiusTopRight: =Self.Height
+                TabIndex: =0
+                Width: =Self.Height
+                X: =28
+                Y: =24
+                ZIndex: =2
+
+            shpBorder_2 As rectangle:
+                Fill: =Color.Transparent
+                Height: =Parent.Height
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinWidth: =28
+                Width: =28
+                ZIndex: =3
+
+            screenLabel_1 As label:
+                AlignInContainer: =AlignInContainer.Center
+                FillPortions: =1
+                Font: =Font.'Segoe UI'
+                FontWeight: =FontWeight.Semibold
+                Height: =Parent.Height
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                Role: =TextRole.Heading1
+                Size: =30
+                Text: ='main-app-header'.paramTitle
+                Width: =366
+                X: =98
+                Y: =15
+                ZIndex: =4
+
+            icon1 As image:
+                AccessibleLabel: ='main-app-header'.firstIconAccessibleLabel
+                AlignInContainer: =AlignInContainer.Center
+                Height: =Parent.Height
+                Image: ='main-app-header'.firstIcon
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =320
+                LayoutMinWidth: =320
+                OnSelect: ='main-app-header'.firstIconAction()
+                PaddingBottom: =25
+                PaddingTop: =25
+                RadiusBottomLeft: =Self.Height
+                RadiusBottomRight: =Self.Height
+                RadiusTopLeft: =Self.Height
+                RadiusTopRight: =Self.Height
+                TabIndex: =0
+                Visible: =If(IsBlank('main-app-header'.firstIcon), false, true)
+                Width: =60
+                X: =28
+                Y: =24
+                ZIndex: =5
+
+            icon2 As image:
+                AccessibleLabel: ='main-app-header'.secondIconAccessibleLabel
+                AlignInContainer: =AlignInContainer.Center
+                Height: =Parent.Height
+                Image: ='main-app-header'.secondIcon
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =320
+                LayoutMinWidth: =320
+                OnSelect: ='main-app-header'.secondIconAction()
+                PaddingBottom: =25
+                PaddingTop: =25
+                RadiusBottomLeft: =Self.Height
+                RadiusBottomRight: =Self.Height
+                RadiusTopLeft: =Self.Height
+                RadiusTopRight: =Self.Height
+                TabIndex: =0
+                Visible: =If(IsBlank('main-app-header'.secondIcon), false, true)
+                Width: =60
+                X: =28
+                Y: =24
+                ZIndex: =6
+
+            icon3 As image:
+                AccessibleLabel: ='main-app-header'.thirdIconAccessibleLabel
+                AlignInContainer: =AlignInContainer.Center
+                Height: =Parent.Height
+                Image: ='main-app-header'.thirdIcon
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =320
+                LayoutMinWidth: =320
+                OnSelect: ='main-app-header'.thirdIconAction()
+                PaddingBottom: =25
+                PaddingTop: =25
+                RadiusBottomLeft: =Self.Height
+                RadiusBottomRight: =Self.Height
+                RadiusTopLeft: =Self.Height
+                RadiusTopRight: =Self.Height
+                TabIndex: =0
+                Visible: =If(IsBlank('main-app-header'.thirdIcon), false, true)
+                Width: =60
+                X: =28
+                Y: =24
+                ZIndex: =7
+
+            icon4 As image:
+                AccessibleLabel: ="Refresh"
+                AlignInContainer: =AlignInContainer.Center
+                Height: =Parent.Height
+                Image: =RefreshIcon
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =320
+                LayoutMinWidth: =320
+                OnSelect: ='main-app-header'.refreshIconAction()
+                PaddingBottom: =25
+                PaddingTop: =25
+                RadiusBottomLeft: =Self.Height
+                RadiusBottomRight: =Self.Height
+                RadiusTopLeft: =Self.Height
+                RadiusTopRight: =Self.Height
+                TabIndex: =0
+                Width: =60
+                X: =28
+                Y: =24
+                ZIndex: =8
+
+            shpBorder As rectangle:
+                Fill: =Color.Transparent
+                Height: =Parent.Height
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                Width: =10
+                ZIndex: =9
+
+        cmp_footer_rct_Seprator_3 As rectangle:
+            Fill: =RGBA(200, 200, 200, 1)
+            Height: =1.5
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            Width: =Parent.Width
+            Y: =Parent.Height - Self.Height
+            ZIndex: =2
+

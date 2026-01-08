@@ -11,7 +11,7 @@ Screens:
     Properties:
       Fill: =RGBA(244, 244, 244, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
-      OnVisible: "=UpdateContext(\n    {\n        featureEnabled :\n        If(userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes, \"True\", \"False\")\n    }\n); \n//if labelTableLookUp not empty\nIf(\n    CountRows(labelTableLookUp) <= 0,\n    Collect(\n        labelTableLookUp,\n        {\n            fieldName : \"CostType\",\n            labelName : \"Expense category\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"TransDate\",\n            labelName : \"Transaction date\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"AmountCurr\",\n            labelName : \"Transaction amount\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"ExchangeCode\",\n            labelName : \"Currency\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"PayMethod\",\n            labelName : \"Payment method\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"SubmitterJustification\",\n            labelName : \"Employee justification\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\n            visible : false,\n            required : false\n        }\n    );\n    ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Collect(\n                labelTableLookUp,\n                {\n                    fieldName : VisibilityTable.FieldName,\n                    labelName : VisibilityTable.Labels,\n                    localisedLabelName : VisibilityTable.LocalisedLabelName\n                }\n            )\n        );\n    If(\n        featureEnabled = \"True\",\n        ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\n                    required : VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\n                }\n            )\n        ),\n        ForAll(\n            Filter('Display fields (mserp)', 'Company Code' = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\n                    required : false\n                }\n            )\n        )\n   \n    )\n);"
+      OnVisible: "=UpdateContext(\r\n    {\r\n        featureEnabled :\r\n        If(userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes, \"True\", \"False\")\r\n    }\r\n); \r\n//if labelTableLookUp not empty\r\nIf(\r\n    CountRows(labelTableLookUp) <= 0,\r\n    Collect(\r\n        labelTableLookUp,\r\n        {\r\n            fieldName : \"CostType\",\r\n            labelName : \"Expense category\",\r\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\r\n            visible : true,\r\n            required : true\r\n        },\r\n        {\r\n            fieldName : \"TransDate\",\r\n            labelName : \"Transaction date\",\r\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\r\n            visible : true,\r\n            required : true\r\n        },\r\n        {\r\n            fieldName : \"AmountCurr\",\r\n            labelName : \"Transaction amount\",\r\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\r\n            visible : true,\r\n            required : true\r\n        },\r\n        {\r\n            fieldName : \"ExchangeCode\",\r\n            labelName : \"Currency\",\r\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\r\n            visible : true,\r\n            required : true\r\n        },\r\n        {\r\n            fieldName : \"PayMethod\",\r\n            labelName : \"Payment method\",\r\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\r\n            visible : true,\r\n            required : true\r\n        },\r\n        {\r\n            fieldName : \"SubmitterJustification\",\r\n            labelName : \"Employee justification\",\r\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\r\n            visible : false,\r\n            required : false\r\n        }\r\n    );\r\n    ForAll(\r\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\r\n            Collect(\r\n                labelTableLookUp,\r\n                {\r\n                    fieldName : VisibilityTable.FieldName,\r\n                    labelName : VisibilityTable.Labels,\r\n                    localisedLabelName : VisibilityTable.LocalisedLabelName\r\n                }\r\n            )\r\n        );\r\n    If(\r\n        featureEnabled = \"True\",\r\n        ForAll(\r\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\r\n            Patch(\r\n                labelTableLookUp,\r\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\r\n                {\r\n                    visible : VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\r\n                    required : VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\r\n                }\r\n            )\r\n        ),\r\n        ForAll(\r\n            Filter('Display fields (mserp)', 'Company Code' = varSelectedLegalEntity) As VisibilityTable,\r\n            Patch(\r\n                labelTableLookUp,\r\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\r\n                {\r\n                    visible : VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\r\n                    required : false\r\n                }\r\n            )\r\n        )\r\n   \r\n    )\r\n);"
     Children:
       - ItemizedExpenseBackground_1:
           Control: Rectangle@2.3.0
@@ -107,7 +107,7 @@ Screens:
             RadiusTopLeft: =18
             RadiusTopRight: =18
             Visible: =!IsBlank(varReceiptImage)
-            Width: |
+            Width: |+
               =Parent.Width -  Self.X*2
             X: =24
             Y: |-
@@ -132,7 +132,7 @@ Screens:
             RadiusTopLeft: =8
             RadiusTopRight: =8
             Visible: '=IsBlank(varReceiptImage) '
-            Width: |
+            Width: |+
               =Parent.Width -  Self.X*2
             X: =44
             Y: =scr03_img_NoReceiptOuter_4.Y +(scr03_img_NoReceiptOuter_4.Height-scr03_img_NoReceiptInner_4.Height)/2
@@ -163,7 +163,7 @@ Screens:
                   GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
               )
             Visible: '=IsBlank(varReceiptImage) '
-            Width: |
+            Width: |+
               =Parent.Width -  Self.X*2
             X: =26
             Y: =scr03_img_NoReceiptOuter_4.Y
@@ -298,7 +298,7 @@ Screens:
             Text: |
               =Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_PolicyViolationExistsLabel', "$", Text(varNumViolation))
             Visible: =varNumViolation > 0
-            Width: |
+            Width: |+
               =Parent.Width
             Y: =scr03_hdr_TopHeader_3.Height
       - Expense Entr Container_2:
@@ -318,7 +318,7 @@ Screens:
             RadiusBottomRight: =0
             RadiusTopLeft: =0
             RadiusTopRight: =0
-            Width: |
+            Width: |+
               =Parent.Width
             Y: =scr03_img_NoReceiptOuter_4.Y + scr03_img_NoReceiptOuter_4.Height + 30
           Children:
@@ -3796,7 +3796,7 @@ Screens:
                               Height: =gblParams.dropDownHeight
                               HoverFill: =gblParams.dropDownHoverFill
                               InputTextPlaceholder: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterStateProvinceLabel'
-                              Items: |
+                              Items: |+
                                 =Filter('States (mserp)', 'Country/region' = ComboBox1_67.Selected.Code)
                               NoSelectionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterStateProvinceLabel'
                               OnChange: |-
@@ -4316,7 +4316,7 @@ Screens:
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: "=LookUp('Sales tax group description (mserp)','Sales tax group'= varSelectedItemizedExpenseDoc.'Sales tax group')\n    "
+                              DefaultSelectedItems: "=LookUp('Sales tax group description (mserp)','Sales tax group'= varSelectedItemizedExpenseDoc.'Sales tax group')\r\n    "
                               DisplayFields: =["mserp_salestaxgroup","mserp_description"]
                               FocusedBorderThickness: =2
                               Font: =Font.'Open Sans'
@@ -6462,7 +6462,7 @@ Screens:
             HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
             HoverColor: =RGBA(255, 255, 255, 1)
             HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-            OnSelect: |
+            OnSelect: |+
               =UpdateContext({varItemizationScreen: "ItemizationDetailScreen"});
               IfError(
                   SubmitForm(ViewOnlyItemizeExpenseForm),
@@ -6538,7 +6538,7 @@ Screens:
             FontWeight: =FontWeight.Bold
             Height: =ItemizedExpenseBackground_1.Height * 0.514
             Size: =ItemizedExpenseBackground_1.Height * 0.15
-            Text: |
+            Text: |+
               =If(ItemizedExpensesList.AllItemsCount > 0,
               Concatenate(Text(Value(varSelectedItemizedExpenseDoc.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", varSelectedExpenseDoc.'Currency (mserp_exchangecode)')
               )

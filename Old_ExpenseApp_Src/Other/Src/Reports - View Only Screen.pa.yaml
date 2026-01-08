@@ -1,0 +1,1145 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Reports - View Only Screen:
+    Properties:
+      Fill: =RGBA(229, 229, 229, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =UpdateContext(
+                    {
+                        locReimaginedfeatureEnabled: (userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes)
+                    }
+                );
+                If(
+                    locReimaginedfeatureEnabled, 
+                    If(
+                        CountRows(gblExpenseReportFieldVisibilityReImaginedLookup) <= 0,
+                        ClearCollect(
+                            gblExpenseReportFieldVisibilityReImaginedLookup, 
+                            Filter(
+                                'Expense mobile report field visibility (mserp)', 
+                                LegalEntityId = varSelectedLegalEntity && 
+                                VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display'
+                            )
+                        )
+                    ),
+                    If(
+                        CountRows(gblExpenseReportFieldVisibilityLookup) <= 0,
+                        ClearCollect(
+                            gblExpenseReportFieldVisibilityLookup, 
+                            Filter(
+                                '@ExpenseManagement:TrvExpMobileReportAdminCustomFieldsEntity (mserp)',
+                                LegalEntityId = varSelectedLegalEntity && 
+                                Visibility <> 'Visibility (mserp)'.'Do not display'
+                            )
+                        )
+                    )
+                );
+    Children:
+      - Totals Buttons - In Review:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =RGBA(250, 249, 248, 1)
+            Height: =300
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =20
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =Parent.Height - Self.Height
+          Children:
+            - Totals - In Review:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =60
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =60
+                  LayoutMinWidth: =Parent.Width
+                  PaddingLeft: =15
+                  PaddingRight: =15
+                  PaddingTop: =10
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - shpBorder_17:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =Color.Transparent
+                        Height: =Parent.Height
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Width: =10
+                  - scr20_img_Totals_3:
+                      Control: Image@2.2.3
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =21
+                        Image: =ShapeTotal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Width: =28
+                        X: =39
+                        Y: =
+                  - scr20_lbl_Totals_3:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =35
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Size: =19.15
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_TotalLabel'
+                        Width: =120
+                        X: =scr20_img_Totals_3.X + scr20_img_Totals_3.Width + 9
+                        Y: =
+                  - scr20_lbl_TotalAmount_3:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 0, 0, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =40
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =100
+                        OnSelect: =
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: |-
+                          =Concatenate(
+                              If(
+                                  !IsBlank(varSelectedReport),
+                                  Text(
+                                      Value(varSelectedReport.AmountTotal),
+                                      "#,#0.00",
+                                      varDefaultLanguage
+                                  ),
+                                  Text(
+                                      Value("0"),
+                                      "#,#0.00",
+                                      varDefaultLanguage
+                                  )
+                              ),
+                              " ",
+                              LookUp(
+                                  'Currencies (mserp)',
+                                  'Currency code' = varDefaultCurrency,
+                                  'Currency code'
+                              )
+                          )
+                        VerticalAlign: =VerticalAlign.Top
+                        Width: =250
+                        X: =scr17_btn_SaveDraft_1.X + scr17_btn_SaveDraft_1.Width - Self.Width
+                        Y: =871
+            - Buttons - In Review:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - scr20_btn_Done_1:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =ColorFade(Self.Fill, -15%)
+                        Color: =RGBA(255, 255, 255, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        Fill: =RGBA(34, 102, 227, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =76
+                        HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                        HoverColor: =RGBA(255, 255, 255, 1)
+                        HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                        OnSelect: |-
+                          =Set(
+                              gblNavigationDrawerVisibility,
+                              false
+                          );
+                          //navigate to previous screen
+                          Navigate('Reports - List Screen');
+                        PressedBorderColor: =Self.Fill
+                        PressedColor: =Self.Fill
+                        PressedFill: =Self.Color
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Size: =19.15
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'
+                        Width: |
+                          =Parent.Width -  Self.X*2
+                        X: |
+                          =40
+                        Y: =scr20_btn_WithdrawReport_1.Y + scr20_btn_WithdrawReport_1.Height + 20
+                  - scr20_btn_WithdrawReport_1:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =RGBA(195, 39, 39, 1)
+                        Color: |
+                          =RGBA(195, 39, 39, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =76
+                        HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                        HoverColor: =RGBA(255, 255, 255, 1)
+                        HoverFill: =ColorFade(Self.Color, 20%)
+                        OnSelect: |
+                          =Set(
+                              gblNavigationDrawerVisibility,
+                              false
+                          );
+                          IfError(
+                              Patch(
+                                  'Expense reports (mserp)',
+                                  LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                  {
+                                      WorkflowAction: "Recall"
+                                  }
+                              ),
+                              First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+                          );
+                          If(
+                              CountRows(varError) > 0,
+                              Notify(
+                                  Substitute(First(varError).Value, """", ""),
+                                  NotificationType.Error,
+                                  gblParams.notificationTime
+                              ),
+                              Notify(
+                                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportRecalledSuccessfullyLabel', 
+                                  NotificationType.Success, 
+                                  gblParams.notificationTime
+                              );
+                              Navigate('Reports - List Screen')
+                          );
+                          Clear(varError)
+                        PressedBorderColor: =Self.Fill
+                        PressedColor: =Self.Fill
+                        PressedFill: =Self.Color
+                        Size: =19.15
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_WithdrawLabel'
+                        Visible: =!(varSelectedReport.'Document status' in dsApproved)
+                        Width: |
+                          =Parent.Width -  Self.X*2
+                        X: =scr20_btn_Done_1.X
+                        Y: =20
+      - ReportDetails - In Review:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: ='Totals Buttons - In Review'.Y - Self.Y
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =82
+          Children:
+            - Title - In Review:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =175
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =10
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinWidth: =Parent.Width
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingLeft: =25
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: |-
+                    =If ( locReimaginedfeatureEnabled,
+                            !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
+                            !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
+                    )
+                  Width: =Parent.Width
+                Children:
+                  - PurposeContainer_2:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =scr20_txt_Location_1.Width
+                      Children:
+                        - scr20_img_Title_1:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =ShapeTitle
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: =22
+                              X: =scr20_txt_ReportName_1.X
+                              Y: |-
+                                =scr20_txt_ReportName_1.Y - 
+                                (15 + Self.Height)
+                        - scr20_lbl_Title_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportPurpose'
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: '=121 '
+                              X: |-
+                                =scr20_img_Title_1.X + scr20_img_Title_1.Width + 
+                                8
+                              Y: =scr20_img_Title_1.Y - 5
+                  - scr20_txt_ReportName_1:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        AccessibleLabel: ="Report purpose"
+                        BorderColor: =RGBA(255, 255, 255, 1)
+                        BorderThickness: =0
+                        Color: =RGBA(145, 145, 145, 1)
+                        Default: |
+                          =varSelectedReport.Purpose
+                        DisabledFill: =RGBA(229, 229, 229, 1)
+                        DisplayMode: =DisplayMode.View
+                        Fill: =RGBA(0, 0, 0, 0)
+                        FocusedBorderThickness: =0
+                        Font: =Font.'Segoe UI'
+                        HoverBorderColor: =RGBA(0, 0, 0, 1)
+                        HoverColor: =
+                        HoverFill: =
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: |
+                          =UpdateContext({ctLabel1 : true});
+                          UpdateContext({ctLabel2 : false});
+                          UpdateContext({ctLabel3 : false});
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =22.5
+                        X: =40
+                        Y: =scr20_hdr_ViewReport_1.Height + 66
+            - Location - In Review:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =175
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =10
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingLeft: =25
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: |-
+                    =If ( locReimaginedfeatureEnabled,
+                        !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Destination")),
+                        !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Destination")
+                    ))
+                  Width: =Parent.Width
+                Children:
+                  - LocationContainer_2:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =scr20_txt_Location_1.Width
+                      Children:
+                        - scr20_img_Location_1:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =ShapeLocation
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: =22
+                              X: =scr20_txt_Location_1.X
+                              Y: |-
+                                =scr20_txt_Location_1.Y - 
+                                (15 + Self.Height)
+                        - scr20_lbl_Location_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_LocationLabel'
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: '=121 '
+                              X: |-
+                                =scr20_img_Location_1.X + scr20_img_Location_1.Width + 
+                                8
+                              Y: =scr20_img_Location_1.Y - 5
+                  - scr20_txt_Location_1:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        AccessibleLabel: ="Report location"
+                        BorderColor: =RGBA(255, 255, 255, 1)
+                        BorderThickness: =0
+                        Color: =RGBA(145, 145, 145, 1)
+                        Default: =varSelectedReport.Location
+                        DisabledFill: =RGBA(229, 229, 229, 1)
+                        DisplayMode: =DisplayMode.View
+                        Fill: =RGBA(0, 0, 0, 0)
+                        FocusedBorderThickness: =0
+                        Font: =Font.'Segoe UI'
+                        HoverBorderColor: =RGBA(0, 18, 107, 1)
+                        HoverFill: =
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: |
+                          =UpdateContext({ctLabel1 : false});
+                          UpdateContext({ctLabel2 : true});
+                          UpdateContext({ctLabel3 : false});
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =22.5
+                        X: =40
+                        Y: =scr20_hdr_ViewReport_1.Height + 202
+            - Legal Entity - In Review:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =175
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinWidth: =Parent.Width
+                  PaddingLeft: =25
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: |+
+                    =If ( locReimaginedfeatureEnabled,
+                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "InterCompanyLE")),
+                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "InterCompanyLE"))
+                    )
+
+
+
+
+                  Width: =Parent.Width
+                Children:
+                  - LegalEntityContainer_2:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =scr20_txt_LegalEntity_ExpenseReport_2.Width
+                      Children:
+                        - scr17_img_LegalEntity_2:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =ShapeLegalEntity
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: =22
+                              X: =ComboBox_Location.X
+                              Y: |-
+                                =ComboBox_Location.Y - 
+                                (15 + Self.Height)
+                        - scr17_lbl_LegalEntity_ExpReport_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: ="Legal entity"
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: '=121 '
+                              X: =
+                              Y: =
+                  - scr20_txt_LegalEntity_ExpenseReport_2:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        AccessibleLabel: ="Report Legal entity"
+                        BorderColor: =RGBA(255, 255, 255, 1)
+                        BorderThickness: =0
+                        Color: =RGBA(145, 145, 145, 1)
+                        Default: =varSelectedReport.'Legal entity for expenses'
+                        DisabledFill: =RGBA(229, 229, 229, 1)
+                        DisplayMode: =DisplayMode.View
+                        Fill: =RGBA(0, 0, 0, 0)
+                        FocusedBorderThickness: =0
+                        Font: =Font.'Segoe UI'
+                        HoverBorderColor: =RGBA(0, 18, 107, 1)
+                        HoverFill: =
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: |
+                          =UpdateContext({ctLabel1 : false});
+                          UpdateContext({ctLabel2 : true});
+                          UpdateContext({ctLabel3 : false});
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =22.5
+                        X: =40
+                        Y: =scr20_hdr_ViewReport_1.Height + 202
+            - Project ID - In Review:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  ContentLanguage: =Parent.Width
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =175
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  PaddingLeft: =25
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: |+
+                    =If ( locReimaginedfeatureEnabled,
+                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "ProjId")),
+                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "ProjId"))
+                    )
+
+
+
+
+
+
+
+
+
+
+
+                  Width: =Parent.Width
+                Children:
+                  - ProjectIDContainer_3:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =scr20_txt_ProjId_ExpesneReport_2.Width
+                      Children:
+                        - scr20_img_ProjectID_ExpenseReport_2:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =ShapeProjID
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: =22
+                              X: =scr20_txt_ProjId_ExpesneReport_2.X
+                              Y: =scr20_txt_ProjId_ExpesneReport_2.Y - (15 + scr20_img_ProjectID_ExpenseReport_2.Height)
+                        - scr20_lbl_ProjectID_ExpenseReport_2:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ProjectIDLabel'
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =126
+                              X: |-
+                                =scr20_img_ProjectID_ExpenseReport_2.X + scr20_img_ProjectID_ExpenseReport_2.Width + 
+                                8
+                              Y: =scr20_img_ProjectID_ExpenseReport_2.Y - 5
+                  - scr20_txt_ProjId_ExpesneReport_2:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        AccessibleLabel: ="Report project Id"
+                        BorderColor: =RGBA(255, 255, 255, 1)
+                        BorderThickness: =0
+                        Color: =RGBA(145, 145, 145, 1)
+                        Default: =varSelectedReport.'Project ID'
+                        DisabledFill: =RGBA(229, 229, 229, 1)
+                        DisplayMode: =DisplayMode.View
+                        Fill: =RGBA(0, 0, 0, 0)
+                        FocusedBorderThickness: =0
+                        Font: =Font.'Segoe UI'
+                        Height: =105
+                        HoverBorderColor: =RGBA(0, 18, 107, 1)
+                        HoverFill: =
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Mode: =TextMode.MultiLine
+                        OnSelect: |
+                          =UpdateContext({ctLabel1 : false});
+                          UpdateContext({ctLabel2 : false});
+                          UpdateContext({ctLabel3 : true});
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =22.5
+                        X: =40
+                        Y: =scr20_hdr_ViewReport_1.Height + 332
+            - Description - In Review:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =10
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  PaddingLeft: =25
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: |-
+                    =If ( locReimaginedfeatureEnabled,
+                        !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt1")),
+                        !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt1"))
+                    )
+                  Width: =Parent.Width
+                Children:
+                  - DescriptionContainer_2:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =scr20_txt_Description_1.Width
+                      Children:
+                        - scr20_img_Description_1:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =ShapeDescription
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: =22
+                              X: =scr20_txt_Description_1.X
+                              Y: =scr20_txt_Description_1.Y - (15 + scr20_img_Description_1.Height)
+                        - scr20_lbl_Description_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DescriptionLabel'
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =126
+                              X: |-
+                                =scr20_img_Description_1.X + scr20_img_Description_1.Width + 
+                                8
+                              Y: =scr20_img_Description_1.Y - 5
+                  - scr20_txt_Description_1:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        AccessibleLabel: ="Report description"
+                        BorderColor: =RGBA(255, 255, 255, 1)
+                        BorderThickness: =0
+                        Color: =RGBA(145, 145, 145, 1)
+                        Default: =varSelectedReport.Description
+                        DisabledFill: =RGBA(229, 229, 229, 1)
+                        DisplayMode: =DisplayMode.View
+                        Fill: =RGBA(0, 0, 0, 0)
+                        FocusedBorderThickness: =0
+                        Font: =Font.'Segoe UI'
+                        Height: =105
+                        HoverBorderColor: =RGBA(0, 18, 107, 1)
+                        HoverFill: =
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Mode: =TextMode.MultiLine
+                        OnSelect: |
+                          =UpdateContext({ctLabel1 : false});
+                          UpdateContext({ctLabel2 : false});
+                          UpdateContext({ctLabel3 : true});
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Size: =22.5
+                        X: =40
+                        Y: =scr20_hdr_ViewReport_1.Height + 332
+            - AttachedExpenses - In Review:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingTop: =10
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Container23_2:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =75
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        PaddingLeft: =15
+                        PaddingRight: =15
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width
+                      Children:
+                        - scr20_lbl_NumAttachedExp_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Size: =18
+                              Text: |-
+                                =If(
+                                    CountRows(colAttachedExpenses) = 0,
+                                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoAttachedExpensesLabel',
+                                    Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachedExpensesCountLabel',"$",CountRows(colAttachedExpenses))
+                                )
+                              Width: =285
+                              Wrap: =false
+                              X: =46
+                              Y: '=scr20_txt_Description_1.Y + scr20_txt_Description_1.Height + 43 '
+                        - scr20_ViewAttachedExpenses_1:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(34, 102, 227, 1)
+                              Color: =RGBA(34, 102, 227, 1)
+                              DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                              Fill: ='Reports - Edit Screen'.Fill
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Open Sans'
+                              Height: =45
+                              HoverBorderColor: =
+                              HoverColor: =Self.Color
+                              HoverFill: =
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnSelect: =Navigate('Reports - View Attached Expenses Screen');
+                              PressedBorderColor: =Self.BorderColor
+                              PressedFill: =Self.Fill
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =16
+                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewAllLabel'
+                              Visible: |-
+                                =If(
+                                    CountRows(colAttachedExpenses) > 0,
+                                    true,
+                                    false
+                                )
+                              Width: =170
+                              X: =432
+                              Y: =562
+                  - scr20_glr_AttachedExpenses_1:
+                      Control: Gallery@2.15.0
+                      Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver4.0
+                      Properties:
+                        AccessibleLabel: ="List of attached expenses"
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DelayItemLoading: =false
+                        Fill: =Color.White
+                        Height: =Min((Self.TemplateHeight) * CountRows(Self.AllItems), 'Totals Buttons - In Review'.Y - Self.Y)
+                        Items: =colAttachedExpensesForReport
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LoadingSpinner: =LoadingSpinner.None
+                        OnSelect: |
+                          =
+                          Concurrent(
+                              Set(
+                                  varIsCreate,
+                                  false
+                              ),
+                              Set(
+                                  varReceiptImage,  //set as receiptUrl of attached expense
+                                  Blank()
+                              )
+                          );
+                          Set(
+                              varSelectedExpenseDoc,
+                              LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                          );
+                          Set(
+                              varReceiptImage,
+                              LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)
+                          );
+                          Set(
+                              varFileFormat,
+                              LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
+                          );
+                          Set(varExpenseAgainstWorkItem, Blank());
+                          Set(
+                              varSelectedReceiptNumber,
+                              Blank()
+                          );
+                          Set(
+                              varExpenseAgainstWorkItem,
+                              Blank()
+                          );
+                          If(
+                              varSelectedExpenseDoc.PolicyViolationCount,
+                              ClearCollect(
+                                  colPolViolations,
+                                  Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                              );
+                              UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
+                              UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                              Clear(colPolViolations);
+                              UpdateContext({varMaxViolationLevel : 0});
+                              UpdateContext({varNumViolation : 0})
+                          );
+                          Navigate('Expenses - View Only Screen', ScreenTransition.None, {varNavigatedFrom : "scr20", varMaxViolationLevel : varMaxViolationLevel, varNumViolation : varNumViolation})
+                        TemplateSize: =112
+                        Visible: =CountRows(colAttachedExpenses) > 0
+                        Width: =Parent.Width
+                        Y: =scr20_lbl_NumAttachedExp_1.Y + scr20_lbl_NumAttachedExp_1.Height + 22.5
+                      Children:
+                        - scr20_img_Category_1:
+                            Control: Image@2.2.3
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =30
+                              Image: |-
+                                =If(
+                                    Value(ThisItem.PolicyViolationsLevel) = 0,
+                                    LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').icon,
+                                    Value(ThisItem.PolicyViolationsLevel) > 0 && Value(ThisItem.PolicyViolationsLevel) <= 2,
+                                    LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').iconYellow,
+                                    Value(ThisItem.PolicyViolationsLevel) > 2,
+                                    LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').iconRed
+                                )
+                              OnSelect: =Select(Parent)
+                              TabIndex: =0
+                              Width: =50
+                              X: =16
+                              Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+                        - scr20_lbl_Merchant_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =37
+                              LineHeight: =1
+                              OnSelect: =Select(Parent)
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                              Text: |-
+                                =If(
+                                    ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
+                                    Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
+                                    ThisItem.Merchant
+                                )
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =373
+                              X: =71
+                              Y: =23
+                        - scr20_shp_Seprator_1:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =RGBA(225, 225, 225, 1)
+                              Height: =1
+                              Width: =Parent.TemplateWidth
+                              Y: =Parent.TemplateHeight - 1
+                        - scr20_lbl_Amount_3:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Right
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =41
+                              OnSelect: =Select(Parent)
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                              Text: |-
+                                =Concatenate(Text(Value(ThisItem.'Transaction amount'),"#,#0.00",varDefaultLanguage)," ",ThisItem.'Currency (mserp_exchangecode)')
+                                //LookUp('Currencies (mserp)','Currency code'=varDefaultCurrency,'Currency code')
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =250
+                              X: =Parent.Width - scr20_lbl_Amount_3.Width - 15
+                              Y: =scr20_lbl_Merchant_1.Y
+                        - scr20_lbl_Date_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Right
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: |
+                                =RGBA(102, 102, 102, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =28
+                              OnSelect: =Select(Parent)
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =16.5
+                              TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                              Text: |-
+                                =Text(
+                                    DateValue(ThisItem.'Transaction date'),
+                                    "mmm dd, yyyy"
+                                )
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =150
+                              X: =scr20_lbl_Amount_3.X + scr20_lbl_Amount_3.Width - Self.Width
+                              Y: =69
+                        - scr20_lbl_ProjectName_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: |
+                                =RGBA(102, 102, 102, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =Self.Size * 1.8
+                              OnSelect: =Select(Parent)
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =18
+                              TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                              Text: =ThisItem.ProjectName
+                              VerticalAlign: =VerticalAlign.Top
+                              Visible: =!(scr20_lbl_Warning_1.Visible)
+                              Width: =scr20_lbl_Merchant_1.Width
+                              X: =scr20_lbl_Merchant_1.X
+                              Y: =scr20_lbl_Merchant_1.Y + scr20_lbl_Merchant_1.Height + 4
+                        - scr20_lbl_Warning_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: |-
+                                =If(
+                                    Value(ThisItem.PolicyViolationsLevel) <= 2,
+                                    RGBA(152, 111, 11, 1),
+                                    RGBA(217, 44, 44, 1)
+                                )
+                              Font: =Font.'Segoe UI'
+                              Height: =Self.Size * 1.8
+                              OnSelect: =Select(Parent)
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =18
+                              TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                              Text: |-
+                                =If(
+                                    Value(ThisItem.PolicyViolationCount) > 0,
+                                    Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_FoundPolicyViolationLabel', "$", Text(ThisItem.PolicyViolationCount))
+                                )
+                              VerticalAlign: =VerticalAlign.Top
+                              Visible: |-
+                                =//ThisItem.receiptsAttached ="Yes" 
+                                Value(ThisItem.PolicyViolationCount) > 0
+                              Width: =scr17_lbl_Merchant_4.Width
+                              Wrap: =false
+                              X: =scr20_lbl_Merchant_1.X
+                              Y: =scr20_lbl_Merchant_1.Y + scr20_lbl_Merchant_1.Height + 4
+      - scr20_hdr_ViewReport_1:
+          Control: CanvasComponent
+          ComponentName: hdr02_Header
+          Properties:
+            Fill: =scr20_hdr_ViewReport_1.paramFill
+            Height: =82
+            Width: =Max(App.Width, App.MinScreenWidth)
+            paramColor: =RGBA(0, 0, 0, 1)
+            paramFill: =RGBA(255, 255, 255, 1)
+            paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReportLabel'
+      - scr20_ico_Back_1:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =icongconfig_backbutton.Color
+            Fill: =icongconfig_backbutton.Fill
+            Height: =icongconfig_backbutton.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: |
+              =Set(
+                  gblNavigationDrawerVisibility,
+                  false
+              );
+              Navigate('Reports - List Screen');
+            TabIndex: =0
+            Width: =icongconfig_backbutton.Width
+            X: =22
+            Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2

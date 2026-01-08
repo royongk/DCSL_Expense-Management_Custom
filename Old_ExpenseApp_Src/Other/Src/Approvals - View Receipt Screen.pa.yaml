@@ -1,0 +1,214 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Approvals - View Receipt Screen:
+    Properties:
+      Fill: =RGBA(229, 229, 229, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =//UpdateContext({varCntShowConfirmationDialog:false})
+        Set(varCntShowConfirmationDialog,false);
+        UpdateContext({varRotateImage: ImageRotation.None})
+    Children:
+      - imageView_footer_rectangle_4:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(37, 36, 35, 1)
+            Height: =150
+            Width: =Max(App.Width, App.MinScreenWidth)
+            Y: =Parent.Height - Self.Height
+      - scr24_btn_Done:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            BorderThickness: =3
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Open Sans'
+            Height: =88
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: |-
+              =Back();
+              Set(VarCurrentReceiptRowNumber,1);
+            PressedBorderColor: =Self.BorderColor
+            PressedFill: =Self.Fill
+            Size: =22
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'
+            Width: =Parent.Width -  Self.X*2
+            X: =40
+            Y: =imageView_footer_rectangle_4.Y + 25
+      - scr24_img_Receipt_1:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =imageView_footer_rectangle_4.Y - Self.Y
+            Image: =varReceiptImage
+            ImageRotation: =varRotateImage
+            TabIndex: =0
+            Visible: ="data:image" in varReceiptImage
+            Width: =Parent.Width
+            Y: =scr24_hdr_TopHeader_2.Height
+      - scr24_pdfViewer:
+          Control: PDFViewer@2.5.0
+          Properties:
+            Document: =varReceiptImage
+            Height: =scr24_img_Receipt_1.Height
+            Visible: ="data:application/pdf" in varReceiptImage
+            Width: =scr24_img_Receipt_1.Width
+            X: =scr24_img_Receipt_1.X
+            Y: =scr24_img_Receipt_1.Y
+      - scr24_lbl_NoPreview:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Segoe UI'
+            Height: =64
+            Size: =18
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilePreviewNotSupportedLabel'
+            Visible: =!(scr24_pdfViewer.Visible || scr24_img_Receipt_1.Visible)
+            Width: '=406     '
+            X: |
+              =(Parent.Width - Self.Width)/2
+            Y: '=scr24_img_NoPreview.Y + scr24_img_NoPreview.Height + 10 '
+      - scr24_img_NoPreview:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =85
+            Image: |-
+              =If(
+                  varFileFormat in ["xlsx", "xls"],
+                  IconExcel,
+                  varFileFormat in ["docx", "doc"],
+                  IconWord,
+                  varFileFormat = "txt",
+                  IconTxt,
+                  IconMail
+              )
+            Visible: =scr24_lbl_NoPreview.Visible
+            Width: =85
+            X: |
+              =(Parent.Width - Self.Width)/2
+            Y: =scr24_img_Receipt_1.Y + (scr24_img_Receipt_1.Height - Self.Height)/2
+      - scr24_hdr_TopHeader_2:
+          Control: CanvasComponent
+          ComponentName: hdr02_Header
+          Properties:
+            Fill: =scr24_hdr_TopHeader_2.paramFill
+            Height: =82
+            Width: =Max(App.Width, App.MinScreenWidth)
+            paramColor: =RGBA(255, 255, 255, 1)
+            paramFill: |
+              =RGBA(33, 33, 33, 1)
+            paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
+      - scr24_ico_Back:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =Color.White
+            Fill: =icongconfig_backbutton.Fill
+            Height: =icongconfig_backbutton.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: |-
+              =Back();
+              Set(VarCurrentReceiptRowNumber,1);
+            TabIndex: =0
+            Width: =icongconfig_backbutton.Width
+            X: =6.5*Value(lbconfig_resolution_factor.Text)
+            Y: =(scr02_hdr_TopHeader.Height-Self.Height)/2
+      - PreviousReceiptBackground:
+          Control: Circle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(255,255,255, 0.5)
+            Height: |-
+              =If(
+                  Parent.Height > Parent.Width,
+                  Parent.Height * 0.066,
+                  Parent.Width * 0.056
+              )
+            PressedFill: =RGBA(255,255,255, 1)
+            Visible: =previousReceipt.Visible
+            Width: =Self.Height
+            X: =15
+            Y: =scr24_hdr_TopHeader_2.Height + scr24_img_Receipt_1.Height/2 - Self.Height/2
+      - NextReceiptBackground:
+          Control: Circle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(255,255,255, 0.5)
+            Height: =PreviousReceiptBackground.Height
+            Visible: =NextReceipt.Visible
+            Width: =PreviousReceiptBackground.Width
+            X: =App.Width - Self.Width - 15
+            Y: =PreviousReceiptBackground.Y
+      - previousReceipt:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            Height: =NextReceipt.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: "=\nIf(\n    VarCurrentReceiptRowNumber > 1,\n    Set(\n        VarCurrentReceiptRowNumber,\n        VarCurrentReceiptRowNumber - 1\n    );\n    Set(\n        varFileFormat,\n        LookUp(\n            colReceiptAttachToExpenseApprovals,\n            RowNumber = VarCurrentReceiptRowNumber\n        ).FileExtension\n    );\n    \n//2: Set the the next record as the VarCurrentRecord\nSet(\n        varReceiptImage,\n        LookUp(\n            colReceiptAttachToExpenseApprovals,\n            RowNumber = VarCurrentReceiptRowNumber\n        ).CapturedDocument\n    );\n    Set(\n        varSelectedReceiptNumber,\n        LookUp(\n            colReceiptAttachToExpenseApprovals,\n            RowNumber = VarCurrentReceiptRowNumber\n        ).EntRecId\n    );\n    \n);"
+            Visible: =VarCurrentReceiptRowNumber > 1
+            Width: =NextReceipt.Width
+            X: =PreviousReceiptBackground.X + PreviousReceiptBackground.Width*2/5 - Self.Width/2
+            Y: =NextReceipt.Y
+      - NextReceipt:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            Height: =PreviousReceiptBackground.Height * 0.71
+            Icon: =Icon.ChevronRight
+            OnSelect: "=If(\n    VarCurrentReceiptRowNumber > 0 && VarCurrentReceiptRowNumber < CountRows(colReceiptAttachToExpenseApprovals),\n    Set(\n        VarCurrentReceiptRowNumber,\n        VarCurrentReceiptRowNumber + 1\n    );\n    Set(\n        varFileFormat,\n        LookUp(\n            colReceiptAttachToExpenseApprovals,\n            RowNumber = VarCurrentReceiptRowNumber\n        ).FileExtension\n    );\n    \n//2: Set the the next record as the VarCurrentRecord\nSet(\n        varReceiptImage,\n        LookUp(\n            colReceiptAttachToExpenseApprovals,\n            RowNumber = VarCurrentReceiptRowNumber\n        ).CapturedDocument\n    );\n    Set(\n        varSelectedReceiptNumber,\n        LookUp(\n            colReceiptAttachToExpenseApprovals,\n            RowNumber = VarCurrentReceiptRowNumber\n        ).EntRecId\n    );\n    \n)"
+            Visible: =VarCurrentReceiptRowNumber < CountRows(colReceiptAttachToExpenseApprovals)
+            Width: =Self.Height
+            X: =NextReceiptBackground.X + NextReceiptBackground.Width*3/5 - Self.Width/2
+            Y: =NextReceiptBackground.Y + NextReceiptBackground.Height/2 -  Self.Height/2
+      - RotateImageButton:
+          Control: Image@2.2.3
+          Properties:
+            AccessibleLabel: ="Image rotated clockwise 90 degree"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: |
+              =RGBA(37, 36, 35, 0.5)
+            Height: =App.Height * 0.055
+            Image: =RotateReceiptIcon
+            OnSelect: |-
+              =Switch(varRotateImage,
+                     ImageRotation.None, UpdateContext({varRotateImage:ImageRotation.Rotate90}),
+                     ImageRotation.Rotate90, UpdateContext({varRotateImage:ImageRotation.Rotate180}),
+                     ImageRotation.Rotate180, UpdateContext({varRotateImage:ImageRotation.Rotate270}),
+                     ImageRotation.Rotate270, UpdateContext({varRotateImage:ImageRotation.None}),
+                     UpdateContext({varRotateImage:ImageRotation.None})
+              )
+            RadiusBottomLeft: |-
+              =If(
+                  App.Width > App.Height,
+                  App.Width * 0.05,
+                  App.Height * 0.0274
+              )
+            RadiusBottomRight: =Self.RadiusBottomLeft
+            RadiusTopLeft: =Self.RadiusBottomLeft
+            RadiusTopRight: =Self.RadiusBottomLeft
+            TabIndex: =0
+            Width: |
+              =If(App.Width > App.Height,
+              App.Width * 0.12,
+              App.Width * 0.37
+              )
+            X: =40
+            Y: =scr24_img_Receipt_1.Y + scr24_img_Receipt_1.Height * 5/6
