@@ -697,10 +697,6 @@
             LayoutMaxWidth: =
             LayoutMinHeight: =250
             LayoutMinWidth: =320
-            SnapToColumns: =false
-            Width: =Parent.Width
-            Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
-            ZIndex: =1
             OnFailure: |-
                 =If(
                     CountRows(Split(Text(Self.Error), ":")) > 2,
@@ -924,8 +920,12 @@
                 );
                 Set(gblItemizeExpenseButtonClick, false);
                 UpdateContext({msCallStartedForSalestaxCalculation: false});
+            SnapToColumns: =false
+            Width: =Parent.Width
+            Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
+            ZIndex: =1
 
-            "'Department_DataCard' As typedDataCard.allowedValuesStringEditCard":
+            Department_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =Distinct(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
@@ -1004,7 +1004,6 @@
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
                     SelectMultiple: =false
                     Size: =24
-                    Template: =ListItemTemplate.Single
                     Width: =Parent.Width - 2 * Self.X
                     X: =30
                     Y: =Department_DataCardKey.Y + Department_DataCardKey.Height + 5
@@ -1023,7 +1022,7 @@
                     Y: =Department_DataCardKey.Y
                     ZIndex: =4
 
-            "'BenefitType_DataCard' As typedDataCard.allowedValuesStringEditCard":
+            BenefitType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =If(
                         !IsBlank(ComboBox_Department.Selected),
@@ -1103,7 +1102,6 @@
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
                     SelectMultiple: =false
                     Size: =24
-                    Template: =ListItemTemplate.Single
                     Width: =Parent.Width - 2 * Self.X
                     X: =30
                     Y: =BenefitType_DataCardKey.Y + BenefitType_DataCardKey.Height + 5

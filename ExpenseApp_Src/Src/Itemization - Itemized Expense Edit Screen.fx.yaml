@@ -515,10 +515,6 @@
             LayoutMaxWidth: =
             LayoutMinHeight: =250
             LayoutMinWidth: =320
-            SnapToColumns: =false
-            Width: =Parent.Width
-            Y: =scr03_img_NoReceiptOuter_2.Y + scr03_img_NoReceiptOuter_2.Height + 30
-            ZIndex: =1
             OnFailure: |-
                 =Notify(
                     Last(Split(Text(Self.Error), ":")).Value, 
@@ -677,8 +673,12 @@
                         locItemizeButtonVisibilityFlag: false
                     }
                 )
+            SnapToColumns: =false
+            Width: =Parent.Width
+            Y: =scr03_img_NoReceiptOuter_2.Y + scr03_img_NoReceiptOuter_2.Height + 30
+            ZIndex: =1
 
-            "'Itemization_Department_DataCard' As typedDataCard.allowedValuesStringEditCard":
+            Itemization_Department_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =Distinct(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
@@ -757,7 +757,6 @@
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
                     SelectMultiple: =false
                     Size: =24
-                    Template: =ListItemTemplate.Single
                     Width: =Parent.Width - 2 * Self.X
                     X: =30
                     Y: =Itemization_Department_DataCardKey.Y + Itemization_Department_DataCardKey.Height + 5
@@ -776,7 +775,7 @@
                     Y: =Itemization_Department_DataCardKey.Y
                     ZIndex: =4
 
-            "'Itemization_BenefitType_DataCard' As typedDataCard.allowedValuesStringEditCard":
+            Itemization_BenefitType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =If(
                         !IsBlank(Itemization_ComboBox_Department.Selected),
@@ -856,7 +855,6 @@
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
                     SelectMultiple: =false
                     Size: =24
-                    Template: =ListItemTemplate.Single
                     Width: =Parent.Width - 2 * Self.X
                     X: =30
                     Y: =Itemization_BenefitType_DataCardKey.Y + Itemization_BenefitType_DataCardKey.Height + 5
