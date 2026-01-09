@@ -143,13 +143,12 @@
         If(
             !IsBlank(curProjIdSelected),
             UpdateContext({
-            varProjectHierarchyId :
-            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojecthierarchyid(userRecord.'Expense mobile master data (mserp)',
-                {
-                    interCompanyLegalEntity: curIntercompanyLE,
-                    projId: curProjIdSelected
-                }
-            ).return
+            varProjectHierarchyId:
+                LookUp(
+                    'Projects (mserp)',
+                    'Project ID' = curProjIdSelected,
+                    HierarchyId
+                )
         })
         );
         Set(
@@ -3740,13 +3739,12 @@
                         If(
                             !IsBlank(Self.Selected.projectId),
                             UpdateContext({
-                            varProjectHierarchyId :
-                            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojecthierarchyid(userRecord.'Expense mobile master data (mserp)',
-                                {
-                                    interCompanyLegalEntity: curIntercompanyLE,
-                                    projId: curProjIdSelected
-                                }
-                            ).return
+                            varProjectHierarchyId:
+                                LookUp(
+                                    'Projects (mserp)',
+                                    'Project ID' = curProjIdSelected,
+                                    HierarchyId
+                                )
                         })
                         )
                         );

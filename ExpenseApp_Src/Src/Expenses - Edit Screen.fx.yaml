@@ -8,7 +8,7 @@
         // 3-level category selection variables
         UpdateContext({varSelectedDepartment: Blank()});
         UpdateContext({varSelectedBenefitType: Blank()});
-        UpdateContext({curCategory: ComboBox1_8.Selected.'Expense category'});
+        UpdateContext({curCategory: If(!varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'), varSelectedExpenseDoc.'Expense category (mserp_costtype)', Blank())});
         // Load existing Department and Benefit Type from Expense Category (reverse lookup)
         If(
             !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
@@ -57,40 +57,47 @@
             Clear(colGetProjectsBasedOnResourceCategory);
             UpdateContext({
                 varGetProjectsBasedOnResourceCategory :
-                'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategoryv2(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',
-                    {
-                        employeeLegalEntity: varSelectedLegalEntity,
-                        interCompanyLegalEntity: varSelectedExpenseDoc.'Legal entity',
-                        categoryId: 
-                        If(
-                            IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE),varSelectedExpenseDoc.'Intercompany project category',varSelectedExpenseDoc.'Expense category (mserp_costtype)')),
-                            "",
-                            If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE),varSelectedExpenseDoc.'Intercompany project category',varSelectedExpenseDoc.'Expense category (mserp_costtype)')
-                        )
-                    }).return
-                }
-            );
-            Collect(
-                colGetProjectsBasedOnResourceCategory ,
-                ForAll(
-                    MatchAll(varGetProjectsBasedOnResourceCategory, "\{""projId"":""(?<projId>[^""]*)"",""projName"":""(?<projName>[^""]*)""\}") As ProjectListFromCol,
-                    {
-                        projectId: ProjectListFromCol.projId,
-                        projectName: ProjectListFromCol.projName
-                    }
+                IfError(
+                    Text(
+                        'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategoryv2(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',
+                            {
+                                employeeLegalEntity: varSelectedLegalEntity,
+                                interCompanyLegalEntity: curIntercompanyLE,
+                                categoryId: 
+                                If(
+                                    IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE), varSelectedExpenseDoc.'Intercompany project category', curCategory)),
+                                    "",
+                                    If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE), varSelectedExpenseDoc.'Intercompany project category', curCategory)
+                                )
+                            }).return
+                    ),
+                    ""
                 )
+            });
+            If(
+                !IsBlank(varGetProjectsBasedOnResourceCategory),
+                ClearCollect(
+                    colGetProjectsBasedOnResourceCategory,
+                    ForAll(
+                        MatchAll(varGetProjectsBasedOnResourceCategory, "\{""projId"":""(?<projId>[^""]*)"",""projName"":""(?<projName>[^""]*)""\}") As ProjectListFromCol,
+                        {
+                            projectId: Text(ProjectListFromCol.projId),
+                            projectName: Text(ProjectListFromCol.projName)
+                        }
+                    )
+                ),
+                Clear(colGetProjectsBasedOnResourceCategory)
             );
             
             If(
                 !IsBlankOrError(curProjIdSelected),
                 UpdateContext({
-                    varProjectHierarchyId :
-                    'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojecthierarchyid(userRecord.'Expense mobile master data (mserp)',
-                        {
-                            interCompanyLegalEntity: curIntercompanyLE,
-                            projId: curProjIdSelected
-                        }
-                    ).return
+                    varProjectHierarchyId:
+                        LookUp(
+                            'Projects (mserp)',
+                            'Project ID' = curProjIdSelected,
+                            HierarchyId
+                        )
                 })
             );
         );
@@ -110,10 +117,14 @@
             {
                 currExpenseType: Coalesce(
                     varSelectedExpenseDoc.'Expense type',
-                    LookUp(
-                        'Expense category (mserp)',
-                        'Expense category' = curCategory,
-                        'Expense type'
+                    If(
+                        !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
+                        LookUp(
+                            'Expense category (mserp)',
+                            'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)',
+                            'Expense type'
+                        ),
+                        Blank()
                     )
                 )
             }
@@ -269,11 +280,11 @@
         UpdateContext({varLoadingSpinner : false});
         Set(
             varDefaultSalesTaxGroup,
-            varSelectedExpenseDoc.'Sales tax group'
+            Text(varSelectedExpenseDoc.'Sales tax group')
         );
         Set(
             varItemSalesTaxDefaultValue,
-            varSelectedExpenseDoc.'Item sales tax group'
+            Text(varSelectedExpenseDoc.'Item sales tax group')
         );
         UpdateContext(
             {
@@ -354,11 +365,11 @@
         );
         Set(
             varDefaultSalesTaxGroup,
-            varSelectedExpenseDoc.'Sales tax group'
+            Text(varSelectedExpenseDoc.'Sales tax group')
         );
         Set(
             varItemSalesTaxDefaultValue,
-            varSelectedExpenseDoc.'Item sales tax group'
+            Text(varSelectedExpenseDoc.'Item sales tax group')
         );
         UpdateContext(
             {
@@ -5029,13 +5040,12 @@
                                 If(
                                     !IsBlank(Self.Selected.projectId),
                                 UpdateContext({
-                                    varProjectHierarchyId :
-                                    'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojecthierarchyid(userRecord.'Expense mobile master data (mserp)',
-                                        {
-                                            interCompanyLegalEntity: curIntercompanyLE,
-                                            projId: curProjIdSelected
-                                        }
-                                    ).return
+                                    varProjectHierarchyId:
+                                        LookUp(
+                                            'Projects (mserp)',
+                                            'Project ID' = curProjIdSelected,
+                                            HierarchyId
+                                        )
                                 })
                                 )
                                 );
