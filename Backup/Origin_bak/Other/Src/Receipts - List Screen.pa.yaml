@@ -1,0 +1,791 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Receipts - List Screen:
+    Properties:
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |
+        =If(varCntSelect <> true,
+        UpdateContext({varCntSelect: false})
+        );
+        UpdateContext({varAtctioButtonReceiptVisible: false});
+        Set(
+            varSelectedTab,
+            1
+        );
+        UpdateContext({varCntReceiptListView: true});
+        UpdateContext({varCntReceiptGridView: false});
+        Set(varDeletionStarted, false);
+        Concurrent(
+            Set(
+                varFileFormat,
+                Blank()
+            ),
+            Set(
+                varSelectedReceiptNumber,
+                Blank()
+            ),
+            Set(
+                varReceiptImage,
+                Blank()
+            )
+        );
+        Reset(scr09_glr_ReceiptList);
+        Reset(scr09_glr_ReceiptGrid);
+    Children:
+      - emptyStateComponent_2:
+          Control: CanvasComponent
+          ComponentName: emptyStateComponent
+          Properties:
+            Height: |+
+              =350
+            Visible: =!scr09_glr_ReceiptGrid.Visible && !scr09_glr_ReceiptList.Visible
+            Width: =Self.Height
+            X: |+
+              =(Parent.Width - Self.Width)/2
+            Y: =scr09_glr_ReceiptGrid.Y + (Parent.Height - scr09_hdr_TopHeader.Height - scr09_cmp_Footer_1.Height - Self.Height)/2
+            subTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddaReceiptToAttachToAnExpenseLabel'
+            title: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
+      - scr09_cmp_Footer_1:
+          Control: CanvasComponent
+          ComponentName: cmp_Footer_3
+          Properties:
+            ApprovalsAccessibleLabel: ="Text"
+            ApprovalsText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            DisplayMode: =!IsBlank(varSelectedLegalEntity)
+            ExpenseAccessibleLabel: ="Text"
+            ExpensesText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
+            Fill: =RGBA(248, 248, 248, 0.94)
+            Height: =84
+            OnApprovalsButtonClick: |-
+              =Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
+              Reset(scr25_cmb_Project);
+              Reset(scr25_cmb_User);
+            OnExpensesButtonClick: =Set(varSelectedTab, 2); Navigate('Expenses - List Screen',ScreenTransition.Fade)
+            OnReceiptsButtonClick: =Set(varSelectedTab, 1); Navigate('Receipts - List Screen',ScreenTransition.Fade)
+            OnReportsButtonClick: =Set(varSelectedTab, 3); Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
+            ReceiptAccessibleLabel: =
+            ReceiptText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
+            ReportAccessibleLabel: ="Text"
+            ReportText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+            SelectedTab: =1
+            Visible: =!varCntSelect
+            Width: =Max(App.Width, App.MinScreenWidth)
+            Y: =App.Height - Self.Height
+            paramInDefaultSelectedTab: |+
+              =1
+      - scr09_glr_ReceiptGrid:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Grid of unattached receipts"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: ={}
+            Height: =scr09_cmp_Footer_1.Y - Self.Y
+            Items: =Filter('Expense Mobile Unattached Document Entity (mserp)', IsReceiptValid = 'NoYes (mserp)'.Yes)
+            OnSelect: |-
+              =Set(
+                  varFileFormat,
+                  ThisItem.FileExtension
+              );
+              Set(
+                  varSelectedReceiptNumber,
+                  ThisItem.EntRecId
+              );
+              Set(
+                  varReceiptImage,
+                  ThisItem.CapturedDocument
+              );
+              Navigate('Receipts - Select Expense Screen');
+            TemplatePadding: =10
+            TemplateSize: =300
+            Visible: =varCntReceiptListView && Self.AllItemsCount > 0
+            Width: =Parent.Width
+            WrapCount: =2
+            Y: =If(varCntSelect,scr09_hdr_TopHeader.Height+scr09_shp_Rectangle_1.Height,scr01_hdr_TopHeader.Height)
+          Children:
+            - Container3_2:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.Regular
+                  Height: =Parent.TemplateHeight
+                  LayoutDirection: =LayoutDirection.Vertical
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  Width: =Parent.TemplateWidth
+                Children:
+                  - Image2_2:
+                      Control: Image@2.2.3
+                      Properties:
+                        AccessibleLabel: =
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =220
+                        Image: |-
+                          =If(
+                              ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"] && !IsBlank(ThisItem.CapturedDocument),
+                              ThisItem.CapturedDocument,
+                              ThisItem.FileExtension in ["xlsx", "xls"],
+                              IconExcel,
+                              ThisItem.FileExtension in ["docx", "doc"],
+                              IconWord,
+                              ThisItem.FileExtension = "pdf",
+                              IconPDF,
+                              ThisItem.FileExtension = "txt",
+                              IconTxt,
+                              IconMail
+                          )
+                        ImagePosition: =ImagePosition.Center
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =Parent.Height - Container4_2.LayoutMinHeight
+                        LayoutMinWidth: =Parent.Width
+                        Width: =Parent.Width
+                  - Container4_2:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =80
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =80
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - shpBorder_7:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =Color.Transparent
+                              Height: =Parent.Height
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: |+
+                                =25
+                        - scr09_ico_Attach_7:
+                            Control: Image@2.2.3
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(34, 102, 227, 1)
+                              DisabledBorderColor: =RGBA(0, 134, 208, 1)
+                              DisplayMode: |
+                                =DisplayMode.Edit
+                              Fill: =RGBA(255, 255, 255, 1)
+                              Height: =24
+                              Image: =AttachIconEnabled
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnSelect: =Select(scr09_shp_SelectRegion_5)
+                              Visible: |+
+                                =!varCntSelect
+                              Width: =24
+                              X: =
+                              Y: =
+                        - scr09_chk_Select_5:
+                            Control: Classic/CheckBox@2.1.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              BorderStyle: =BorderStyle.None
+                              CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+                              CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+                              CheckboxSize: =42
+                              CheckmarkFill: =Color.White
+                              Color: =RGBA(34, 102, 227, 1)
+                              Default: =!IsEmpty(Filter(collSelectedReceiptIds, receiptId = ThisItem.EntRecId))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Lighter
+                              Height: =35
+                              HoverColor: =RGBA(0, 18, 107, 1)
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnCheck: |-
+                                =Collect(
+                                    collSelectedReceiptIds, 
+                                    {receiptId : ThisItem.EntRecId}
+                                )
+                              OnSelect: =
+                              OnUncheck: =RemoveIf(collSelectedReceiptIds, receiptId = ThisItem.EntRecId)
+                              Reset: =varCntSelect Or scr09_chk_SelectAll_1.Value
+                              Text: =Concatenate(ThisItem.Description, If(Self.Value, " selected", " unselected"))
+                              VerticalAlign: =VerticalAlign.Bottom
+                              Visible: =varCntSelect
+                              Width: =43
+                              X: =55
+                              Y: =
+                        - scr09_lbl_AttachList_3:
+                            Control: Label@2.5.1
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(34, 102, 227, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =40
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinWidth: =200
+                              LineHeight: =22
+                              OnSelect: =Select(scr09_shp_SelectRegion_5)
+                              PaddingBottom: =0
+                              PaddingLeft: =15
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =18
+                              TabIndex: =0
+                              Text: =ThisItem.mserp_filename
+                              Width: =244
+                              Wrap: =false
+                              X: =52
+                              Y: =
+            - scr09_shp_SelectRegion_5:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: =ThisItem.Description
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Height: =Parent.TemplateHeight - Container4_2.Height
+                  OnSelect: |-
+                    =If(
+                        varCntSelect,
+                        If(
+                            IsBlank(LookUp(collSelectedReceiptIds, receiptId = ThisItem.EntRecId)),
+                            Collect(
+                                collSelectedReceiptIds, 
+                                {receiptId : ThisItem.EntRecId}
+                            ),
+                            RemoveIf(collSelectedReceiptIds, receiptId = ThisItem.EntRecId)
+                        ),
+                        Select(Parent)
+                    )
+                  Visible: =false
+                  Width: =305
+            - scr09_shp_GridImageRegion:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: =ThisItem.Description
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Height: =Parent.TemplateHeight - Container4_2.Height
+                  OnSelect: |-
+                    =Set(
+                        varFileFormat,
+                        ThisItem.FileExtension
+                    );
+                    Set(
+                        varSelectedReceiptNumber,
+                        ThisItem.EntRecId
+                    );
+                    Set(
+                        varReceiptImage,
+                        ThisItem.CapturedDocument
+                    );
+                    Navigate('Receipts - View Receipt Screen',ScreenTransition.Fade,{varCntSelect:varCntSelect});
+                  Width: =Parent.TemplateWidth
+      - scr09_glr_ReceiptList:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="List of unattached receipts"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: ={}
+            Height: =scr09_glr_ReceiptGrid.Height
+            Items: =Filter('Expense Mobile Unattached Document Entity (mserp)', IsReceiptValid = 'NoYes (mserp)'.Yes)
+            OnSelect: |-
+              =Set(
+                  varFileFormat,
+                  ThisItem.FileExtension
+              );
+              Set(
+                  varSelectedReceiptNumber,
+                  ThisItem.EntRecId
+              );
+              Set(
+                  varReceiptImage,
+                  ThisItem.CapturedDocument
+              );
+              Navigate('Receipts - Select Expense Screen');
+            TemplatePadding: =15
+            TemplateSize: =300
+            Visible: =varCntReceiptGridView && Self.AllItemsCount > 0
+            Width: =Parent.Width
+            X: =scr09_glr_ReceiptGrid.X
+            Y: =scr09_glr_ReceiptGrid.Y
+          Children:
+            - Container3_3:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.Regular
+                  Height: =Parent.TemplateHeight
+                  LayoutDirection: =LayoutDirection.Vertical
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  Width: =Parent.TemplateWidth
+                Children:
+                  - Image2_3:
+                      Control: Image@2.2.3
+                      Properties:
+                        AccessibleLabel: =
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =220
+                        Image: |-
+                          =If(
+                              ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                              ThisItem.CapturedDocument,
+                              ThisItem.FileExtension in ["xlsx", "xls"],
+                              IconExcel,
+                              ThisItem.FileExtension in ["docx", "doc"],
+                              IconWord,
+                              ThisItem.FileExtension = "pdf",
+                              IconPDF,
+                              ThisItem.FileExtension = "txt",
+                              IconTxt,
+                              IconMail
+                          )
+                        ImagePosition: =ImagePosition.Fill
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =Parent.Height - Container4_3.LayoutMinHeight
+                        LayoutMinWidth: =Parent.Width
+                        Width: =Parent.Width
+                  - Container4_3:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =80
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =80
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                      Children:
+                        - shpBorder_8:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =Color.Transparent
+                              Height: =Parent.Height
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: |+
+                                =25
+                        - scr09_ico_Attach_8:
+                            Control: Image@2.2.3
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(34, 102, 227, 1)
+                              DisabledBorderColor: =RGBA(0, 134, 208, 1)
+                              DisplayMode: |
+                                =DisplayMode.Edit
+                              Fill: =RGBA(255, 255, 255, 1)
+                              Height: =24
+                              Image: =AttachIconEnabled
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnSelect: =Select(scr09_shp_SelectRegion_6)
+                              Visible: =!varCntSelect
+                              Width: =24
+                              X: =
+                              Y: =
+                        - scr09_chk_Select_6:
+                            Control: Classic/CheckBox@2.1.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              BorderStyle: =BorderStyle.None
+                              CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+                              CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+                              CheckboxSize: =42
+                              CheckmarkFill: =Color.White
+                              Color: =RGBA(34, 102, 227, 1)
+                              Default: =!IsEmpty(Filter(collSelectedReceiptIds, receiptId = ThisItem.EntRecId))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Lighter
+                              Height: =35
+                              HoverColor: =RGBA(0, 18, 107, 1)
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnCheck: |-
+                                =Collect(
+                                    collSelectedReceiptIds, 
+                                    {receiptId : ThisItem.EntRecId}
+                                )
+                              OnSelect: =
+                              OnUncheck: =RemoveIf(collSelectedReceiptIds, receiptId = ThisItem.EntRecId)
+                              Reset: =varCntSelect Or scr09_chk_SelectAll_1.Value
+                              Text: =Concatenate(ThisItem.Description, If(Self.Value, " selected", " unselected"))
+                              VerticalAlign: =VerticalAlign.Bottom
+                              Visible: =varCntSelect
+                              Width: =43
+                              X: =55
+                              Y: =
+                        - scr09_lbl_AttachList_4:
+                            Control: Label@2.5.1
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(34, 102, 227, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =40
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinWidth: =200
+                              LineHeight: =22
+                              OnSelect: =Select(scr09_shp_SelectRegion_6)
+                              PaddingBottom: =0
+                              PaddingLeft: =15
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =18
+                              TabIndex: =0
+                              Text: =ThisItem.mserp_filename
+                              Width: =244
+                              Wrap: =false
+                              X: =52
+                              Y: =
+            - scr09_shp_SelectRegion_6:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: =ThisItem.Description
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Height: =Parent.TemplateHeight
+                  OnSelect: |-
+                    =If(
+                        varCntSelect,
+                        If(
+                            IsBlank(LookUp(collSelectedReceiptIds, receiptId = ThisItem.EntRecId)),
+                            Collect(
+                                collSelectedReceiptIds, 
+                                {receiptId : ThisItem.EntRecId}
+                            ),
+                            RemoveIf(collSelectedReceiptIds, receiptId = ThisItem.EntRecId)
+                        ),
+                        Select(Parent)
+                    )
+                  Width: =Parent.TemplateWidth
+            - scr09_shp_ListImageRegion:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: =ThisItem.Description
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Height: =Parent.TemplateHeight - Container4_3.Height
+                  OnSelect: |-
+                    =Set(
+                        varFileFormat,
+                        ThisItem.FileExtension
+                    );
+                    Set(
+                        varSelectedReceiptNumber,
+                        ThisItem.EntRecId
+                    );
+                    Set(
+                        varReceiptImage,
+                        ThisItem.CapturedDocument
+                    );
+                    Navigate('Receipts - View Receipt Screen');
+                  Width: =Parent.TemplateWidth
+      - scr09_img_CreateReceipt:
+          Control: Image@2.2.3
+          Properties:
+            AccessibleLabel: ="Create new receipt"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =Self.Width
+            Image: =CreateButton
+            ImagePosition: =ImagePosition.Fill
+            OnSelect: =Navigate('Receipts - Capture Receipt Screen')
+            TabIndex: =0
+            Visible: =!varCntSelect
+            Width: =120
+            X: =Parent.Width - Self.Width - 15
+            Y: =scr09_cmp_Footer_1.Y - Self.Height - 15
+      - scr09_shp_Rectangle_1:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =105
+            Visible: =varCntSelect
+            Width: =Parent.Width
+            Y: =85
+      - scr09_totalReceiptSelected:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(110, 110, 110, 1)
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Size: =16
+            Text: =Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectedLabel',"$",CountRows(collSelectedReceiptIds))
+            Visible: =varCntSelect
+            Width: =147*1
+            X: =Parent.Width - Self.Width - 25
+            Y: =116*1
+      - scr09_lbl_SelectAll_1:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Segoe UI'
+            Height: =32
+            LineHeight: =1.171875
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =18
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectAllLabel'
+            Visible: =varCntSelect
+            Width: =194
+            X: =76
+            Y: =121
+      - scr09_chk_SelectAll_1:
+          Control: Classic/CheckBox@2.1.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            BorderStyle: =BorderStyle.None
+            CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+            CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+            CheckboxSize: =42
+            CheckmarkFill: =Color.White
+            Color: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            FontWeight: =FontWeight.Lighter
+            Height: =35
+            HoverColor: =RGBA(0, 18, 107, 1)
+            OnCheck: |-
+              =Clear(collSelectedReceiptIds);
+              ForAll(
+                  scr09_glr_ReceiptGrid.AllItems,
+                  Collect(
+                      collSelectedReceiptIds,
+                      {receiptId : ThisRecord.EntRecId}
+                  )
+              )
+            OnSelect: =
+            OnUncheck: =Clear(collSelectedReceiptIds);
+            Reset: =varCntSelect
+            Text: =Concatenate("All receipts ", If(Self.Value, "selected", "unselected"))
+            VerticalAlign: =VerticalAlign.Bottom
+            Visible: =varCntSelect
+            Width: =43
+            X: =18
+            Y: =116
+      - scr09_hdr_TopHeader:
+          Control: CanvasComponent
+          ComponentName: main-app-header
+          Properties:
+            Fill: =Color.White
+            Height: =85
+            OnSelectButton: |-
+              =Set(
+                  gblNavigationDrawerVisibility,
+                  true
+              );
+              Set(
+                  gblScreenName,
+                  'Receipts - List Screen'
+              );
+              Refresh('Expense mobile notifications (mserp)');
+              ClearCollect(
+                  colExpenseNoticationInfo,
+                  ForAll(
+                      Filter('Expense mobile notifications (mserp)',NotifiedEmailId = User().Email) As ExpenseNotification,
+                      {
+                          RecId: ExpenseNotification.EntRecId,
+                          ReadMessage: ExpenseNotification.Read
+                      }
+                  )
+              );
+            Width: =Parent.Width
+            Y: =1
+            firstIcon: =If(varCntReceiptGridView, icnTileselected, icnListSelected)
+            firstIconAccessibleLabel: |+
+              =If(varCntReceiptGridView, "Select to open Receipt grid view", "Select to open Receipt list view")
+            firstIconAction: |+
+              =If(
+                  varCntReceiptGridView, 
+                  UpdateContext({varCntReceiptGridView:false});
+                  UpdateContext({varCntReceiptListView:true}),
+                  UpdateContext({varCntReceiptGridView:true});
+                  UpdateContext({varCntReceiptListView:false})
+              )
+
+            paramAvatar: =Coalesce(userImage, blankImage)
+            paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
+            refreshIconAction: |+
+              =Set(
+                  varSelectedTab,
+                  1
+              );
+
+              Refresh('Expense Mobile Unattached Document Entity (mserp)');
+              Concurrent(
+                  Set(
+                      varFileFormat,
+                      Blank()
+                  ),
+                  Set(
+                      varSelectedReceiptNumber,
+                      Blank()
+                  )
+              )
+
+            secondIcon: =If(CountRows(collSelectedReceiptIds)=0, DeleteIconDisabled,DeleteIconEnabled)
+            secondIconAccessibleLabel: =If(Self.secondIcon = DeleteIconEnabled, "Delete receipts", "Disabled delete")
+            secondIconAction: |-
+              =UpdateContext({varCntDelete: false});
+              If(
+                  CountRows(collSelectedReceiptIds) > 0,
+                  UpdateContext({varCntDelete: true}),
+                  UpdateContext({varCntDelete: false})
+              )
+            thirdIcon: =If(varCntSelect,SelectorCloseIcon,SelectorIcon)
+            thirdIconAccessibleLabel: =If(Self.thirdIcon = SelectorIcon, "Multiselect receipts", "Cancel")
+            thirdIconAction: |-
+              =If(
+                  varCntSelect,
+                  UpdateContext({varCntSelect: false});
+                  Clear(collSelectedReceiptIds),
+                  UpdateContext({varCntSelect: true})
+              )
+      - scr09_DeleteConfirmationDialog_1:
+          Control: CanvasComponent
+          ComponentName: cmp02_ConfirmationDialog
+          Properties:
+            Height: =App.Height
+            LegalEntity: ="Text"
+            OnLeftButtonClick: |-
+              = UpdateContext({varCntDelete: false});
+            OnRightButtonClick: |
+              =
+              Set(varDeletionStarted,true);
+              RemoveIf('Expense Mobile Unattached Document Entity (mserp)',EntRecId in collSelectedReceiptIds); 
+              If(
+                  !IsEmpty(Errors('Expense Mobile Unattached Document Entity (mserp)')),
+                  Notify(
+                      Concat(Errors('Expense Mobile Unattached Document Entity (mserp)'), Column&": "&Message),
+                      NotificationType.Error, 
+                      gblParams.notificationTime
+                      ),
+                  Notify(
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsDeletedSuccessfullyLabel',
+                      NotificationType.Success , 
+                      gblParams.notificationTime
+                  );
+              );
+
+              UpdateContext({varCntDelete: false});
+              UpdateContext({varCntSelect: false});
+              UpdateContext({varCntReceiptListView: true});
+              UpdateContext({varCntReceiptGridView: false});
+              Clear(collSelectedReceiptIds);
+
+              Concurrent(
+                  Set(
+                      varFileFormat,
+                      Blank()
+                  ),
+                  Set(
+                      varSelectedReceiptNumber,
+                      Blank()
+                  )
+              )
+            SelectedExpense: =
+            SelectedList: ="Text"
+            SelectedReceiptNumber: =
+            Visible: =varCntDelete
+            Width: =Max(App.Width, App.MinScreenWidth)
+            controlName: ="scr09_DeleteConfirmationDialog_1"
+            parmInDescriptionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DeleteReceiptsConfirmationTextLabel'
+            parmInHeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DeleteSelectedReceiptsHeaderLabel'
+            parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+            parmInLeftButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+            parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+            parmInRightButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DeleteLabel'
+            returnFocus: ="scr09_hdr_TopHeader"
+      - Rectangle5_4:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: |-
+              =//RGBA(201, 201, 201, 0.5)
+              RGBA(248, 248, 248, 0.6)
+            Height: =App.Height
+            OnSelect: |-
+              =Set(
+                  gblNavigationDrawerVisibility,
+                  false
+              )
+            Visible: =gblNavigationDrawerVisibility
+            Width: =App.Width
+      - ShadowElement_1:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.ExtraBold
+            Height: =App.Height
+            LayoutDirection: =LayoutDirection.Horizontal
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Visible: =gblNavigationDrawerVisibility
+            Width: =4
+            X: ='Navigation-Drawer_1'.Width - 1
+            Y: ='Navigation-Drawer_1'.Y
+      - Navigation-Drawer_2:
+          Control: CanvasComponent
+          ComponentName: Navigation-Drawer
+          Properties:
+            CountNoification: =CountRows(Filter(colExpenseNoticationInfo, ReadMessage = 'NoYes (mserp)'.No))
+            Fill: =RGBA(255, 255, 255, 100)
+            Height: =App.Height
+            MenuItems: |-
+              =Table({
+                      Index : 1,
+                      ScreenName: 'Profile - Notification Screen',
+                      Icon : Notification,
+                      Value : GlobalLabels.Labels.'15062:LocalizedName,msdyn_NotificationsLabel'
+                  },
+                  {
+                      Index : 2,
+                      ScreenName: 'Profile - Change Legal Entity Screen',
+                      Icon : ChangeLE,
+                      Value : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ChangeLegalEntityLabel'
+                  },
+                  {
+                      Index : 3,
+                      ScreenName: 'Profile - About Screen',
+                      Icon : About,
+                      Value : GlobalLabels.Labels.'15062:LocalizedName,msdyn_AboutLabel'
+                  }
+              )
+            UserEmailValue: =User().Email
+            UserImageValue: =Coalesce(userImage, blankImage)
+            UserLegalEntityValue: =LookUp('Legal entities (mserp)', Company = varSelectedLegalEntity).Name
+            UserNameValue: =User().FullName
+            Visible: =gblNavigationDrawerVisibility
+            Width: =App.Width * 0.8
+            unreadNotificationVisibility: =CountRows(Filter(colExpenseNoticationInfo, ReadMessage = 'NoYes (mserp)'.No)) > 0

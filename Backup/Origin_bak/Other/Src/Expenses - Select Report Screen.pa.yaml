@@ -1,0 +1,351 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Expenses - Select Report Screen:
+    Properties:
+      Fill: =RGBA(248, 248, 248, 0.94)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =UpdateContext({varCntSelect:false});
+        //Clear(collSelectedExpenses)
+        Refresh('Expense reports (mserp)')
+    Children:
+      - emptyStateComponent_6:
+          Control: CanvasComponent
+          ComponentName: emptyStateComponent
+          Properties:
+            Height: |+
+              =350
+            Visible: =CountRows(scr07_DraftReports.AllItems)=0
+            Width: =Self.Height
+            X: |+
+              =(Parent.Width - Self.Width)/2
+            Y: |+
+              =(Parent.Height - Self.Height)/2
+            subTitle: =
+            title: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
+      - scr07_DraftReports:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =Min(Self.TemplateHeight * CountRows(Self.AllItems), Parent.Height - Self.Y)
+            Items: |-
+              =SortByColumns(
+                  Filter(
+                      'Expense reports (mserp)',
+                      'Document status' in dsDrafts[@Value] && LegalEntity_DataArea = varSelectedLegalEntity
+                  ),
+                  "mserp_reportcreateddatetime",
+                  SortOrder.Descending
+              )
+            OnSelect: |-
+              =UpdateContext({varCntSelect : true})
+            TemplateSize: =150
+            Width: =Parent.Width
+            Y: |+
+              =scr07_lbl_SelectReports.Y + scr07_lbl_SelectReports.Height
+          Children:
+            - Container11_3:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Height: =150
+                  LayoutDirection: =LayoutDirection.Vertical
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Container6_3:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =Parent.Height - scr07_shp_GalleryBaseSeparator_3.Height
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width
+                      Children:
+                        - shpBorder_10:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =Color.Transparent
+                              Height: =Parent.Height
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: =10
+                        - Container7_3:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                            Children:
+                              - Label5_6:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr07_shp_SelectRegion)
+                                    PaddingLeft: =15
+                                    PaddingRight: =0
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: =ThisItem.Purpose
+                                    Width: =Parent.Width
+                              - Label6_6:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: |+
+                                      =If(
+                                          ThisItem.'Document status' = 'Document status (mserp)'.Rejected,
+                                          RGBA(165, 33, 33, 1),
+                                          RGBA(102, 102, 102, 1)
+                                      )
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr07_shp_SelectRegion)
+                                    PaddingLeft: =15
+                                    PaddingRight: =0
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: |-
+                                      =If(
+                                          ThisItem.'Document status' = 'Document status (mserp)'.Rejected,
+                                          GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportRejectedLabel',
+                                          ThisItem.Description
+                                      )
+                                    Width: =Parent.Width
+                        - Container9_3:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =200
+                            Children:
+                              - Label5_7:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Bold
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr07_shp_SelectRegion)
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: =Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                                    Width: =Parent.Width
+                              - Label6_7:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr07_shp_SelectRegion)
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: |-
+                                      =Text(
+                                          DateValue(ThisItem.ReportCreatedDateTime),
+                                          "mmm dd, yyyy"
+                                      )
+                                    Width: =Parent.Width
+                  - scr07_shp_GalleryBaseSeparator_3:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =RGBA(225, 225, 225, 1)
+                        Height: =1
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =1
+                        Width: =Parent.Width - 10
+            - scr07_shp_SelectRegion:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: ="Select expense"
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  FocusedBorderThickness: =0
+                  Height: =Parent.TemplateHeight
+                  OnSelect: =Select(Parent)
+                  TabIndex: =0
+                  Width: =Container9_3.X + Container9_3.Width
+      - scr07_shp_Rectangle:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =67
+            Visible: =varCntSelect
+            Width: =Parent.Width
+            Y: =85
+      - scr07_lbl_SelectReports:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Font: =Font.'Segoe UI'
+            PaddingLeft: =22
+            Size: =18
+            Text: |
+              =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectReportToAttachExpensesLabel'
+            Width: =Parent.Width
+            Y: =82
+      - scr07_dialog_AttachExpenses:
+          Control: CanvasComponent
+          ComponentName: cmp02_ConfirmationDialog
+          Properties:
+            Height: =App.Height
+            LegalEntity: ="Text"
+            OnLeftButtonClick: |-
+              =UpdateContext({varCntSelect : false})
+            OnRightButtonClick: |-
+              =ForAll(
+                  collSelectedExpenseIds,
+                  Collect(
+                      colToAttach,
+                      {expenseTransactionNumber : ThisRecord.transactionId}
+                  )
+              );
+              ForAll(
+                  Split(scr07_DraftReports.Selected.ExpTransNumber, ",") As attachedExpenses,
+                  If(
+                      !IsBlank(attachedExpenses.Value),
+                      Collect(
+                          colToAttach,
+                          {
+                              expenseTransactionNumber : attachedExpenses.Value
+                          }
+                      )
+                  )
+              );
+              UpdateContext({varExpenseReportNumber : scr07_DraftReports.Selected.'Expense report number'});
+              IfError(
+                  Patch(
+                      'Expense reports (mserp)',
+                      LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber),
+                      {
+                          ExpTransNumber: Concat(colToAttach, expenseTransactionNumber, ",")
+                      }
+                  ),
+                  First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+              );
+              If(
+                  IsBlank(First(varError).Value) || First(varError).Value <> "",
+                  Set(
+                      varSelectedReport,
+                      LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber)
+                  );
+                  Clear(colAttachedExpensesForReport);
+                  ForAll(
+                      Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
+                      Collect(
+                          colAttachedExpensesForReport,
+                          LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+                      )
+                  );
+                  ClearCollect(
+                      colAttachedExpenses,
+                      colAttachedExpensesForReport
+                  );
+                  Set(
+                      varIsCreateReport, false
+                  );
+                  Set(
+                      varSelectedReportStatusItem,
+                      varSelectedReport.'Document status'
+                  );
+                  Refresh('Expense lines (mserp)');
+                  Navigate('Reports - Edit Screen'),
+                  Notify(
+                      Substitute(First(varError).Value, """", ""),
+                      NotificationType.Error,
+                      gblParams.notificationTime
+                  )
+              );
+              Clear(varError);
+              Clear(colToAttach);
+            SelectedExpense: =
+            SelectedList: ="Text"
+            SelectedReceiptNumber: =
+            Visible: =varCntSelect
+            Width: =Max(App.Width, App.MinScreenWidth)
+            controlName: ="Text"
+            parmInDescriptionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ConfirmExpenseAttachToReportLabel'
+            parmInHeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachSelectedExpenseLabel'
+            parmInLeftButtonColor: =RGBA(39, 113, 194, 1)
+            parmInLeftButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoOptionLabel'
+            parmInRightButtonColor: =RGBA(39, 113, 194, 1)
+            parmInRightButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_YesOptionLabel'
+            returnFocus: ="Text"
+      - scr07_hdr_Header:
+          Control: CanvasComponent
+          ComponentName: hdr02_Header
+          Properties:
+            Fill: =scr07_hdr_Header.paramFill
+            Height: =82
+            Width: =Max(App.Width, App.MinScreenWidth)
+            paramColor: =RGBA(0, 0, 0, 1)
+            paramFill: =Color.White
+            paramTitle: |
+              =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectReportLabel'
+      - scr07_ico_Back:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(110, 110, 110, 1)
+            Fill: =icongconfig_backbutton.Fill
+            Height: =icongconfig_backbutton.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: |-
+              =Navigate(
+                  'Expenses - List Screen',
+                  ScreenTransition.None
+              )
+            TabIndex: =0
+            Width: =icongconfig_backbutton.Width
+            X: =22
+            Y: =(scr02_hdr_TopHeader.Height-Self.Height)/2

@@ -1,0 +1,244 @@
+"'Receipts - Capture Receipt Screen' As screen":
+    Fill: =RGBA(255, 255, 255, 1)
+    OnVisible: |-
+        =Set(varReceiptImage, Blank());
+        Set(varFileFormat, Blank());
+        UpdateContext({varCam : LookUp(bsea_cam_ReceiptClick.AvailableDevices, "back" in Lower(Name) || "rear" in Lower(Name), Id)})
+
+    imageCapture_footer_rectangle_1 As rectangle:
+        Fill: =RGBA(33, 33, 33, 1)
+        Height: |
+            =290//Max(App.Height, App.MinScreenHeight)/5
+        Width: =Max(App.Width, App.MinScreenWidth)
+        Y: =Parent.Height - Self.Height
+        ZIndex: =1
+
+    "'attachmentControl - Receipt' As attachments":
+        AccessibleLabel: ="Select receipt from device"
+        AddAttachmentColor: =Color.Red
+        AddAttachmentText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectDromDeviceLabel'
+        AddedItemColor: =
+        AddedItemFill: =
+        BorderColor: =
+        BorderStyle: =
+        BorderThickness: =0
+        Color: =RGBA(255, 255, 255, 1)
+        DropTargetBorderThickness: =0
+        Fill: =RGBA(37, 36, 35, 1)
+        FocusedBorderThickness: =0
+        Height: =150
+        HoverBorderColor: =
+        HoverColor: =
+        HoverFill: =
+        IsInDataCard: =true
+        ItemFill: =
+        ItemHoverFill: =
+        Items: =colDeviceAttachedFile
+        MaxAttachments: =1
+        MaxAttachmentSize: =15
+        MaxAttachmentsText: =
+        NoAttachmentsText: =
+        OnAddFile: |
+            =Set(
+                varReceiptFileName,
+                First(Self.Attachments).Name
+            );
+            Set(
+                varReceiptImage,
+                First(Self.Attachments).Value
+            );
+            ClearCollect(
+                colDeviceAttachedFile,
+                Self.Attachments
+            );
+            ClearCollect(
+                colFileSplit,
+                ForAll(
+                    Lower(
+                        ForAll(
+                            Split(
+                                varReceiptFileName,
+                                "."
+                            ),
+                            {Result: ThisRecord.Value}
+                        )
+                    ),
+                    {Result: ThisRecord.Value}
+                )
+            );
+            Set(
+                varFileFormat,
+                Last(colFileSplit).Result
+            );
+            Navigate('Receipts - Receipt Preview Screen')
+        OnRemoveFile: |-
+            =ClearCollect(colDeviceAttachedFile, Self.Attachments);
+            Clear(colFileSplit);
+            Set(
+                varFileFormat,
+                Blank()
+            );
+            Set(
+                varReceiptImage,
+                Blank()
+            )
+        PaddingBottom: =5
+        PaddingLeft: =Self.Width/4
+        PaddingRight: =5
+        PressedFill: =
+        Size: =20
+        Tooltip: =
+        Width: =Parent.Width - 2 * Self.X
+        X: =60
+        Y: =Parent.Height - Self.Height - 35
+        ZIndex: =3
+
+    lbl_imge_help_1 As label:
+        Align: =Align.Center
+        Color: =RGBA(255, 255, 255, 1)
+        Height: =31
+        Size: =17
+        Text: |
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptEntirelyInViewLabel'
+        Width: =Parent.Width
+        Y: =imageCapture_footer_rectangle_1.Y + (imageCapture_footer_rectangle_1.Height - Self.Height)/2 - 35
+        ZIndex: =4
+
+    bsea_cam_ReceiptClick_1 As camera:
+        AccessibleLabel: ="Take receipt image"
+        BorderColor: =RGBA(255, 255, 255, 1)
+        Camera: =Coalesce(varCam, 0)
+        Height: =imageCapture_footer_rectangle_1.Y - Self.Y
+        OnSelect: =Select(scr11_icn_CameraIcon)
+        StreamRate: =100
+        Width: =App.Width
+        Y: =scr11_hdr_TopHeader.Height
+        ZIndex: =5
+
+    img_click_outer_ring_3 As image:
+        Height: =108
+        Image: ='Ellipse 3_1'
+        Width: =141
+        X: =(Parent.Width - Self.Width)/2
+        Y: =imageCapture_footer_rectangle_1.Y - (Self.Height/2)
+        ZIndex: =6
+
+    img_click_outer_ring_4 As image:
+        Height: =92
+        Image: ='Ellipse 2_1'
+        Width: =153
+        X: =(Parent.Width - Self.Width)/2
+        Y: =imageCapture_footer_rectangle_1.Y - (Self.Height/2)
+        ZIndex: =7
+
+    scr11_img_ClickInner As image:
+        Height: =77
+        Image: ='Ellipse 1_1'
+        OnSelect: |-
+            =Set(
+                varReceiptImage,
+                bsea_cam_ReceiptClick_1.Stream
+            );
+            Set(
+                varReceiptFileName,
+                Concatenate(
+                    "Receipt",
+                    Text(GUID()),
+                    ".png"
+                )
+            );
+            Set(
+                varFileFormat,
+                "png"
+            );
+            Navigate('Receipts - Receipt Preview Screen')
+        Width: =94
+        X: =(Parent.Width - Self.Width)/2
+        Y: =imageCapture_footer_rectangle_1.Y - (Self.Height/2)
+        ZIndex: =8
+
+    scr11_icn_CameraIcon As image:
+        AccessibleLabel: ="Click receipt image"
+        ApplyEXIFOrientation: =false
+        Height: =22 * Value(lbconfig_resolution_factor.Text)
+        Image: =Icon_Camera
+        OnSelect: |-
+            =Set(varReceiptImage,bsea_cam_ReceiptClick_1.Stream);
+            //find the file format using base64 instead of directly using png
+            UpdateContext({varCntFileB64 : JSON(bsea_cam_ReceiptClick_1.Stream, JSONFormat.IncludeBinaryData)});
+            Set(
+                varFileFormat,
+                Mid(varCntFileB64, Find("/", varCntFileB64) + 1, Find(";", varCntFileB64) - Find("/", varCntFileB64) - 1)
+            );
+            Set(varReceiptFileName,Concatenate( "Receipt-",Text(GUID())));
+            Navigate('Receipts - Receipt Preview Screen')
+        TabIndex: =0
+        Width: =24 * Value(lbconfig_resolution_factor.Text)
+        X: =(Parent.Width - Self.Width)/2
+        Y: =imageCapture_footer_rectangle_1.Y - (Self.Height/2)
+        ZIndex: =9
+
+    scr11_img_CameraSwitchOuter As image:
+        AccessibleLabel: ="Switch camera"
+        Height: =68*1
+        Image: ='Ellipse 3_1'
+        OnSelect: |-
+            =If(
+                CountRows(bsea_cam_ReceiptClick_1.AvailableDevices),
+                UpdateContext({varCam : Mod(Value(varCam) + 1, CountRows(bsea_cam_ReceiptClick_1.AvailableDevices))})
+            )
+        TabIndex: =0
+        Width: =68*1
+        X: =Parent.Width/4 - Self.Width/2
+        Y: =imageCapture_footer_rectangle_1.Y - (Self.Height/2)
+        ZIndex: =10
+
+    scr11_img_CameraSwitchInner As image:
+        Height: =58
+        Image: ='Ellipse 1_1'
+        OnSelect: |-
+            =If(
+                CountRows(bsea_cam_ReceiptClick_1.AvailableDevices),
+                UpdateContext({varCam : Mod(Value(varCam) + 1, CountRows(bsea_cam_ReceiptClick_1.AvailableDevices))})
+            )
+        Width: =58
+        X: =Parent.Width/4 - Self.Width/2
+        Y: =imageCapture_footer_rectangle_1.Y - (Self.Height/2)
+        ZIndex: =11
+
+    scr11_img_CameraSwitch As image:
+        Height: =27.27
+        Image: =CameraSwitchIcon
+        OnSelect: |-
+            =If(
+                CountRows(bsea_cam_ReceiptClick_1.AvailableDevices),
+                UpdateContext({varCam : Mod(Value(varCam) + 1, CountRows(bsea_cam_ReceiptClick_1.AvailableDevices))})
+            )
+        Width: =27.27
+        X: =Parent.Width/4 - Self.Width/2
+        Y: =imageCapture_footer_rectangle_1.Y - (Self.Height/2)
+        ZIndex: =12
+
+    scr11_hdr_TopHeader As hdr02_Header:
+        Fill: =scr11_hdr_TopHeader.paramFill
+        paramColor: =RGBA(255, 255, 255, 1)
+        paramFill: |
+            =RGBA(33, 33, 33, 1)
+        paramTitle: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CaptureReceiptLabel'
+        ZIndex: =13
+
+    scr11_ico_Back As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =Color.White
+        Fill: =icongconfig_backbutton.Fill
+        Height: =icongconfig_backbutton.Height
+        Icon: =Icon.ChevronLeft
+        OnSelect: =Navigate('Receipts - List Screen')
+        TabIndex: =0
+        Width: =icongconfig_backbutton.Width
+        X: =22.5
+        Y: =(scr11_hdr_TopHeader.Height-Self.Height)/2
+        ZIndex: =14
+

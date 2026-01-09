@@ -1,0 +1,1119 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Reports - List Screen:
+    Properties:
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |+
+        =UpdateContext({varCntSelect: false});
+        UpdateContext({isExpReportDirty : false});
+        Concurrent(
+        Set(
+            varIsCreateReport,
+            false
+        ),
+        Set(
+            varSelectedTab,
+            3
+        ),
+        Set(
+            varSelectedReport,
+            Blank()
+        )
+        );
+        Concurrent(
+        Refresh('DimAttributeTrvTravelTxtEntity (mserp)'),
+        Refresh('Travel locations (mserp)')
+        );
+        If(
+            IsEmpty(collApprovedFilterOptions),
+            ClearCollect(
+                collApprovedFilterOptions,
+                {
+                    number: 1,
+                    title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneWeekLabel'  
+                },
+                {
+                    number: 2,
+                    title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneMonthLabel'  
+                },
+                {
+                    number: 3,
+                    title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterSixMonthsLabel'
+                },
+                {
+                    number: 4,
+                    title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneYearLabel'
+                }
+            )
+        );
+        Clear(colAttachedExpensesForReport);
+        Clear(colAttachedExpenses);
+        Reset(scr16_Reports_1);
+        Reset(scr16_txt_SearchBox);
+
+    Children:
+      - emptyStateComponent_4:
+          Control: CanvasComponent
+          ComponentName: emptyStateComponent
+          Properties:
+            Height: |+
+              =350
+            Visible: =scr16_Reports_1.AllItemsCount <= 0
+            Width: =Self.Height
+            X: |+
+              =(Parent.Width - Self.Width)/2
+            Y: |+
+              =scr16_Reports_1.Y + (Parent.Height - scr16_hdr_TopHeader.Height - scr16_cmp_Footer_1.Height - Self.Height)/2 - scr16_lbl_DummyLabel.Height
+            subTitle: |-
+              =Switch(
+                  varcntSelectedStatus,
+                  1,
+                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateReportToGetPaidLabel',
+                  2,
+                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubmitReportToGetPaidLabel',
+                  3,
+                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateAndSubmitReportToGetPaidLabel'
+              )
+            title: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
+      - scr16_Reports_1:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: |-
+              =Switch(
+                  varcntSelectedStatus,
+                  1,
+                  "List of draft reports",
+                  2,
+                  "List of in-review reports",
+                  3,
+                  "List of approved reports"
+              )
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: ={}
+            Height: |-
+              =Min(
+                  scr16_cmp_Footer_1.Y - Self.Y,
+                  Self.TemplateHeight * CountRows(Self.AllItems)
+              )
+            Items: |+
+              =SortByColumns(
+                  Filter(
+                      Switch(
+                          varcntSelectedStatus,
+                          1,
+                          Filter(
+                              'Expense reports (mserp)',
+                              'Document status' in dsDrafts[@Value]
+                          ),
+                          2,
+                          Filter(
+                              'Expense reports (mserp)',
+                              'Document status' in dsInReview[@Value]
+                          ),
+                          3,
+                          Search(
+                              Switch(
+                                  scr16_btn_DateFilter.Selected.number,
+                                  1,
+                                  Filter(
+                                      'Expense reports (mserp)',
+                                      'Document status' in dsApproved[@Value] && DateAdd(DateValue(ReportCreatedDateTime), 7, TimeUnit.Days) >= Today()
+                                  ),
+                                  2,
+                                  Filter(
+                                      'Expense reports (mserp)',
+                                      'Document status' in dsApproved[@Value] && DateAdd(DateValue(ReportCreatedDateTime), 30, TimeUnit.Days) >= Today()
+                                  ),
+                                  3,
+                                  Filter(
+                                      'Expense reports (mserp)',
+                                      'Document status' in dsApproved[@Value] && DateAdd(DateValue(ReportCreatedDateTime), 180, TimeUnit.Days) >= Today()
+                                  ),
+                                  4,
+                                  Filter(
+                                      'Expense reports (mserp)',
+                                      'Document status' in dsApproved[@Value] && DateAdd(DateValue(ReportCreatedDateTime), 365, TimeUnit.Days) >= Today()
+                                  ),
+                                  Filter(
+                                      'Expense reports (mserp)',
+                                      'Document status' in dsApproved[@Value]
+                                  )
+                              ),
+                              scr16_txt_SearchBox.Text,
+                              mserp_txt2
+                          )
+                      ),
+                      Upper(LegalEntity_DataArea) = Upper(varSelectedLegalEntity)
+                  ), 
+                  "mserp_reportcreateddatetime", SortOrder.Descending
+              )
+            OnSelect: |-
+              =UpdateContext({varcntShowFilter:false});
+              Set(
+                  varSelectedReport,
+                  LookUp('Expense reports (mserp)','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
+              );
+              Set(
+                  varSelectedReportStatusItem,
+                  ThisItem.'Document status'
+              );
+              Clear(colAttachedExpensesForReport);
+              ForAll(
+                  Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
+                  Collect(
+                      colAttachedExpensesForReport,
+                      LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+                  )
+              );
+              ClearCollect(
+                  colAttachedExpenses,
+                  colAttachedExpensesForReport
+              );
+
+              If(
+                  varSelectedReportStatusItem in dsDrafts,
+                  Navigate('Reports - Edit Screen'),
+                  Navigate('Reports - View Only Screen');
+              )
+            TemplateSize: =150
+            Width: =Parent.Width
+            Y: |-
+              =Switch(
+                  varcntSelectedStatus,
+                  1,
+                  If(
+                      varCntSelect,
+                      scr16_hdr_TopHeader.Height + scr16_shp_Rectangle_1.Height + scr16_shp_Rectangle_1.Height,
+                      scr16_hdr_TopHeader.Height + scr16_shp_Rectangle_1.Height
+                  ),
+                  3,
+                  scr16_hdr_TopHeader.Height + scr16_shp_Rectangle_1.Height + scr16_txt_SearchBox.Height + 3,
+                  scr16_hdr_TopHeader.Height + scr16_shp_Rectangle_1.Height
+              )
+          Children:
+            - Container11_1:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Height: =150
+                  LayoutDirection: =LayoutDirection.Vertical
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Container6_1:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =Parent.Height - scr01_shp_GalleryBaseSeparator_1.Height
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width
+                      Children:
+                        - shpBorder_4:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =Color.Transparent
+                              Height: =Parent.Height
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: =10
+                        - scr16_chk_Select_2:
+                            Control: Classic/CheckBox@2.1.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              BorderStyle: =BorderStyle.None
+                              CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+                              CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+                              CheckboxSize: =42
+                              CheckmarkFill: =Color.White
+                              Color: =RGBA(34, 102, 227, 1)
+                              Default: |
+                                =!IsEmpty(Filter(colSelectedReportIds,reportNumber = ThisItem.'Expense report number'))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Lighter
+                              Height: =35
+                              HoverColor: =RGBA(0, 18, 107, 1)
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnCheck: |-
+                                =Collect(colSelectedReportIds, {reportNumber : ThisItem.'Expense report number'})
+                              OnSelect: =Select(scr16_shp_SelectRegion_4)
+                              OnUncheck: =RemoveIf(colSelectedReportIds, reportNumber = ThisItem.'Expense report number')
+                              Reset: =varCntSelect Or scr01_chk_SelectAll.Value
+                              Text: |-
+                                =If(
+                                    ThisItem.Purpose <> "" || !IsBlank(ThisItem.Purpose),
+                                    Concatenate("Report bearing title ", ThisItem.Purpose, If(Self.Value, " selected", " unselected")),
+                                    Concatenate("Report bearing amount ", Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency), If(Self.Value, " selected", " unselected"))
+                                )
+                              VerticalAlign: =VerticalAlign.Bottom
+                              Visible: =varCntSelect
+                              Width: =43
+                              X: =18
+                              Y: =40
+                        - Container7_1:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                            Children:
+                              - Label5_2:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr16_shp_SelectRegion_4)
+                                    PaddingLeft: =15
+                                    PaddingRight: =0
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: =ThisItem.Purpose
+                                    Width: =Parent.Width
+                              - Label6_2:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: |+
+                                      =If(
+                                          ThisItem.'Document status' = 'Document status (mserp)'.Rejected,
+                                          RGBA(165, 33, 33, 1),
+                                          RGBA(102, 102, 102, 1)
+                                      )
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr16_shp_SelectRegion_4)
+                                    PaddingLeft: =15
+                                    PaddingRight: =0
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: |-
+                                      =If(
+                                          ThisItem.'Document status' = 'Document status (mserp)'.Rejected,
+                                          GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportRejectedLabel',
+                                          ThisItem.Description
+                                      )
+                                    Width: =Parent.Width
+                        - Container9_1:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =200
+                            Children:
+                              - Label5_3:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Bold
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr16_shp_SelectRegion_4)
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: =Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                                    Width: =Parent.Width
+                              - Label6_3:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr16_shp_SelectRegion_4)
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: |-
+                                      =Text(
+                                          DateValue(ThisItem.ReportCreatedDateTime),
+                                          "mmm dd, yyyy"
+                                      )
+                                    Width: =Parent.Width
+                        - Icon3_1:
+                            Control: Classic/Icon@2.5.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(110, 110, 110, 1)
+                              Icon: =Icon.ChevronRight
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnSelect: =Select(scr16_shp_SelectRegion_RightIcon_1);
+                              PaddingBottom: =15
+                              PaddingTop: =15
+                              Visible: =varCntSelect
+                  - scr01_shp_GalleryBaseSeparator_1:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =RGBA(225, 225, 225, 1)
+                        Height: =1
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =1
+                        Width: =Parent.Width - 10
+            - scr16_shp_SelectRegion_RightIcon_1:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: ="Select expense"
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  FocusedBorderThickness: =0
+                  Height: =Parent.TemplateHeight
+                  OnSelect: =Select(Parent)
+                  TabIndex: =0
+                  Visible: =varCntSelect
+                  Width: =Parent.Width - Self.X
+                  X: =scr16_shp_SelectRegion_4.Width
+            - scr16_shp_SelectRegion_4:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: ="Select expense"
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  FocusedBorderThickness: =0
+                  Height: =Parent.TemplateHeight
+                  OnSelect: |-
+                    =If(
+                        varCntSelect,
+                        If(
+                            IsBlank(LookUp(colSelectedReportIds, reportNumber = ThisItem.'Expense report number')) && Text(ThisItem.'Document status') <> "Rejected",
+                            Collect(colSelectedReportIds, {reportNumber : ThisItem.'Expense report number'}),
+                            RemoveIf(colSelectedReportIds, reportNumber = ThisItem.'Expense report number')
+                        ),
+                        Select(Parent)
+                    )
+                  TabIndex: =0
+                  Width: =Container9_1.X + Container9_1.Width
+      - scr16_lbl_DummyLabel:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =scr16_txt_SearchBox.Fill
+            Font: =Font.'Open Sans'
+            Height: =scr16_txt_SearchBox.Height
+            Text: =""
+            Visible: =varcntSelectedStatus = 3
+            Width: =Parent.Width
+            Y: =scr16_txt_SearchBox.Y
+      - scr16_cmp_Footer_1:
+          Control: CanvasComponent
+          ComponentName: cmp_Footer_3
+          Properties:
+            ApprovalsAccessibleLabel: ="Text"
+            ApprovalsText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            DisplayMode: =!IsBlank(varSelectedLegalEntity)
+            ExpenseAccessibleLabel: ="Text"
+            ExpensesText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
+            Fill: =RGBA(248, 248, 248, 0.94)
+            Height: =84
+            OnApprovalsButtonClick: |-
+              =UpdateContext({varcntShowFilter : false});
+              Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
+              Reset(scr25_cmb_Project);
+              Reset(scr25_cmb_User);
+            OnExpensesButtonClick: |-
+              =UpdateContext({varcntShowFilter : false});
+              Set(varSelectedTab, 2); Navigate('Expenses - List Screen',ScreenTransition.Fade)
+            OnReceiptsButtonClick: |-
+              =UpdateContext({varcntShowFilter : false});
+              Set(varSelectedTab, 1); Navigate('Receipts - List Screen',ScreenTransition.Fade)
+            OnReportsButtonClick: |+
+              =UpdateContext({varcntShowFilter : false});
+              Set(varSelectedTab, 3); 
+              Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
+            ReceiptAccessibleLabel: =
+            ReceiptText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
+            ReportAccessibleLabel: ="Text"
+            ReportText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+            SelectedTab: =3
+            Visible: =!varCntSelect
+            Width: =Max(App.Width, App.MinScreenWidth)
+            Y: =App.Height - Self.Height
+            paramInDefaultSelectedTab: =3
+      - scr16_shp_Rectangle:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =105
+            OnSelect: =UpdateContext({varcntShowFilter:false});
+            Width: =Parent.Width
+            Y: =scr16_hdr_TopHeader.Height-2
+      - scr16_btn_FakeButton:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(241, 241, 241, 1)
+            Font: =Font.'Open Sans'
+            Height: =44
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            RadiusBottomLeft: =50
+            RadiusBottomRight: =50
+            RadiusTopLeft: =50
+            RadiusTopRight: =50
+            TabIndex: =-1
+            Text: =""
+            Visible: =false
+            Width: =478
+            X: =(Parent.Width - Self.Width)/2
+            Y: =scr16_rct_seprator.Y - scr16_shp_Rectangle.Y
+      - scr16_btn_Draft:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            BorderStyle: =BorderStyle.None
+            Color: =If(varcntSelectedStatus=1, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =If(varcntSelectedStatus=1, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
+            Font: =Font.'Open Sans'
+            Height: =44
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: =UpdateContext({varcntSelectedStatus:1});UpdateContext({varcntShowFilter:false});
+            PressedBorderColor: =Self.Fill
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =50
+            RadiusBottomRight: =50
+            RadiusTopLeft: =50
+            RadiusTopRight: =50
+            Size: =13.5
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DraftStatusLabel'
+            Width: =154
+            X: =scr16_btn_FakeButton.X
+            Y: =scr16_btn_FakeButton.Y
+      - scr16_btn_Inreview:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            BorderStyle: =BorderStyle.None
+            Color: =If(varcntSelectedStatus=2, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =If(varcntSelectedStatus=2, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
+            Font: =Font.'Open Sans'
+            Height: =44
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: |-
+              =UpdateContext({varcntSelectedStatus:2});
+              UpdateContext({varCntSelect:false});
+              UpdateContext({varcntShowFilter:false});
+              Clear(colSelectedReportIds);
+            PressedBorderColor: =Self.Fill
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =50
+            RadiusBottomRight: =50
+            RadiusTopLeft: =50
+            RadiusTopRight: =50
+            Size: =13.5
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_InReviewStatusLabel'
+            Width: =154
+            X: =scr16_btn_FakeButton.X+scr16_btn_Draft.Width+((scr16_btn_FakeButton.Width-(3*scr16_btn_Draft.Width))/2)
+            Y: =scr16_btn_FakeButton.Y
+      - scr16_btn_Approve:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            BorderStyle: =BorderStyle.None
+            Color: =If(varcntSelectedStatus=3, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =If(varcntSelectedStatus=3, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
+            Font: =Font.'Open Sans'
+            Height: =44
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: |-
+              =UpdateContext({varcntSelectedStatus:3});
+              UpdateContext({varCntSelect:false});
+              Clear(colSelectedReportIds);
+              Reset(scr16_btn_DateFilter);
+              Reset(scr16_txt_SearchBox);
+            PressedBorderColor: =Self.Fill
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =50
+            RadiusBottomRight: =50
+            RadiusTopLeft: =50
+            RadiusTopRight: =50
+            Size: =13.5
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovedStatusLabel'
+            Width: =154
+            X: =scr16_btn_Inreview.X+scr16_btn_Inreview.Width+((scr16_btn_FakeButton.Width-(3*scr16_btn_Draft.Width))/2)
+            Y: =scr16_btn_FakeButton.Y
+      - scr16_rct_seprator:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(200, 200, 200, 1)
+            Height: =0.85
+            Width: =Parent.Width
+            Y: =scr16_shp_Rectangle.Y+scr16_shp_Rectangle.Height
+      - scr16_txt_SearchBox:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Textbox to search for report by title"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            BorderStyle: =BorderStyle.None
+            BorderThickness: =0
+            Default: =
+            Font: =Font.'Segoe UI'
+            Height: =71
+            HintText: ="Search"
+            HoverBorderColor: =Self.BorderColor
+            HoverFill: =Self.Fill
+            OnSelect: |-
+              =UpdateContext({varcntSearchBoxSelected:false});
+              UpdateContext({varcntSearchBoxSelected:true});
+              UpdateContext({varcntShowFilter:false});
+            PressedBorderColor: =Self.BorderColor
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Visible: =varcntSelectedStatus=3
+            Width: =582
+            X: =58
+            Y: =scr16_shp_Rectangle.Y+scr16_shp_Rectangle.Height+1
+      - scr16_img_search:
+          Control: Image@2.2.3
+          Properties:
+            AccessibleLabel: ="Search by title"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =28
+            Image: =icnSearch
+            OnSelect: =
+            Visible: =varcntSelectedStatus=3
+            Width: =28
+            X: =16
+            Y: =213
+      - scr16_img_Filter:
+          Control: Image@2.2.3
+          Properties:
+            AccessibleLabel: ="Filter by date collapsed"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =45
+            Image: =icnFilter
+            OnSelect: |-
+              =UpdateContext({varcntShowFilter:true});
+              SetFocus(Label1);
+            TabIndex: =0
+            Visible: =varcntSelectedStatus=3 && !varcntShowFilter && IsBlank(scr16_btn_DateFilter.Selected)
+            Width: =28
+            X: =Parent.Width - Self.Width - 25
+            Y: =203
+      - scr16_lbl_Filter:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Right
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            Height: =32
+            Size: =18
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterLabel'
+            Visible: =varcntSelectedStatus=3 && !varcntShowFilter && IsBlank(scr16_btn_DateFilter.Selected)
+            Width: =79
+            X: =scr16_img_Filter.X - Self.Width - 15
+            Y: =207
+      - scr16_shp_Rectangle_1:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =105
+            Visible: =varCntSelect
+            Width: =Parent.Width
+            Y: =193
+      - Label1:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            Font: =Font.'Open Sans'
+            Height: =164
+            PaddingBottom: =10
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =10
+            TabIndex: =0
+            Text: ="Filter by date expanded radio"
+            Visible: =varcntShowFilter
+            Width: =232
+            X: =scr16_img_Filter.X + scr16_img_Filter.Width - Self.Width
+            Y: =scr16_img_Filter.Y
+      - scr16_btn_DateFilter:
+          Control: Classic/Radio@2.3.0
+          Properties:
+            AccessibleLabel: ="Filter by date expanded"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: =
+            Fill: =RGBA(248, 248, 248, 1)
+            FocusedBorderThickness: =0
+            Font: =Font.'Open Sans'
+            HoverColor: =RGBA(0, 18, 107, 1)
+            Items: =ShowColumns(collApprovedFilterOptions,title,number)
+            Items.Value: =title
+            OnSelect: =UpdateContext({varcntShowFilter:false});
+            RadioBorderColor: =RGBA(34, 102, 227, 1)
+            RadioSelectionFill: =RGBA(34, 102, 227, 1)
+            RadioSize: =32
+            Reset: =true
+            Size: =19
+            Visible: =varcntShowFilter
+            Width: =232
+            X: =scr16_img_Filter.X + scr16_img_Filter.Width - Self.Width
+            Y: =scr16_img_Filter.Y
+      - scr16_img_CreateReport:
+          Control: Image@2.2.3
+          Properties:
+            AccessibleLabel: ="Create new report"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            FocusedBorderThickness: =0
+            Height: =Self.Width
+            Image: =CreateButton
+            ImagePosition: =ImagePosition.Fill
+            OnSelect: |-
+              =Set(
+                  varSelectedReportStatusItem,
+                  'Document status (mserp)'.Draft
+              );
+              Set(
+                  varSelectedReport,
+                  Blank()
+              );
+              Set(
+                  varIsCreateReport, 
+                  true
+              );
+              Concurrent(
+                  Clear(colAttachedExpenses),
+                  Clear(colAttachedExpensesForReport),
+                  ClearCollect(
+                      colReportPost,
+                      {
+                      fieldName: "DataArea",
+                      fieldValue: Text(varSelectedLegalEntity),
+                      fieldType: "String"     
+                      },
+                      {
+                          fieldName: "Company",
+                          fieldValue: Lower(Text(varSelectedLegalEntity)),
+                          fieldType: "String"
+                      },
+                      {
+                          fieldName: "LegalEntityForExpenses",
+                          fieldValue: Lower(Text(varSelectedLegalEntity)),
+                          fieldType: "String"
+                      }
+                  )
+              );
+              Navigate(
+                  'Reports - Edit Screen',
+                  ScreenTransition.Fade
+              )
+            TabIndex: =0
+            Visible: =varcntSelectedStatus = 1 && !varCntSelect
+            Width: =120
+            X: =Parent.Width - Self.Width - 15
+            Y: =scr16_cmp_Footer_1.Y - Self.Height - 15
+      - scr16_lbl_FilterChoice:
+          Control: Classic/Button@2.2.0
+          Group: scr16_grp_FilterChoice
+          Properties:
+            Align: =Align.Left
+            BorderColor: =RGBA(34, 102, 227, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            Height: =46
+            HoverBorderColor: =
+            HoverColor: =Self.Color
+            HoverFill: =
+            OnSelect: =Reset([@scr16_btn_DateFilter])
+            PaddingLeft: =12
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =
+            RadiusBottomLeft: =3
+            RadiusBottomRight: =3
+            RadiusTopLeft: =3
+            RadiusTopRight: =3
+            Size: =18
+            Text: =scr16_btn_DateFilter.Selected.title
+            Visible: =!IsBlank(scr16_btn_DateFilter.Selected) && varcntSelectedStatus = 3
+            Width: |-
+              =If(
+                  scr16_btn_DateFilter.Selected.number <> 1 && scr16_btn_DateFilter.Selected.number <> 4,
+                  214,
+                  195
+              )
+            X: =Parent.Width - Self.Width - 15
+            Y: =205
+      - scr16_img_Deselect:
+          Control: Image@2.2.3
+          Group: scr16_grp_FilterChoice
+          Properties:
+            AccessibleLabel: ="Remove date filter"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =23
+            Image: =SelectorCloseIcon
+            ImagePosition: =ImagePosition.Center
+            OnSelect: =Reset([@scr16_btn_DateFilter])
+            TabIndex: =0
+            Visible: =!IsBlank(scr16_btn_DateFilter.Selected) && varcntSelectedStatus = 3
+            Width: =30
+            X: =scr16_lbl_FilterChoice.X + scr16_lbl_FilterChoice.Width - Self.Width - 5
+            Y: =218
+      - scr16_chk_SelectAll:
+          Control: Classic/CheckBox@2.1.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            BorderStyle: =BorderStyle.None
+            CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+            CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+            CheckboxSize: =42
+            CheckmarkFill: =Color.White
+            Color: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            FontWeight: =FontWeight.Lighter
+            Height: =35
+            HoverColor: =RGBA(0, 18, 107, 1)
+            OnCheck: |-
+              =//Clear(collSelectedExpense)
+              Clear(colSelectedReportIds);
+              ForAll(
+                  scr16_Reports_1.AllItems,
+                  If(
+                      Text(ThisRecord.'Document status') <> "Rejected",
+                      Collect(
+                          colSelectedReportIds,
+                          {reportNumber : ThisRecord.'Expense report number'}
+                      )
+                  )
+              )
+            OnSelect: =
+            OnUncheck: =Clear(colSelectedReportIds);
+            Reset: =varCntSelect
+            Text: =Concatenate("All reports ", If(Self.Value, "selected", "unselected"))
+            VerticalAlign: =VerticalAlign.Bottom
+            Visible: =varCntSelect
+            Width: =43
+            X: =18
+            Y: =224
+      - scr16_lbl_SelectAll:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Segoe UI'
+            Height: =32
+            LineHeight: =1.171875
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =18
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectAllLabel'
+            Visible: =varCntSelect
+            Width: =194
+            X: =71
+            Y: =227
+      - scr16_totalReportSelected:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(110, 110, 110, 1)
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Size: =16
+            Text: =Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectedLabel',"$",CountRows(colSelectedReportIds))
+            Visible: =varCntSelect
+            Width: =147*1
+            X: =Parent.Width - Self.Width - 25
+            Y: =scr16_lbl_SelectAll.Y
+      - scr16_hdr_TopHeader:
+          Control: CanvasComponent
+          ComponentName: main-app-header
+          Properties:
+            Fill: =Color.White
+            Height: =85
+            OnSelectButton: |-
+              =Set(
+                  gblNavigationDrawerVisibility,
+                  true
+              );
+              Set(
+                  gblScreenName,
+                  'Reports - List Screen'
+              );
+              Refresh('Expense mobile notifications (mserp)');
+              ClearCollect(
+                  colExpenseNoticationInfo,
+                  ForAll(
+                      Filter('Expense mobile notifications (mserp)',NotifiedEmailId = User().Email) As ExpenseNotification,
+                      {
+                          RecId: ExpenseNotification.EntRecId,
+                          ReadMessage: ExpenseNotification.Read
+                      }
+                  )
+              );
+            Width: =Max(App.Width, App.MinScreenWidth)
+            firstIcon: =
+            firstIconAccessibleLabel: =
+            firstIconAction: =
+            paramAvatar: =Coalesce(userImage, blankImage)
+            paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+            refreshIconAction: |-
+              =UpdateContext({varCntSelect:false});
+              Set(
+                  varIsCreateReport,
+                  false
+              );
+              Set(
+                  varSelectedTab,
+                  3
+              );
+              Refresh('Expense reports (mserp)');
+              ClearCollect(
+                  collectionICLE,
+                  ForAll(
+                  Split(LookUp('Legal entities (mserp)',Company = varSelectedLegalEntity,IntercompanyLEs), ",") As legalEntityAlias,
+                  {
+                      Value: Upper(legalEntityAlias.Value)
+                  }
+                  )
+              );
+              If(
+                  IsEmpty(collApprovedFilterOptions),
+                  ClearCollect(
+                      collApprovedFilterOptions,
+                      {
+                          number: 1,
+                          title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneWeekLabel'  
+                      },
+                      {
+                          number: 2,
+                          title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneMonthLabel'  
+                      },
+                      {
+                          number: 3,
+                          title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterSixMonthsLabel'
+                      },
+                      {
+                          number: 4,
+                          title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneYearLabel'
+                      }
+                  )
+              );
+              Clear(colAttachedExpensesForReport)
+            secondIcon: |-
+              =If(
+                  varcntSelectedStatus = 1,
+                  If(
+                      varcntSelectedStatus = 1 && CountRows(colSelectedReportIds) > 0,
+                      DeleteIconEnabled,
+                      DeleteIconDisabled
+                  )
+              )
+            secondIconAccessibleLabel: =If(Self.secondIcon = DeleteIconEnabled, "Delete reports", "Disabled delete")
+            secondIconAction: |-
+              =If(
+                  varcntSelectedStatus = 1 && CountRows(colSelectedReportIds) > 0,
+                  UpdateContext({varCntDelete: true})
+              )
+            thirdIcon: |-
+              =If(
+                  varcntSelectedStatus = 1,
+                  If(
+                      varCntSelect,
+                      SelectorCloseIcon,
+                      SelectorIcon
+                  )
+              )
+            thirdIconAccessibleLabel: =If(Self.thirdIcon = SelectorIcon, "Multiselect reports", "Cancel")
+            thirdIconAction: |-
+              =If(
+                  varCntSelect,
+                  UpdateContext({varCntSelect: false}),
+                  UpdateContext({varCntSelect: true})
+              );
+              Clear(colSelectedReportIds)
+      - scr16_cmp_DeleteConfirmationDialog:
+          Control: CanvasComponent
+          ComponentName: cmp02_ConfirmationDialog
+          Properties:
+            Height: =App.Height
+            LegalEntity: ="Text"
+            OnLeftButtonClick: |
+              =UpdateContext({varCntDelete: false});
+            OnRightButtonClick: |-
+              =Clear(deleteErrorsList);
+              ForAll(
+                  colSelectedReportIds,
+                  IfError(
+                      Remove(
+                          'Expense reports (mserp)',
+                          LookUp(
+                              'Expense reports (mserp)',
+                              'Expense report number' = colSelectedReportIds[@reportNumber]
+                          )
+                      ),
+                      Collect(
+                          deleteErrorsList,
+                          {
+                              message : Last(Split(FirstError.Message, ":")).Value
+                          }
+                      )
+                  )
+              );
+              If(
+                  CountRows(deleteErrorsList) = 0,
+                  Notify(
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportsDeletedSuccessfullyLabel',
+                      NotificationType.Success, 
+                      gblParams.notificationTime
+                  ),
+                  ForAll(
+                      Distinct(deleteErrorsList,message),
+                      Notify(
+                          ThisRecord.Value,
+                          NotificationType.Error, 
+                          gblParams.notificationTime
+                      )
+                  )
+              );
+              UpdateContext({varCntDelete: false});
+              UpdateContext({varCntSelect: false});
+              Clear(colSelectedReportIds);
+            SelectedExpense: =
+            SelectedList: ="Text"
+            SelectedReceiptNumber: =
+            Visible: =varCntDelete
+            Width: =Max(App.Width, App.MinScreenWidth)
+            controlName: ="scr16_cmp_DeleteConfirmationDialog"
+            parmInDescriptionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DeleteSelectedReportsConfirmationTextLabel'
+            parmInHeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DeleteSelectedReportsHeaderLabel'
+            parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+            parmInLeftButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+            parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+            parmInRightButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DeleteLabel'
+            returnFocus: ="scr16_hdr_TopHeader"
+      - Rectangle5_1:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: |-
+              =//RGBA(201, 201, 201, 0.5)
+              RGBA(248, 248, 248, 0.6)
+            Height: =App.Height
+            OnSelect: |-
+              =Set(
+                  gblNavigationDrawerVisibility,
+                  false
+              )
+            Visible: =gblNavigationDrawerVisibility
+            Width: =App.Width
+      - ShadowElement_2:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.ExtraBold
+            Height: =App.Height
+            LayoutDirection: =LayoutDirection.Horizontal
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Visible: =gblNavigationDrawerVisibility
+            Width: =4
+            X: ='Navigation-Drawer_1'.Width - 1
+            Y: ='Navigation-Drawer_1'.Y
+      - Navigation-Drawer_3:
+          Control: CanvasComponent
+          ComponentName: Navigation-Drawer
+          Properties:
+            CountNoification: =CountRows(Filter(colExpenseNoticationInfo, ReadMessage = 'NoYes (mserp)'.No))
+            Fill: =RGBA(255, 255, 255, 100)
+            Height: =App.Height
+            MenuItems: |-
+              =Table({
+                      Index : 1,
+                      ScreenName: 'Profile - Notification Screen',
+                      Icon : Notification,
+                      Value : GlobalLabels.Labels.'15062:LocalizedName,msdyn_NotificationsLabel'
+                  },
+                  {
+                      Index : 2,
+                      ScreenName: 'Profile - Change Legal Entity Screen',
+                      Icon : ChangeLE,
+                      Value : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ChangeLegalEntityLabel'
+                  },
+                  {
+                      Index : 3,
+                      ScreenName: 'Profile - About Screen',
+                      Icon : About,
+                      Value : GlobalLabels.Labels.'15062:LocalizedName,msdyn_AboutLabel'
+                  }
+              )
+            UserEmailValue: =User().Email
+            UserImageValue: =Coalesce(userImage, blankImage)
+            UserLegalEntityValue: =LookUp('Legal entities (mserp)', Company = varSelectedLegalEntity).Name
+            UserNameValue: =User().FullName
+            Visible: =gblNavigationDrawerVisibility
+            Width: =App.Width * 0.8
+            unreadNotificationVisibility: =CountRows(Filter(colExpenseNoticationInfo, ReadMessage = 'NoYes (mserp)'.No)) > 0

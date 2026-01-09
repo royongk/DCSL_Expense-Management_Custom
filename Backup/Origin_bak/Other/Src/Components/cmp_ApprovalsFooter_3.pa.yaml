@@ -1,0 +1,257 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  cmp_ApprovalsFooter_3:
+    DefinitionType: CanvasComponent
+    CustomProperties:
+      ApprovalText:
+        PropertyKind: Input
+        DisplayName: ApprovalText
+        Description: Text displayed under Approvals button
+        DataType: Text
+        Default: ="Text"
+      DelegateText:
+        PropertyKind: Input
+        DisplayName: DelegateText
+        Description: Text under delegate button
+        DataType: Text
+        Default: ="Text"
+      DisplayMode:
+        PropertyKind: Input
+        DisplayName: DisplayMode
+        Description: control mode of components
+        DataType: Boolean
+        Default: =true
+      IsDelegateVisible:
+        PropertyKind: Input
+        DisplayName: IsDelegateVisible
+        Description: Property to control visibility of the delegate button
+        DataType: Boolean
+        Default: =true
+      OnApprovalsButtonClick:
+        PropertyKind: Event
+        DisplayName: OnApprovalsButtonClick
+        Description: Action to perform when user clicks on Approve
+        ReturnType: Text
+        Default: ="Text"
+      OnDelegateButtonClick:
+        PropertyKind: Event
+        DisplayName: OnDelegateButtonClick
+        Description: Action to perform when user clicks on delegate
+        ReturnType: Text
+        Default: ="Text"
+      OnRejectButtonClick:
+        PropertyKind: Event
+        DisplayName: OnRejectButtonClick
+        Description: Action when user clicks on Reject
+        ReturnType: Boolean
+        Default: =true
+      RejectText:
+        PropertyKind: Input
+        DisplayName: RejectText
+        Description: Text that comes up under Reject button
+        DataType: Text
+        Default: ="Text"
+      paramInDefaultSelectedTab:
+        PropertyKind: Input
+        DisplayName: paramInDefaultSelectedTab
+        Description: A custom input property used to set default selected tab
+        RaiseOnReset: true
+        DataType: Number
+        Default: =2
+      paramOutSelectedTabIndex:
+        PropertyKind: Output
+        DisplayName: paramOutSelectedTabIndex
+        Description: Selected Tab Index
+        DataType: Number
+    Properties:
+      Fill: =RGBA(250, 249, 248, 1)
+      Height: =100
+      OnReset: =Set(varSelectedTab,cmp_ApprovalsFooter_3.paramInDefaultSelectedTab)
+      Width: =Max(App.Width, App.MinScreenWidth)
+      paramOutSelectedTabIndex: =
+    Children:
+      - cmp_footer_img_Approve_3:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: |-
+              =If(
+                  cmp_ApprovalsFooter_3.DisplayMode,
+                  DisplayMode.Edit,
+                  DisplayMode.View
+              )
+            Height: =40.96
+            Image: =ApprovalIcon
+            OnSelect: =cmp_ApprovalsFooter_3.OnApprovalsButtonClick()
+            Width: =40.96
+            X: =(delegateRegion_5.X + approveRegion_5.X)/2 - 20
+            Y: =14.88
+      - cmp_footer_img_Delegate_3:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: |-
+              =If(
+                  cmp_ApprovalsFooter_3.DisplayMode,
+                  DisplayMode.Edit,
+                  DisplayMode.View
+              )
+            Height: =40.96
+            Image: =DelegateIcon
+            OnSelect: =cmp_ApprovalsFooter_3.OnDelegateButtonClick()
+            Visible: =cmp_ApprovalsFooter_3.IsDelegateVisible
+            Width: =40.96
+            X: =(rejectRegion_5.X + delegateRegion_5.X)/2 - 20
+            Y: =16.59
+      - cmp_footer_img_Reject_3:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: |-
+              =If(
+                  cmp_ApprovalsFooter_3.DisplayMode,
+                  DisplayMode.Edit,
+                  DisplayMode.View
+              )
+            Height: =40.96
+            Image: =RejectIcon
+            OnSelect: =cmp_ApprovalsFooter_3.OnRejectButtonClick()
+            Width: =40.96
+            X: =(rejectRegion_5.X + Parent.Width)/2 - 20
+            Y: =14.88
+      - cmp_footer_lbl_Approve_3:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            DisplayMode: |-
+              =If(
+                  cmp_ApprovalsFooter_3.DisplayMode,
+                  DisplayMode.Edit,
+                  DisplayMode.View
+              )
+            Font: =Font.'Segoe UI'
+            Height: =28
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingTop: =0
+            Size: =16
+            Text: =cmp_ApprovalsFooter_3.ApprovalText
+            Width: =App.Width / 3
+            Wrap: =false
+            Y: =60
+      - cmp_footer_lbl_Delegate_3:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            DisplayMode: |-
+              =If(
+                  cmp_ApprovalsFooter_3.DisplayMode,
+                  DisplayMode.Edit,
+                  DisplayMode.View
+              )
+            Font: =Font.'Segoe UI'
+            Height: =28
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingTop: =0
+            Size: =16
+            Text: =cmp_ApprovalsFooter_3.DelegateText
+            Visible: =cmp_ApprovalsFooter_3.IsDelegateVisible
+            Width: =App.Width / 3
+            Wrap: =false
+            X: =cmp_footer_lbl_Approve_3.Width
+            Y: =60
+      - cmp_footer_lbl_Reject_3:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |+
+              =RGBA(165, 33, 33, 1)
+            DisplayMode: |-
+              =If(
+                  cmp_ApprovalsFooter_3.DisplayMode,
+                  DisplayMode.Edit,
+                  DisplayMode.View
+              )
+            Font: =Font.'Segoe UI'
+            Height: =28
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingTop: =0
+            Size: =16
+            Text: =cmp_ApprovalsFooter_3.RejectText
+            Width: =App.Width / 3
+            Wrap: =false
+            X: =cmp_footer_lbl_Delegate_3.Width + cmp_footer_lbl_Delegate_3.X
+            Y: =60
+      - delegateRegion_5:
+          Control: Rectangle@2.3.0
+          Properties:
+            AccessibleLabel: ="Select to delegate current workitem"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: |-
+              =If(
+                  cmp_ApprovalsFooter_3.DisplayMode,
+                  DisplayMode.Edit,
+                  DisplayMode.View
+              )
+            Fill: =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: =0
+            Height: =Parent.Height
+            HoverFill: =
+            OnSelect: =Select(cmp_footer_img_Delegate_3)
+            PressedFill: =
+            TabIndex: =0
+            Width: =Parent.Width/3
+            X: =Self.Width
+      - approveRegion_5:
+          Control: Rectangle@2.3.0
+          Properties:
+            AccessibleLabel: ="Select to approve current workitem"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: |-
+              =If(
+                  cmp_ApprovalsFooter_3.DisplayMode,
+                  DisplayMode.Edit,
+                  DisplayMode.View
+              )
+            Fill: =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: =0
+            Height: =Parent.Height
+            HoverFill: =
+            OnSelect: =Select(cmp_footer_img_Approve_3)
+            PressedFill: =
+            TabIndex: =0
+            Width: =Parent.Width/3
+      - rejectRegion_5:
+          Control: Rectangle@2.3.0
+          Properties:
+            AccessibleLabel: ="Select to reject current workitem"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: |-
+              =If(
+                  cmp_ApprovalsFooter_3.DisplayMode,
+                  DisplayMode.Edit,
+                  DisplayMode.View
+              )
+            Fill: =RGBA(0, 0, 0, 0)
+            FocusedBorderThickness: =0
+            Height: =Parent.Height
+            HoverFill: =
+            OnSelect: =Select(cmp_footer_img_Reject_3)
+            PressedFill: =
+            TabIndex: =0
+            Width: =Parent.Width/3
+            X: =2 * Self.Width

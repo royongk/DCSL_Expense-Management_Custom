@@ -1,0 +1,436 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Itemization - Create Itemize Expense Screen:
+    Properties:
+      Fill: =RGBA(244, 244, 244, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+    Children:
+      - ItemizationFooterCreateItemizeExpenseScreen:
+          Control: CanvasComponent
+          ComponentName: ItemizationFooter
+          Properties:
+            ButtonName: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SaveLabel'
+            Fill: =Color.White
+            Height: =App.Height * 0.2377
+            ItemizedAmountLabel: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ItemizedAmountLabel'
+            OnButtonClick: |
+              =UpdateContext({locDuplicateItemizedExpense: false});
+              If(
+                  IsBlank(StartDatePicker.SelectedDate),
+                      Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_DateIsRequiredLabel',
+                      NotificationType.Error,
+                      gblParams.notificationTime),
+                  IsBlank(SubCategoryList.Selected),
+                      Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubcategoryIsRequiredLabel',
+                      NotificationType.Error,
+                      gblParams.notificationTime),
+                  IsBlank(DailyRateInput.Text),
+                      Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_AmountIsRequiredLabel',
+                      NotificationType.Error,
+                      gblParams.notificationTime),
+                  IsBlank(QuantityInput.Text),
+                      Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_QuantityIsRequiredLabel',
+                      NotificationType.Error,
+                      gblParams.notificationTime),
+              If(
+                  locEditItemizeExpense,
+                  If(
+                      SubCategoryList.Selected.SubCategoryRecId <> gblCurrentItemizeExpense.SubCategoryRecId || Text(
+                          StartDatePicker.SelectedDate,
+                          "yyyy-mm-dd hh:mm:ssZ"
+                      ) <> gblCurrentItemizeExpense.StartDate,
+                      If(
+                          !IsBlank(
+                              LookUp(
+                                  dsItemizations,
+                                  SubCategoryRecId = SubCategoryList.Selected.SubCategoryRecId && StartDate = Text(
+                                      StartDatePicker.SelectedDate,
+                                      "yyyy-mm-dd hh:mm:ssZ"
+                                  )
+                              )
+                          ),
+                          UpdateContext({locDuplicateItemizedExpense: true})
+                      )        
+                  ),
+                  If(
+                  IsBlank(
+                      LookUp(
+                          dsItemizations,
+                          StartDate = Text(
+                              StartDatePicker.SelectedDate,
+                              "yyyy-mm-dd hh:mm:ssZ"
+                          ) && SubCategoryRecId = SubCategoryList.Selected.SubCategoryRecId
+                      )
+                  ),
+                  Collect (
+                      dsItemizations,
+                      {
+                          StartDate: Text(
+                              StartDatePicker.SelectedDate,
+                              "yyyy-mm-dd hh:mm:ssZ"
+                          ),
+                          SubCategoryRecId: SubCategoryList.Selected.SubCategoryRecId,
+                          SubCategoryName: SubCategoryList.Selected.'Expense subcategory name',
+                          DailyRate: Value(DailyRateInput.Text),
+                          Quantity: Value(QuantityInput.Text),
+                          ItemizationGroupId: Blank()
+                      }
+                  );
+                  Set(isDirtyItemization, true)
+                  ,
+                  UpdateContext({locDuplicateItemizedExpense: true});
+                  )
+              );
+              If(
+                  !locDuplicateItemizedExpense && locEditItemizeExpense,
+                  UpdateContext({locItemizationGroupId : LookUp(dsItemizations, StartDate = Text(
+                              gblCurrentItemizeExpense.StartDate,
+                              "yyyy-mm-dd hh:mm:ssZ"
+                          ) && SubCategoryRecId = gblCurrentItemizeExpense.SubCategoryRecId).ItemizationGroupId});
+                      RemoveIf(dsItemizations,StartDate = Text(
+                              gblCurrentItemizeExpense.StartDate,
+                              "yyyy-mm-dd hh:mm:ssZ"
+                          ) && SubCategoryRecId = gblCurrentItemizeExpense.SubCategoryRecId);
+                      Collect(
+                          dsItemizations,
+                          {
+                              StartDate: Text(
+                              StartDatePicker.SelectedDate,
+                              "yyyy-mm-dd hh:mm:ssZ"
+                          ),
+                          SubCategoryRecId: SubCategoryList.Selected.SubCategoryRecId,
+                          SubCategoryName: SubCategoryList.Selected.'Expense subcategory name',
+                          DailyRate: Value(DailyRateInput.Text),
+                          Quantity: Value(QuantityInput.Text),
+                          ItemizationGroupId: locItemizationGroupId
+                          }
+                      );
+                      UpdateContext({locItemizationGroupId : Blank()});
+                      Set(isDirtyItemization, true);
+              );
+              If(!locDuplicateItemizedExpense,
+                      Back();
+                      Set(
+                      gblCurrentItemizeExpense,
+                      Blank()
+                      );
+                      UpdateContext({locEditItemizeExpense : false});
+                      Reset(SubCategoryList);
+                      Reset(StartDatePicker);
+                      Reset(DailyRateInput);
+                      Reset(QuantityInput),
+                      Notify(
+                          GlobalLabels.Labels.'15062:LocalizedName,msdyn_ItemizationWithSameStartDateAndSubcategoryExistsLabel',
+                          NotificationType.Error,
+                          gblParams.notificationTime
+                      )
+              )
+              );
+            RemainingAmountLabel: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_RemainingAmountLabel'
+            RemainingAmountValue: |-
+              =If(
+                  varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                  Concatenate(
+                      Text(
+                          Value(
+                              varSelectedExpenseDoc.'Transaction amount' - Sum(
+                                  dsItemizations,
+                                  DailyRate * Quantity
+                              )
+                          ),
+                          "#,#0.00",
+                          varDefaultLanguage
+                      ),
+                      " ",
+                      varSelectedExpenseDoc.'Currency (mserp_exchangecode)'
+                  ),
+                  Concatenate(
+                      Text(
+                          Value(
+                              varSelectedExpenseDoc.'Local amount' - Sum(
+                                  dsItemizations,
+                                  DailyRate * Quantity
+                              )
+                          ),
+                          "#,#0.00",
+                          varDefaultLanguage
+                      ),
+                      " ",
+                      varSelectedExpenseDoc.'Local currency'
+                  )
+              )
+            Width: =Max(App.Width, App.MinScreenWidth)
+            Y: =App.Height - Self.Height
+            itemizedAmountValue: |-
+              =If(
+                  !IsBlank(
+                      Sum(
+                          dsItemizations,
+                          DailyRate * Quantity
+                      )
+                  ),
+                  Concatenate(
+                      Text(
+                          Value(
+                              Sum(
+                                  dsItemizations,
+                                  DailyRate * Quantity
+                              )
+                          ),
+                          "#,#0.00",
+                          varDefaultLanguage
+                      ),
+                      " ",
+                      If(
+                          varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                      varSelectedExpenseDoc.'Currency (mserp_exchangecode)',
+                      varSelectedExpenseDoc.'Local currency'
+                      )
+                  ),
+                  Concatenate(
+                      Text(
+                          Value(0),
+                          "#,#0.00",
+                          varDefaultLanguage
+                      ),
+                      " ",
+                      If(
+                          varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                      varSelectedExpenseDoc.'Currency (mserp_exchangecode)',
+                      varSelectedExpenseDoc.'Local currency'
+                      )
+                  )
+              )
+            subCategoryRecid: =SubCategoryList.Selected.SubCategoryRecId
+      - header-navigation-PolicyViolation_2:
+          Control: CanvasComponent
+          ComponentName: header-navigation-PolicyViolation_1
+          Properties:
+            Fill: =Color.White
+            HeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateItemizationLabel'
+            Height: =82
+            OnBackIconSelect: |-
+              =Reset(SubCategoryList);
+              Reset(StartDatePicker);
+              Reset(DailyRateInput);
+              Reset(QuantityInput);
+              Set(
+                  gblCurrentItemizeExpense,
+                  Blank()
+              );
+              UpdateContext({locEditItemizeExpense : false});
+              Back()
+            Width: =App.Width
+      - cancelText:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Height: =47
+            OnSelect: |-
+              =Reset(SubCategoryList);
+              Reset(StartDatePicker);
+              Reset(DailyRateInput);
+              Reset(QuantityInput);
+              Set(
+                  gblCurrentItemizeExpense,
+                  Blank()
+              );
+              UpdateContext({locEditItemizeExpense : false});
+              Back()
+            Size: =18
+            TabIndex: =0
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+            Width: =140
+            X: =App.Width - Self.Width
+            Y: ='header-navigation-PolicyViolation_2'.Height / 2 - cancelText.Height / 2
+      - ItemizationFormContainer:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =App.Height * 0.31
+            LayoutDirection: =LayoutDirection.Vertical
+            PaddingTop: =ItemizationFormContainer.Height * 0.0299
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =App.Width
+            Y: ='header-navigation-PolicyViolation_2'.Height
+          Children:
+            - StartDateLabel:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =ItemizationFormContainer.Height * 0.1194
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Size: =ItemizationFormContainer.Height * 0.0596
+                  TabIndex: =0
+                  Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_StartDateLabel'
+                  Width: =App.Width
+            - StartDatePicker:
+                Control: DatePicker@0.0.46
+                Properties:
+                  FontSize: =App.Height * 0.0228
+                  Height: =ItemizationFormContainer.Height * 0.179
+                  IsEditable: =true
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  SelectedDate: |-
+                    =If(IsBlank(gblCurrentItemizeExpense),
+                    varSelectedExpenseDoc.'Transaction date',
+                    gblCurrentItemizeExpense.StartDate
+                    )
+                  Width: =ItemizationFormContainer.Width
+            - SubCategoryNamelabel:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =ItemizationFormContainer.Height * 0.1194
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Size: =ItemizationFormContainer.Height * 0.0596
+                  TabIndex: =0
+                  Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubcategoryLabel'
+                  Width: =App.Width
+            - SubCategoryList:
+                Control: Classic/ComboBox@2.4.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  BorderThickness: =0
+                  ChevronBackground: =RGBA(56, 96, 178, 1)
+                  ChevronFill: =RGBA(255, 255, 255, 1)
+                  ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                  DefaultSelectedItems: =LookUp('Expense subcategory (mserp)', SubCategoryRecId = gblCurrentItemizeExpense.SubCategoryRecId)
+                  DisplayFields: =["mserp_sharedsubcategoryname","mserp_expensecategory"]
+                  Font: =Font.'Open Sans'
+                  Height: =ItemizationFormContainer.Height * 0.179
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  Items: =SortByColumns(Filter('Expense subcategory (mserp)', 'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)' && 'Company Code' = varSelectedLegalEntity && Inactive = 'NoYes (mserp)'.No ),"mserp_displayorder",SortOrder.Ascending,"mserp_subcategoryrecid",SortOrder.Ascending)
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  NoSelectionText: ="Find items"
+                  PressedColor: =RGBA(255, 255, 255, 1)
+                  PressedFill: =RGBA(0, 18, 107, 1)
+                  SearchFields: =["mserp_sharedsubcategoryname"]
+                  SelectMultiple: =false
+                  SelectionColor: =RGBA(255, 255, 255, 1)
+                  SelectionFill: =RGBA(56, 96, 178, 1)
+                  Size: =24
+                  Width: =ItemizationFormContainer.Width
+                  X: =12
+            - Container2:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =ItemizationFormContainer.Height * 0.1194
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =40
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =600
+                Children:
+                  - DailyRateLabel:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =ItemizationFormContainer.Height * 0.1194
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Size: =ItemizationFormContainer.Height * 0.0596
+                        TabIndex: =0
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DailyRateLabel'
+                        Width: =Container2.Width / 2
+                  - QuanityLabel:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =ItemizationFormContainer.Height * 0.1194
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        PaddingLeft: =40
+                        Size: =ItemizationFormContainer.Height * 0.0596
+                        TabIndex: =0
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_QuantityLabel'
+                        Width: =Container2.Width / 2
+            - Container4_1:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =ItemizationFormContainer.Height * 0.179
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =600
+                  X: =-50
+                Children:
+                  - DailyRateInput:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        BorderThickness: =0
+                        Default: =gblCurrentItemizeExpense.DailyRate
+                        Font: =Font.'Open Sans'
+                        Format: =TextFormat.Number
+                        Height: =ItemizationFormContainer.Height * 0.179
+                        HintText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterUnitRate'
+                        HoverBorderColor: =RGBA(0, 18, 107, 1)
+                        HoverFill: =RGBA(186, 202, 226, 1)
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =260
+                        Reset: =true
+                        Size: =24
+                        Width: =Container2.Width / 2 - 20
+                  - QuantityInput:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Start
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        BorderThickness: =0
+                        Default: |-
+                          =If(IsBlank(gblCurrentItemizeExpense),
+                          1,
+                          gblCurrentItemizeExpense.Quantity
+                          )
+                        Font: =Font.'Open Sans'
+                        Height: =ItemizationFormContainer.Height * 0.179
+                        HoverBorderColor: =RGBA(0, 18, 107, 1)
+                        HoverFill: =RGBA(186, 202, 226, 1)
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Reset: =true
+                        Size: =24
+                        Width: '=Container2.Width / 2 '
+                        X: =5

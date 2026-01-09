@@ -9,7 +9,7 @@
         // 3-level category selection variables
         UpdateContext({varSelectedDepartment: Blank()});
         UpdateContext({varSelectedBenefitType: Blank()});
-        UpdateContext({curCategory : ComboBox1_8.Selected.'Expense category'});
+        UpdateContext({curCategory : ComboBox1_9.Selected.'Expense category'});
         // Load existing Department and Benefit Type from Expense Category (reverse lookup)
         If(
             !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'),
@@ -40,7 +40,7 @@
         UpdateContext({taxModifiedByUser : false});
         
         // populate the current expense type of the selected document
-        UpdateContext({currExpenseType:Coalesce(varSelectedItemizedExpenseDoc.'Expense type',LookUp('Expense category (mserp)','Expense category' = ComboBox1_8.Selected.'Expense category', 'Expense type'))});
+        UpdateContext({currExpenseType:Coalesce(varSelectedItemizedExpenseDoc.'Expense type',LookUp('Expense category (mserp)','Expense category' = ComboBox1_9.Selected.'Expense category', 'Expense type'))});
         If(
             !varIsCreate,
             UpdateContext({msCallStartedForSalestaxCalculation : true});
@@ -3735,7 +3735,7 @@
                             varDefaultProjLineStatus:
                             'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojstatusid(LookUp('Projects (mserp)', 'Project ID' = Self.Selected.projectId).'Project Expense Mobile (mserp)',
                             {
-                                CategoryId: ComboBox1_8.Selected.'Expense category',
+                                CategoryId: ComboBox1_9.Selected.'Expense category',
                                 LegalEntity: DataCardValue39_1.Selected.Value
                             }).return
                         }),

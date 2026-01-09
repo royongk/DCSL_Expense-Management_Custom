@@ -1,0 +1,858 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  AddGuest - Add Guest to Expense Screen:
+    Properties:
+      Fill: =RGBA(244, 244, 244, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =UpdateContext({locPreviousGuestView: true});
+        ClearCollect(gblGuestAttchedToExpenseCol,Filter('Guest Against an Expense Line for Expense Mobile (mserp)','Reference (mserp_trvexptrans)' = varSelectedExpenseDoc.ExpenseRecId));
+        Set(ItemizedAmountValue, Text(Sum(gblGuestAttchedToExpenseCol,'The gift amount')));
+        Set(RemainingAmountValue, Text(varSelectedExpenseDoc.'Transaction amount' - ItemizedAmountValue))
+    Children:
+      - ShadowElementFooter_4:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Group: AddGuestToExpenseFooterButton
+          Properties:
+            DropShadow: =DropShadow.ExtraBold
+            Height: =3
+            LayoutDirection: =LayoutDirection.Vertical
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =App.Width - 4
+            X: =4
+            Y: =ButtonBackgroundExpense_4.Y
+      - ButtonBackgroundExpense_4:
+          Control: Rectangle@2.3.0
+          Group: AddGuestToExpenseFooterButton
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(244, 244, 244, 1)
+            Height: |-
+              =If(SelectedGuestsForGiftCategory.Visible,
+              RemainingAmountAddGuestLabel.Height 
+              ) +
+              scr03_btn_Done_5.Height * 1.5
+            Width: =App.Width
+            Y: =App.Height - ButtonBackgroundExpense_4.Height
+      - scr03_btn_Done_5:
+          Control: Classic/Button@2.2.0
+          Group: AddGuestToExpenseFooterButton
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: =
+            Fill: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            Height: =App.Height * 0.0704
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |+
+              =Reset(SearchTextInput);
+              Set(varSelectedReceiptNumber, Blank());
+              // To get the refreshed values from the entity
+              Set(
+                  varSelectedExpenseDoc,
+                  LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')
+              );
+
+              // populating base64 to show image on selection of expense
+              Set(
+                  varReceiptImage,
+                  LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument) 
+              );
+
+              // collect policy violations
+              If(
+                  varSelectedExpenseDoc.PolicyViolationCount,
+                  ClearCollect(
+                      colPolViolations,
+                      Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                  );
+                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
+                  UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                  Clear(colPolViolations);
+                  UpdateContext({varMaxViolationLevel : 0});
+                  UpdateContext({varNumViolation : 0})
+              );
+              Set(ItemizedAmountValue, "0.0");
+              Set(RemainingAmountValue, "0.0");
+
+              Navigate('Expenses - Edit Screen', ScreenTransition.Fade, {varNavigatedFrom : varNavigatedFrom, varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation})
+
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =App.Height * 0.0211
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'
+            Width: =App.Width * 0.891
+            X: =(ButtonBackgroundExpense_4.Width - scr03_btn_Done_5.Width) / 2
+            Y: |-
+              =
+              ButtonBackgroundExpense_4.Y + (ButtonBackgroundExpense_4.Height - scr03_btn_Done_5.Height) / 2 +
+
+              If(RemainingAmountAddGuestLabel.Visible,
+              RemainingAmountAddGuestLabel.Height / 3
+              )
+      - AmountRemainingValue:
+          Control: Label@2.5.1
+          Group: AddGuestToExpenseFooterButton
+          Properties:
+            Align: =Align.Right
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =RemainingAmountAddGuestLabel.Height
+            PaddingRight: =10
+            Size: =App.Height * 0.01760
+            Text: =Concatenate(Coalesce(RemainingAmountValue,"0.0")," ", varSelectedExpenseDoc.'Currency (mserp_exchangecode)')
+            Visible: =SelectedGuestsForGiftCategory.Visible
+            Width: =App.Width / 2
+            X: =RemainingAmountAddGuestLabel.Width
+            Y: =RemainingAmountAddGuestLabel.Y
+      - RemainingAmountAddGuestLabel:
+          Control: Label@2.5.1
+          Group: AddGuestToExpenseFooterButton
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =App.Height * 0.06161
+            Size: |+
+              =App.Height * 0.01760
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_RemainingAmountLabel'
+            Visible: =SelectedGuestsForGiftCategory.Visible
+            Width: =App.Width / 2
+            X: =40
+            Y: =ButtonBackgroundExpense_4.Y
+      - AddGuestToExpenseHeader:
+          Control: CanvasComponent
+          ComponentName: header-navigation-PolicyViolation_3
+          Properties:
+            BackButtonClicked: |-
+              =Reset(SearchTextInput);
+              Set(varSelectedReceiptNumber, Blank());
+
+              // To get the refreshed values from the entity
+              Set(
+                  varSelectedExpenseDoc,
+                  LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')
+              );
+
+              // populating base64 to show image on selection of expense
+              Set(
+                  varReceiptImage,
+                  LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument) 
+              );
+
+              // collect policy violations
+              If(
+                  varSelectedExpenseDoc.PolicyViolationCount,
+                  ClearCollect(
+                      colPolViolations,
+                      Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                  );
+                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
+                  UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                  Clear(colPolViolations);
+                  UpdateContext({varMaxViolationLevel : 0});
+                  UpdateContext({varNumViolation : 0})
+              );
+              Set(ItemizedAmountValue, "0.0");
+              Set(RemainingAmountValue, "0.0");
+              Navigate('Expenses - Edit Screen', ScreenTransition.Fade, {varNavigatedFrom : varNavigatedFrom, varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation })
+            Fill: =RGBA(255, 255, 255, 1)
+            HeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddGuestsToExpenseLabel'
+            Height: =82
+            Width: =App.Width
+      - PreviousGuestList:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="List of Previous Guest"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =App.Height - (SearchTextInput.Y + SearchTextInput.Height + ButtonBackgroundExpense_4.Height + ShadowElementFooter_4.Height * 2)
+            Items: =Search(Filter('Previous guest Lists for Expense Mobile (mserp)',Employee = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),SearchTextInput.Text,Name)
+            OnSelect: |-
+              =UpdateContext({varGuestPatchCallErrors: Blank()});
+              IfError(
+              Patch('Previous guest Lists for Expense Mobile (mserp)',
+                  ThisItem,
+                  {
+                      ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                  }
+              ),
+                  UpdateContext(
+                      {
+                          varGuestPatchCallErrors: Substitute(
+                              Match(
+                                  FirstError.Details.HttpResponse,
+                                  """message"":""([^""]*)"""
+                              ).FullMatch,
+                              """message"":""",
+                              ""
+                          )
+                      }
+                  )
+              );
+              If(
+                  !IsBlank(varGuestPatchCallErrors),
+                  Notify(
+                      Left(
+                          varGuestPatchCallErrors,
+                          Len(varGuestPatchCallErrors) - 1
+                      ),
+                      NotificationType.Error,
+                      gblParams.notificationTime
+                  )
+              );
+              Refresh('Guest Against an Expense Line for Expense Mobile (mserp)')
+            TemplateSize: =App.Height * 0.10563
+            Visible: =!CoworkerList.Visible
+            Width: =App.Width - App.Width * 0.015625
+            X: =10
+            Y: =SearchTextInput.Y + SearchTextInput.Height
+          Children:
+            - BackgroundbuttonPreviousGuest:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =Color.White
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =Color.White
+                  OnSelect: =Select(Parent)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  RadiusBottomLeft: =App.Width * 0.015625
+                  RadiusBottomRight: =App.Width * 0.015625
+                  RadiusTopLeft: =App.Width * 0.015625
+                  RadiusTopRight: =App.Width * 0.015625
+                  Text: =""
+                  Width: =Parent.Width
+            - GuestNamelabelPreviousGuest:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =Color.Black
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.3
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.15
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.Name
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =App.Width / 2
+                  Wrap: =false
+                  X: =App.Width * 0.015625
+                  Y: =Parent.TemplateHeight * 0.091667
+            - CompanyNamelabelPreviousGuest:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(110, 110, 110, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.4667
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.133
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.'Organization/Country'
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =App.Width / 2
+                  X: =GuestNamelabelPreviousGuest.X
+                  Y: =GuestNamelabelPreviousGuest.Y + GuestNamelabelPreviousGuest.Height
+            - scr21_shp_Seprator_3:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(225, 225, 225, 1)
+                  Height: =3
+                  OnSelect: =
+                  Width: =630
+            - DesiginationLabelPreviousGuest:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(110, 110, 110, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 3 / 4
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.133
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.Title
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =App.Width * 2 / 5
+                  X: =App.Width - Self.Width - App.Width * 0.015625
+                  Y: =(Parent.TemplateHeight - DesiginationLabelPreviousGuest.Height) / 2
+      - CoworkerList:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: '="List of Coworkers" '
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =App.Height - (SearchTextInput.Y + SearchTextInput.Height + ButtonBackgroundExpense_4.Height + ShadowElementFooter_4.Height * 2)
+            Items: =Search('Coworker list for Expense mobile (mserp)',SearchTextInput.Text,'Name (mserp_name)')
+            OnSelect: |+
+              ='Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_addcoworkerasguest(
+                  LookUp('Expense mobile master data (mserp)', Email = User().Email).'Expense mobile master data (mserp)',
+                  {
+                      Company : ThisItem.'Name (mserp_company)',
+                      Title: ThisItem.Title,
+                      Name: ThisItem.'Name (mserp_name)',
+                      ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                  }
+              );
+              Refresh('Guest Against an Expense Line for Expense Mobile (mserp)')
+            TemplateSize: =App.Height * 0.10563
+            Visible: =!locPreviousGuestView
+            Width: =App.Width - App.Width * 0.015625
+            X: =10
+            Y: =SearchTextInput.Y + SearchTextInput.Height
+          Children:
+            - BackgroundbuttonCoworker:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =Color.White
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =Color.White
+                  OnSelect: =Select(Parent)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  RadiusBottomLeft: =App.Width * 0.015625
+                  RadiusBottomRight: =App.Width * 0.015625
+                  RadiusTopLeft: =App.Width * 0.015625
+                  RadiusTopRight: =App.Width * 0.015625
+                  Text: =""
+                  Width: =Parent.Width
+            - GuestNamelabelCoworker:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =Color.Black
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.3
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.15
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.'Name (mserp_name)'
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =App.Width / 2
+                  Wrap: =false
+                  X: =App.Width * 0.015625
+                  Y: =Parent.TemplateHeight * 0.091667
+            - CompanyNamelabelCoworker:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(110, 110, 110, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.4667
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.133
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.'Name (mserp_company)'
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =App.Width / 2
+                  X: =GuestNamelabelCoworker.X
+                  Y: =GuestNamelabelCoworker.Y + GuestNamelabelCoworker.Height
+            - scr21_shp_Seprator_1:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(225, 225, 225, 1)
+                  Height: =3
+                  OnSelect: =
+                  Width: =630
+            - DesiginationLabelCoworker:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(110, 110, 110, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 3 / 4
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.133
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.Title
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =App.Width * 2 / 5
+                  X: =App.Width - Self.Width - App.Width * 0.015625
+                  Y: =(Parent.TemplateHeight - DesiginationLabelCoworker.Height) / 2
+      - SelectedGuestsForNonGiftCategory:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_OneImageTwoColumnVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="List to attached guest"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DelayItemLoading: =true
+            Height: =App.Height * 0.2464
+            Items: =Filter('Guest Against an Expense Line for Expense Mobile (mserp)','Reference (mserp_trvexptrans)' = varSelectedExpenseDoc.ExpenseRecId)
+            LoadingSpinner: =LoadingSpinner.Data
+            TemplateSize: =App.Height * 0.1496
+            Visible: =!SelectedGuestsForGiftCategory.Visible
+            Width: =App.Width - App.Width * 0.015625
+            X: =App.Width * 0.015625 / 2
+            Y: =SelectedGuestsForGiftCategory.Y
+          Children:
+            - BackgroundButtonNonGift:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =Color.White
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.8663
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =Color.White
+                  OnSelect: =Select(Parent)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Text: =""
+                  Width: =Parent.TemplateWidth * 0.94
+                  X: =(Parent.TemplateWidth - BackgroundButtonNonGift.Width) / 2
+                  Y: =(Parent.TemplateHeight - BackgroundButtonNonGift.Height) / 2
+            - DesignationLabelNonGift:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.2353
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.09412
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.Title
+                  Width: =BackgroundButtonNonGift.Width - Self.X
+                  Wrap: =false
+                  X: =GuestNameNonGift.X
+                  Y: =GuestNameNonGift.Y + GuestNameNonGift.Height + 5
+            - CompnayNameNonGift:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.2353
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.09412
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.'Organization/Country'
+                  Width: =DesignationLabelNonGift.Width
+                  Wrap: =false
+                  X: =GuestNameNonGift.X
+                  Y: =DesignationLabelNonGift.Y + DesignationLabelNonGift.Height
+            - DeleteIconNonGift:
+                Control: Image@2.2.3
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Height: =Self.Width
+                  Image: =SelectorCloseIcon
+                  OnSelect: =Remove('Guest Against an Expense Line for Expense Mobile (mserp)',ThisItem)
+                  TabIndex: =0
+                  Width: =Parent.TemplateWidth * 0.09556
+                  X: =BackgroundButtonNonGift.X + BackgroundButtonNonGift.Width - Self.Width - GuestNameNonGift.Y + BackgroundButtonNonGift.Y
+                  Y: =GuestNameNonGift.Y
+            - GuestNameNonGift:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.2353
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.1059
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.Name
+                  Width: =Parent.TemplateWidth * 0.6928
+                  Wrap: =false
+                  X: =BackgroundButtonNonGift.X + 10
+                  Y: =BackgroundButtonNonGift.Y + 10
+      - SelectedGuestsForGiftCategory:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="List to attached guest"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =App.Height * 0.2263
+            Items: =Filter('Guest Against an Expense Line for Expense Mobile (mserp)','Reference (mserp_trvexptrans)' = varSelectedExpenseDoc.ExpenseRecId)
+            TemplateSize: =App.Height * 0.10563
+            Visible: =currExpenseType = 'TrvExpType (mserp)'.'Gift certificates/Tangible gifts'
+            Width: =App.Width
+            Y: =GuestsLabel.Y + GuestsLabel.Height
+          Children:
+            - BackgroundButtonGift:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =Color.White
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.8667
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =Color
+                  OnSelect: =Select(Parent)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  RadiusBottomLeft: =App.Width * 0.015625
+                  RadiusBottomRight: =App.Width * 0.015625
+                  RadiusTopLeft: =App.Width * 0.015625
+                  RadiusTopRight: =App.Width * 0.015625
+                  Text: =""
+                  Width: =App.Width * 0.591
+                  X: =App.Width * 0.032375
+                  Y: =(Parent.TemplateHeight - BackgroundButtonGift.Height) / 2
+            - GuestnameGift:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =Parent.TemplateHeight * 0.208
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.1
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.Name
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =App.Width * 0.3125
+                  Wrap: =false
+                  X: =App.Width * 0.0515
+                  Y: =Parent.TemplateHeight * 0.1333
+            - CompanyNameGift:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.5
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.0917
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.'Organization/Country'
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =GuestnameGift.Width
+                  X: =GuestnameGift.X
+                  Y: =GuestnameGift.Y + GuestnameGift.Height
+            - GiftAmountTextInput:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Default: =ThisItem.'The gift amount'
+                  Font: =Font.'Open Sans'
+                  Format: =TextFormat.Number
+                  Height: =BackgroundButtonGift.Height
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  OnChange: |-
+                    =UpdateContext({varGuestPatchCallErrors: Blank()});
+                    IfError(
+                        Patch(
+                            'Guest Against an Expense Line for Expense Mobile (mserp)',
+                            ThisItem,
+                            {
+                                'The gift amount': 
+                                    Value(GiftAmountTextInput.Text, varDefaultLanguage)
+                            }
+                        ),
+                        UpdateContext(
+                            {
+                                varGuestPatchCallErrors: Substitute(
+                                    Match(
+                                        FirstError.Details.HttpResponse,
+                                        """message"":""([^""]*)"""
+                                    ).FullMatch,
+                                    """message"":""",
+                                    ""
+                                )
+                            }
+                        )
+                    );
+                    If(
+                        !IsBlank(varGuestPatchCallErrors),
+                        Notify(
+                            Left(
+                                varGuestPatchCallErrors,
+                                Len(varGuestPatchCallErrors) - 1
+                            ),
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        )
+                    );
+
+                    Set(
+                        gblGuestAttchedToExpense,
+                        LookUp(
+                            'Guest Against an Expense Line for Expense Mobile (mserp)',
+                             'Reference (mserp_trvexptrans)' = varSelectedExpenseDoc.ExpenseRecId && EntRecId = ThisItem.EntRecId
+                        )
+                    );
+                    Set(
+                        ItemizedAmountValue,
+                        Text(gblGuestAttchedToExpense.ItemizedCostAmount)
+                    );
+                    Set(
+                        RemainingAmountValue,
+                        Text(gblGuestAttchedToExpense.RemainingAmount)
+                    )
+                  RadiusBottomLeft: =App.Width * 0.015625
+                  RadiusBottomRight: =App.Width * 0.015625
+                  RadiusTopLeft: =App.Width * 0.015625
+                  RadiusTopRight: =App.Width * 0.015625
+                  Size: =Parent.TemplateHeight * 0.175
+                  Width: =App.Width * 0.265
+                  X: =BackgroundButtonGift.X + BackgroundButtonGift.Width + App.Width * 0.0234
+                  Y: =(Parent.TemplateHeight - GiftAmountTextInput.Height) / 2
+            - DeleteIconGift:
+                Control: Image@2.2.3
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Height: =Self.Width
+                  Image: =SelectorCloseIcon
+                  OnSelect: |-
+                    =Remove('Guest Against an Expense Line for Expense Mobile (mserp)',ThisItem);
+                    ClearCollect(gblGuestAttchedToExpenseCol,Filter('Guest Against an Expense Line for Expense Mobile (mserp)','Reference (mserp_trvexptrans)' = varSelectedExpenseDoc.'Expense subcategory'));
+                    Set(ItemizedAmountValue, Text(Sum(gblGuestAttchedToExpenseCol,'The gift amount')));
+                    Set(RemainingAmountValue, Text(varSelectedExpenseDoc.'Transaction amount' - ItemizedAmountValue))
+                  TabIndex: =0
+                  Width: =App.Width * 0.05
+                  X: =GiftAmountTextInput.X + GiftAmountTextInput.Width + App.Width * 0.0234
+                  Y: =(Parent.TemplateHeight - DeleteIconGift.Height) / 2
+            - DesignationLabelGift:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight - DesignationLabelGift.Y * 3 / 2
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.0917
+                  TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                  Text: =ThisItem.Title
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =App.Width * 0.210
+                  X: =CompanyNameGift.X + CompanyNameGift.Width + App.Width * 0.03125
+                  Y: =GuestnameGift.Y
+      - SearchTextInput:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =RGBA(255, 255, 255, 1)
+            Default: =""
+            Font: =Font.'Open Sans'
+            Height: =App.Height * 0.06161
+            HintText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SearchPlaceholderLabel'
+            HoverBorderColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(255, 255, 255, 1)
+            PaddingLeft: =App.Width * 0.03125
+            Size: =App.Height * 0.0185
+            Width: =App.Width * 0.9375
+            X: =SearchImage.Width
+            Y: =CoworkersLabel.Y + CoworkersLabel.Height
+      - SearchImage:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            DisplayMode: =DisplayMode.View
+            Fill: =Color.White
+            Height: =App.Height * 0.06161
+            Image: =SearchImage_1
+            Width: =App.Width - SearchTextInput.Width
+            Y: =SearchTextInput.Y
+      - GuestsLabel:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            Height: =App.Height * 0.0326
+            Size: =App.Height * 0.0184
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_GuestsLabel'
+            Width: =App.Width * 0.591
+            X: =App.Width * 0.032375
+            Y: =AddGuestToExpenseHeader.Height + App.Width * 0.0088
+      - GiftAmountLabel:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            Height: =GuestsLabel.Height
+            Size: =App.Height * 0.0184
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_GiftAmountLabel'
+            Visible: =SelectedGuestsForGiftCategory.Visible
+            Width: =App.Width - Self.X
+            Wrap: =false
+            X: =GuestsLabel.X + GuestsLabel.Width + App.Width * 0.0234
+            Y: =GuestsLabel.Y
+      - CoworkersLabel:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |+
+              =If(
+                  !locPreviousGuestView,
+                  RGBA(34, 102, 227, 1),
+                  RGBA(0, 0, 0, 1)
+              )
+
+            Font: =Font.'Open Sans'
+            FontWeight: |-
+              =If(
+                  !locPreviousGuestView,
+                  FontWeight.Semibold,
+                  FontWeight.Normal
+              )
+            Height: =App.Height* 0.04225
+            OnSelect: |-
+              =UpdateContext({locPreviousGuestView: false})
+            Size: =App.Height * 0.0184
+            TabIndex: =0
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CoworkersLabel'
+            Width: =App.Width * 0.45
+            Wrap: =false
+            X: =40
+            Y: =AmountItemizedLabel.Y + AmountItemizedLabel.Height
+      - PreviousGuestsLabel:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Right
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |+
+              =If(
+                  locPreviousGuestView,
+                  RGBA(34, 102, 227, 1),
+                  RGBA(0, 0, 0, 1)
+              )
+
+            Font: =Font.'Open Sans'
+            FontWeight: |-
+              =If(
+                  locPreviousGuestView,
+                  FontWeight.Semibold,
+                  FontWeight.Normal
+              )
+            Height: =App.Height* 0.04225
+            OnSelect: |-
+              =UpdateContext({locPreviousGuestView: true})
+            PaddingRight: =40
+            Size: =App.Height * 0.0184
+            TabIndex: =0
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_PreviousGuestsLabel'
+            Width: |+
+              =App.Width * 0.49
+            Wrap: =false
+            X: =App.Width - Self.Width
+            Y: =CoworkersLabel.Y
+      - NewGuestButton:
+          Control: Image@2.2.3
+          Properties:
+            AccessibleLabel: ="Create new guest"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =Self.Width
+            Image: =CreateButton
+            OnSelect: |-
+              =Reset(SearchTextInput);
+              Navigate('AddGuest -  Create New Guest Screen', ScreenTransition.Fade,{varNavigatedFrom : varNavigatedFrom})
+            TabIndex: =0
+            Width: |-
+              =If(
+                  App.Width > App.Height,
+                  App.Height * 0.15,
+                  App.Width * 0.2
+              )
+            X: =App.Width - Self.Width
+            Y: =ButtonBackgroundExpense_4.Y - Self.Height
+      - NoGuestAddedLabel:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(145, 145, 145, 1)
+            Font: =Font.'Open Sans'
+            Height: =App.Height * 0.02817
+            Size: =App.Width * 0.0285
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoGuestsAddedLabel'
+            Visible: =SelectedGuestsForGiftCategory.AllItemsCount = 0 || SelectedGuestsForNonGiftCategory.AllItemsCount = 0
+            Width: =App.Width/2
+            X: =40
+            Y: =NoAmountItemizedLabel.Y
+      - NoAmountItemizedLabel:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Right
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(145, 145, 145, 1)
+            Font: =Font.'Open Sans'
+            Height: =App.Height * 0.02817
+            Size: =18
+            Text: =Substitute(Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_AmountItemizedLabel',"$",Coalesce(ItemizedAmountValue,"0.0")),"#",varSelectedExpenseDoc.'Currency (mserp_exchangecode)')
+            Visible: =SelectedGuestsForGiftCategory.AllItemsCount = 0 && SelectedGuestsForGiftCategory.Visible
+            Width: =App.Width/2
+            X: =App.Width - Self.Width
+            Y: =GiftAmountLabel.Y + GiftAmountLabel.Height + 10
+      - AmountItemizedLabel:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(145, 145, 145, 1)
+            Font: =Font.'Open Sans'
+            Height: =App.Height * 0.0335
+            Size: =App.Height * 0.0185
+            Text: |+
+              =Substitute(Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_AmountItemizedLabel',"$",Coalesce(ItemizedAmountValue,"0.0")),"#",varSelectedExpenseDoc.'Currency (mserp_exchangecode)')
+
+            Visible: =SelectedGuestsForGiftCategory.Visible
+            Width: =App.Width * 2 / 3
+            X: =App.Width * 0.0375
+            Y: =SelectedGuestsForGiftCategory.Y + SelectedGuestsForGiftCategory.Height

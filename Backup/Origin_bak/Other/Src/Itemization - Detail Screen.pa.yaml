@@ -1,0 +1,549 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Itemization - Detail Screen:
+    Properties:
+      Fill: =RGBA(244, 244, 244, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =UpdateContext({locDeleteCntrl : false});
+        UpdateContext({locOpenItemizationChangesDialogBox : false});
+    Children:
+      - ItemizationFooterdetailscreen:
+          Control: CanvasComponent
+          ComponentName: ItemizationFooter
+          Properties:
+            ButtonName: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'
+            Fill: =Color.White
+            Height: =App.Height * 0.2377
+            ItemizedAmountLabel: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ItemizedAmountLabel'
+            OnButtonClick: "=UpdateContext({locItemizationError: Blank()});\nIf(\n    isDirtyItemization,\n    'Expense lines (mserp)'.mserp_trvexpmobileexpenseentity_itemizeexpensequickly(\n        LookUp(\n            'Expense lines (mserp)',\n            'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)' && 'Company (mserp_company)' = varSelectedLegalEntity,\n            'Expense Line Expense Mobile Entity (mserp)'\n        ),\n        {itemizations: Text(JSON(dsItemizations))}\n    )\n);\n\nSet(isDirtyItemization, false);\n\n// To get the refreshed values from the entity\nSet(\n    varSelectedExpenseDoc,\n    LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')\n);\n\n// populating base64 to show image on selection of expense\n    Set(\n        varReceiptImage,\n        LookUp(\n            'Expense Mobile Attached Document Entity (mserp)',\n            EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),\n            CapturedDocument\n        )\n    );\n    \n// collect policy violations\nIf(\n    varSelectedExpenseDoc.PolicyViolationCount,\n    ClearCollect(\n        colPolViolations,\n        Split(\n            varSelectedExpenseDoc.PolicyViolationErrorMessage,\n            \"~|~\"\n        )\n    );\n    UpdateContext({varMaxViolationLevel: varSelectedExpenseDoc.PolicyViolationsLevel});\n    UpdateContext({varNumViolation: varSelectedExpenseDoc.PolicyViolationCount}),\n    Clear(colPolViolations);\n    UpdateContext({varMaxViolationLevel: 0});\n    UpdateContext({varNumViolation: 0})\n);\nNavigate(\n    'Expenses - Edit Screen',\n    ScreenTransition.None,\n    {\n        varNavigatedFrom : varNavigatedFrom,\n        varMaxViolationLevel: varMaxViolationLevel,\n        varNumViolation: varNumViolation,\n        varRemainingAmount: \n        If( \n            varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,\n            Value(\n                varSelectedExpenseDoc.'Transaction amount' - Sum(\n                    dsItemizations,\n                    DailyRate * Quantity\n                )\n            ),\n            Value(\n                varSelectedExpenseDoc.'Local amount' - Sum(\n                    dsItemizations,\n                    DailyRate * Quantity\n                )\n            )\n        )\n    }\n);\n"
+            RemainingAmountLabel: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_RemainingAmountLabel'
+            RemainingAmountValue: |-
+              =If(
+                  varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                  Concatenate(
+                      Text(
+                          Value(
+                              varSelectedExpenseDoc.'Transaction amount' - Sum(
+                                  dsItemizations,
+                                  DailyRate * Quantity
+                              )
+                          ),
+                          "#,#0.00",
+                          varDefaultLanguage
+                      ),
+                      " ",
+                      varSelectedExpenseDoc.'Currency (mserp_exchangecode)'
+                  ),
+                  Concatenate(
+                      Text(
+                          Value(
+                              varSelectedExpenseDoc.'Local amount' - Sum(
+                                  dsItemizations,
+                                  DailyRate * Quantity
+                              )
+                          ),
+                          "#,#0.00",
+                          varDefaultLanguage
+                      ),
+                      " ",
+                      varSelectedExpenseDoc.'Local currency'
+                  )
+              )
+            Width: =Max(App.Width, App.MinScreenWidth)
+            Y: =App.Height - Self.Height
+            itemizedAmountValue: |-
+              =If(
+                  !IsBlank(
+                      Sum(
+                          dsItemizations,
+                          DailyRate * Quantity
+                      )
+                  ),
+                  Concatenate(
+                      Text(
+                          Value(
+                              Sum(
+                                  dsItemizations,
+                                  DailyRate * Quantity
+                              )
+                          ),
+                          "#,#0.00",
+                          varDefaultLanguage
+                      ),
+                      " ",
+                      If(
+                          varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                      varSelectedExpenseDoc.'Currency (mserp_exchangecode)',
+                      varSelectedExpenseDoc.'Local currency'
+                      )
+                  ),
+                  Concatenate(
+                      Text(
+                          Value(0),
+                          "#,#0.00",
+                          varDefaultLanguage
+                      ),
+                      " ",
+                      If(
+                          varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                      varSelectedExpenseDoc.'Currency (mserp_exchangecode)',
+                      varSelectedExpenseDoc.'Local currency'
+                      )
+                  )
+              )
+            subCategoryRecid: ="Text"
+      - CreateImizationContainer:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.Regular
+            Height: =App.Height * 0.0616
+            LayoutDirection: =LayoutDirection.Horizontal
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Visible: =!locDeleteCntrl
+            Width: =App.Width * 0.625
+            X: =App.Width / 2 - CreateItemizationButton.Width / 2
+            Y: =ItemizedExpenseList.Y + ItemizedExpenseList.Height + 25
+          Children:
+            - CreateItemizationButton:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(34, 102, 227, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =Color.White
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Normal
+                  Height: =Parent.Height
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  OnSelect: |-
+                    =Set(
+                        gblCurrentItemizeExpense,
+                        Blank()
+                    );
+                    Navigate('Itemization - Create Itemize Expense Screen',ScreenTransition.None,{locDuplicateItemizedExpense:false})
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Size: |-
+                    =//22
+                    If(
+                        App.Width>App.Height,
+                    Parent.Width * 0.025,
+                    Parent.Height * 0.3
+                    )
+                  Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateNewItemizationLabel'
+                  Visible: =!locDeleteCntrl
+                  Width: =Parent.Width
+      - ItemizedExpenseList:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =Min(App.Height * 0.425, ItemizedExpenseList.TemplateHeight * ItemizedExpenseList.AllItemsCount)
+            Items: =dsItemizations
+            OnSelect: |-
+              =Set(
+                  gblCurrentItemizeExpense , LookUp(dsItemizations, StartDate = ThisItem.StartDate && SubCategoryRecId = ThisItem.SubCategoryRecId)
+              );
+              Clear(colSelectedItemizedExpense);
+              Reset(SelectItemizedExpenseCheckbox);
+              Navigate('Itemization - Create Itemize Expense Screen',ScreenTransition.None,{locEditItemizeExpense: true})
+            TemplateSize: =App.Height * 0.123
+            Width: =App.Width
+            Y: |-
+              =If(!locDeleteCntrl,
+              viewAllItemizedExpenseLabel.Y + viewAllItemizedExpenseLabel.Height,
+              ItemizationDetailHeader.Height
+              )
+          Children:
+            - SubCategoryName:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =Parent.TemplateHeight * 0.55
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.157
+                  Text: =ThisItem.SubCategoryName
+                  Width: =App.Width - Self.X - AmountLabel.Width - NextArrow2.Width
+                  X: |-
+                    =If(locDeleteCntrl,
+                      SelectItemizedExpenseCheckbox.X + SelectItemizedExpenseCheckbox.Width - 5,
+                      App.Width * 0.0234 
+                    )
+                  Y: =Parent.TemplateHeight * 0.064
+            - TransactionDateSubcategory:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.25
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.121
+                  Text: |-
+                    =Text(
+                        DateValue(ThisItem.StartDate),
+                        "dd mmm, yyyy"
+                    )
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =SubCategoryName.Width
+                  X: |-
+                    =If(locDeleteCntrl,
+                      SelectItemizedExpenseCheckbox.X + SelectItemizedExpenseCheckbox.Width - 5,
+                      App.Width * 0.0234 
+                    )
+                  Y: =SubCategoryName.Y + SubCategoryName.Height + Parent.TemplateHeight * 0.0286
+            - scr01_shp_Seprator_3:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(225, 225, 225, 1)
+                  Height: =1
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - 1
+            - AmountLabel:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Right
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =Parent.TemplateHeight * 0.514
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.15
+                  Text: |-
+                    =Concatenate(Text(Value(ThisItem.DailyRate), "#,#0.00", varDefaultLanguage), " ", 
+                    If(
+                                varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                            varSelectedExpenseDoc.'Currency (mserp_exchangecode)',
+                            varSelectedExpenseDoc.'Local currency'
+                            )
+                        )
+                  Width: =App.Width * 0.422
+                  X: =NextArrow2.X - Self.Width
+                  Y: =Parent.TemplateHeight * 0.064
+            - NoOfdaysLabel:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Right
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.342
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.15
+                  Text: |-
+                    =Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_DaysCountLabel'
+                    ,"$",ThisItem.Quantity)
+                  Width: =AmountLabel.Width
+                  X: =AmountLabel.X
+                  Y: =AmountLabel.Y + AmountLabel.Height + Parent.TemplateHeight * 0.0286
+            - NextArrow2:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  AccessibleLabel: =Self.Tooltip
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(110, 110, 110, 1)
+                  DisabledBorderColor: =RGBA(56, 56, 56, 1)
+                  DisabledColor: =RGBA(119, 119, 119, 1)
+                  Height: =Parent.TemplateHeight
+                  Icon: =Icon.ChevronRight
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  Tooltip: ="View item details"
+                  Width: =App.Width * 0.0766
+                  X: =App.Width - Self.Width
+            - SelectItemizedExpenseCheckbox:
+                Control: Classic/CheckBox@2.1.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+                  CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+                  CheckboxSize: =45
+                  CheckmarkFill: =Color.White
+                  FocusedBorderThickness: =0
+                  Font: =Font.'Open Sans'
+                  Height: =77
+                  HoverColor: =RGBA(0, 18, 107, 1)
+                  OnCheck: |-
+                    =Collect(
+                        colSelectedItemizedExpense, 
+                        {subCategoryRecid : ThisItem.SubCategoryRecId,
+                         startDate : ThisItem.StartDate
+                        }
+                    )
+                  OnUncheck: |+
+                    =RemoveIf(colSelectedItemizedExpense,
+                        subCategoryRecid = ThisItem.SubCategoryRecId && startDate = ThisItem.StartDate
+                    )
+                  Reset: |-
+                    =
+                    If(locCrossControlClick,
+                    true,
+                    false
+                    )
+                  Text: =""
+                  Visible: =locDeleteCntrl
+                  Width: =57
+                  X: =11
+                  Y: =28
+      - viewAllItemizedExpenseLabel:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+              =/*If(CountRows(dsItemizations)>0 ,
+              RGBA(34, 102, 227, 1),
+              gblParams.expenseDataCardViewOnly
+              )*/
+              RGBA(34, 102, 227, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Height: =App.Height * 0.0379
+            OnSelect: |-
+              =UpdateContext({locItemizationError: Blank()});
+              If(isDirtyItemization,
+              IfError(
+                  'Expense lines (mserp)'.mserp_trvexpmobileexpenseentity_itemizeexpensequickly(
+                      LookUp(
+                          'Expense lines (mserp)',
+                          'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)' && 'Company (mserp_company)' = varSelectedLegalEntity,
+                          'Expense Line Expense Mobile Entity (mserp)'
+                      ),
+                      {itemizations: Text(JSON(dsItemizations))}
+                  ),
+                  UpdateContext({locItemizationError: JSON(FirstError.Details)});
+                  ,
+                  Refresh('Expense lines (mserp)');
+                  Set(isDirtyItemization, false);
+              );
+              );
+              Navigate('Itemization - View All Itemize Expense Screen',Transition.None,{varNavigatedFrom : varNavigatedFrom,varItemizationScreen: varItemizationScreen});
+              Set(isDirtyItemization, false);
+              If(
+                  !IsBlank(locItemizationError),
+                  Notify(
+                      Text(locItemizationError),
+                      NotificationType.Error,
+                      gblParams.notificationTime
+                  )
+              )
+            PaddingLeft: =15
+            Size: =App.Height * 0.0159
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewAllItemizedExpenseLabel'
+            Visible: =!locDeleteCntrl
+            Width: =App.Width
+            Wrap: =false
+            Y: =ItemizationDetailHeader.Height
+      - ItemizationDetailHeader:
+          Control: CanvasComponent
+          ComponentName: header-navigation-PolicyViolation_1
+          Properties:
+            Fill: =RGBA(255, 255, 255, 1)
+            HeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ItemizationsLabel'
+            Height: =82
+            OnBackIconSelect: |-
+              =// populating base64 to show image on selection of expense
+              If(!isDirtyItemization,
+
+              // To get the refreshed values from the entity
+              Set(
+                  varSelectedExpenseDoc,
+                  LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')
+              );
+
+              // populating base64 to show image on selection of expense
+              Set(
+                  varReceiptImage,
+                  LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument) 
+              );
+
+              // collect policy violations
+              If(
+                  varSelectedExpenseDoc.PolicyViolationCount,
+                  ClearCollect(
+                      colPolViolations,
+                      Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                  );
+                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
+                  UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                  Clear(colPolViolations);
+                  UpdateContext({varMaxViolationLevel : 0});
+                  UpdateContext({varNumViolation : 0})
+              );
+
+              Navigate('Expenses - Edit Screen', ScreenTransition.None, 
+              {
+                  varNavigatedFrom : varNavigatedFrom, 
+                  varMaxViolationLevel : varMaxViolationLevel, 
+                  varNumViolation: varNumViolation, 
+                  varRemainingAmount: If( 
+                          varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                          Value(
+                              varSelectedExpenseDoc.'Transaction amount' - Sum(
+                                  dsItemizations,
+                                  DailyRate * Quantity
+                              )
+                          ),
+                          Value(
+                              varSelectedExpenseDoc.'Local amount' - Sum(
+                                  dsItemizations,
+                                  DailyRate * Quantity
+                              )
+                          )
+                      )
+                  }
+              ),
+
+              // This variable controls the opening of the Dailog box when certain itemizations changes are done.
+              UpdateContext({locOpenItemizationChangesDialogBox : true});
+              )
+            Width: =App.Width
+      - DeleteDisableImage:
+          Control: Image@2.2.3
+          Group: HeaderButtons
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =SelectorImage.Height
+            Image: =DeleteIconDisabled
+            Width: =SelectorImage.Width
+            X: =SelectorImage.X + SelectorImage.Width * 3 / 2
+            Y: =SelectorImage.Y
+      - SelectorImage:
+          Control: Image@2.2.3
+          Group: HeaderButtons
+          Properties:
+            AccessibleLabel: ="Select itemized expense"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =ItemizationDetailHeader.Height / 2
+            Image: =SelectorIcon
+            OnSelect: |-
+              =UpdateContext({locDeleteCntrl : true});
+              UpdateContext({locCrossControlClick : false})
+            TabIndex: =0
+            Visible: =!locDeleteCntrl
+            Width: =App.Width * 0.0531
+            X: =App.Width * 0.797
+            Y: =ItemizationDetailHeader.Height / 2 - SelectorImage.Height / 2
+      - SelectorCloseImage:
+          Control: Image@2.2.3
+          Group: HeaderButtons
+          Properties:
+            AccessibleLabel: ="close selector"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =SelectorImage.Height
+            Image: =SelectorCloseIcon
+            OnSelect: |-
+              =UpdateContext({locDeleteCntrl : false});
+              Clear(colSelectedItemizedExpense);
+              UpdateContext({locCrossControlClick : true})
+            TabIndex: =0
+            Visible: =locDeleteCntrl
+            Width: =SelectorImage.Width
+            X: =SelectorImage.X
+            Y: =SelectorImage.Y
+      - DeleteEnabledImage:
+          Control: Image@2.2.3
+          Group: HeaderButtons
+          Properties:
+            AccessibleLabel: ="Delete Button"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =SelectorImage.Height
+            Image: =DeleteIconEnabled
+            OnSelect: |-
+              =ForAll(
+                  colSelectedItemizedExpense,
+                  RemoveIf(dsItemizations,
+                  StartDate = colSelectedItemizedExpense[@startDate] && SubCategoryRecId = colSelectedItemizedExpense[@subCategoryRecid])
+              );
+              Clear(colSelectedItemizedExpense);
+              UpdateContext({locDeleteCntrl : false});
+              Set(isDirtyItemization, true)
+            TabIndex: =0
+            Visible: =CountRows(colSelectedItemizedExpense) > 0
+            Width: =SelectorImage.Width
+            X: =DeleteDisableImage.X
+            Y: =SelectorImage.Y
+      - cmp02_ConfirmationDialog_5:
+          Control: CanvasComponent
+          ComponentName: cmp02_ConfirmationDialog
+          Properties:
+            Height: =App.Height
+            LegalEntity: ="Text"
+            OnLeftButtonClick: |-
+              =// To get the refreshed values from the entity
+              Set(
+                  varSelectedExpenseDoc,
+                  LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')
+              );
+
+              // populating base64 to show image on selection of expense
+              Set(
+                  varReceiptImage,
+                  LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument) 
+              );
+
+              // collect policy violations
+              If(
+                  varSelectedExpenseDoc.PolicyViolationCount,
+                  ClearCollect(
+                      colPolViolations,
+                      Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                  );
+                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
+                  UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                  Clear(colPolViolations);
+                  UpdateContext({varMaxViolationLevel : 0});
+                  UpdateContext({varNumViolation : 0})
+              );
+
+              Set(isDirtyItemization, false);
+
+              Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : Blank(), varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation})
+            OnRightButtonClick: |-
+              =UpdateContext({locOpenItemizationChangesDialogBox : false});
+            SelectedExpense: =
+            SelectedList: ="Text"
+            SelectedReceiptNumber: =
+            Visible: =locOpenItemizationChangesDialogBox
+            Width: =Max(App.Width, App.MinScreenWidth)
+            controlName: ="cmp02_ConfirmationDialog_5"
+            parmInDescriptionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ThereAreUnsavedChangesLabel'
+            parmInHeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_UnsavedChangesLabel'
+            parmInLeftButtonColor: =RGBA(195, 39, 39, 1)
+            parmInLeftButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_LeaveLabel'
+            parmInRightButtonColor: =RGBA(34, 102, 227, 1)
+            parmInRightButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+            returnFocus: ="ItemizationDetailHeader"

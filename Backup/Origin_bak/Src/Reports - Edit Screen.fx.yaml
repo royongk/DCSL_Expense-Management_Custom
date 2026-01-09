@@ -1,0 +1,1582 @@
+"'Reports - Edit Screen' As screen":
+    Fill: =RGBA(229, 229, 229, 1)
+    OnVisible: |-
+        =UpdateContext({ctLabel1 : false});
+                UpdateContext({ctLabel2 : false});
+                UpdateContext({ctLabel3 : false});
+                UpdateContext({ctLabel4 : false});
+                UpdateContext({ctLabel5 : false});
+                UpdateContext({ctVarReportDetailsBack:false});
+                UpdateContext({isExpReportDirty : false});
+                If(
+                    IsBlank(
+                        LookUp(
+                            colReportPostDetails,
+                            fieldName = "Description"
+                        )
+                    ),
+                    Reset(scr17_txt_Description_1)
+                );
+                If(
+                    varIsCreateReport,
+                    Reset(ComboBox_Location);
+                    Reset(ComboBox_Purpose);
+                    Reset(scr17_txt_Description_1);
+                    Reset(ComboBox_LegalEntity_ExpReport);
+                    If( 
+                        gblIsProjectValidationFlag,
+                        Reset(ComboBox_ProjectId_ExpReport_odata),
+                        Reset(ComboBox_ProjectId_ExpReport_entity)
+                    );
+                );
+                UpdateContext(
+                    {
+                        locReimaginedfeatureEnabled: (userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes)
+                    }
+                );
+                If(
+                    locReimaginedfeatureEnabled, 
+                    If(
+                        CountRows(gblExpenseReportFieldVisibilityReImaginedLookup) <= 0,
+                        ClearCollect(
+                            gblExpenseReportFieldVisibilityReImaginedLookup, 
+                            Filter(
+                                'Expense mobile report field visibility (mserp)', 
+                                LegalEntityId = varSelectedLegalEntity && 
+                                VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display'
+                            )
+                        )
+                    ),
+                    If(
+                        CountRows(gblExpenseReportFieldVisibilityLookup) <= 0,
+                        ClearCollect(
+                            gblExpenseReportFieldVisibilityLookup, 
+                            Filter(
+                                '@ExpenseManagement:TrvExpMobileReportAdminCustomFieldsEntity (mserp)',
+                                LegalEntityId = varSelectedLegalEntity && 
+                                Visibility <> 'Visibility (mserp)'.'Do not display'
+                            )
+                        )
+                    )
+                );
+
+    "'Totals Buttons - Draft' As groupContainer.verticalAutoLayoutContainer":
+        Fill: =RGBA(250, 249, 248, 1)
+        Height: =300
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =20
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        Width: =Parent.Width
+        Y: =Parent.Height - Self.Height
+        ZIndex: =1
+
+        "'Totals - Draft' As groupContainer.horizontalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =60
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            PaddingLeft: =15
+            PaddingRight: =15
+            PaddingTop: =10
+            Width: =Parent.Width
+            ZIndex: =1
+
+            shpBorder_15 As rectangle:
+                Fill: =Color.Transparent
+                Height: =Parent.Height
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                Width: =10
+                ZIndex: =1
+
+            scr17_img_Totals_1 As image:
+                Height: =21
+                Image: =ShapeTotal
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =320
+                LayoutMinWidth: =320
+                Width: =28
+                X: =39
+                Y: =
+                ZIndex: =5
+
+            scr17_lbl_Totals_1 As label:
+                Font: =Font.'Segoe UI'
+                FontWeight: =FontWeight.Bold
+                Height: =35
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                Size: =19.15
+                Text: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_TotalLabel'
+                Width: =120
+                X: =scr17_img_Totals_1.X + scr17_img_Totals_1.Width + 9
+                Y: =
+                ZIndex: =6
+
+            scr17_lbl_TotalAmount_1 As label:
+                Align: =Align.Right
+                BorderColor: =RGBA(0, 0, 0, 1)
+                FillPortions: =1
+                Font: =Font.'Segoe UI'
+                FontWeight: =FontWeight.Bold
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =300
+                OnSelect: =
+                PaddingBottom: =0
+                PaddingLeft: =0
+                PaddingRight: =0
+                PaddingTop: =0
+                Size: =21
+                Text: |-
+                    =Concatenate(
+                        If(
+                            !IsBlank(varSelectedReport),
+                            Text(
+                                Value(varSelectedReport.AmountTotal),
+                                "#,#0.00",
+                                varDefaultLanguage
+                            ),
+                            Text(
+                                Value("0"),
+                                "#,#0.00",
+                                varDefaultLanguage
+                            )
+                        ),
+                        " ",
+                        LookUp(
+                            'Currencies (mserp)',
+                            'Currency code' = varDefaultCurrency,
+                            'Currency code'
+                        )
+                    )
+                VerticalAlign: =VerticalAlign.Top
+                Width: =250
+                X: =scr17_btn_SaveDraft_1.X + scr17_btn_SaveDraft_1.Width - Self.Width
+                Y: =871
+                ZIndex: =7
+
+        "'Buttons - Draft' As groupContainer.manualLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =225
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            Width: =Parent.Width
+            ZIndex: =2
+
+            scr17_btn_Submit_1 As button:
+                BorderColor: =RGBA(34, 102, 227, 1)
+                Color: |
+                    =RGBA(34, 102, 227, 1)
+                DisplayMode: |-
+                    =If(
+                        !IsBlank(varSelectedReport.ExpTransNumber),
+                        DisplayMode.Edit,
+                        DisplayMode.Disabled
+                    )
+                Fill: =RGBA(255, 255, 255, 1)
+                Font: =Font.'Segoe UI'
+                Height: =76
+                OnSelect: |-
+                    =Set(
+                        gblNavigationDrawerVisibility,
+                        false
+                    );
+                    IfError(
+                        Patch(
+                            'Expense reports (mserp)',
+                            LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                            {
+                                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                Description: scr17_txt_Description_1.Text,
+                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
+                                'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                            }
+                        ),
+                        First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+                    );
+                    If(
+                        !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                        Notify(
+                            Substitute(First(varError).Value, """", ""),
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        ),
+                        IfError(
+                            Patch(
+                                'Expense reports (mserp)',
+                                LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                {
+                                    WorkflowAction: "Submit"
+                                }
+                            ),
+                            First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+                        );
+                        If(
+                            !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                            Notify(
+                                Substitute(First(varError).Value, """", ""),
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            ),
+                            Notify(
+                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportSubmittedSuccessfullyLabel', 
+                                NotificationType.Success, 
+                                gblParams.notificationTime
+                                );
+                            Navigate('Reports - List Screen')
+                        )
+                    );
+                    Clear(varError)
+                Size: =19.15
+                Text: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubmitLabel'
+                Width: |
+                    =Parent.Width -  Self.X*2
+                X: |
+                    =40
+                Y: =scr17_btn_SaveDraft_1.Y + scr17_btn_SaveDraft_1.Height + 20 
+                ZIndex: =1
+
+            scr17_btn_SaveDraft_1 As button:
+                Fill: =RGBA(34, 102, 227, 1)
+                Font: =Font.'Segoe UI'
+                Height: =76
+                OnSelect: |+
+                    =Set(
+                        gblNavigationDrawerVisibility,
+                        false
+                    );
+                    If(
+                        varIsCreateReport,
+                        IfError(
+                            Patch(
+                                'Expense reports (mserp)',
+                                Defaults('Expense reports (mserp)'),
+                                {
+                                    Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                    Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),
+                                    Description: scr17_txt_Description_1.Text,
+                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
+                                    'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                }
+                            ),
+                            First(
+                                ClearCollect(
+                                    varError, 
+                                    Substitute(
+                                        Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                        """message"":", 
+                                        ""
+                                    )
+                                )
+                            )
+                            
+                        ),
+                        IfError(
+                            Patch(
+                                'Expense reports (mserp)',
+                                LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                {
+                                    Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                    Description: scr17_txt_Description_1.Text,
+                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
+                                'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                }
+                            ),
+                            First(
+                                ClearCollect(
+                                    varError, 
+                                    Substitute(
+                                        Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                        """message"":", 
+                                        ""
+                                    )
+                                )
+                            )
+                        
+                        )
+                    );
+                    If(
+                        !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                        Notify(
+                            Substitute(First(varError).Value, """", ""),
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        ),
+                        If(
+                            varIsCreateReport,
+                            Notify(
+                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel',
+                                NotificationType.Success, 
+                                gblParams.notificationTime
+                                ),
+                            Notify(
+                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', 
+                                NotificationType.Success, 
+                                gblParams.notificationTime
+                            )
+                        );
+                        Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})
+                    );
+                    Clear(varError)
+                    
+                RadiusBottomLeft: =8
+                RadiusBottomRight: =8
+                RadiusTopLeft: =8
+                RadiusTopRight: =8
+                Size: =19.15
+                Text: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SaveDraftLabel'
+                Width: |
+                    =Parent.Width -  Self.X*2
+                X: |
+                    =40
+                Y: =20
+                ZIndex: =2
+
+    "'Report Detals -  Draft' As groupContainer.verticalAutoLayoutContainer":
+        Height: ='Totals Buttons - Draft'.Y - Self.Y
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        LayoutOverflowY: =LayoutOverflow.Scroll
+        Width: =Parent.Width
+        Y: =82
+        ZIndex: =2
+
+        "'Title - Draft' As groupContainer.verticalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =175
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingLeft: =25
+            Visible: |-
+                =If ( locReimaginedfeatureEnabled,
+                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
+                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
+                )
+            Width: =Parent.Width
+            ZIndex: =1
+
+            PurposeContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                Width: =ComboBox_Purpose.Width
+                ZIndex: =1
+
+                scr17_img_TitleSelected_1 As image:
+                    Height: =22
+                    Image: =ShapeTitleSelected
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =ctLabel1
+                    Width: =22
+                    X: =ComboBox_Purpose.X
+                    Y: |-
+                        =ComboBox_Purpose.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =1
+
+                scr17_img_Title_1 As image:
+                    Height: =22
+                    Image: =ShapeTitle
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =!scr17_img_TitleSelected_1.Visible
+                    Width: =22
+                    X: =ComboBox_Purpose.X
+                    Y: |-
+                        =ComboBox_Purpose.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =2
+
+                scr17_lbl_Title_1 As label:
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportPurpose'
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =121 
+                    X: |-
+                        =scr17_img_Title_1.X + scr17_img_Title_1.Width + 
+                        8
+                    Y: =scr17_img_Title_1.Y - 5
+                    ZIndex: =3
+
+            ComboBox_Purpose As combobox:
+                AccessibleLabel: ="Dropdown to enter purpose"
+                Default: =Blank()
+                DefaultSelectedItems: =LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.Purpose)
+                DisplayFields: =["mserp_value"]
+                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                InputTextPlaceholder: |-
+                    =If(IsBlank(varSelectedReport.Purpose),
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_TitlePlaceholderLabel',
+                    varSelectedReport.Purpose)
+                Items: |
+                    =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =575
+                OnChange: |-
+                    =If(
+                        ComboBox_Purpose.Selected.'Purpose (mserp_value)' <> varSelectedReport.Purpose,
+                            UpdateContext({isExpReportDirty : true})
+                    );
+                OnSelect: |
+                    =UpdateContext({ctLabel1 : true});
+                    UpdateContext({ctLabel2 : false});
+                    UpdateContext({ctLabel3 : false});
+                    UpdateContext({ctLabel4 : false});
+                    UpdateContext({ctLabel5: false})
+                PaddingTop: =10
+                Reset: =true
+                SearchFields: =["mserp_value"]
+                SearchItems: =Search(Filter('DimAttributeTrvTravelTxtEntity (mserp)','Company Code'=varSelectedLegalEntity),ComboBox_Purpose.SearchText,'Purpose (mserp_value)')
+                SelectMultiple: =false
+                Size: =24
+                Width: |
+                    =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr17_hdr_TopHeader_1.Height + 66
+                ZIndex: =3
+
+        "'Location- Draft' As groupContainer.verticalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =175
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingLeft: =25
+            Visible: |-
+                =If ( locReimaginedfeatureEnabled,
+                    !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Destination")),
+                    !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Destination"))
+                )
+            Width: =Parent.Width
+            ZIndex: =2
+
+            LocationContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                Width: =ComboBox_Location.Width
+                ZIndex: =1
+
+                scr17_img_LocationSelected_1 As image:
+                    Height: =22
+                    Image: =ShapeLocationSelected
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =ctLabel2
+                    Width: =22
+                    X: =ComboBox_Location.X
+                    Y: |-
+                        =ComboBox_Location.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =1
+
+                scr17_img_Location_1 As image:
+                    Height: =22
+                    Image: =ShapeLocation
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =!scr17_img_LocationSelected_1.Visible
+                    Width: =22
+                    X: =ComboBox_Location.X
+                    Y: |-
+                        =ComboBox_Location.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =2
+
+                scr17_lbl_Location_1 As label:
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_LocationLabel'
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =121 
+                    X: |-
+                        =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                        8
+                    Y: =scr17_img_Location_1.Y - 5
+                    ZIndex: =3
+
+            ComboBox_Location As combobox:
+                AccessibleLabel: ="Dropdown to enter location"
+                DefaultSelectedItems: =LookUp('Travel locations (mserp)', Location = varSelectedReport.Location)
+                DisplayFields: =["mserp_destination"]
+                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                InputTextPlaceholder: |-
+                    =If(IsBlank(varSelectedReport.Location),
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_LocationPlaceholderLabel',
+                    varSelectedReport.Location
+                    )
+                Items: =Filter('Travel locations (mserp)','Company Code' = varSelectedLegalEntity)
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =575
+                OnChange: |-
+                    =If(
+                        ComboBox_Location.Selected.Location <> varSelectedReport.Location,
+                            UpdateContext({isExpReportDirty : true})
+                    );
+                OnSelect: |
+                    =UpdateContext({ctLabel1 : false});
+                    UpdateContext({ctLabel2 : true});
+                    UpdateContext({ctLabel3 : false});
+                    UpdateContext({ctLabel4 : false});
+                    UpdateContext({ctLabel5 : false})
+                Reset: =true
+                SearchFields: =["mserp_destination"]
+                SearchItems: =Search(Filter('Travel locations (mserp)','Company Code'=varSelectedLegalEntity),ComboBox_Location.SearchText,Location)
+                SelectMultiple: =false
+                Size: =24
+                Width: |
+                    =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr17_hdr_TopHeader_1.Height + 202
+                ZIndex: =3
+
+        "'Legal Entity - Draft' As groupContainer.verticalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =175
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingLeft: =25
+            Visible: |+
+                =If ( locReimaginedfeatureEnabled,
+                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "InterCompanyLE")),
+                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "InterCompanyLE"))
+                )
+                
+                
+                
+                
+            Width: =Parent.Width
+            ZIndex: =3
+
+            LegalEntityContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                Width: =ComboBox_LegalEntity_ExpReport.Width
+                ZIndex: =1
+
+                scr17_img_LegalEntitySelected_1 As image:
+                    Height: =22
+                    Image: =ShapeLegalEntitySelected
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =ctLabel4
+                    Width: =22
+                    X: =ComboBox_Location.X
+                    Y: |-
+                        =ComboBox_Location.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =1
+
+                scr17_img_LegalEntity_1 As image:
+                    Height: =22
+                    Image: =ShapeLegalEntity
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =!scr17_img_LegalEntitySelected_1.Visible
+                    Width: =22
+                    X: =ComboBox_Location.X
+                    Y: |-
+                        =ComboBox_Location.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =2
+
+                scr17_lbl_LegalEntity_ExpReport As label:
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_LegalEntityLabel'
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =121 
+                    X: =
+                    Y: =
+                    ZIndex: =3
+
+            ComboBox_LegalEntity_ExpReport As combobox:
+                AccessibleLabel: ="Dropdown to enter legal entity"
+                DefaultSelectedItems: =LookUp(collectionICLE , Value = Coalesce( varSelectedReport.'Legal entity for expenses',varSelectedLegalEntity))
+                DisplayFields: =["Value"]
+                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                InputTextPlaceholder: |
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterLegalEntityLabel'
+                Items: =collectionICLE
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =575
+                OnChange: |
+                    =If(
+                        (varIsCreateReport && (ComboBox_LegalEntity_ExpReport.Selected.Value <> varSelectedLegalEntity)) || (!varIsCreateReport && (ComboBox_LegalEntity_ExpReport.Selected.Value <> varSelectedReport.'Legal entity for expenses')),
+                            UpdateContext({isExpReportDirty : true});
+                    );
+                    If( 
+                        gblIsProjectValidationFlag,
+                        Reset(ComboBox_ProjectId_ExpReport_odata),
+                        Reset(ComboBox_ProjectId_ExpReport_entity)
+                    );
+                    
+                    If(
+                        !IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value) && gblIsProjectValidationFlag,
+                        UpdateContext({
+                            varGetReportprojectIdBasedonResourceCategory :
+                            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategoryv2(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',
+                                {
+                                    employeeLegalEntity: varSelectedLegalEntity,
+                                    interCompanyLegalEntity: ComboBox_LegalEntity_ExpReport.Selected.Value,
+                                    categoryId: ""
+                                }
+                            ).return
+                        });
+                        ClearCollect(
+                            colGetProjectsForReportsBasedOnResourceCategory ,
+                            ForAll(
+                                MatchAll(varGetReportprojectIdBasedonResourceCategory, "\{""projId"":""(?<projId>[^""]*)"",""projName"":""(?<projName>[^""]*)""\}") As ProjectListFromCol,
+                                {
+                                    projectId: ProjectListFromCol.projId,
+                                    projectName: ProjectListFromCol.projName
+                                }
+                            )
+                        )
+                    );
+                OnSelect: |-
+                    =UpdateContext({ctLabel1 : false});
+                    UpdateContext({ctLabel2 : false});
+                    UpdateContext({ctLabel3 : false});
+                    UpdateContext({ctLabel4 : true});
+                    UpdateContext({ctLabel5: false});
+                Reset: =true
+                SearchFields: =["Value"]
+                SearchItems: =Search(collectionICLE,ComboBox_LegalEntity_ExpReport.SearchText,Value)
+                SelectMultiple: =false
+                Size: =24
+                Width: |
+                    =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr17_hdr_TopHeader_1.Height + 202
+                ZIndex: =3
+
+        "'Project ID - Draft' As groupContainer.verticalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =175
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingLeft: =25
+            Visible: |+
+                =If ( locReimaginedfeatureEnabled,
+                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "ProjId")),
+                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "ProjId"))
+                )
+                
+                
+                
+                
+                
+                
+                
+                
+                
+            Width: =Parent.Width
+            ZIndex: =4
+
+            ProjectIdContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                Width: =ComboBox_ProjectId_ExpReport_odata.Width
+                ZIndex: =1
+
+                scr17_img_ProjIdSelected_1 As image:
+                    Height: =22
+                    Image: =ShapeProjIDSelected
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =ctLabel5
+                    Width: =22
+                    X: =ComboBox_Location.X
+                    Y: |-
+                        =ComboBox_Location.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =1
+
+                scr17_img_ProjId_1 As image:
+                    Height: =22
+                    Image: =ShapeProjID
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =!scr17_img_ProjIdSelected_1.Visible
+                    Width: =22
+                    X: =ComboBox_Location.X
+                    Y: |-
+                        =ComboBox_Location.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =2
+
+                scr17_lbl_ProjectId_ExpReport As label:
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ProjectIDLabel'
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =121 
+                    X: =
+                    Y: =
+                    ZIndex: =3
+
+            ComboBox_ProjectId_ExpReport_odata As combobox:
+                AccessibleLabel: |
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
+                DefaultSelectedItems: |-
+                    =
+                        If(!(varIsCreate),
+                        LookUp(colGetProjectsForReportsBasedOnResourceCategory, projectId = varSelectedReport.'Project ID'))
+                    
+                        
+                DisplayFields: =["projectId","projectName"]
+                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                InputTextPlaceholder: |
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
+                Items: =colGetProjectsForReportsBasedOnResourceCategory
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =575
+                MultiValueDelimiter: =
+                OnChange: |-
+                    =UpdateContext({locExpProjectIDChanged: true});
+                    If(
+                        If( 
+                            gblIsProjectValidationFlag,
+                            ComboBox_ProjectId_ExpReport_odata.Selected.projectId,
+                            ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'
+                        ) <> varSelectedReport.'Project ID',
+                        UpdateContext({isExpReportDirty : true})
+                    );
+                OnSelect: |-
+                    =UpdateContext({varOnSelectTriggered: true});
+                    UpdateContext({ctLabel1 : false});
+                    UpdateContext({ctLabel2 : false});
+                    UpdateContext({ctLabel3 : false});
+                    UpdateContext({ctLabel4 : false});
+                    UpdateContext({ctLabel5 : true});
+                Reset: =true
+                SearchFields: =["projectId","projectName"]
+                SearchItems: =Search(colGetProjectsForReportsBasedOnResourceCategory,ComboBox_ProjectId_ExpReport_odata.SearchText,projectId,projectName)
+                SelectMultiple: =false
+                Size: =24
+                Template: =ListItemTemplate.Double
+                Visible: =gblIsProjectValidationFlag
+                Width: |
+                    =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr17_hdr_TopHeader_1.Height + 202
+                ZIndex: =3
+
+            ComboBox_ProjectId_ExpReport_entity As combobox:
+                DefaultSelectedItems: |-
+                    =
+                        If(!(varIsCreate),
+                        LookUp('Projects (mserp)', 'Project ID' = varSelectedReport.'Project ID'))
+                    
+                        
+                DisplayFields: =["mserp_projectid","mserp_projectname"]
+                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                InputTextPlaceholder: |
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
+                Items: =Filter('Projects (mserp)', 'Company Code' = Coalesce(ComboBox_LegalEntity_ExpReport.Selected.Value, varSelectedLegalEntity) && ( 'Project stage' = 'Stage (mserp)'.'In process' || 'Project stage' = 'Stage (mserp)'.'User defined status 1' ||  'Project stage' = 'Stage (mserp)'.'User defined status 2' ||  'Project stage' = 'Stage (mserp)'.'User defined status 3'))
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =575
+                Reset: =true
+                SearchFields: =["mserp_projectid","mserp_projectname"]
+                SearchItems: =Search(Filter('Projects (mserp)','Company Code'=Coalesce(ComboBox_LegalEntity_ExpReport.Selected.Value,varSelectedLegalEntity)&&('Project stage'='Stage (mserp)'.'In process'||'Project stage'='Stage (mserp)'.'User defined status 1'||'Project stage'='Stage (mserp)'.'User defined status 2'||'Project stage'='Stage (mserp)'.'User defined status 3')),ComboBox_ProjectId_ExpReport_entity.SearchText,'Project ID','Project name')
+                SelectMultiple: =false
+                Size: =24
+                Template: =ListItemTemplate.Double
+                Visible: =!gblIsProjectValidationFlag
+                Width: =Parent.Width -  Self.X*2
+                X: =40
+                ZIndex: =4
+
+        "'Description - Draft' As groupContainer.verticalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =225
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            PaddingLeft: =25
+            Visible: |-
+                =If ( locReimaginedfeatureEnabled,
+                    !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt1")),
+                    !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt1"))
+                )
+            Width: =Parent.Width
+            ZIndex: =5
+
+            DescriptionContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                Width: =scr17_txt_Description_1.Width
+                ZIndex: =1
+
+                scr17_img_DescriptionSelected_1 As image:
+                    Height: =22
+                    Image: =ShapeDescriptionSelected
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =ctLabel3
+                    Width: =22
+                    X: =scr17_txt_Description_1.X
+                    Y: =scr17_txt_Description_1.Y - (15 + scr17_img_DescriptionSelected_1.Height)
+                    ZIndex: =1
+
+                scr17_img_Description_1 As image:
+                    Height: =22
+                    Image: =ShapeDescription
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =!scr17_img_DescriptionSelected_1.Visible
+                    Width: =22
+                    X: =scr17_txt_Description_1.X
+                    Y: =scr17_txt_Description_1.Y - (15 + scr17_img_Description_1.Height)
+                    ZIndex: =2
+
+                scr17_lbl_Description_1 As label:
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DescriptionLabel'
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =126
+                    X: |-
+                        =scr17_img_Description_1.X + scr17_img_Description_1.Width + 
+                        8
+                    Y: =scr17_img_Description_1.Y - 5
+                    ZIndex: =3
+
+            scr17_txt_Description_1 As text:
+                AccessibleLabel: ="Enter description"
+                BorderColor: =RGBA(255, 255, 255, 1)
+                BorderThickness: =0
+                Default: |-
+                    =If(
+                        !(IsBlank(varSelectedReport) || IsBlank(varSelectedReport.Description)),
+                        varSelectedReport.Description
+                    )
+                FocusedBorderThickness: =0
+                Font: =Font.'Segoe UI'
+                Height: =156
+                HintText: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportDescriptionPlaceholderLabel'
+                HoverFill: =
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                Mode: =TextMode.MultiLine
+                OnChange: |-
+                    =If(
+                        scr17_txt_Description_1.Text <> varSelectedReport.Description,
+                        UpdateContext({isExpReportDirty : true})
+                    );
+                    RemoveIf(colReportPostDetails, fieldName = "Description");
+                    Collect(
+                        colReportPostDetails,
+                        {
+                            fieldName: "Description",
+                            fieldValue: scr17_txt_Description_1.Text,
+                            fieldType: "String"
+                        }
+                    )
+                OnSelect: |
+                    =UpdateContext({ctLabel1 : false});
+                    UpdateContext({ctLabel2 : false});
+                    UpdateContext({ctLabel3 : true});
+                    UpdateContext({ctLabel4 : false});
+                    UpdateContext({ctLabel5 : false});
+                RadiusBottomLeft: =0
+                RadiusBottomRight: =0
+                RadiusTopLeft: =0
+                RadiusTopRight: =0
+                Reset: =true
+                Size: =24
+                Width: |
+                    =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr17_hdr_TopHeader_1.Height + 332
+                ZIndex: =2
+
+        "'Attached Expenses - Draft' As groupContainer.verticalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =225
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingTop: =10
+            Width: =Parent.Width
+            ZIndex: =6
+
+            Container23_1 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =75
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                PaddingLeft: =15
+                PaddingRight: =15
+                Width: =Parent.Width
+                ZIndex: =1
+
+                scr17_lbl_NumAttachedExp_1 As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    Size: =18
+                    Text: |-
+                        =If(
+                            CountRows(colAttachedExpenses) = 0,
+                            GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoAttachedExpensesLabel',
+                            Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachedExpensesCountLabel',"$",CountRows(colAttachedExpenses))
+                        )
+                    Width: =320
+                    X: =46
+                    Y: =scr17_txt_Description_1.Y + scr17_txt_Description_1.Height + 43 
+                    ZIndex: =3
+
+                scr17_ViewAttachedExpenses_1 As button:
+                    BorderColor: =RGBA(34, 102, 227, 1)
+                    Color: =RGBA(34, 102, 227, 1)
+                    Fill: ='Reports - Edit Screen'.Fill
+                    FocusedBorderThickness: =2
+                    Height: =45
+                    HoverBorderColor: =
+                    HoverColor: =Self.Color
+                    HoverFill: =
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =280
+                    OnSelect: =Navigate('Reports - View Attached Expenses Screen');
+                    PressedBorderColor: =Self.BorderColor
+                    PressedColor: =Self.Color
+                    PressedFill: =Self.Fill
+                    RadiusBottomLeft: =4
+                    RadiusBottomRight: =4
+                    RadiusTopLeft: =4
+                    RadiusTopRight: =4
+                    Size: =16
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewAllLabel'
+                    Visible: |-
+                        =If(
+                            CountRows(colAttachedExpenses) > 0,
+                            true,
+                            false
+                        )
+                    Width: =170
+                    X: =443
+                    Y: |-
+                        =scr17_txt_Description_1.Y + 
+                        scr17_txt_Description_1.Height + 
+                        35
+                    ZIndex: =4
+
+            Container2_1 As groupContainer.manualLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: |-
+                    =If(
+                        CountRows(colAttachedExpenses) > 0,
+                        0,
+                        125
+                    )
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =0
+                LayoutMinWidth: =250
+                Width: =Parent.Width
+                ZIndex: =3
+
+                scr17_btn_AttachExpenses_1 As button:
+                    BorderThickness: =0
+                    Color: =RGBA(34, 102, 227, 1)
+                    Fill: =RGBA(255, 255, 255, 1)
+                    FocusedBorderThickness: =0
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Normal
+                    Height: =60
+                    HoverBorderColor: =
+                    HoverColor: =Self.Color
+                    HoverFill: =
+                    OnSelect: |
+                        =If(
+                            varIsCreateReport,
+                            IfError(
+                                Set(
+                                    varSelectedReport,
+                                    Patch(
+                                        'Expense reports (mserp)',
+                                        Defaults('Expense reports (mserp)'),
+                                        {
+                                            Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                    Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                            Description: scr17_txt_Description_1.Text,
+                                            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
+                                            'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                        }
+                                    )
+                                ),
+                                UpdateContext({
+                                        varCreateError : 
+                                        Substitute(
+                                            Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                            """message"":", 
+                                            ""
+                                        )
+                                    }
+                                )
+                            )
+                        );
+                        If(
+                            IsBlank(varCreateError),
+                            Navigate('Reports - Attach Expenses Screen', ScreenTransition.None, {varCntBack_scr17: true}),
+                            Notify(
+                                Substitute(varCreateError, """", ""),
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            )
+                        );
+                        
+                        Set(varIsCreateReport,
+                            false
+                        );
+                    PressedBorderColor: =
+                    PressedColor: =Self.Color
+                    PressedFill: =
+                    RadiusBottomLeft: =6
+                    RadiusBottomRight: =6
+                    RadiusTopLeft: =6
+                    RadiusTopRight: =6
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachExpensesLabel'
+                    Visible: |-
+                        =If(
+                            CountRows(colAttachedExpenses) > 0,
+                            false,
+                            true
+                        )
+                    Width: =280
+                    X: |
+                        =(Parent.Width - Self.Width)/2
+                    Y: =40
+                    ZIndex: =3
+
+                scr17_img_Plus_1 As image:
+                    AccessibleLabel: =
+                    Height: =22
+                    Image: =Shapeplus
+                    OnSelect: =Navigate('Reports - Attach Expenses Screen');
+                    Visible: =scr17_btn_AttachExpenses_1.Visible
+                    Width: =22
+                    X: =scr17_btn_AttachExpenses_1.X + 23
+                    Y: =scr17_btn_AttachExpenses_1.Y + 19
+                    ZIndex: =4
+
+            "scr17_glr_AttachedExpenses_4 As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver4.0'":
+                '#CopilotOverlayLabel': ="Filtered"
+                AccessibleLabel: ="List of attached expenses"
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Fill: =Color.White
+                FocusedBorderColor: =
+                FocusedBorderThickness: =0
+                Height: =Min((Self.TemplateHeight) * CountRows(Self.AllItems), 'Totals Buttons - Draft'.Y - Self.Y)
+                ItemAccessibleLabel: ="Select to view expense"
+                Items: =colAttachedExpenses
+                Layout: =Layout.Vertical
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =287
+                LayoutMinWidth: =320
+                OnSelect: |
+                    =//set details for the next screen 
+                    Concurrent(
+                        Set(
+                            varIsCreate,
+                            false
+                        ),
+                        Set(
+                            varReceiptImage,
+                            Blank()
+                        ),
+                        Set(
+                            varSelectedExpenseDoc,
+                            Blank()
+                        )
+                    );
+                    //assign the expense to a varSelectedExpenseDoc
+                    Set(
+                        varSelectedExpenseDoc,
+                        LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                    );
+                    Set(
+                        varReceiptImage,
+                        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)
+                    );
+                    Set(
+                        varFileFormat,
+                        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
+                    );
+                    Set(
+                        varExpenseAgainstWorkItem,
+                        Blank()
+                    );
+                    Set(
+                        varSelectedReceiptNumber,
+                        Blank()
+                    );
+                    UpdateContext({
+                        currExpenseType: varSelectedExpenseDoc.'Expense type'
+                    });
+                    
+                    //collect policy violations
+                    If(
+                        varSelectedExpenseDoc.PolicyViolationCount,
+                        ClearCollect(
+                            colPolViolations,
+                            Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                        );
+                        UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
+                        UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                        Clear(colPolViolations);
+                        UpdateContext({varMaxViolationLevel : 0});
+                        UpdateContext({varNumViolation : 0})
+                    );
+                    Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : "scr17", varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation, currExpenseType:currExpenseType, varRemainingAmount: 0, locCategoryChange: false, locItemizeButtonVisibilityFlag: false})
+                ShowScrollbar: =false
+                TemplatePadding: =0
+                TemplateSize: =129
+                Visible: |
+                    =If(
+                        CountRows(colAttachedExpenses) > 0,
+                        true,
+                        false
+                    )
+                Width: =Parent.Width
+                Y: =Container2_1.Y + Container2_1.Height
+                ZIndex: =5
+
+                scr17_img_Category_4 As image:
+                    Height: =30
+                    Image: |-
+                        =If(
+                            Value(ThisItem.PolicyViolationsLevel) = 0,
+                            LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').icon,
+                            Value(ThisItem.PolicyViolationsLevel) > 0 && Value(ThisItem.PolicyViolationsLevel) <= 2,
+                            LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').iconYellow,
+                            Value(ThisItem.PolicyViolationsLevel) > 2,
+                            LookUp(dsCategoryImages,expenseType=ThisItem.'Expense type').iconRed
+                        )
+                    OnSelect: =Select(Parent)
+                    Width: =50
+                    X: =16
+                    Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
+                    ZIndex: =6
+
+                scr17_lbl_Merchant_4 As label:
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =37
+                    LineHeight: =1
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =21
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: |-
+                        =If(
+                            ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
+                            Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
+                            ThisItem.Merchant
+                        )
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =373
+                    Wrap: =false
+                    X: =71
+                    Y: =40
+                    ZIndex: =7
+
+                scr17_shp_Seprator_4 As rectangle:
+                    Fill: =RGBA(225, 225, 225, 1)
+                    Height: =1
+                    Width: =Parent.TemplateWidth
+                    Y: =Parent.TemplateHeight - 1
+                    ZIndex: =8
+
+                scr17_lbl_Amount_4 As label:
+                    Align: =Align.Right
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Bold
+                    Height: =41
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =21
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: |
+                        =Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", ThisItem.'Currency (mserp_exchangecode)')
+                        //LookUp('Currencies (mserp)', 'Currency code' = ThisItem.'Currency (mserp_exchangecode)', 'Currency code')
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =250
+                    Wrap: =false
+                    X: =Parent.Width - scr17_lbl_Amount_4.Width - 15
+                    Y: =scr17_lbl_Merchant_4.Y
+                    ZIndex: =9
+
+                scr17_lbl_Date_4 As label:
+                    Align: =Align.Right
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: |
+                        =RGBA(102, 102, 102, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =28
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =16.5
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: |-
+                        =Text(
+                            DateValue(ThisItem.'Transaction date'),
+                            "mmm dd, yyyy"
+                        )
+                    VerticalAlign: =VerticalAlign.Top
+                    Wrap: =false
+                    X: =scr17_lbl_Amount_4.X + scr17_lbl_Amount_4.Width - Self.Width
+                    Y: =86
+                    ZIndex: =10
+
+                scr17_lbl_ProjectName_4 As label:
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: |
+                        =RGBA(102, 102, 102, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =Self.Size*1.8
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =18
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: =ThisItem.ProjectName
+                    VerticalAlign: =VerticalAlign.Top
+                    Visible: =!(scr17_lbl_Warning_4.Visible)
+                    Width: =scr17_lbl_Merchant_4.Width
+                    Wrap: =false
+                    X: =scr17_lbl_Merchant_4.X
+                    Y: =scr17_lbl_Merchant_4.Y + scr17_lbl_Merchant_4.Height + 4
+                    ZIndex: =11
+
+                scr17_lbl_Warning_4 As label:
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: |-
+                        =If(
+                            Value(ThisItem.PolicyViolationsLevel) <= 2,
+                            RGBA(152, 111, 11, 1),
+                            RGBA(217, 44, 44, 1)
+                        )
+                    Font: =Font.'Segoe UI'
+                    Height: =Self.Size * 1.8
+                    OnSelect: =Select(Parent)
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =18
+                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                    Text: |-
+                        =If(
+                            Value(ThisItem.PolicyViolationCount) > 0,
+                            Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_FoundPolicyViolationLabel', "$", Text(ThisItem.PolicyViolationCount))
+                        )
+                            
+                    VerticalAlign: =VerticalAlign.Top
+                    Visible: =Value(ThisItem.PolicyViolationCount) > 0
+                    Width: =scr17_lbl_Merchant_4.Width
+                    Wrap: =false
+                    X: =scr17_lbl_Merchant_4.X
+                    Y: =scr17_lbl_Merchant_4.Y + scr17_lbl_Merchant_4.Height + 4
+                    ZIndex: =12
+
+    scr17_hdr_TopHeader_1 As hdr02_Header:
+        Fill: =scr17_hdr_TopHeader_1.paramFill
+        paramFill: =RGBA(255, 255, 255, 1)
+        paramTitle: |-
+            =If(varIsCreateReport, GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateExpenseReportLabel', GlobalLabels.Labels.'15062:LocalizedName,msdyn_EditExpenseReportHeaderLabel')
+        ZIndex: =3
+
+    scr17_ico_Back_1 As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =icongconfig_backbutton.Color
+        Fill: =icongconfig_backbutton.Fill
+        Height: =icongconfig_backbutton.Height
+        Icon: =Icon.ChevronLeft
+        OnSelect: |
+            =If(
+                isExpReportDirty,
+                UpdateContext({ctVarReportDetailsBack:true}),
+                UpdateContext({ctVarReportDetailsBack: false});
+                Reset(ComboBox_Purpose);
+                Reset(ComboBox_Location);
+                Reset(ComboBox_LegalEntity_ExpReport);
+                If( 
+                    gblIsProjectValidationFlag,
+                    Reset(ComboBox_ProjectId_ExpReport_odata),
+                    Reset(ComboBox_ProjectId_ExpReport_entity)
+                );
+                Navigate('Reports - List Screen')
+            );
+            Set(
+                gblNavigationDrawerVisibility,
+                false
+            );
+        TabIndex: =0
+        Width: =icongconfig_backbutton.Width
+        X: =22
+        Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
+        ZIndex: =4
+
+    scr17_cmp02_CancelDialog_1 As cmp02_ConfirmationDialog:
+        controlName: ="scr17_cmp02_CancelDialog_1"
+        OnLeftButtonClick: |-
+            =UpdateContext({ctVarReportDetailsBack: false});
+        OnRightButtonClick: |-
+            =UpdateContext({ctVarReportDetailsBack: false});
+            Clear(colReportPostDetails);
+            Reset(ComboBox_Purpose);
+            Reset(ComboBox_Location);
+            Reset(ComboBox_LegalEntity_ExpReport);
+            If( 
+                gblIsProjectValidationFlag,
+                Reset(ComboBox_ProjectId_ExpReport_odata),
+                Reset(ComboBox_ProjectId_ExpReport_entity)
+            );
+            Navigate('Reports - List Screen')
+        parmInDescriptionText: ="All unsaved changes will be lost."
+        parmInHeaderText: ="Do you want to go back?"
+        parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+        parmInLeftButtonText: ="No"
+        parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+        parmInRightButtonText: ="Yes"
+        returnFocus: ="scr17_ico_Back_1"
+        Visible: =ctVarReportDetailsBack
+        Y: =0
+        ZIndex: =5
+
