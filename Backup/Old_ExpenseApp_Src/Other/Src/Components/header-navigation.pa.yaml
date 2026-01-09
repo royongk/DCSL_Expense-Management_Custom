@@ -1,0 +1,80 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  header-navigation:
+    DefinitionType: CanvasComponent
+    CustomProperties:
+      header_text:
+        PropertyKind: Input
+        DisplayName: header_text
+        Description: Set header to edit or new
+        DataType: Text
+        Default: ="Text"
+      left_navigation:
+        PropertyKind: Input
+        DisplayName: left_navigation
+        Description: A custom property
+        RaiseOnReset: true
+        DataType: Screen
+        Default: =App.ActiveScreen
+      right_navigation:
+        PropertyKind: Input
+        DisplayName: right_navigation
+        Description: A custom property
+        RaiseOnReset: true
+        DataType: Screen
+        Default: =App.ActiveScreen
+      right_navigation_text:
+        PropertyKind: Input
+        DisplayName: right_navigation_text
+        Description: A custom property
+        RaiseOnReset: true
+        DataType: Text
+        Default: ="Skip"
+    Properties:
+      Fill: =RGBA(0, 0, 0, 1)
+      Height: =Max(App.Height, App.MinScreenHeight)/10
+      Width: =Max(App.Width, App.MinScreenWidth)
+    Children:
+      - Icon1:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Back Button"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(153, 153, 153, 1)
+            Height: =30
+            Icon: =Icon.ChevronLeft
+            OnSelect: =Navigate('header-navigation'.left_navigation)
+            Width: =30
+            X: =22
+            Y: =45
+      - Label2:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Segoe UI'
+            FontWeight: =FontWeight.Semibold
+            Text: ='header-navigation'.header_text
+            Width: =277
+            X: =168
+            Y: =25
+      - Label3:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(128, 128, 128, 1)
+            Font: =Font.'Segoe UI'
+            OnSelect: =Navigate('header-navigation'.right_navigation)
+            Text: ='header-navigation'.right_navigation_text
+            Width: =169
+            X: =459
+            Y: =25

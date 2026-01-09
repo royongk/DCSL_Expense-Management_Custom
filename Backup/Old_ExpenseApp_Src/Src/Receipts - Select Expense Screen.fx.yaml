@@ -1,0 +1,479 @@
+"'Receipts - Select Expense Screen' As screen.'phoneBrowseLayout_ver3.0'":
+    Fill: =RGBA(248, 248, 248, 0.94)
+    OnVisible: =
+
+    emptyStateComponent_3 As emptyStateComponent:
+        subTitle: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddExpensesToStartReportsLabel'
+        title: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
+        Visible: =!scr13_glr_ExpenseList_VE.Visible
+        X: |
+            =(Parent.Width - Self.Width)/2
+        Y: =(Parent.Height - Self.Height)/2
+
+    "scr13_glr_ExpenseList_VE As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+        '#CopilotOverlayLabel': ="Filtered"
+        AccessibleLabel: ="Select expense to attach receipt to"
+        DelayItemLoading: =true
+        Height: =Parent.Height - Self.Y
+        Items: |+
+            =Filter(
+                SortByColumns('Expense lines (mserp)', "mserp_transdate", SortOrder.Descending),
+                'Company (mserp_company)' = varSelectedLegalEntity && 
+                'Approval status' = 'Document status (mserp)'.Draft && 
+                IsBlank('Expense report number (mserp_expnumber)') && 
+                ('Expense line type' = 'Expense line type (mserp)'.Default 
+                || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header')
+            )
+            
+        Layout: =Layout.Vertical
+        LoadingSpinner: =LoadingSpinner.Data
+        OnSelect: |
+            =
+            //set details for the next screen 
+            Concurrent(
+                Set(
+                    varIsCreate,
+                    false
+                ),
+                Set(
+                    varReceiptImage,
+                    Blank()
+                )
+            );
+            UpdateContext({varCntReceiptAttached:false});
+            //assign the expense to a varSelectedExpenseDoc
+            Set(
+                varSelectedExpenseDoc,
+                LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+            );
+            //set receipt image if attachedDocuRefRecId is not 0
+            If(
+                !IsBlank(ThisItem.AttachedReceiptId),
+                UpdateContext({varCntReceiptAttached:true}),
+                //no receipt attached
+                //attempt to attach receipt if receipt selected
+                //update expense record and navigate to expense edit screen
+                UpdateContext({varCurrentCapturedReceipt: LookUp('Expense Mobile Unattached Document Entity (mserp)',EntRecId = varSelectedReceiptNumber)});
+                If(
+                    !IsBlank(varSelectedReceiptNumber),
+                    IfError(
+                        ClearCollect(responseExpenseReceipt,
+                        Patch(
+                        'Expense Mobile Unattached Document Entity (mserp)',
+                        varCurrentCapturedReceipt,
+                        {
+                            ExpTransNumber: ThisItem.'Expense transaction number (mserp_exptransnumber)'
+                        }
+                    )
+                    )
+                        ,
+                        UpdateContext({varAttachReceiptError : FirstError.Details})
+                    );
+                    
+                    If( 
+                        IsBlank(varAttachReceiptError) || Text(varAttachReceiptError.HttpStatusCode) = NotFoundStatusCode,
+                        //set receipt number to be blank,
+                        Notify(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptAttachedSuccessfullyLabel', 
+                        NotificationType.Success, 
+                        gblParams.notificationTime
+                        );
+                        Set(
+                            varReceiptImage,
+                            varCurrentCapturedReceipt.CapturedDocument
+                        );
+                        Set(
+                            varFileFormat,
+                            varCurrentCapturedReceipt.FileExtension
+                        );
+                        Set(
+                            isExpenseReceiptAttached,
+                            true
+                        );
+                        Set(
+                            varSelectedReceiptNumber,
+                            Blank()
+                        ),
+                        //show error
+                        Notify(
+                            Substitute(
+                            Substitute( Match(varAttachReceiptError.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                """message"":", 
+                                ""), """", ""),
+                            NotificationType.Error , 
+                            gblParams.notificationTime
+                            )
+                        )
+                    )    
+                );
+            
+                //collect policy violations
+            
+                If(
+                    ThisItem.PolicyViolationCount,
+                    ClearCollect(
+                        colPolViolations,
+                        Split(ThisItem.PolicyViolationErrorMessage, "~|~")
+                    );
+                    UpdateContext({varMaxViolationLevel : ThisItem.PolicyViolationsLevel});
+                    UpdateContext({varNumViolation : ThisItem.PolicyViolationCount}),
+                    Clear(colPolViolations);
+                    UpdateContext({varMaxViolationLevel : 0});
+                    UpdateContext({varNumViolation : 0})
+                );
+                Set(
+                    isProjIdCalledFromAttach,
+                    true
+                );
+                If(
+                    !varCntReceiptAttached,
+                    Navigate(
+                        'Expenses - Edit Screen', 
+                        ScreenTransition.None, 
+                        {
+                            varNavigatedFrom : Blank(), varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation,varRemainingAmount: 0, locCategoryChange: false,locItemizeButtonVisibilityFlag: false
+                        }
+                    );
+                );
+        TemplatePadding: =0
+        TemplateSize: =120
+        Visible: =Self.AllItemsCount > 0
+        Width: =Parent.Width
+        Y: =scr13_lbl_BackgroundLabel.Y + scr13_lbl_BackgroundLabel.Height
+        ZIndex: =5
+
+        Container11_2 As groupContainer.verticalAutoLayoutContainer:
+            Height: =Parent.TemplateHeight
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMode: =LayoutMode.Auto
+            Width: =Parent.Width
+            ZIndex: =2
+
+            Container6_2 As groupContainer.horizontalAutoLayoutContainer:
+                Height: =Parent.Height - scr13_shp_GalleryBaseSeparator_2.Height
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width
+                ZIndex: =1
+
+                shpBorder_9 As rectangle:
+                    Fill: =Color.Transparent
+                    Height: =Parent.Height
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    Width: =10
+                    ZIndex: =1
+
+                Image6_1 As image:
+                    Height: =Parent.Height
+                    Image: |-
+                        =If(
+                            Value(ThisItem.PolicyViolationsLevel) = 0,
+                            LookUp(dsCategoryImages, expenseType = ThisItem.'Expense type', icon),
+                            Value(ThisItem.PolicyViolationsLevel) > 0 && Value(ThisItem.PolicyViolationsLevel) <= 2,
+                            LookUp(dsCategoryImages, expenseType = ThisItem.'Expense type', iconYellow), //iconYellow
+                            Value(ThisItem.PolicyViolationsLevel) > 2,
+                            LookUp(dsCategoryImages, expenseType = ThisItem.'Expense type', iconRed) //iconRed
+                        )
+                    ImagePosition: =ImagePosition.Center
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Width: =60
+                    ZIndex: =3
+
+                Container7_2 As groupContainer.verticalAutoLayoutContainer:
+                    Height: =225
+                    LayoutDirection: =LayoutDirection.Vertical
+                    LayoutGridColumns: =6
+                    LayoutGridRows: =6
+                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =112
+                    LayoutMinWidth: =250
+                    LayoutMode: =LayoutMode.Auto
+                    ZIndex: =4
+
+                    Label5_4 As label:
+                        AutoHeight: =true
+                        Font: =Font.'Segoe UI'
+                        Height: =70
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        OnSelect: =Select(scr13_shp_SelectRegion_1)
+                        PaddingLeft: =15
+                        PaddingRight: =0
+                        Size: =21
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: |-
+                            =If(
+                                ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
+                                Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
+                                ThisItem.Merchant
+                            )
+                        Width: =Parent.Width
+                        ZIndex: =1
+
+                    Label6_4 As label:
+                        AutoHeight: =true
+                        Color: |-
+                            =If(
+                                Value(ThisItem.PolicyViolationCount) > 0,
+                                If(
+                                    Value(ThisItem.PolicyViolationsLevel) <= 2,
+                                    RGBA(152, 111, 11, 1),
+                                    RGBA(217, 44, 44, 1)
+                                ),
+                                RGBA(102, 102, 102, 1)
+                            )
+                        Font: =Font.'Segoe UI'
+                        Height: =70
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        OnSelect: =Select(scr13_shp_SelectRegion_1)
+                        PaddingLeft: =15
+                        PaddingRight: =0
+                        Size: =21
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: |-
+                            =If(
+                                Value(ThisItem.PolicyViolationCount) > 0,
+                                Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_FoundPolicyViolationLabel', "$", Text(ThisItem.PolicyViolationCount)),
+                                ThisItem.ProjectName
+                            )
+                        Width: =Parent.Width
+                        ZIndex: =2
+
+                Container9_2 As groupContainer.verticalAutoLayoutContainer:
+                    FillPortions: =0
+                    Height: =225
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutDirection: =LayoutDirection.Vertical
+                    LayoutGridColumns: =6
+                    LayoutGridRows: =6
+                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =112
+                    LayoutMinWidth: =250
+                    LayoutMode: =LayoutMode.Auto
+                    Width: =200
+                    ZIndex: =5
+
+                    Label5_5 As label:
+                        Align: =Align.Center
+                        AutoHeight: =true
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =70
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        OnSelect: =Select(scr13_shp_SelectRegion_1)
+                        Size: =21
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: |+
+                            =Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", ThisItem.'Currency (mserp_exchangecode)')
+                            
+                        Width: =Parent.Width
+                        ZIndex: =1
+
+                    Label6_5 As label:
+                        Align: =Align.Center
+                        AutoHeight: =true
+                        Color: =RGBA(102, 102, 102, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =70
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        OnSelect: =Select(scr13_shp_SelectRegion_1)
+                        Size: =21
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: |-
+                            =Text(
+                                DateValue(ThisItem.'Transaction date'),
+                                "mmm dd, yyyy"
+                            )
+                        Width: =Parent.Width
+                        ZIndex: =2
+
+            scr13_shp_GalleryBaseSeparator_2 As rectangle:
+                AlignInContainer: =AlignInContainer.Center
+                Fill: =RGBA(225, 225, 225, 1)
+                Height: =1
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =1
+                Width: =Parent.Width - 10
+                ZIndex: =2
+
+        scr13_shp_SelectRegion_1 As rectangle:
+            Fill: =RGBA(0, 0, 0, 0)
+            Height: =Parent.TemplateHeight
+            OnSelect: =Select(Parent)
+            TabIndex: =0
+            Width: =Parent.Width
+            ZIndex: =3
+
+    scr13_lbl_BackgroundLabel As label:
+        Color: =RGBA(48, 48, 48, 1)
+        Fill: =Color.White
+        Height: =70
+        PaddingLeft: =15
+        Size: =18
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectExpenseToAttachReceiptLabel'
+        Width: =Parent.Width
+        Y: =89
+        ZIndex: =6
+
+    scr13_shp_Seprator As rectangle:
+        Fill: =RGBA(225, 225, 225, 1)
+        Height: =1
+        Width: =Parent.Width
+        Y: =158
+        ZIndex: =7
+
+    scr13_hdr_TopHeader As hdr02_Header:
+        Fill: =Color.White
+        paramColor: =Color.Black
+        paramFill: =Color.White
+        paramTitle: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectAnExpenseLabel'
+        ZIndex: =8
+
+    scr13_ico_Back As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =RGBA(110, 110, 110, 1)
+        Fill: =icongconfig_backbutton.Fill
+        Height: =icongconfig_backbutton.Height
+        Icon: =Icon.ChevronLeft
+        OnSelect: =Back()
+        TabIndex: =0
+        Width: =icongconfig_backbutton.Width
+        X: =22
+        Y: =(scr02_hdr_TopHeader.Height-Self.Height)/2
+        ZIndex: =9
+
+    cmp13_ConfirmationDialog As cmp02_ConfirmationDialog:
+        controlName: ="cmp13_ConfirmationDialog"
+        OnLeftButtonClick: |-
+            = UpdateContext({varCntReceiptAttached: false});
+        OnRightButtonClick: |-
+            =
+            UpdateContext({varCurrentCapturedReceipt: LookUp('Expense Mobile Unattached Document Entity (mserp)',EntRecId = Value(SelectedReceiptNumber))});
+            UpdateContext({varAttachReceiptOnChangeError : Blank()});
+            If(
+                !IsBlank(SelectedReceiptNumber),
+                IfError(
+                    Patch(
+                        'Expense Mobile Unattached Document Entity (mserp)',
+                        varCurrentCapturedReceipt,
+                        {
+                            ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        }       
+                    ),
+                    UpdateContext({varAttachReceiptOnChangeError : FirstError.Details})
+                );
+                If(
+                    (IsBlank(varAttachReceiptOnChangeError)) || Text(varAttachReceiptOnChangeError.HttpStatusCode) = NotFoundStatusCode,
+                    Set(
+                        varReceiptImage,
+                        varCurrentCapturedReceipt.CapturedDocument
+                    );
+                    Set(
+                        varFileFormat,
+                        varCurrentCapturedReceipt.FileExtension
+                    );
+                    Set(
+                        isExpenseReceiptAttached,
+                        true
+                    );
+                    Set(
+                        varSelectedExpenseDoc,
+                        LookUp(
+                            'Expense lines (mserp)',
+                            'Expense transaction number (mserp_exptransnumber)' = SelectedExpense
+                        )
+                    );
+                    //collect policy violations
+                    If(
+                        varSelectedExpenseDoc.PolicyViolationCount,
+                        ClearCollect(
+                            colPolViolations,
+                            Split(
+                                varSelectedExpenseDoc.PolicyViolationErrorMessage,
+                                "~|~"
+                            )
+                        );
+                        UpdateContext({varMaxViolationLevel: varSelectedExpenseDoc.PolicyViolationsLevel});
+                        UpdateContext({varNumViolation: varSelectedExpenseDoc.PolicyViolationCount}),
+                        Clear(colPolViolations);
+                        UpdateContext({varMaxViolationLevel: 0});
+                        UpdateContext({varNumViolation: 0})
+                    );
+                    Set(
+                        isProjIdCalledFromAttach,
+                        true
+                    );
+                    Set(
+                        varSelectedReceiptNumber,
+                        Blank()
+                    );
+                    Notify(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptAttachedSuccessfullyLabel',
+                        NotificationType.Success,
+                        gblParams.notificationTime
+                    );
+                    Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : Blank(), varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation,varRemainingAmount: 0, locCategoryChange: false,locItemizeButtonVisibilityFlag: false}),
+                    //if there is an error notify user 
+                    Notify(
+                        Substitute(
+                            Substitute( 
+                                Match(varAttachReceiptOnChangeError.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                """message"":", 
+                                ""
+                            ), """", ""
+                        ),
+                        NotificationType.Error,
+                        gblParams.notificationTime
+                    )
+                )
+                
+            );
+            UpdateContext({varCntReceiptAttached: false});
+        parmInDescriptionText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReplaceReciptConfirmationTextLabel'
+        parmInHeaderText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReplaceExistingReceiptHeaderLabel'
+        parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+        parmInLeftButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoOptionLabel'
+        parmInRightButtonColor: =RGBA(34, 102, 227, 1)
+        parmInRightButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_YesOptionLabel'
+        returnFocus: ="scr13_glr_ExpenseList_VE"
+        SelectedExpense: =varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+        SelectedReceiptNumber: =varSelectedReceiptNumber
+        Visible: =varCntReceiptAttached
+        Y: =0
+        ZIndex: =10
+

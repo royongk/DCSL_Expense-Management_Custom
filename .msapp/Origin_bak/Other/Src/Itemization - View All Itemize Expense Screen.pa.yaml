@@ -1,0 +1,361 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Itemization - View All Itemize Expense Screen:
+    Properties:
+      Fill: =RGBA(244, 244, 244, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+    Children:
+      - ItemizedExpensesList_Approvals:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="List of itemized Expense"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =App.Height - ViewItemizeExpenseHeader.Height - viewItemizedExpensesButtonContainer.Height
+            Items: |-
+              =Filter(
+                  'Expense Lines Attached to a Report for Approvals (mserp)',
+                  'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varExpenseAgainstWorkItem.'Expense transaction number (mserp_exptransnumber)'
+              )
+            OnSelect: |-
+              =
+              //set details for the next screen 
+              Concurrent(
+                  Set(
+                      varIsCreate,
+                      false
+                  ),
+                  Set(
+                      varReceiptImage,
+                      Blank()
+                  )
+              );
+              // assign the expense to a varSelectedItemizedExpenseDoc_Approvals
+              Set(
+                  varSelectedItemizedExpenseDoc_Approvals,
+                  LookUp('Expense Lines Attached to a Report for Approvals (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+              );
+              // populating base64 to show image on selection of expense
+              Set(
+                  varReceiptImage,
+                  LookUp(receiptsAgainstWorkItems, ExpenseLineAttachedTo = varSelectedItemizedExpenseDoc_Approvals.'Expense transaction number (mserp_exptransnumber)',CapturedDocument) 
+              );
+
+              // collect policy violations
+              If(
+                  varSelectedItemizedExpenseDoc_Approvals.PolicyViolationCount,
+                  ClearCollect(
+                      colPolViolations,
+                      Split(varSelectedItemizedExpenseDoc_Approvals.PolicyViolationErrorMessage, "~|~")
+                  );
+                  UpdateContext({varMaxViolationLevel : varSelectedItemizedExpenseDoc_Approvals.PolicyViolationsLevel});
+                  UpdateContext({varNumViolation : varSelectedItemizedExpenseDoc_Approvals.PolicyViolationCount}),
+                  Clear(colPolViolations);
+                  UpdateContext({varMaxViolationLevel : 0});
+                  UpdateContext({varNumViolation : 0})
+              );
+
+              Navigate('Itemization - Itemized Expense View Only Screen_Approval', ScreenTransition.None, {varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation,varNavigatedFrom : varNavigatedFrom})
+            TemplateSize: =App.Height * 0.123
+            Visible: =varNavigatedFrom = "scr22"
+            Width: =App.Width
+            Y: =ViewItemizeExpenseHeader.Height
+          Children:
+            - SubCategoryName2_1:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =Parent.TemplateHeight * 0.55
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.157
+                  Text: =ThisItem.'Expense subcategory name'
+                  Width: =App.Width - Self.X - AmountLabel2_1.Width - NextArrow5_1.Width
+                  X: =App.Width * 0.0234
+                  Y: =Parent.TemplateHeight * 0.064
+            - TransactionDateSubcategory2_1:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.25
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.121
+                  Text: |-
+                    =Text(
+                        DateValue(ThisItem.'Transaction date'),
+                        "dd mmm, yyyy"
+                    )
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =SubCategoryName2_1.Width
+                  X: =App.Width * 0.0234
+                  Y: =SubCategoryName2_1.Y + SubCategoryName2_1.Height + Parent.TemplateHeight * 0.0286
+            - scr01_shp_Seprator_7:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(225, 225, 225, 1)
+                  Height: =1
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - 1
+            - AmountLabel2_1:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Right
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =Parent.TemplateHeight * 0.514
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.15
+                  Text: |+
+                    =If(ItemizedExpensesList_Approvals.AllItemsCount > 0,
+                    Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", varSelectedExpenseDoc.'Currency (mserp_exchangecode)')
+                    )
+                  Width: =App.Width * 0.422
+                  X: =NextArrow5_1.X - Self.Width
+                  Y: =Parent.TemplateHeight * 0.06
+            - NextArrow5_1:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  AccessibleLabel: =Self.Tooltip
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(110, 110, 110, 1)
+                  DisabledBorderColor: =RGBA(56, 56, 56, 1)
+                  DisabledColor: =RGBA(119, 119, 119, 1)
+                  Height: =Parent.TemplateHeight
+                  Icon: =Icon.ChevronRight
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  TabIndex: =0
+                  Tooltip: ="View itemized expense detail"
+                  Width: =App.Width * 0.0766
+                  X: =App.Width - Self.Width
+      - ItemizedExpensesList:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="List of itemized Expense"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =App.Height - ViewItemizeExpenseHeader.Height - viewItemizedExpensesButtonContainer.Height
+            Items: |-
+              =Filter(
+                  'Expense lines (mserp)',
+                  'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                  )
+            OnSelect: |-
+              =
+              //set details for the next screen 
+              Concurrent(
+                  Set(
+                      varIsCreate,
+                      false
+                  ),
+                  Set(
+                      varReceiptImage,
+                      Blank()
+                  ),
+                  Set(
+                      varSelectedReceiptNumber,
+                      Blank()
+                  ),
+                  Set(
+                      varChangeReceiptItemizedExpense,
+                      true
+                  )
+              );
+              // assign the expense to a varSelectedItemizedExpenseDoc
+              Set(
+                  varSelectedItemizedExpenseDoc,
+                  LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+              );
+              // populating base64 to show image on selection of expense
+              Set(
+                  varReceiptImage,
+                  LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedItemizedExpenseDoc.AttachedReceiptId),CapturedDocument) 
+              );
+
+              // collect policy violations
+              If(
+                  varSelectedItemizedExpenseDoc.PolicyViolationCount,
+                  ClearCollect(
+                      colPolViolations,
+                      Split(varSelectedItemizedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                  );
+                  UpdateContext({varMaxViolationLevel : varSelectedItemizedExpenseDoc.PolicyViolationsLevel});
+                  UpdateContext({varNumViolation : varSelectedItemizedExpenseDoc.PolicyViolationCount}),
+                  Clear(colPolViolations);
+                  UpdateContext({varMaxViolationLevel : 0});
+                  UpdateContext({varNumViolation : 0})
+              );
+              If(varSelectedExpenseDoc.'Approval status' = 'Document status (mserp)'.Draft,
+              Navigate('Itemization - Itemized Expense Edit Screen', ScreenTransition.None, {varNavigatedFrom : varNavigatedFrom, varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation, varSalesTaxAmount: Blank()}),
+              Navigate('Itemization - Itemized Expense View Only Screen', ScreenTransition.None, {varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation,varNavigatedFrom : varNavigatedFrom})
+              )
+            TemplateSize: =App.Height * 0.123
+            Visible: =!ItemizedExpensesList_Approvals.Visible
+            Width: =App.Width
+            Y: =ViewItemizeExpenseHeader.Height
+          Children:
+            - SubCategoryName2:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =Parent.TemplateHeight * 0.55
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.157
+                  Text: =ThisItem.'Expense subcategory name'
+                  Width: =App.Width - Self.X - AmountLabel2.Width - NextArrow5.Width
+                  X: =App.Width * 0.0234
+                  Y: =Parent.TemplateHeight * 0.064
+            - TransactionDateSubcategory2:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(71, 69, 64, 1)
+                  DisabledColor: =RGBA(186, 186, 186, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight * 0.25
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =Parent.TemplateHeight * 0.121
+                  Text: |-
+                    =Text(
+                        DateValue(ThisItem.'Transaction date'),
+                        "dd mmm, yyyy"
+                    )
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =SubCategoryName2.Width
+                  X: =App.Width * 0.0234
+                  Y: =SubCategoryName2.Y + SubCategoryName2.Height + Parent.TemplateHeight * 0.0286
+            - scr01_shp_Seprator_4:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(225, 225, 225, 1)
+                  Height: =1
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - 1
+            - AmountLabel2:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Right
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =Parent.TemplateHeight * 0.514
+                  OnSelect: =Select(Parent)
+                  Size: =Parent.TemplateHeight * 0.15
+                  Text: |+
+                    =If(ItemizedExpensesList.AllItemsCount > 0,
+                    Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", varSelectedExpenseDoc.'Currency (mserp_exchangecode)')
+                    )
+                  Width: =App.Width * 0.422
+                  X: =NextArrow5.X - Self.Width
+                  Y: =Parent.TemplateHeight * 0.06
+            - NextArrow5:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  AccessibleLabel: =Self.Tooltip
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(110, 110, 110, 1)
+                  DisabledBorderColor: =RGBA(56, 56, 56, 1)
+                  DisabledColor: =RGBA(119, 119, 119, 1)
+                  Height: =Parent.TemplateHeight
+                  Icon: =Icon.ChevronRight
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =16
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =16
+                  TabIndex: =0
+                  Tooltip: ="View itemized expense detail"
+                  Width: =App.Width * 0.0766
+                  X: =App.Width - Self.Width
+      - ButtonBackground:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =viewItemizedExpensesButtonContainer.Height
+            Width: =viewItemizedExpensesButtonContainer.Width
+            Y: =viewItemizedExpensesButtonContainer.Y
+      - viewItemizedExpensesButtonContainer:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            DropShadow: =DropShadow.ExtraBold
+            Height: =DoneButtonFooter.Height * 2
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =App.Width
+            Y: =App.Height - Self.Height
+          Children:
+            - DoneButtonFooter:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(56, 96, 178, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =App.Height * 0.0616
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  OnSelect: "=Switch(\r\n    varItemizationScreen,\r\n    \"viewOnlyExpenseScreen\",\r\n    \r\nConcurrent(\r\n    Set(\r\n        varIsCreate,\r\n        false\r\n    ),\r\n    Set(\r\n        varReceiptImage,  //set as receiptUrl of attached expense\r\n        Blank()\r\n    )\r\n);\r\n\r\nSet(\r\n    varReceiptImage,\r\n    LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)\r\n);\r\nSet(\r\n    varSelectedReceiptNumber,\r\n    Blank()\r\n);\r\nIf(\r\n    varSelectedExpenseDoc.PolicyViolationCount,\r\n    ClearCollect(\r\n        colPolViolations,\r\n        Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, \"~|~\")\r\n    );\r\n    UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});\r\n    UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),\r\n    Clear(colPolViolations);\r\n    UpdateContext({varMaxViolationLevel : 0});\r\n    UpdateContext({varNumViolation : 0})\r\n);\r\nNavigate('Expenses - View Only Screen', ScreenTransition.None, {varNavigatedFrom : varNavigatedFrom,varMaxViolationLevel : varMaxViolationLevel, varNumViolation : varNumViolation})\r\n,\r\n    \"itemizationDetailScreen\",\r\n    Navigate('Itemization - Detail Screen', ScreenTransition.None, {varNavigatedFrom : varNavigatedFrom}),\r\n    \"viewOnlyApprovalExpenseScreen\",\r\n    Concurrent(\r\n    Set(\r\n        varIsCreate,\r\n        false\r\n    ),\r\n    Set(\r\n        varReceiptImage,  //set as receiptUrl of attached expense\r\n        Blank()\r\n    )\r\n);\r\n\r\nSet(\r\n    varReceiptImage,\r\n    LookUp(receiptsAgainstWorkItems,ExpenseLineAttachedTo = varExpenseAgainstWorkItem.'Expense transaction number (mserp_exptransnumber)',CapturedDocument)\r\n);\r\nSet(\r\n    varSelectedReceiptNumber,\r\n    Blank()\r\n);\r\nIf(\r\n    varExpenseAgainstWorkItem.PolicyViolationCount,\r\n    ClearCollect(\r\n        colPolViolations,\r\n        Split(varExpenseAgainstWorkItem.PolicyViolationMessage, \"~|~\")\r\n    );\r\n    UpdateContext({varMaxViolationLevel : varExpenseAgainstWorkItem.PolicyViolationsLevel});\r\n    UpdateContext({varNumViolation : varExpenseAgainstWorkItem.PolicyViolationCount}),\r\n    Clear(colPolViolations);\r\n    UpdateContext({varMaxViolationLevel : 0});\r\n    UpdateContext({varNumViolation : 0})\r\n);\r\nUpdateContext({testVar : varExpenseAgainstWorkItem});\r\nNavigate('Expenses - View Only Screen', ScreenTransition.None, {varNavigatedFrom : varNavigatedFrom, varMaxViolationLevel : varMaxViolationLevel, varNumViolation : varNumViolation})\r\n)"
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Size: =App.Height * 0.0211
+                  Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'
+                  Width: =App.Width * 0.891
+                  X: =App.Width/2 - Self.Width/2
+                  Y: =(ButtonBackground.Height / 2 - DoneButtonFooter.Height / 2)
+      - ViewItemizeExpenseHeader:
+          Control: CanvasComponent
+          ComponentName: header-navigation-PolicyViolation_1
+          Properties:
+            Fill: =Color.White
+            HeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ItemizedExpensesLabel'
+            Height: =82
+            OnBackIconSelect: "=Switch(\n    varItemizationScreen,\n    \"viewOnlyExpenseScreen\",\n    \nConcurrent(\n    Set(\n        varIsCreate,\n        false\n    ),\n    Set(\n        varReceiptImage,  //set as receiptUrl of attached expense\n        Blank()\n    )\n);\n\nSet(\n    varReceiptImage,\n    LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)\n);\nSet(\n    varSelectedReceiptNumber,\n    Blank()\n);\nIf(\n    varSelectedExpenseDoc.PolicyViolationCount,\n    ClearCollect(\n        colPolViolations,\n        Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, \"~|~\")\n    );\n    UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});\n    UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),\n    Clear(colPolViolations);\n    UpdateContext({varMaxViolationLevel : 0});\n    UpdateContext({varNumViolation : 0})\n);\nNavigate('Expenses - View Only Screen', ScreenTransition.None, {varNavigatedFrom : varNavigatedFrom, varMaxViolationLevel : varMaxViolationLevel, varNumViolation : varNumViolation})\n,\n    \"itemizationDetailScreen\",\n    Navigate('Itemization - Detail Screen'),\n    \"viewOnlyApprovalExpenseScreen\",\n    Concurrent(\n    Set(\n        varIsCreate,\n        false\n    ),\n    Set(\n        varReceiptImage,  //set as receiptUrl of attached expense\n        Blank()\n    )\n);\n\nSet(\n    varReceiptImage,\n    LookUp(receiptsAgainstWorkItems,ExpenseLineAttachedTo = varExpenseAgainstWorkItem.'Expense transaction number (mserp_exptransnumber)',CapturedDocument)\n);\nSet(\n    varSelectedReceiptNumber,\n    Blank()\n);\nIf(\n    varExpenseAgainstWorkItem.PolicyViolationCount,\n    ClearCollect(\n        colPolViolations,\n        Split(varExpenseAgainstWorkItem.PolicyViolationMessage, \"~|~\")\n    );\n    UpdateContext({varMaxViolationLevel : varExpenseAgainstWorkItem.PolicyViolationsLevel});\n    UpdateContext({varNumViolation : varExpenseAgainstWorkItem.PolicyViolationCount}),\n    Clear(colPolViolations);\n    UpdateContext({varMaxViolationLevel : 0});\n    UpdateContext({varNumViolation : 0})\n);\nUpdateContext({testVar : varExpenseAgainstWorkItem});\nNavigate('Expenses - View Only Screen', ScreenTransition.None, {varNavigatedFrom : varNavigatedFrom, varMaxViolationLevel : varMaxViolationLevel, varNumViolation : varNumViolation})\n)"
+            Width: =App.Width

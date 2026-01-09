@@ -28,6 +28,38 @@
                 )
             }
         );
+        // 3-level category selection variables
+        UpdateContext({varSelectedDepartment: Blank()});
+        UpdateContext({varSelectedBenefitType: Blank()});
+        // Load existing Department and Benefit Type from Expense Category (reverse lookup)
+        With(
+            {
+                expenseCategory: Coalesce(
+                    varExpenseAgainstWorkItem.'Expense category (mserp_costtype)',
+                    varSelectedExpenseDoc.'Expense category (mserp_costtype)'
+                )
+            },
+            If(
+                !IsBlank(expenseCategory),
+                With(
+                    {
+                        mappingRecord: LookUp(
+                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                            mserp_expensecategory = expenseCategory
+                        )
+                    },
+                    If(
+                        !IsBlank(mappingRecord),
+                        UpdateContext({
+                            varSelectedDepartment: mappingRecord.mserp_department
+                        });
+                        UpdateContext({
+                            varSelectedBenefitType: mappingRecord.mserp_benefittype
+                        })
+                    )
+                )
+            )
+        );
         //if labelTableLookUp not empty
         If(
             CountRows(labelTableLookUp) <= 0,
@@ -360,6 +392,113 @@
             Width: =Parent.Width
             Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
             ZIndex: =1
+
+            "'Department_DataCard_ViewOnly' As typedDataCard.allowedValuesStringEditCard":
+                AllowedValues: |-
+                    =Distinct(
+                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                        mserp_department
+                    )
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_department"
+                Default: =varSelectedDepartment
+                DisplayMode: =DisplayMode.View
+                DisplayName: ="Department"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =varSelectedDepartment
+                Visible: =!IsBlank(varSelectedDepartment)
+                Width: =Parent.Width
+                X: =1
+                Y: =expenseCategoryFieldOrder_Y - 120
+                ZIndex: =1
+
+                Department_DataCardKey_ViewOnly As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                Department_Value_ViewOnly As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.expenseDataCardViewOnly
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =varSelectedDepartment
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =Department_DataCardKey_ViewOnly.Y + Department_DataCardKey_ViewOnly.Height + 5
+                    ZIndex: =2
+
+            "'BenefitType_DataCard_ViewOnly' As typedDataCard.allowedValuesStringEditCard":
+                AllowedValues: |-
+                    =If(
+                        !IsBlank(varSelectedDepartment),
+                        Filter(
+                            Distinct(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                mserp_benefittype
+                            ),
+                            mserp_department = varSelectedDepartment
+                        ),
+                        []
+                    )
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_benefittype"
+                Default: =varSelectedBenefitType
+                DisplayMode: =DisplayMode.View
+                DisplayName: ="Benefit Type"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =varSelectedBenefitType
+                Visible: =!IsBlank(varSelectedBenefitType)
+                Width: =Parent.Width
+                X: =1
+                Y: =expenseCategoryFieldOrder_Y - 60
+                ZIndex: =1
+
+                BenefitType_DataCardKey_ViewOnly As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                BenefitType_Value_ViewOnly As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.expenseDataCardViewOnly
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =varSelectedBenefitType
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =BenefitType_DataCardKey_ViewOnly.Y + BenefitType_DataCardKey_ViewOnly.Height + 5
+                    ZIndex: =2
 
             "'Expense category_DataCard3_2' As typedDataCard.allowedValuesStringEditCard":
                 AllowedValues: |-

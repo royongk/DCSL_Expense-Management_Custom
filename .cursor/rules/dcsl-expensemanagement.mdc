@@ -188,6 +188,41 @@ alwaysApply: true
   - 주석은 `//` 또는 `#` 사용 가능
   - `Src/*.fx.yaml` 파일을 우선적으로 편집 (Power Fx 공식 형식)
   - `Other/Src/*.pa.yaml` 파일은 Power Apps Studio 호환성을 위해 유지
+
+- **Power Apps Symbol 명명 규칙 (필수):**
+  - **Symbol 이름 고유성:** Power Apps에서 모든 컨트롤(Symbol) 이름은 앱 전체에서 고유해야 합니다. (PA3008 오류 방지)
+  - **다중 화면 컨트롤 명명:** 여러 화면에서 동일한 기능의 컨트롤을 사용할 경우, 화면 이름을 접두사로 사용하여 구분해야 합니다.
+    - 예시: `Expenses - Edit Screen`과 `Itemization - Itemized Expense Edit Screen`에 같은 `Department_DataCard`가 있으면
+    - 해결: `Itemization_Department_DataCard`처럼 접두사를 추가하여 고유하게 만듭니다.
+  - **명명 패턴:** `{ScreenName}_{ControlName}` 형식을 권장합니다.
+    - 예시: `Itemization_Department_DataCard`, `Itemization_ComboBox_Department`
+  - **참조 업데이트:** 컨트롤 이름 변경 시 해당 컨트롤을 참조하는 모든 곳을 함께 업데이트해야 합니다.
+    - 컨트롤 참조: `ControlName.Property`
+    - Reset 함수: `Reset(ControlName)`
+    - 조건문: `If(ControlName.Selected, ...)`
+    - 기타 속성 참조: `ControlName.Y`, `ControlName.Height` 등
+
+- **YAML 멀티라인 블록 규칙 (필수):**
+  - **멀티라인 Power Fx 공식:** 여러 줄에 걸친 Power Fx 공식은 반드시 멀티라인 블록 표시자(`|-`)를 사용해야 합니다. (PA3003 오류 방지)
+  - **올바른 형식:**
+    ```yaml
+    DefaultSelectedItems: |-
+        =If(
+            !IsBlank(varSelectedDepartment),
+            LookUp(...),
+            []
+        )
+    ```
+  - **잘못된 형식:**
+    ```yaml
+    DefaultSelectedItems: =If(
+        !IsBlank(varSelectedDepartment),  # ← 멀티라인 블록 표시자 누락
+        LookUp(...),
+        []
+    )
+    ```
+  - **들여쓰기:** 멀티라인 블록 내부의 모든 라인은 속성 이름과 동일한 들여쓰기 레벨에서 시작해야 합니다.
+  - **적용 대상 속성:** `DefaultSelectedItems`, `Items`, `SearchItems`, `DisplayMode`, `OnChange`, `OnSelect` 등 긴 Power Fx 공식이 포함된 모든 속성
 - **보안:**
   - 사용자 입력값은 항상 유효성 검사(Validation)를 거쳐야 합니다.
   - Dataverse Virtual Tables를 통한 데이터 동기화 시 데이터 무결성 보장
@@ -217,12 +252,20 @@ alwaysApply: true
    - VS Code에서 YAML 파일 직접 편집
    - Power Fx 공식 및 컨트롤 속성 수정
    - 데이터 소스 연결 정보 업데이트
+   - **검증 필수:** 수정 후 반드시 `pac canvas pack`을 실행하여 오류 확인
 
-2. **Pack 및 업로드:**
+2. **Pack 및 검증:**
    - Pack 명령어: `pac canvas pack --sources <source-folder> --msapp <output-msapp>`
-   - Power Apps Studio에서 `.msapp` 파일 업로드하여 테스트
+   - **오류 체크:**
+     - PA3003: YAML 파싱 오류 (멀티라인 블록 표시자 누락 또는 들여쓰기 오류)
+     - PA3008: Symbol 중복 정의 오류 (여러 화면에서 동일한 컨트롤 이름 사용)
+   - 오류 발생 시 수정 후 재시도
 
-3. **버전 관리:**
+3. **업로드 및 테스트:**
+   - Pack 성공 후 Power Apps Studio에서 `.msapp` 파일 업로드하여 테스트
+   - 실제 동작 확인 및 검증
+
+4. **버전 관리:**
    - `ExpenseApp_Src/` 폴더 전체를 Git으로 관리
    - `.msapp` 파일은 바이너리이므로 Git LFS 사용 권장
 
@@ -234,14 +277,47 @@ alwaysApply: true
 
 - **파일 구조 이해:**
   - `Src/*.fx.yaml`: Power Fx 공식 형식 (최신 표준)
+    - **우선 편집 대상:** 새로운 컨트롤 추가 및 주요 로직 수정 시 이 파일을 먼저 수정합니다.
+    - **형식:** Power Fx 공식 형식 (`'ControlName' As controlType:`)
   - `Other/Src/*.pa.yaml`: Power Apps Studio 호환 형식
-  - 두 형식 모두 유지하여 호환성 보장
+    - **역할:** Power Apps Studio에서 자동 생성되는 호환 형식
+    - **주의사항:** 이 파일을 직접 수정하지 않으며, Power Apps CLI가 자동으로 동기화합니다.
+    - **중복 정의 문제:** `.fx.yaml`과 `.pa.yaml` 모두에 같은 이름의 컨트롤이 있으면 PA3008 오류가 발생합니다.
+      - 해결: `.fx.yaml` 파일만 수정하고 `.pa.yaml`은 자동 동기화되도록 합니다.
+      - 또는 `.fx.yaml`에서 Symbol 이름을 고유하게 만들어 중복을 방지합니다.
 
 - **데이터 소스 관리:**
   - `DataSources/` 폴더의 JSON 파일은 Dataverse Virtual Tables 연결 정보 포함
   - 수정 시 D365 F&O와의 연동 무결성 확인 필수
 
-## 9. 다음은 답변을 줄 때 고려해야 할 사항들
+## 9. 일반적인 오류 및 해결 방법
+
+### PA3003: YAML 파싱 오류
+- **원인:** 멀티라인 Power Fx 공식에서 블록 표시자(`|-`) 누락 또는 들여쓰기 오류
+- **해결:**
+  1. 멀티라인 Power Fx 공식이 있는 속성에 `|-` 추가
+  2. 공식 내용이 속성 이름과 동일한 들여쓰기 레벨에서 시작하는지 확인
+  3. 예시: `DefaultSelectedItems: |-` 다음 줄의 `=If(`가 올바른 들여쓰기를 가지는지 확인
+
+### PA3008: Symbol 중복 정의 오류
+- **원인:** 앱 전체에서 동일한 컨트롤 이름이 여러 번 정의됨
+- **해결:**
+  1. 중복된 컨트롤 이름 찾기: `grep -r "ControlName As" ExpenseApp_Src/Src/`
+  2. 접두사를 추가하여 고유하게 만들기: `{ScreenName}_{ControlName}`
+  3. 해당 컨트롤을 참조하는 모든 곳 업데이트:
+     - 컨트롤 속성: `ControlName.Property`
+     - Reset 함수: `Reset(ControlName)`
+     - 조건문 및 표현식: `ControlName.Selected`, `ControlName.Y` 등
+  4. Pack 재실행하여 오류 해결 확인
+
+### 파일 형식 불일치
+- **원인:** `.fx.yaml`과 `.pa.yaml` 파일 간 동기화 문제
+- **해결:**
+  1. `.fx.yaml` 파일만 수정 (권장)
+  2. Power Apps CLI가 자동으로 `.pa.yaml` 동기화
+  3. 직접 `.pa.yaml` 수정 시 주의: Pack 시 덮어씌워질 수 있음
+
+## 10. 다음은 답변을 줄 때 고려해야 할 사항들
 
 - 내가 코드 작성을 요청하기 전까지 절대 코드를 작성하지 말 것
 - 이해하기 어려운 지점 혹은 책임과 맥락 관점에서 추가적으로 고려해야 할 사항이 있다면 질문 줄 것, 그러면 답변 주겠음
@@ -250,3 +326,5 @@ alwaysApply: true
 - 테스트 코드 작성의 용이성
 - Power Apps와 D365 F&O 간의 데이터 일관성 유지
 - 이원화 플랫폼 전략 준수 (Power Apps = Front-End, D365 F&O = Back-End)
+- **Symbol 명명 규칙 준수:** 여러 화면에서 사용되는 컨트롤은 고유한 이름을 사용해야 함
+- **YAML 문법 준수:** 멀티라인 Power Fx 공식에는 반드시 블록 표시자(`|-`) 사용

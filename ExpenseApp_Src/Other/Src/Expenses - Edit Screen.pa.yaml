@@ -473,6 +473,33 @@ Screens:
                               PressedFill: =RGBA(0, 18, 107, 1)
                               Reset: =true
                               SearchFields: =["mserp_expensecategory"]
+                              SearchItems: |-
+                                =If(
+                                    !IsBlank(ComboBox_Department.Selected) && !IsBlank(ComboBox_BenefitType.Selected),
+                                    Search(
+                                        SortByColumns(
+                                            ForAll(
+                                                Filter(
+                                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                                    !IsBlank(mserp_expensecategory) &&
+                                                    mserp_department = ComboBox_Department.Selected.mserp_department &&
+                                                    mserp_benefittype = ComboBox_BenefitType.Selected.mserp_benefittype
+                                                ) As MappingRecord,
+                                                LookUp(
+                                                    'Expense category (mserp)',
+                                                    'Expense category' = MappingRecord.mserp_expensecategory &&
+                                                    'Company Code' = varSelectedLegalEntity &&
+                                                    Inactive = 'NoYes (mserp)'.No
+                                                )
+                                            ),
+                                            "mserp_expensecategory",
+                                            SortOrder.Ascending
+                                        ),
+                                        ComboBox1_8.SearchText,
+                                        'Expense category'
+                                    ),
+                                    []
+                                )
                               SelectMultiple: =false
                               SelectionColor: =Color.Black
                               SelectionFill: =gblParams.dropDownBorderColor

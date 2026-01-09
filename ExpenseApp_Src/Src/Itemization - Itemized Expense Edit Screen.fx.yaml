@@ -6,7 +6,31 @@
         UpdateContext({varProjectHierarchyId: Blank()});
         Set(varNavigateFromExpense , Blank());
         UpdateContext({onReloadButtonClick : false});
+        // 3-level category selection variables
+        UpdateContext({varSelectedDepartment: Blank()});
+        UpdateContext({varSelectedBenefitType: Blank()});
         UpdateContext({curCategory : ComboBox1_8.Selected.'Expense category'});
+        // Load existing Department and Benefit Type from Expense Category (reverse lookup)
+        If(
+            !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'),
+            With(
+                {
+                    mappingRecord: LookUp(
+                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                        mserp_expensecategory = varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'
+                    )
+                },
+                If(
+                    !IsBlank(mappingRecord),
+                    UpdateContext({
+                        varSelectedDepartment: mappingRecord.mserp_department
+                    });
+                    UpdateContext({
+                        varSelectedBenefitType: mappingRecord.mserp_benefittype
+                    })
+                )
+            )
+        );
         UpdateContext({curInterCompanyProjectCategoryItemization : ComboBox1_51.Selected.'Expense category'});
         UpdateContext({curIntercompanyLE:varSelectedItemizedExpenseDoc.'Legal entity'});
         UpdateContext({curProjIdSelected : varSelectedItemizedExpenseDoc.'Project ID'});
@@ -491,6 +515,10 @@
             LayoutMaxWidth: =
             LayoutMinHeight: =250
             LayoutMinWidth: =320
+            SnapToColumns: =false
+            Width: =Parent.Width
+            Y: =scr03_img_NoReceiptOuter_2.Y + scr03_img_NoReceiptOuter_2.Height + 30
+            ZIndex: =1
             OnFailure: |-
                 =Notify(
                     Last(Split(Text(Self.Error), ":")).Value, 
@@ -649,11 +677,203 @@
                         locItemizeButtonVisibilityFlag: false
                     }
                 )
-                        
-            SnapToColumns: =false
-            Width: =Parent.Width
-            Y: =scr03_img_NoReceiptOuter_2.Y + scr03_img_NoReceiptOuter_2.Height + 30
-            ZIndex: =1
+
+            "'Itemization_Department_DataCard' As typedDataCard.allowedValuesStringEditCard":
+                AllowedValues: |-
+                    =Distinct(
+                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                        mserp_department
+                    )
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_department"
+                Default: =varSelectedDepartment
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: ="Department"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =Itemization_ComboBox_Department.Selected.mserp_department
+                Visible: =true
+                Width: =Parent.Width
+                X: =1
+                Y: =expenseCategoryFieldOrder_Y - 120
+                ZIndex: =1
+
+                Itemization_Department_DataCardKey As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                Itemization_ComboBox_Department As combobox:
+                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(varSelectedDepartment),
+                            LookUp(
+                                Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', mserp_department),
+                                mserp_department = varSelectedDepartment
+                            ),
+                            []
+                        )
+                    DisplayFields: =["mserp_department"]
+                    FocusedBorderThickness: =2
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
+                    InputTextPlaceholder: ="Select Department"
+                    IsSearchable: =false
+                    Items: |-
+                        =SortByColumns(
+                            Distinct(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                mserp_department
+                            ),
+                            "mserp_department",
+                            SortOrder.Ascending
+                        )
+                    NoSelectionText: ="Select Department"
+                    OnChange: |-
+                        =UpdateContext({varSelectedDepartment: Self.Selected.mserp_department});
+                        Reset(Itemization_ComboBox_BenefitType);
+                        Reset(ComboBox1_9);
+                        UpdateContext({varSelectedBenefitType: Blank()});
+                        UpdateContext({curCategory: Blank()})
+                    SearchFields: =["mserp_department"]
+                    SearchItems: =[]
+                    SelectionColor: =Color.Black
+                    SelectionFill: =gblParams.dropDownBorderColor
+                    SelectionTagColor: =RGBA(0, 0, 0, 1)
+                    SelectMultiple: =false
+                    Size: =24
+                    Template: =ListItemTemplate.Single
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =Itemization_Department_DataCardKey.Y + Itemization_Department_DataCardKey.Height + 5
+                    ZIndex: =2
+
+                Itemization_Department_StarVisible As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =Itemization_Department_DataCardKey.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =Itemization_Department_DataCardKey.Y
+                    ZIndex: =4
+
+            "'Itemization_BenefitType_DataCard' As typedDataCard.allowedValuesStringEditCard":
+                AllowedValues: |-
+                    =If(
+                        !IsBlank(Itemization_ComboBox_Department.Selected),
+                        Filter(
+                            Distinct(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                mserp_benefittype
+                            ),
+                            mserp_department = Itemization_ComboBox_Department.Selected.mserp_department
+                        ),
+                        []
+                    )
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_benefittype"
+                Default: =varSelectedBenefitType
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: ="Benefit Type"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =Itemization_ComboBox_BenefitType.Selected.mserp_benefittype
+                Visible: =true
+                Width: =Parent.Width
+                X: =1
+                Y: =expenseCategoryFieldOrder_Y - 60
+                ZIndex: =1
+
+                Itemization_BenefitType_DataCardKey As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                Itemization_ComboBox_BenefitType As combobox:
+                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(varSelectedBenefitType) && !IsBlank(Itemization_ComboBox_Department.Selected),
+                            LookUp(
+                                Filter(
+                                    Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', mserp_benefittype),
+                                    mserp_department = Itemization_ComboBox_Department.Selected.mserp_department
+                                ),
+                                mserp_benefittype = varSelectedBenefitType
+                            ),
+                            []
+                        )
+                    DisplayFields: =["mserp_benefittype"]
+                    DisplayMode: =If(IsBlank(Itemization_ComboBox_Department.Selected), DisplayMode.Disabled, Parent.DisplayMode)
+                    FocusedBorderThickness: =2
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
+                    InputTextPlaceholder: ="Select Benefit Type"
+                    IsSearchable: =false
+                    Items: =Parent.AllowedValues
+                    NoSelectionText: ="Select Benefit Type"
+                    OnChange: |-
+                        =UpdateContext({varSelectedBenefitType: Self.Selected.mserp_benefittype});
+                        Reset(ComboBox1_9);
+                        UpdateContext({curCategory: Blank()})
+                    SearchFields: =["mserp_benefittype"]
+                    SearchItems: =[]
+                    SelectionColor: =Color.Black
+                    SelectionFill: =gblParams.dropDownBorderColor
+                    SelectionTagColor: =RGBA(0, 0, 0, 1)
+                    SelectMultiple: =false
+                    Size: =24
+                    Template: =ListItemTemplate.Single
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =Itemization_BenefitType_DataCardKey.Y + Itemization_BenefitType_DataCardKey.Height + 5
+                    ZIndex: =2
+
+                Itemization_BenefitType_StarVisible As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =Itemization_BenefitType_DataCardKey.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =Itemization_BenefitType_DataCardKey.Y
+                    ZIndex: =4
 
             "'Expense category_DataCard3_4' As typedDataCard.allowedValuesStringEditCard":
                 AllowedValues: |-
@@ -744,18 +964,47 @@
                     AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                    DefaultSelectedItems: =LookUp('Expense category (mserp)','Expense category' = Parent.Default && 'Company Code' = varSelectedLegalEntity)
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(Parent.Default),
+                            LookUp('Expense category (mserp)','Expense category' = Parent.Default && 'Company Code' = varSelectedLegalEntity),
+                            []
+                        )
                     DisplayFields: =["mserp_expensecategory","mserp_description"]
+                    DisplayMode: |-
+                        =If(
+                            IsBlank(Itemization_ComboBox_Department.Selected) || IsBlank(Itemization_ComboBox_BenefitType.Selected),
+                            DisplayMode.Disabled,
+                            Parent.DisplayMode
+                        )
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
                     InputTextPlaceholder: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
                     Items: |-
-                        =Filter(
-                            'Expense category (mserp)',
-                            'Company Code' = varSelectedLegalEntity && Inactive = 'NoYes (mserp)'.No
-                            && 'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
+                        =If(
+                            !IsBlank(Itemization_ComboBox_Department.Selected) && !IsBlank(Itemization_ComboBox_BenefitType.Selected),
+                            SortByColumns(
+                                ForAll(
+                                    Filter(
+                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                        !IsBlank(mserp_expensecategory) &&
+                                        mserp_department = Itemization_ComboBox_Department.Selected.mserp_department &&
+                                        mserp_benefittype = Itemization_ComboBox_BenefitType.Selected.mserp_benefittype
+                                    ) As MappingRecord,
+                                    LookUp(
+                                        'Expense category (mserp)',
+                                        'Expense category' = MappingRecord.mserp_expensecategory &&
+                                        'Company Code' = varSelectedLegalEntity &&
+                                        Inactive = 'NoYes (mserp)'.No &&
+                                        'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
+                                    )
+                                ),
+                                "mserp_expensecategory",
+                                SortOrder.Ascending
+                            ),
+                            []
                         )
                     NoSelectionText: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
@@ -920,7 +1169,34 @@
                         =UpdateContext({varOnSelectTriggered: true});
                     Reset: =true
                     SearchFields: =["mserp_expensecategory"]
-                    SearchItems: =Search(Filter('Expense category (mserp)','Company Code'=varSelectedLegalEntity&&Inactive='NoYes (mserp)'.No&&'Expense type'<>'TrvExpType (mserp)'.'Per diem'),ComboBox1_9.SearchText,'Expense category')
+                    SearchItems: |-
+                        =If(
+                            !IsBlank(Itemization_ComboBox_Department.Selected) && !IsBlank(Itemization_ComboBox_BenefitType.Selected),
+                            Search(
+                                SortByColumns(
+                                    ForAll(
+                                        Filter(
+                                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                            !IsBlank(mserp_expensecategory) &&
+                                            mserp_department = Itemization_ComboBox_Department.Selected.mserp_department &&
+                                            mserp_benefittype = Itemization_ComboBox_BenefitType.Selected.mserp_benefittype
+                                        ) As MappingRecord,
+                                        LookUp(
+                                            'Expense category (mserp)',
+                                            'Expense category' = MappingRecord.mserp_expensecategory &&
+                                            'Company Code' = varSelectedLegalEntity &&
+                                            Inactive = 'NoYes (mserp)'.No &&
+                                            'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
+                                        )
+                                    ),
+                                    "mserp_expensecategory",
+                                    SortOrder.Ascending
+                                ),
+                                ComboBox1_9.SearchText,
+                                'Expense category'
+                            ),
+                            []
+                        )
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)

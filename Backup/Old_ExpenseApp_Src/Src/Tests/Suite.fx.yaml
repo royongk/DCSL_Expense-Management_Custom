@@ -1,0 +1,26 @@
+"'6a4b9d49-111a-49f0-bf48-9a2388618071' As TestSuite":
+    Description: =""
+    DisplayName: ="Suite"
+
+    "'e4302832-d99c-4a8a-9037-54fc9aa9c132' As TestCase":
+        Description: =""
+        DisplayName: ="Case"
+
+        Step1 As TestStep:
+            Description: ="Select 'scr16_img_CreateReport'"
+            Screen: =Expenses - List Screen
+            Value: =Select(scr16_img_CreateReport)
+
+        Step2 As TestStep:
+            Description: ="Set number of records"
+            Value: =Set(varNumRecords, CountRows('Expense reports (mserp)'))
+
+        Step3 As TestStep:
+            Description: ="Select 'scr17_btn_SaveDraft_1'"
+            Screen: =Reports - Edit Screen
+            Value: =Select(scr17_btn_SaveDraft_1)
+
+        Step4 As TestStep:
+            Description: ="Verify number of records post creation"
+            Value: =Assert(CountRows('Expense reports (mserp)') = varNumRecords + 1)
+
