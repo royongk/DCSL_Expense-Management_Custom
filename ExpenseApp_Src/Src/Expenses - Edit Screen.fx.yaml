@@ -996,16 +996,12 @@
                     IsSearchable: =false
                     Items: |-
                         =ForAll(
-                            Distinct(
+                            GroupBy(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                mserp_department
-                            ) As DeptValue,
-                            First(
-                                Filter(
-                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    mserp_department = DeptValue
-                                )
-                            )
+                                mserp_department,
+                                "Records"
+                            ),
+                            First(Records)
                         )
                     NoSelectionText: ="Select Department"
                     OnChange: |-
@@ -1042,20 +1038,15 @@
             BenefitType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =ForAll(
-                        Distinct(
+                        GroupBy(
                             Filter(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
                                 mserp_department = varSelectedDepartment
                             ),
-                            mserp_benefittype
-                        ) As BenefitValue,
-                        First(
-                            Filter(
-                                'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                mserp_department = varSelectedDepartment &&
-                                mserp_benefittype = BenefitValue
-                            )
-                        )
+                            mserp_benefittype,
+                            "Records"
+                        ),
+                        First(Records)
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
