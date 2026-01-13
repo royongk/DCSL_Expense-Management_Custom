@@ -56,10 +56,10 @@
             !varIsCreate && gblIsProjectValidationFlag,
             Clear(colGetProjectsBasedOnResourceCategory);
             UpdateContext({
-                varGetProjectsBasedOnResourceCategory :
+                varGetProjectsJson :
                 IfError(
                     Text(
-                        'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategoryv2(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',
+                        'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',
                             {
                                 employeeLegalEntity: varSelectedLegalEntity,
                                 interCompanyLegalEntity: curIntercompanyLE,
@@ -75,14 +75,14 @@
                 )
             });
             If(
-                !IsBlank(varGetProjectsBasedOnResourceCategory),
+                !IsBlank(varGetProjectsJson),
                 ClearCollect(
                     colGetProjectsBasedOnResourceCategory,
                     ForAll(
-                        MatchAll(varGetProjectsBasedOnResourceCategory, "\{""projId"":""(?<projId>[^""]*)"",""projName"":""(?<projName>[^""]*)""\}") As ProjectListFromCol,
+                        MatchAll(varGetProjectsJson, "\{""projId"":""(?<projId>[^""]*)"",""projName"":""(?<projName>[^""]*)""\}") As ProjectListFromCol,
                         {
-                            projectId: Text(ProjectListFromCol.projId),
-                            projectName: Text(ProjectListFromCol.projName)
+                            projectId: ProjectListFromCol.projId, 
+                            projectName: ProjectListFromCol.projName
                         }
                     )
                 ),
@@ -279,12 +279,12 @@
         );
         UpdateContext({varLoadingSpinner : false});
         Set(
-            varDefaultSalesTaxGroup,
-            Text(varSelectedExpenseDoc.'Sales tax group')
+            varDefaultSalesTaxGroupCode,
+            varSelectedExpenseDoc.'Sales tax group'
         );
         Set(
-            varItemSalesTaxDefaultValue,
-            Text(varSelectedExpenseDoc.'Item sales tax group')
+            varItemSalesTaxDefaultValueCode,
+            varSelectedExpenseDoc.'Item sales tax group'
         );
         UpdateContext(
             {
@@ -364,12 +364,12 @@
             }
         );
         Set(
-            varDefaultSalesTaxGroup,
-            Text(varSelectedExpenseDoc.'Sales tax group')
+            varDefaultSalesTaxGroupCode,
+            varSelectedExpenseDoc.'Sales tax group'
         );
         Set(
-            varItemSalesTaxDefaultValue,
-            Text(varSelectedExpenseDoc.'Item sales tax group')
+            varItemSalesTaxDefaultValueCode,
+            varSelectedExpenseDoc.'Item sales tax group'
         );
         UpdateContext(
             {
@@ -1033,16 +1033,12 @@
 
             BenefitType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
-                    =If(
-                        !IsBlank(varSelectedDepartment),
-                        Distinct(
-                            Filter(
-                                'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                mserp_department = varSelectedDepartment
-                            ),
-                            mserp_benefittype
+                    =Distinct(
+                        Filter(
+                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                            mserp_department = varSelectedDepartment
                         ),
-                        []
+                        mserp_benefittype
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
@@ -1053,7 +1049,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =ComboBox_BenefitType.Selected.mserp_benefittype
+                Update: =ComboBox_BenefitType.Selected.Value
                 Visible: =true
                 Width: =Parent.Width
                 X: =1
@@ -1144,7 +1140,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =true
-                Update: =ComboBox1_8.Selected.'Expense category'
+                Update: =ComboBox1_8.Selected.mserp_expensecategory
                 Visible: =true
                 Width: =Parent.Width
                 X: =1
@@ -1222,13 +1218,12 @@
                         =If(
                             !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
                             LookUp(
-                                'Expense category (mserp)',
-                                'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)' &&
-                                'Company Code' = varSelectedLegalEntity
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                mserp_expensecategory = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
                             ),
                             []
                         )
-                    DisplayFields: =["mserp_expensecategory","mserp_description"]
+                    DisplayFields: =["mserp_expensecategory"]
                     DisplayMode: |-
                         =If(
                             IsBlank(ComboBox_Department.Selected) || IsBlank(ComboBox_BenefitType.Selected),
@@ -1244,19 +1239,11 @@
                         =If(
                             !IsBlank(ComboBox_Department.Selected) && !IsBlank(ComboBox_BenefitType.Selected),
                             SortByColumns(
-                                ForAll(
-                                    Filter(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        !IsBlank(mserp_expensecategory) &&
-                                        mserp_department = ComboBox_Department.Selected.mserp_department &&
-                                        mserp_benefittype = ComboBox_BenefitType.Selected.mserp_benefittype
-                                    ) As MappingRecord,
-                                    LookUp(
-                                        'Expense category (mserp)',
-                                        'Expense category' = MappingRecord.mserp_expensecategory &&
-                                        'Company Code' = varSelectedLegalEntity &&
-                                        Inactive = 'NoYes (mserp)'.No
-                                    )
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    !IsBlank(mserp_expensecategory) &&
+                                    mserp_department = ComboBox_Department.Selected.mserp_department &&
+                                    mserp_benefittype = ComboBox_BenefitType.Selected.mserp_benefittype
                                 ),
                                 "mserp_expensecategory",
                                 SortOrder.Ascending
@@ -1267,24 +1254,37 @@
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
                     OnChange: |-
                         =UpdateContext({varOnChangeTriggered : true});
+                        // LookUp Expense category (mserp) record for additional fields
+                        UpdateContext({
+                            varSelectedExpenseCategoryRecord: If(
+                                !IsBlank(Self.Selected),
+                                LookUp(
+                                    'Expense category (mserp)',
+                                    'Expense category' = Self.Selected.mserp_expensecategory &&
+                                    'Company Code' = varSelectedLegalEntity &&
+                                    Inactive = 'NoYes (mserp)'.No
+                                ),
+                                Blank()
+                            )
+                        });
                         Reset(VehicleTypeCombobox);
                         UpdateContext({varDefaultVehicleType : Blank()});
-                        UpdateContext({currExpenseType : LookUp('Expense category (mserp)','Expense category' = Self.Selected.'Expense category', 'Expense type')});
+                        UpdateContext({currExpenseType : If(!IsBlank(varSelectedExpenseCategoryRecord), varSelectedExpenseCategoryRecord.'Expense type', Blank())});
                         UpdateContext({msCallStartedForSalestaxCalculation : true});
                         If(
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
                         If(
-                            varOnShowFields && !IsBlank(ComboBox1_8.Selected.'Expense category'),
+                            varOnShowFields && !IsBlank(ComboBox1_8.Selected.mserp_expensecategory),
                             UpdateContext(
                                 {
                                     locItemizeButtonVisibilityFlag : 
                                     'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', 
                                     {
-                                        CostType: ComboBox1_8.Selected.'Expense category',
+                                        CostType: ComboBox1_8.Selected.mserp_expensecategory,
                                         SplitLineType:"Default",
-                                        LineType: If(Self.Selected.'Itemization mandatory' = 'NoYes (mserp)'.Yes,"ItemizedHeader","Default")
+                                        LineType: If(!IsBlank(varSelectedExpenseCategoryRecord) && varSelectedExpenseCategoryRecord.'Itemization mandatory' = 'NoYes (mserp)'.Yes,"ItemizedHeader","Default")
                                     }
                                     ).return
                                 }
@@ -1306,7 +1306,7 @@
                             Reset(DataCardValue25_1); //actual sales tax
                             //Clear(collectionActivities),
                             If(
-                                Self.Selected.'Use in Project' = 'NoYes (mserp)'.No,
+                                !IsBlank(varSelectedExpenseCategoryRecord) && varSelectedExpenseCategoryRecord.'Use in Project' = 'NoYes (mserp)'.No,
                                 If( 
                                     gblIsProjectValidationFlag,
                                     Reset(ProjectICheckbox_ES),  //remove project
@@ -1320,7 +1320,7 @@
                             
                         );
                         If(
-                            Self.Selected.'Expense category' <> curCategory,
+                            Self.Selected.mserp_expensecategory <> curCategory,
                             If( 
                                 gblIsProjectValidationFlag,
                                 Clear(colGetProjectsBasedOnResourceCategory);
@@ -1330,9 +1330,9 @@
                                     {
                                         employeeLegalEntity: varSelectedLegalEntity,
                                         interCompanyLegalEntity: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity'),
-                                        categoryId:If(IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')),
+                                        categoryId:If(IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.mserp_expensecategory)),
                                             "",
-                                            If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')
+                                            If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.mserp_expensecategory)
                                         )
                                     }
                                     ).return
@@ -1368,13 +1368,13 @@
                                 varItemSalesTaxDefaultValue,
                                 Blank()
                             );
-                            If(Self.Selected.'Expense type' = 'TrvExpType (mserp)'.Mileage,
+                            If(!IsBlank(varSelectedExpenseCategoryRecord) && varSelectedExpenseCategoryRecord.'Expense type' = 'TrvExpType (mserp)'.Mileage,
                                 Set(varCollectCacheV23,
                                     'Expense mobile master data (mserp)'.mserp_calckm(
                                         If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
                                         {
                                             TransDate: If(IsBlank(DatePickerCanvas1_18.SelectedDate),"",Text(DateTimeValue(DatePickerCanvas1_18.SelectedDate),"yyyy-mm-dd hh:mm:ssZ")),
-                                            CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category'),
+                                            CostType: If(IsBlank(ComboBox1_8.Selected.mserp_expensecategory),"",ComboBox1_8.Selected.mserp_expensecategory),
                                             KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), "0", DataCardValue40.Text),varDefaultLanguage), "#,#0.00","en-US"),
                                             VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),"",VehicleTypeCombobox.Selected.Value),
                                             NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)
@@ -1397,7 +1397,7 @@
                                         LineType : "Default",
                                         SplitLineType : "",
                                         ParentRecId : "",
-                                        CostType : If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category')
+                                        CostType : If(IsBlank(ComboBox1_8.Selected.mserp_expensecategory),"",ComboBox1_8.Selected.mserp_expensecategory)
                                     }
                                 ).return,
                                 UpdateContext({
@@ -1464,7 +1464,7 @@
                         UpdateContext({isDirty : true});
                         
                         );
-                        UpdateContext({curCategory : Self.Selected.'Expense category'});
+                        UpdateContext({curCategory : Self.Selected.mserp_expensecategory});
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
                         UpdateContext({taxModifiedByUser: false}); 
                     OnSelect: |-
@@ -1476,25 +1476,17 @@
                             !IsBlank(ComboBox_Department.Selected) && !IsBlank(ComboBox_BenefitType.Selected),
                             Search(
                                 SortByColumns(
-                                    ForAll(
-                                        Filter(
-                                            'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                            !IsBlank(mserp_expensecategory) &&
-                                            mserp_department = ComboBox_Department.Selected.mserp_department &&
-                                            mserp_benefittype = ComboBox_BenefitType.Selected.mserp_benefittype
-                                        ) As MappingRecord,
-                                        LookUp(
-                                            'Expense category (mserp)',
-                                            'Expense category' = MappingRecord.mserp_expensecategory &&
-                                            'Company Code' = varSelectedLegalEntity &&
-                                            Inactive = 'NoYes (mserp)'.No
-                                        )
+                                    Filter(
+                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                        !IsBlank(mserp_expensecategory) &&
+                                        mserp_department = ComboBox_Department.Selected.mserp_department &&
+                                        mserp_benefittype = ComboBox_BenefitType.Selected.mserp_benefittype
                                     ),
                                     "mserp_expensecategory",
                                     SortOrder.Ascending
                                 ),
                                 ComboBox1_8.SearchText,
-                                'Expense category'
+                                'mserp_expensecategory'
                             ),
                             []
                         )
@@ -1568,9 +1560,14 @@
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_description"
                 Default: |-
-                    =If(varIsCreate || categoryModified,
-                    LookUp('Expense category (mserp)','Expense category' =  ComboBox1_8.Selected.'Expense category' && 'Company Code' = varSelectedLegalEntity).Description,
-                    varSelectedExpenseDoc.'Category description'
+                    =If(
+                        varIsCreate || categoryModified,
+                        LookUp(
+                            'Expense category (mserp)',
+                            'Expense category' = ComboBox1_8.Selected.mserp_expensecategory &&
+                            'Company Code' = varSelectedLegalEntity
+                        ).Description,
+                        varSelectedExpenseDoc.'Category description'
                     )
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_description)
@@ -2020,7 +2017,7 @@
                                 'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
                                 {
                                     TransDate: If(IsBlank(DatePickerCanvas1_25.SelectedDate),"",Text(DateTimeValue(DatePickerCanvas1_25.SelectedDate),"yyyy-mm-dd hh:mm:ssZ")),
-                                    CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category'),
+                                    CostType: If(IsBlank(ComboBox1_8.Selected.mserp_expensecategory),"",ComboBox1_8.Selected.mserp_expensecategory),
                                     KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), "0", DataCardValue40.Text),varDefaultLanguage), "#,#0.00","en-US"),
                                     VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),"",VehicleTypeCombobox.Selected.Value),
                                     NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)
@@ -2338,7 +2335,7 @@
                                 'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
                                 {
                                     TransDate: If(IsBlank(DatePickerCanvas1_24.SelectedDate),"",Text(DateTimeValue(DatePickerCanvas1_24.SelectedDate),"yyyy-mm-dd hh:mm:ssZ")),
-                                    CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category'),
+                                    CostType: If(IsBlank(ComboBox1_8.Selected.mserp_expensecategory),"",ComboBox1_8.Selected.mserp_expensecategory),
                                     KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), "0", DataCardValue40.Text),varDefaultLanguage), "#,#0.00","en-US"),
                                     VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),"",VehicleTypeCombobox.Selected.Value),
                                     NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)
@@ -3631,7 +3628,7 @@
                                 'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
                                 {
                                     TransDate: If(IsBlank(DatePickerCanvas1_18.SelectedDate),"",Text(DateTimeValue(DatePickerCanvas1_18.SelectedDate),"yyyy-mm-dd hh:mm:ssZ")),
-                                    CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category'),
+                                    CostType: If(IsBlank(ComboBox1_8.Selected.mserp_expensecategory),"",ComboBox1_8.Selected.mserp_expensecategory),
                                     KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), "0", DataCardValue40.Text),varDefaultLanguage), "#,#0.00","en-US"),
                                     VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),"",VehicleTypeCombobox.Selected.Value),
                                     NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)
@@ -3677,7 +3674,7 @@
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_exptype"
-                Default: =LookUp('Expense category (mserp)','Expense category' = ComboBox1_8.Selected.'Expense category', 'Expense type')
+                Default: =LookUp('Expense category (mserp)','Expense category' = ComboBox1_8.Selected.mserp_expensecategory, 'Expense type')
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_exptype)
                 Fill: =RGBA(0, 0, 0, 0)
@@ -4009,8 +4006,20 @@
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =0
                     Color: =
-                    Default: |
-                        =LookUp('Expense payment method (mserp)','Payment method' = ComboBox1_8.Selected.'Default payment method','Payment method')
+                    Default: |-
+                        =If(
+                            !IsBlank(ComboBox1_8.Selected),
+                            LookUp(
+                                'Expense payment method (mserp)',
+                                'Payment method' = LookUp(
+                                    'Expense category (mserp)',
+                                    'Expense category' = ComboBox1_8.Selected.mserp_expensecategory &&
+                                    'Company Code' = varSelectedLegalEntity
+                                ).'Default payment method',
+                                'Payment method'
+                            ),
+                            Blank()
+                        )
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =
                     Height: =gblParams.dropDownHeight
@@ -4077,7 +4086,15 @@
                             If(
                                 (varIsCreate || categoryModified),
                                 LookUp(
-                                'Expense payment method (mserp)','Payment method' = ComboBox1_8.Selected.'Default payment method'
+                                'Expense payment method (mserp)','Payment method' = If(
+                                    !IsBlank(ComboBox1_8.Selected),
+                                    LookUp(
+                                        'Expense category (mserp)',
+                                        'Expense category' = ComboBox1_8.Selected.mserp_expensecategory &&
+                                        'Company Code' = varSelectedLegalEntity
+                                    ).'Default payment method',
+                                    Blank()
+                                )
                                 ),
                                 LookUp(
                                 'Expense payment method (mserp)','Payment method' = Parent.Default
@@ -4539,9 +4556,9 @@
                                         employeeLegalEntity: varSelectedLegalEntity,
                                         interCompanyLegalEntity: DataCardValue39_1.Selected.Value,
                                         categoryId: If(
-                                            IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')),
+                                            IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.mserp_expensecategory)),
                                             "",
-                                            If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')
+                                            If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.mserp_expensecategory)
                                         )
                                     }
                                 ).return
@@ -4609,7 +4626,7 @@
                                 LineType : "Default",
                                 SplitLineType : "",
                                 ParentRecId : "",
-                                CostType : If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category')
+                                CostType : If(IsBlank(ComboBox1_8.Selected.mserp_expensecategory),"",ComboBox1_8.Selected.mserp_expensecategory)
                             }
                         ).return,
                             UpdateContext({
@@ -4851,7 +4868,7 @@
                                             {
                                                 employeeLegalEntity: varSelectedLegalEntity,
                                                 interCompanyLegalEntity: If(IsBlank(DataCardValue39_1.Selected.Value), "",DataCardValue39_1.Selected.Value),
-                                                categoryId: If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')
+                                                categoryId: If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.mserp_expensecategory)
                                             }
                                         ).return
                                     });
@@ -5031,7 +5048,7 @@
                                     varDefaultProjLineStatus:
                                     'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojstatusid(LookUp('Projects (mserp)', 'Project ID' = Self.Selected.projectId).'Project Expense Mobile (mserp)',
                                     {
-                                        CategoryId: ComboBox1_8.Selected.'Expense category',
+                                        CategoryId: ComboBox1_8.Selected.mserp_expensecategory,
                                         LegalEntity: DataCardValue39_1.Selected.Value
                                     }).return
                                 }),
@@ -5196,7 +5213,7 @@
                             varDefaultProjLineStatus:
                             'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojstatusid(Self.Selected.'Project Expense Mobile (mserp)',
                             {
-                                CategoryId: ComboBox1_8.Selected.'Expense category',
+                                CategoryId: ComboBox1_8.Selected.mserp_expensecategory,
                                 LegalEntity: DataCardValue39_1.Selected.Value
                             }).return
                         });
@@ -7372,7 +7389,7 @@
                                 LineType : "Default",
                                 SplitLineType : "",
                                 ParentRecId : "",
-                                CostType : If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category')
+                                CostType : If(IsBlank(ComboBox1_8.Selected.mserp_expensecategory),"",ComboBox1_8.Selected.mserp_expensecategory)
                             }
                         ).return,
                             UpdateContext({
@@ -10035,7 +10052,7 @@
             'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
                     {
                         TransDate: If(IsBlank(DatePickerCanvas1_18.SelectedDate),"",Text(DateTimeValue(DatePickerCanvas1_18.SelectedDate),"yyyy-mm-dd hh:mm:ssZ")),
-                        CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category'),
+                        CostType: If(IsBlank(ComboBox1_8.Selected.mserp_expensecategory),"",ComboBox1_8.Selected.mserp_expensecategory),
                         KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), "0", DataCardValue40.Text),varDefaultLanguage), "#,#0.00","en-US"),
                         VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),"",VehicleTypeCombobox.Selected.Value),
                         NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)
@@ -10343,7 +10360,7 @@
                 OnSelect: |+
                     =UpdateContext({msCallStartedForSalestaxCalculation: true});
                     If( 
-                        locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,
+                        locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.mserp_expensecategory && !varIsCreate,
                         UpdateContext({locCategoryChange : true}),
                         UpdateContext({locAllowNavigationBack: false});
                         SubmitForm(EditExpenseForm);
@@ -10406,7 +10423,7 @@
                     =
                     UpdateContext({msCallStartedForSalestaxCalculation: true});
                     If( 
-                        locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,
+                        locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.mserp_expensecategory && !varIsCreate,
                         UpdateContext({locCategoryChange : true}),
                         UpdateContext({locAllowNavigationBack: true});
                         Set(gblItemizeExpenseButtonClick,true);
@@ -10653,7 +10670,7 @@
                         ),
                     UpdateContext({msCallStartedForSalestaxCalculation: true});
                     If( 
-                        locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,
+                        locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.mserp_expensecategory && !varIsCreate,
                         UpdateContext({locCategoryChange : true}),
                         UpdateContext({locAllowNavigationBack:true});    
                         IfError(
@@ -10709,7 +10726,7 @@
             ='Expense lines (mserp)'.mserp_trvexpmobileexpenseentity_changecategorypremodified(
                LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = SelectedExpense).'Expense Line Expense Mobile Entity (mserp)',
                {
-                   NewCategory : ComboBox1_8.Selected.'Expense category'
+                   NewCategory : ComboBox1_8.Selected.mserp_expensecategory
                }
             );
             
