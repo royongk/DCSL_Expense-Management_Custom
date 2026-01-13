@@ -1106,10 +1106,25 @@
                     HoverFill: =gblParams.dropDownHoverFill
                     InputTextPlaceholder: ="Select Benefit Type"
                     IsSearchable: =false
-                    Items: =Parent.AllowedValues
+                    Items: |-
+                        =If(
+                            !IsBlank(varSelectedDepartment),
+                            SortByColumns(
+                                Distinct(
+                                    Filter(
+                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                        mserp_department = varSelectedDepartment
+                                    ),
+                                    mserp_benefittype
+                                ),
+                                "Value",
+                                SortOrder.Ascending
+                            ),
+                            []
+                        )
                     NoSelectionText: ="Select Benefit Type"
                     OnChange: |-
-                        =UpdateContext({varSelectedBenefitType: If(!IsBlank(ComboBox_BenefitType.Selected), varSelectedBenefitType, Blank())});
+                        =UpdateContext({varSelectedBenefitType: If(!IsBlank(ComboBox_BenefitType.Selected), ComboBox_BenefitType.Selected.Value, Blank())});
                         Reset(ComboBox1_8);
                         UpdateContext({curCategory: Blank()})
                     SearchFields: =["mserp_benefittype"]

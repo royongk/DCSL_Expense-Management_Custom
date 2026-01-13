@@ -833,9 +833,9 @@
                                     ),
                                     mserp_benefittype
                                 ),
-                                mserp_benefittype = varSelectedBenefitType
+                                Value = varSelectedBenefitType
                             ),
-                            []
+                            Blank()
                         )
                     DisplayFields: =["mserp_benefittype"]
                     DisplayMode: =If(IsBlank(Itemization_ComboBox_Department.Selected), DisplayMode.Disabled, Parent.DisplayMode)
@@ -844,7 +844,22 @@
                     HoverFill: =gblParams.dropDownHoverFill
                     InputTextPlaceholder: ="Select Benefit Type"
                     IsSearchable: =false
-                    Items: =Parent.AllowedValues
+                    Items: |-
+                        =If(
+                            !IsBlank(varSelectedDepartment),
+                            SortByColumns(
+                                Distinct(
+                                    Filter(
+                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                        mserp_department = varSelectedDepartment
+                                    ),
+                                    mserp_benefittype
+                                ),
+                                "Value",
+                                SortOrder.Ascending
+                            ),
+                            []
+                        )
                     NoSelectionText: ="Select Benefit Type"
                     OnChange: |-
                         =UpdateContext({varSelectedBenefitType: If(!IsBlank(Itemization_ComboBox_BenefitType.Selected), Itemization_ComboBox_BenefitType.Selected.Value, Blank())});
