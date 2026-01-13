@@ -1233,7 +1233,7 @@
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
                                 mserp_expensecategory = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
                             ),
-                            []
+                            Blank()
                         )
                     DisplayFields: =["mserp_expensecategory"]
                     DisplayMode: |-
@@ -1249,13 +1249,13 @@
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
                     Items: |-
                         =If(
-                            !IsBlank(ComboBox_Department.Selected) && !IsBlank(ComboBox_BenefitType.Selected),
+                            !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
                             SortByColumns(
                                 Filter(
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
                                     !IsBlank(mserp_expensecategory) &&
-                                    mserp_department = ComboBox_Department.Selected.Value &&
-                                    mserp_benefittype = ComboBox_BenefitType.Selected.Value
+                                    mserp_department = varSelectedDepartment &&
+                                    mserp_benefittype = varSelectedBenefitType
                                 ),
                                 "mserp_expensecategory",
                                 SortOrder.Ascending
@@ -1485,14 +1485,14 @@
                     SearchFields: =["mserp_expensecategory"]
                     SearchItems: |-
                         =If(
-                            !IsBlank(ComboBox_Department.Selected) && !IsBlank(ComboBox_BenefitType.Selected),
+                            !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
                             Search(
                                 SortByColumns(
                                     Filter(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
                                         !IsBlank(mserp_expensecategory) &&
-                                        mserp_department = ComboBox_Department.Selected.Value &&
-                                        mserp_benefittype = ComboBox_BenefitType.Selected.Value
+                                        mserp_department = varSelectedDepartment &&
+                                        mserp_benefittype = varSelectedBenefitType
                                     ),
                                     "mserp_expensecategory",
                                     SortOrder.Ascending
