@@ -995,13 +995,21 @@
                     InputTextPlaceholder: ="Select Department"
                     IsSearchable: =false
                     Items: |-
-                        =Distinct(
-                            'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            mserp_department
+                        =ForAll(
+                            Distinct(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                mserp_department
+                            ) As DeptValue,
+                            First(
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    mserp_department = DeptValue
+                                )
+                            )
                         )
                     NoSelectionText: ="Select Department"
                     OnChange: |-
-                        =UpdateContext({varSelectedDepartment: If(!IsBlank(ComboBox_Department.Selected), ComboBox_Department.Selected.Value, Blank())});
+                        =UpdateContext({varSelectedDepartment: If(!IsBlank(ComboBox_Department.Selected), ComboBox_Department.Selected.mserp_department, Blank())});
                         Reset(ComboBox_BenefitType);
                         Reset(ComboBox1_8);
                         UpdateContext({varSelectedBenefitType: Blank()});
@@ -1033,12 +1041,21 @@
 
             BenefitType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
-                    =Distinct(
-                        Filter(
-                            'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            mserp_department = varSelectedDepartment
-                        ),
-                        mserp_benefittype
+                    =ForAll(
+                        Distinct(
+                            Filter(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                mserp_department = varSelectedDepartment
+                            ),
+                            mserp_benefittype
+                        ) As BenefitValue,
+                        First(
+                            Filter(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                mserp_department = varSelectedDepartment &&
+                                mserp_benefittype = BenefitValue
+                            )
+                        )
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
@@ -1049,7 +1066,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =ComboBox_BenefitType.Selected.Value
+                Update: =ComboBox_BenefitType.Selected.mserp_benefittype
                 Visible: =true
                 Width: =Parent.Width
                 X: =1
@@ -1097,7 +1114,7 @@
                     Items: =Parent.AllowedValues
                     NoSelectionText: ="Select Benefit Type"
                     OnChange: |-
-                        =UpdateContext({varSelectedBenefitType: If(!IsBlank(ComboBox_BenefitType.Selected), ComboBox_BenefitType.Selected.Value, Blank())});
+                        =UpdateContext({varSelectedBenefitType: If(!IsBlank(ComboBox_BenefitType.Selected), ComboBox_BenefitType.Selected.mserp_benefittype, Blank())});
                         Reset(ComboBox1_8);
                         UpdateContext({curCategory: Blank()})
                     SearchFields: =["mserp_benefittype"]
