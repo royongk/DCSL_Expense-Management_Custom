@@ -980,11 +980,13 @@
                     DefaultSelectedItems: |-
                         =If(
                             !IsBlank(varSelectedDepartment),
-                            LookUp(
-                                Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', mserp_department),
-                                mserp_department = varSelectedDepartment
+                            First(
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    mserp_department = varSelectedDepartment
+                                )
                             ),
-                            []
+                            Blank()
                         )
                     DisplayFields: =["mserp_department"]
                     FocusedBorderThickness: =2
@@ -993,17 +995,13 @@
                     InputTextPlaceholder: ="Select Department"
                     IsSearchable: =false
                     Items: |-
-                        =SortByColumns(
-                            Distinct(
-                                'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                mserp_department
-                            ),
-                            "mserp_department",
-                            SortOrder.Ascending
+                        =Distinct(
+                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                            mserp_department
                         )
                     NoSelectionText: ="Select Department"
                     OnChange: |-
-                        =UpdateContext({varSelectedDepartment: Self.Selected.mserp_department});
+                        =UpdateContext({varSelectedDepartment: If(!IsBlank(ComboBox_Department.Selected), ComboBox_Department.Selected.Value, Blank())});
                         Reset(ComboBox_BenefitType);
                         Reset(ComboBox1_8);
                         UpdateContext({varSelectedBenefitType: Blank()});
@@ -1036,13 +1034,13 @@
             BenefitType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =If(
-                        !IsBlank(ComboBox_Department.Selected),
-                        Filter(
-                            Distinct(
+                        !IsBlank(varSelectedDepartment),
+                        Distinct(
+                            Filter(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                mserp_benefittype
+                                mserp_department = varSelectedDepartment
                             ),
-                            mserp_department = ComboBox_Department.Selected.mserp_department
+                            mserp_benefittype
                         ),
                         []
                     )
@@ -1083,15 +1081,15 @@
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
                         =If(
-                            !IsBlank(varSelectedBenefitType) && !IsBlank(ComboBox_Department.Selected),
-                            LookUp(
+                            !IsBlank(varSelectedBenefitType) && !IsBlank(varSelectedDepartment),
+                            First(
                                 Filter(
-                                    Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', mserp_benefittype),
-                                    mserp_department = ComboBox_Department.Selected.mserp_department
-                                ),
-                                mserp_benefittype = varSelectedBenefitType
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    mserp_department = varSelectedDepartment &&
+                                    mserp_benefittype = varSelectedBenefitType
+                                )
                             ),
-                            []
+                            Blank()
                         )
                     DisplayFields: =["mserp_benefittype"]
                     DisplayMode: =If(IsBlank(ComboBox_Department.Selected), DisplayMode.Disabled, Parent.DisplayMode)
@@ -1103,7 +1101,7 @@
                     Items: =Parent.AllowedValues
                     NoSelectionText: ="Select Benefit Type"
                     OnChange: |-
-                        =UpdateContext({varSelectedBenefitType: Self.Selected.mserp_benefittype});
+                        =UpdateContext({varSelectedBenefitType: If(!IsBlank(ComboBox_BenefitType.Selected), ComboBox_BenefitType.Selected.Value, Blank())});
                         Reset(ComboBox1_8);
                         UpdateContext({curCategory: Blank()})
                     SearchFields: =["mserp_benefittype"]
