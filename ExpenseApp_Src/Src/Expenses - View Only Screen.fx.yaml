@@ -45,16 +45,16 @@
                     {
                         mappingRecord: LookUp(
                             'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            mserp_expensecategory = expenseCategory
+                            'Expense category' = expenseCategory
                         )
                     },
                     If(
                         !IsBlank(mappingRecord),
                         UpdateContext({
-                            varSelectedDepartment: mappingRecord.mserp_department
+                            varSelectedDepartment: mappingRecord.Department
                         });
                         UpdateContext({
-                            varSelectedBenefitType: mappingRecord.mserp_benefittype
+                            varSelectedBenefitType: mappingRecord.'Benefit Type'
                         })
                     )
                 )
@@ -450,7 +450,7 @@
                         Filter(
                             Distinct(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                mserp_benefittype
+                                'Benefit Type'
                             ),
                             mserp_department = varSelectedDepartment
                         ),

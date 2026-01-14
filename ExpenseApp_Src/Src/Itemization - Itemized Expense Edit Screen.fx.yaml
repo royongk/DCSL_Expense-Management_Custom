@@ -17,16 +17,16 @@
                 {
                     mappingRecord: LookUp(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                        mserp_expensecategory = varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'
+                        'Expense category' = varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'
                     )
                 },
                 If(
                     !IsBlank(mappingRecord),
                     UpdateContext({
-                        varSelectedDepartment: mappingRecord.mserp_department
+                        varSelectedDepartment: mappingRecord.Department
                     });
                     UpdateContext({
-                        varSelectedBenefitType: mappingRecord.mserp_benefittype
+                        varSelectedBenefitType: mappingRecord.'Benefit Type'
                     })
                 )
             )
@@ -722,7 +722,7 @@
                         =If(
                             !IsBlank(varSelectedDepartment),
                             LookUp(
-                                Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', mserp_department),
+                                Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', Department),
                                 Value = varSelectedDepartment
                             ),
                             Blank()
@@ -737,7 +737,7 @@
                         =SortByColumns(
                             Distinct(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                mserp_department
+                                Department
                             ),
                             "Value",
                             SortOrder.Ascending
@@ -781,9 +781,9 @@
                         Distinct(
                             Filter(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                mserp_department = varSelectedDepartment
+                                Department = varSelectedDepartment
                             ),
-                            mserp_benefittype
+                            'Benefit Type'
                         ),
                         []
                     )
@@ -829,9 +829,9 @@
                                 Distinct(
                                     Filter(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        mserp_department = varSelectedDepartment
+                                        Department = varSelectedDepartment
                                     ),
-                                    mserp_benefittype
+                                    'Benefit Type'
                                 ),
                                 Value = varSelectedBenefitType
                             ),
@@ -851,9 +851,9 @@
                                 Distinct(
                                     Filter(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        mserp_department = varSelectedDepartment
+                                        Department = varSelectedDepartment
                                     ),
-                                    mserp_benefittype
+                                    'Benefit Type'
                                 ),
                                 "Value",
                                 SortOrder.Ascending
@@ -1005,13 +1005,13 @@
                                     ForAll(
                                         Filter(
                                             'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                            !IsBlank(mserp_expensecategory) &&
-                                            mserp_department = varSelectedDepartment &&
-                                            mserp_benefittype = varSelectedBenefitType
+                                            !IsBlank('Expense category') &&
+                                            Department = varSelectedDepartment &&
+                                            'Benefit Type' = varSelectedBenefitType
                                         ) As MappingRecord,
                                         LookUp(
                                             'Expense category (mserp)',
-                                            'Expense category' = MappingRecord.mserp_expensecategory &&
+                                            'Expense category' = MappingRecord.'Expense category' &&
                                             'Company Code' = varSelectedLegalEntity &&
                                             Inactive = 'NoYes (mserp)'.No &&
                                             'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
@@ -1195,13 +1195,13 @@
                                     ForAll(
                                         Filter(
                                             'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                            !IsBlank(mserp_expensecategory) &&
-                                            mserp_department = Itemization_ComboBox_Department.Selected.mserp_department &&
-                                            mserp_benefittype = Itemization_ComboBox_BenefitType.Selected.mserp_benefittype
+                                            !IsBlank('Expense category') &&
+                                            Department = Itemization_ComboBox_Department.Selected.mserp_department &&
+                                            'Benefit Type' = Itemization_ComboBox_BenefitType.Selected.mserp_benefittype
                                         ) As MappingRecord,
                                         LookUp(
                                             'Expense category (mserp)',
-                                            'Expense category' = MappingRecord.mserp_expensecategory &&
+                                            'Expense category' = MappingRecord.'Expense category' &&
                                             'Company Code' = varSelectedLegalEntity &&
                                             Inactive = 'NoYes (mserp)'.No &&
                                             'Expense type' <> 'TrvExpType (mserp)'.'Per diem'

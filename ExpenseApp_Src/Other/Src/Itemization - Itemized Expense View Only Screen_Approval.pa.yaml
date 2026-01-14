@@ -410,7 +410,7 @@ Screens:
                               SelectionColor: =RGBA(255, 255, 255, 1)
                               SelectionFill: =RGBA(56, 96, 178, 1)
                               Size: =24
-                              Tooltip: =varSelectedItemizedExpenseDoc_Approvals.mserp_costtype
+                              Tooltip: =varSelectedItemizedExpenseDoc_Approvals.'Expense category (mserp_costtype)'
                               Visible: =false
                               Width: =Parent.Width - 60
                               X: =30
@@ -862,7 +862,7 @@ Screens:
                                     NotificationType.Warning, 
                                     gblParams.notificationTime
                                 )
-                              Visible: =varSelectedItemizedExpenseDoc_Approvals.mserp_pbs_statement = 'NoYes (mserp)'.Yes
+                              Visible: =varSelectedItemizedExpenseDoc_Approvals.'Imported credit card' = 'NoYes (mserp)'.Yes
                               Width: =Parent.Width
                   - Currency_DataCard1_7:
                       Control: TypedDataCard@1.0.7
@@ -1092,7 +1092,7 @@ Screens:
                                     NotificationType.Warning, 
                                     gblParams.notificationTime
                                 )
-                              Visible: =varSelectedItemizedExpenseDoc_Approvals.mserp_pbs_statement = 'NoYes (mserp)'.Yes
+                              Visible: =varSelectedItemizedExpenseDoc_Approvals.'Imported credit card' = 'NoYes (mserp)'.Yes
                               Width: =Parent.Width
                   - Mileage_DataCard1_3:
                       Control: TypedDataCard@1.0.7
@@ -1361,7 +1361,7 @@ Screens:
                                         Today(),
                                         OCRresponse.transDate
                                     ),
-                                    varSelectedItemizedExpenseDoc_Approvals.mserp_transdate
+                                    varSelectedItemizedExpenseDoc_Approvals.'Transaction date'
                                 )
                               Width: =Parent.Width - 2 * Self.X
                               X: =30
@@ -1378,7 +1378,7 @@ Screens:
                                     NotificationType.Warning, 
                                     gblParams.notificationTime
                                 )
-                              Visible: =varSelectedItemizedExpenseDoc_Approvals.mserp_pbs_statement = 'NoYes (mserp)'.Yes
+                              Visible: =varSelectedItemizedExpenseDoc_Approvals.'Imported credit card' = 'NoYes (mserp)'.Yes
                               Width: =Parent.Width
                   - Expense type_DataCard1_7:
                       Control: TypedDataCard@1.0.7
@@ -1764,7 +1764,7 @@ Screens:
                           ),mserp_paymethod)
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_paymethod"
-                        Default: =varSelectedItemizedExpenseDoc_Approvals.mserp_paymethod
+                        Default: =varSelectedItemizedExpenseDoc_Approvals.'Payment method'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_paymethod)
                         Required: =true
                         Update: =ComboBox3_7.Selected.mserp_paymethod
@@ -1911,7 +1911,7 @@ Screens:
                                     NotificationType.Warning, 
                                     gblParams.notificationTime
                                 )
-                              Visible: =varSelectedItemizedExpenseDoc_Approvals.mserp_pbs_statement = 'NoYes (mserp)'.Yes
+                              Visible: =varSelectedItemizedExpenseDoc_Approvals.'Imported credit card' = 'NoYes (mserp)'.Yes
                               Width: =Parent.Width
                   - Rate per mile_DataCard1_3:
                       Control: TypedDataCard@1.0.7
@@ -2246,7 +2246,7 @@ Screens:
                                     NotificationType.Warning, 
                                     gblParams.notificationTime
                                 )
-                              Visible: =varSelectedItemizedExpenseDoc_Approvals.mserp_pbs_statement = 'NoYes (mserp)'.Yes
+                              Visible: =varSelectedItemizedExpenseDoc_Approvals.'Imported credit card' = 'NoYes (mserp)'.Yes
                               Width: =Parent.Width
                   - Merchant_DataCard1_7:
                       Control: TypedDataCard@1.0.7
@@ -2367,7 +2367,7 @@ Screens:
                                     NotificationType.Warning, 
                                     gblParams.notificationTime
                                 )
-                              Visible: =varSelectedItemizedExpenseDoc_Approvals.mserp_pbs_statement = 'NoYes (mserp)'.Yes
+                              Visible: =varSelectedItemizedExpenseDoc_Approvals.'Imported credit card' = 'NoYes (mserp)'.Yes
                               Width: =Parent.Width
                   - Legal entity_DataCard2_7:
                       Control: TypedDataCard@1.0.7
@@ -2749,7 +2749,7 @@ Screens:
                           ComboBoxSample
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_projid"
-                        Default: =varSelectedItemizedExpenseDoc_Approvals.mserp_projid
+                        Default: =varSelectedItemizedExpenseDoc_Approvals.'Project ID'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_projid)
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =ComboBox1_73.Selected.'Project ID'
@@ -3016,8 +3016,8 @@ Screens:
                         DataField: ="mserp_projstatusid"
                         Default: |-
                           =If(
-                              !IsBlank(varSelectedItemizedExpenseDoc_Approvals.mserp_projstatusid),
-                              varSelectedItemizedExpenseDoc_Approvals.mserp_projstatusid
+                              !IsBlank(varSelectedItemizedExpenseDoc_Approvals.Billable),
+                              varSelectedItemizedExpenseDoc_Approvals.Billable
                               //also check if the project chosen has a default projline property
                           )
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_projstatusid)
@@ -3145,7 +3145,7 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_projactivitynumber"
-                        Default: =varSelectedItemizedExpenseDoc_Approvals.mserp_projactivitynumber
+                        Default: =varSelectedItemizedExpenseDoc_Approvals.'Activity number'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_projactivitynumber)
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_projactivitynumber)
                         Required: =false
@@ -4754,7 +4754,7 @@ Screens:
                                     NotificationType.Warning, 
                                     gblParams.notificationTime
                                 )
-                              Visible: =varSelectedItemizedExpenseDoc_Approvals.mserp_pbs_statement = 'NoYes (mserp)'.Yes
+                              Visible: =varSelectedItemizedExpenseDoc_Approvals.'Imported credit card' = 'NoYes (mserp)'.Yes
                               Width: =Parent.Width
                   - Net transaction amount_DataCard1_7:
                       Control: TypedDataCard@1.0.7
@@ -4821,7 +4821,7 @@ Screens:
                       Properties:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_entertainmentlocation"
-                        Default: =varSelectedItemizedExpenseDoc_Approvals.mserp_entertainmentlocation
+                        Default: =varSelectedItemizedExpenseDoc_Approvals.'Location of entertainment'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_entertainmentlocation)
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_entertainmentlocation)
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
@@ -5500,7 +5500,7 @@ Screens:
                       Properties:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_businesspurpose"
-                        Default: =varSelectedItemizedExpenseDoc_Approvals.mserp_businesspurpose
+                        Default: =varSelectedItemizedExpenseDoc_Approvals.Purpose
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_businesspurpose)
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_businesspurpose)
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
@@ -5983,7 +5983,7 @@ Screens:
                       Properties:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_defaultdimensiondisplayvalue"
-                        Default: =ThisItem.mserp_defaultdimensiondisplayvalue
+                        Default: =ThisItem.'Default dimension display value'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_defaultdimensiondisplayvalue)
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_defaultdimensiondisplayvalue)
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)

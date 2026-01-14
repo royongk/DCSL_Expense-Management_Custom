@@ -11,7 +11,7 @@ Screens:
     Properties:
       Fill: =RGBA(244, 244, 244, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
-      OnVisible: "=UpdateContext({varStateSelected : Blank()});\nUpdateContext({varZipCodeSelectedRecId : -1 });\nUpdateContext({varProjectHierarchyId: Blank()});\nSet(varNavigateFromExpense , Blank());\nUpdateContext({onReloadButtonClick : false});\n// 3-level category selection variables\nUpdateContext({varSelectedDepartment: Blank()});\nUpdateContext({varSelectedBenefitType: Blank()});\nUpdateContext({curCategory : ComboBox1_9.Selected.'Expense category'});\n// Load existing Department and Benefit Type from Expense Category (reverse lookup)\nIf(\n    !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'),\n    With(\n        {\n            mappingRecord: LookUp(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                mserp_expensecategory = varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'\n            )\n        },\n        If(\n            !IsBlank(mappingRecord),\n            UpdateContext({\n                varSelectedDepartment: mappingRecord.mserp_department\n            });\n            UpdateContext({\n                varSelectedBenefitType: mappingRecord.mserp_benefittype\n            })\n        )\n    )\n);\nUpdateContext({curInterCompanyProjectCategoryItemization : ComboBox1_51.Selected.'Expense category'});\nUpdateContext({curIntercompanyLE:varSelectedItemizedExpenseDoc.'Legal entity'});\nUpdateContext({curProjIdSelected : varSelectedItemizedExpenseDoc.'Project ID'});\nUpdateContext({curCountrySelected : varSelectedItemizedExpenseDoc.'Country/region (mserp_countryregion)'});\nUpdateContext({curStateSelected : varSelectedItemizedExpenseDoc.'State/province'});\nUpdateContext({curBillIssuedToSelected : varSelectedItemizedExpenseDoc.'Hotel bill issued to'});\nUpdateContext({taxModifiedByUser : false});\n\n// populate the current expense type of the selected document\nUpdateContext({currExpenseType:Coalesce(varSelectedItemizedExpenseDoc.'Expense type',LookUp('Expense category (mserp)','Expense category' = ComboBox1_9.Selected.'Expense category', 'Expense type'))});\nIf(\n    !varIsCreate,\n    UpdateContext({msCallStartedForSalestaxCalculation : true});\n    UpdateContext({varOnShowFields : false});\n    UpdateContext({varOnSelectTriggered : false});\n    UpdateContext({varOnChangeTriggered : false}); \n);\nUpdateContext(\n    {\n        featureEnabled :\n        If(userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes, \"True\", \"False\")\n    }\n); \n//if labelTableLookUp not empty\nIf(\n    CountRows(labelTableLookUp) <= 0,\n    Collect(\n        labelTableLookUp,\n        {\n            fieldName : \"CostType\",\n            labelName : \"Expense category\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"TransDate\",\n            labelName : \"Transaction date\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"AmountCurr\",\n            labelName : \"Transaction amount\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"ExchangeCode\",\n            labelName : \"Currency\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"PayMethod\",\n            labelName : \"Payment method\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"SubmitterJustification\",\n            labelName : \"Employee justification\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\n            visible : false,\n            required : false\n        }\n    );\n    ForAll(\n        Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n        Collect(\n            labelTableLookUp,\n            {\n                fieldName : VisibilityTable.FieldName,\n                labelName : VisibilityTable.Labels,\n                localisedLabelName : VisibilityTable.LocalisedLabelName\n            }\n        )\n    );\n    If(\n        featureEnabled = \"True\",\n        ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\n                    required : VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\n                }\n            )\n        ),\n        ForAll(\n            Filter('Display fields (mserp)', 'Company Code' = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\n                    required : false\n                }\n            )\n        )\n   \n    )\n);\nIf(\n    !IsBlank(curProjIdSelected),\n    UpdateContext({\n    varProjectHierarchyId :\n    'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojecthierarchyid(userRecord.'Expense mobile master data (mserp)',\n        {\n            interCompanyLegalEntity: curIntercompanyLE,\n            projId: curProjIdSelected\n        }\n    ).return\n})\n);\nSet(\n    varDefaultSalesTaxGroup,\n    varSelectedItemizedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValue,\n    varSelectedItemizedExpenseDoc.'Item sales tax group'\n);\nUpdateContext({\n    varSalesTaxAmount : \n    Coalesce(varSalesTaxAmount, varSelectedItemizedExpenseDoc.'Actual sales tax amount')\n});\nUpdateContext({msCallStartedForSalestaxCalculation : false});\nSet(\n    IsreceiptALreadyCreated, \n    false\n);\nSet(\n    isProjIdCalledFromAttach, \n    false\n);\nSet(\n    gblParams,\n    {\n        dropDownHeight : 60,\n        dorpDownBorderThickness : 2,\n        dropDownBorderColor : RGBA(34, 102, 227, 1),\n        dropDownLabelColor : Color.Black,\n        dropDownHoverFill : RGBA(204, 222, 255, 1),\n        errorMessageSize : 18,\n        dropDownFontSize : 24,\n        expenseDataCardViewOnly: RGBA(110, 110, 110, 1),\n        notificationTime : 4000\n    }\n);\n//varibale determines whether any fields were changed\nUpdateContext({isDirty : false});\n\n//UpdateContext({curIntercompanyLE : \"\"});\nUpdateContext({categoryModified : false});\nUpdateContext({varDefaultItemSalesTaxError : Blank()});\nUpdateContext({varDefaultSalesTaxError : Blank()});\nUpdateContext({leModified : false});\nUpdateContext({varRatePerMile : Blank()});\nUpdateContext({varMileageTotal : Blank()});\nUpdateContext({varCurrentSelectedDate : \nIf(\n    varIsCreate,\n    If(\n        IsBlank(OCRresponse),\n        Today(),\n        OCRresponse.transDate\n    ),\n    varSelectedItemizedExpenseDoc.'Transaction date'\n)\n});\nSet(\n    varDefaultSalesTaxGroup,\n    varSelectedItemizedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValue,\n    varSelectedItemizedExpenseDoc.'Item sales tax group'\n);\nUpdateContext({\n    varSalesTaxAmount : \n    Coalesce(varSalesTaxAmount, varSelectedItemizedExpenseDoc.'Actual sales tax amount')\n});\nSet(varCurMileage , varSelectedItemizedExpenseDoc.Mileage);\nUpdateContext({varCurVehicleType : varSelectedItemizedExpenseDoc.'Vehicle type'});\nUpdateContext({varCurNoOfPass : varSelectedItemizedExpenseDoc.'Number of passengers'});\nUpdateContext({varDefaultProjLineStatus : varSelectedItemizedExpenseDoc.Billable});\nUpdateContext({varZipCodeChanged : false});\nUpdateContext({varCityChanged : false});\nUpdateContext({varStateChanged : false});\nUpdateContext({varCountryChanged : false});\nUpdateContext({varProjectChanged : false});"
+      OnVisible: "=UpdateContext({varStateSelected : Blank()});\nUpdateContext({varZipCodeSelectedRecId : -1 });\nUpdateContext({varProjectHierarchyId: Blank()});\nSet(varNavigateFromExpense , Blank());\nUpdateContext({onReloadButtonClick : false});\n// 3-level category selection variables\nUpdateContext({varSelectedDepartment: Blank()});\nUpdateContext({varSelectedBenefitType: Blank()});\nUpdateContext({curCategory : ComboBox1_9.Selected.'Expense category'});\n// Load existing Department and Benefit Type from Expense Category (reverse lookup)\nIf(\n    !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'),\n    With(\n        {\n            mappingRecord: LookUp(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                'Expense category' = varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'\n            )\n        },\n        If(\n            !IsBlank(mappingRecord),\n            UpdateContext({\n                varSelectedDepartment: mappingRecord.Department\n            });\n            UpdateContext({\n                varSelectedBenefitType: mappingRecord.'Benefit Type'\n            })\n        )\n    )\n);\nUpdateContext({curInterCompanyProjectCategoryItemization : ComboBox1_51.Selected.'Expense category'});\nUpdateContext({curIntercompanyLE:varSelectedItemizedExpenseDoc.'Legal entity'});\nUpdateContext({curProjIdSelected : varSelectedItemizedExpenseDoc.'Project ID'});\nUpdateContext({curCountrySelected : varSelectedItemizedExpenseDoc.'Country/region (mserp_countryregion)'});\nUpdateContext({curStateSelected : varSelectedItemizedExpenseDoc.'State/province'});\nUpdateContext({curBillIssuedToSelected : varSelectedItemizedExpenseDoc.'Hotel bill issued to'});\nUpdateContext({taxModifiedByUser : false});\n\n// populate the current expense type of the selected document\nUpdateContext({currExpenseType:Coalesce(varSelectedItemizedExpenseDoc.'Expense type',LookUp('Expense category (mserp)','Expense category' = ComboBox1_9.Selected.'Expense category', 'Expense type'))});\nIf(\n    !varIsCreate,\n    UpdateContext({msCallStartedForSalestaxCalculation : true});\n    UpdateContext({varOnShowFields : false});\n    UpdateContext({varOnSelectTriggered : false});\n    UpdateContext({varOnChangeTriggered : false}); \n);\nUpdateContext(\n    {\n        featureEnabled :\n        If(userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes, \"True\", \"False\")\n    }\n); \n//if labelTableLookUp not empty\nIf(\n    CountRows(labelTableLookUp) <= 0,\n    Collect(\n        labelTableLookUp,\n        {\n            fieldName : \"CostType\",\n            labelName : \"Expense category\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"TransDate\",\n            labelName : \"Transaction date\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"AmountCurr\",\n            labelName : \"Transaction amount\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"ExchangeCode\",\n            labelName : \"Currency\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"PayMethod\",\n            labelName : \"Payment method\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"SubmitterJustification\",\n            labelName : \"Employee justification\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\n            visible : false,\n            required : false\n        }\n    );\n    ForAll(\n        Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n        Collect(\n            labelTableLookUp,\n            {\n                fieldName : VisibilityTable.FieldName,\n                labelName : VisibilityTable.Labels,\n                localisedLabelName : VisibilityTable.LocalisedLabelName\n            }\n        )\n    );\n    If(\n        featureEnabled = \"True\",\n        ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\n                    required : VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\n                }\n            )\n        ),\n        ForAll(\n            Filter('Display fields (mserp)', 'Company Code' = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\n                    required : false\n                }\n            )\n        )\n   \n    )\n);\nIf(\n    !IsBlank(curProjIdSelected),\n    UpdateContext({\n    varProjectHierarchyId:\n        LookUp(\n            'Projects (mserp)',\n            'Project ID' = curProjIdSelected,\n            HierarchyId\n        )\n})\n);\nSet(\n    varDefaultSalesTaxGroup,\n    varSelectedItemizedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValue,\n    varSelectedItemizedExpenseDoc.'Item sales tax group'\n);\nUpdateContext({\n    varSalesTaxAmount : \n    Coalesce(varSalesTaxAmount, varSelectedItemizedExpenseDoc.'Actual sales tax amount')\n});\nUpdateContext({msCallStartedForSalestaxCalculation : false});\nSet(\n    IsreceiptALreadyCreated, \n    false\n);\nSet(\n    isProjIdCalledFromAttach, \n    false\n);\nSet(\n    gblParams,\n    {\n        dropDownHeight : 60,\n        dorpDownBorderThickness : 2,\n        dropDownBorderColor : RGBA(34, 102, 227, 1),\n        dropDownLabelColor : Color.Black,\n        dropDownHoverFill : RGBA(204, 222, 255, 1),\n        errorMessageSize : 18,\n        dropDownFontSize : 24,\n        expenseDataCardViewOnly: RGBA(110, 110, 110, 1),\n        notificationTime : 4000\n    }\n);\n//varibale determines whether any fields were changed\nUpdateContext({isDirty : false});\n\n//UpdateContext({curIntercompanyLE : \"\"});\nUpdateContext({categoryModified : false});\nUpdateContext({varDefaultItemSalesTaxError : Blank()});\nUpdateContext({varDefaultSalesTaxError : Blank()});\nUpdateContext({leModified : false});\nUpdateContext({varRatePerMile : Blank()});\nUpdateContext({varMileageTotal : Blank()});\nUpdateContext({varCurrentSelectedDate : \nIf(\n    varIsCreate,\n    If(\n        IsBlank(OCRresponse),\n        Today(),\n        OCRresponse.transDate\n    ),\n    varSelectedItemizedExpenseDoc.'Transaction date'\n)\n});\nSet(\n    varDefaultSalesTaxGroup,\n    varSelectedItemizedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValue,\n    varSelectedItemizedExpenseDoc.'Item sales tax group'\n);\nUpdateContext({\n    varSalesTaxAmount : \n    Coalesce(varSalesTaxAmount, varSelectedItemizedExpenseDoc.'Actual sales tax amount')\n});\nSet(varCurMileage , varSelectedItemizedExpenseDoc.Mileage);\nUpdateContext({varCurVehicleType : varSelectedItemizedExpenseDoc.'Vehicle type'});\nUpdateContext({varCurNoOfPass : varSelectedItemizedExpenseDoc.'Number of passengers'});\nUpdateContext({varDefaultProjLineStatus : varSelectedItemizedExpenseDoc.Billable});\nUpdateContext({varZipCodeChanged : false});\nUpdateContext({varCityChanged : false});\nUpdateContext({varStateChanged : false});\nUpdateContext({varCountryChanged : false});\nUpdateContext({varProjectChanged : false});"
     Children:
       - ItemizedExpenseBackground:
           Control: Rectangle@2.3.0
@@ -554,12 +554,12 @@ Screens:
                                 =If(
                                     !IsBlank(varSelectedDepartment),
                                     LookUp(
-                                        Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', mserp_department),
-                                        mserp_department = varSelectedDepartment
+                                        Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', Department),
+                                        Value = varSelectedDepartment
                                     ),
-                                    []
+                                    Blank()
                                 )
-                              DisplayFields: =["mserp_department"]
+                              DisplayFields: =["Value"]
                               FocusedBorderThickness: =2
                               Font: =Font.'Open Sans'
                               Height: =gblParams.dropDownHeight
@@ -570,14 +570,14 @@ Screens:
                                 =SortByColumns(
                                     Distinct(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        mserp_department
+                                        Department
                                     ),
-                                    "mserp_department",
+                                    "Value",
                                     SortOrder.Ascending
                                 )
                               NoSelectionText: ="Select Department"
                               OnChange: |-
-                                =UpdateContext({varSelectedDepartment: Self.Selected.mserp_department});
+                                =UpdateContext({varSelectedDepartment: Parent.Update});
                                 Reset(Itemization_ComboBox_BenefitType);
                                 Reset(ComboBox1_9);
                                 UpdateContext({varSelectedBenefitType: Blank()});
@@ -616,13 +616,13 @@ Screens:
                       Properties:
                         AllowedValues: |-
                           =If(
-                              !IsBlank(Itemization_ComboBox_Department.Selected),
-                              Filter(
-                                  Distinct(
+                              !IsBlank(varSelectedDepartment),
+                              Distinct(
+                                  Filter(
                                       'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                      mserp_benefittype
+                                      Department = varSelectedDepartment
                                   ),
-                                  mserp_department = Itemization_ComboBox_Department.Selected.mserp_department
+                                  'Benefit Type'
                               ),
                               []
                           )
@@ -662,17 +662,20 @@ Screens:
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
                               DefaultSelectedItems: |-
                                 =If(
-                                    !IsBlank(varSelectedBenefitType) && !IsBlank(Itemization_ComboBox_Department.Selected),
+                                    !IsBlank(varSelectedBenefitType) && !IsBlank(varSelectedDepartment),
                                     LookUp(
-                                        Filter(
-                                            Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', mserp_benefittype),
-                                            mserp_department = Itemization_ComboBox_Department.Selected.mserp_department
+                                        Distinct(
+                                            Filter(
+                                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                                Department = varSelectedDepartment
+                                            ),
+                                            'Benefit Type'
                                         ),
-                                        mserp_benefittype = varSelectedBenefitType
+                                        Value = varSelectedBenefitType
                                     ),
-                                    []
+                                    Blank()
                                 )
-                              DisplayFields: =["mserp_benefittype"]
+                              DisplayFields: =["Value"]
                               DisplayMode: =If(IsBlank(Itemization_ComboBox_Department.Selected), DisplayMode.Disabled, Parent.DisplayMode)
                               FocusedBorderThickness: =2
                               Font: =Font.'Open Sans'
@@ -680,10 +683,25 @@ Screens:
                               HoverFill: =gblParams.dropDownHoverFill
                               InputTextPlaceholder: ="Select Benefit Type"
                               IsSearchable: =false
-                              Items: =Parent.AllowedValues
+                              Items: |-
+                                =If(
+                                    !IsBlank(varSelectedDepartment),
+                                    SortByColumns(
+                                        Distinct(
+                                            Filter(
+                                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                                Department = varSelectedDepartment
+                                            ),
+                                            'Benefit Type'
+                                        ),
+                                        "Value",
+                                        SortOrder.Ascending
+                                    ),
+                                    []
+                                )
                               NoSelectionText: ="Select Benefit Type"
                               OnChange: |-
-                                =UpdateContext({varSelectedBenefitType: Self.Selected.mserp_benefittype});
+                                =UpdateContext({varSelectedBenefitType: Parent.Update});
                                 Reset(ComboBox1_9);
                                 UpdateContext({curCategory: Blank()})
                               PaddingBottom: =5
@@ -840,22 +858,25 @@ Screens:
                               InputTextPlaceholder: "=GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' "
                               Items: |-
                                 =If(
-                                    !IsBlank(Itemization_ComboBox_Department.Selected) && !IsBlank(Itemization_ComboBox_BenefitType.Selected),
+                                    !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
                                     SortByColumns(
-                                        ForAll(
-                                            Filter(
-                                                'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                                !IsBlank(mserp_expensecategory) &&
-                                                mserp_department = Itemization_ComboBox_Department.Selected.mserp_department &&
-                                                mserp_benefittype = Itemization_ComboBox_BenefitType.Selected.mserp_benefittype
-                                            ) As MappingRecord,
-                                            LookUp(
-                                                'Expense category (mserp)',
-                                                'Expense category' = MappingRecord.mserp_expensecategory &&
-                                                'Company Code' = varSelectedLegalEntity &&
-                                                Inactive = 'NoYes (mserp)'.No &&
-                                                'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
-                                            )
+                                        Filter(
+                                            ForAll(
+                                                Filter(
+                                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                                    !IsBlank('Expense category') &&
+                                                    Department = varSelectedDepartment &&
+                                                    'Benefit Type' = varSelectedBenefitType
+                                                ) As MappingRecord,
+                                                LookUp(
+                                                    'Expense category (mserp)',
+                                                    'Expense category' = MappingRecord.'Expense category' &&
+                                                    'Company Code' = varSelectedLegalEntity &&
+                                                    Inactive = 'NoYes (mserp)'.No &&
+                                                    'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
+                                                )
+                                            ),
+                                            !IsBlank(ThisRecord)
                                         ),
                                         "mserp_expensecategory",
                                         SortOrder.Ascending
@@ -3496,13 +3517,12 @@ Screens:
                                 If(
                                     !IsBlank(Self.Selected.projectId),
                                     UpdateContext({
-                                    varProjectHierarchyId :
-                                    'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojecthierarchyid(userRecord.'Expense mobile master data (mserp)',
-                                        {
-                                            interCompanyLegalEntity: curIntercompanyLE,
-                                            projId: curProjIdSelected
-                                        }
-                                    ).return
+                                    varProjectHierarchyId:
+                                        LookUp(
+                                            'Projects (mserp)',
+                                            'Project ID' = curProjIdSelected,
+                                            HierarchyId
+                                        )
                                 })
                                 )
                                 );

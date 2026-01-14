@@ -631,7 +631,7 @@ Screens:
                   ),
                   Set(
                       mileageResponse,
-                      Blank()
+                      {return: ""}
                   ),
                   Set(
                       varCollectCacheV2,
@@ -650,10 +650,10 @@ Screens:
                       false
                   )
               );
-              UpdateContext({currExpenseType: Blank()});
+              UpdateContext({currExpenseType: {return: ""}});
               UpdateContext({varOnShowFields: true});
-              UpdateContext({varMileageTotal: Blank()});
-              UpdateContext({varDefaultVehicleType: Blank()});
+              UpdateContext({varMileageTotal: {return: ""}});
+              UpdateContext({varDefaultVehicleType: {return: ""}});
               Clear(colPolViolations);
               ResetForm(EditExpenseForm);
               Navigate('Expenses - Capture Receipt Screen')
@@ -948,7 +948,7 @@ Screens:
             OnLeftButtonClick: |-
               = UpdateContext({varCntDelete: false});
             OnRightButtonClick: |-
-              =Clear(deleteErrorsList);
+              =ClearCollect(deleteErrorsList, []);
 
               // Deleting the selected reports
               ForAll(

@@ -242,7 +242,10 @@ App:
       );
       Set(
           varDefaultLanguage,
-          userRecord.UserPreferredLanguage
+          Coalesce(
+              userRecord.UserPreferredLanguage,
+              "en-US"
+          )
       );
       Clear(collectionCountries);
 
