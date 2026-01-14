@@ -723,11 +723,11 @@
                             !IsBlank(varSelectedDepartment),
                             LookUp(
                                 Distinct('DCSL Expense Category Mapping Setup Entity (mserp)', mserp_department),
-                                mserp_department = varSelectedDepartment
+                                Value = varSelectedDepartment
                             ),
-                            []
+                            Blank()
                         )
-                    DisplayFields: =["mserp_department"]
+                    DisplayFields: =["Value"]
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
@@ -739,12 +739,12 @@
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
                                 mserp_department
                             ),
-                            "mserp_department",
+                            "Value",
                             SortOrder.Ascending
                         )
                     NoSelectionText: ="Select Department"
                     OnChange: |-
-                        =UpdateContext({varSelectedDepartment: If(!IsBlank(Itemization_ComboBox_Department.Selected), Itemization_ComboBox_Department.Selected.Value, Blank())});
+                        =UpdateContext({varSelectedDepartment: Parent.Update});
                         Reset(Itemization_ComboBox_BenefitType);
                         Reset(ComboBox1_9);
                         UpdateContext({varSelectedBenefitType: Blank()});
@@ -837,7 +837,7 @@
                             ),
                             Blank()
                         )
-                    DisplayFields: =["mserp_benefittype"]
+                    DisplayFields: =["Value"]
                     DisplayMode: =If(IsBlank(Itemization_ComboBox_Department.Selected), DisplayMode.Disabled, Parent.DisplayMode)
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -862,7 +862,7 @@
                         )
                     NoSelectionText: ="Select Benefit Type"
                     OnChange: |-
-                        =UpdateContext({varSelectedBenefitType: If(!IsBlank(Itemization_ComboBox_BenefitType.Selected), Itemization_ComboBox_BenefitType.Selected.Value, Blank())});
+                        =UpdateContext({varSelectedBenefitType: Parent.Update});
                         Reset(ComboBox1_9);
                         UpdateContext({curCategory: Blank()})
                     SearchFields: =["mserp_benefittype"]
@@ -999,22 +999,25 @@
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
                     Items: |-
                         =If(
-                            !IsBlank(Itemization_ComboBox_Department.Selected) && !IsBlank(Itemization_ComboBox_BenefitType.Selected),
+                            !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
                             SortByColumns(
-                                ForAll(
-                                    Filter(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        !IsBlank(mserp_expensecategory) &&
-                                        mserp_department = Itemization_ComboBox_Department.Selected.mserp_department &&
-                                        mserp_benefittype = Itemization_ComboBox_BenefitType.Selected.mserp_benefittype
-                                    ) As MappingRecord,
-                                    LookUp(
-                                        'Expense category (mserp)',
-                                        'Expense category' = MappingRecord.mserp_expensecategory &&
-                                        'Company Code' = varSelectedLegalEntity &&
-                                        Inactive = 'NoYes (mserp)'.No &&
-                                        'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
-                                    )
+                                Filter(
+                                    ForAll(
+                                        Filter(
+                                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                            !IsBlank(mserp_expensecategory) &&
+                                            mserp_department = varSelectedDepartment &&
+                                            mserp_benefittype = varSelectedBenefitType
+                                        ) As MappingRecord,
+                                        LookUp(
+                                            'Expense category (mserp)',
+                                            'Expense category' = MappingRecord.mserp_expensecategory &&
+                                            'Company Code' = varSelectedLegalEntity &&
+                                            Inactive = 'NoYes (mserp)'.No &&
+                                            'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
+                                        )
+                                    ),
+                                    !IsBlank(ThisRecord)
                                 ),
                                 "mserp_expensecategory",
                                 SortOrder.Ascending
