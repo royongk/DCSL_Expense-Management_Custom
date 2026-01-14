@@ -921,7 +921,7 @@
                         {
                             dirtyTransAmount:Blank(),
                             dirtyTransDate : Blank(),
-                            dirtyMerchant : return({""}),
+                            dirtyMerchant : "",
                             varOnSelectTriggered: false,
                             varOnShowFields:false,
                             varOnChangeTriggered:false,
@@ -10085,12 +10085,12 @@
                     )
             );
             
-            UpdateContext({varRatePerMile : Text(ParseJSON(varCollectCacheV2.return).KMPrice)});
-            UpdateContext({varMileageTotal : Text(ParseJSON(varCollectCacheV2.return).AmountMST)});
+            UpdateContext({varRatePerMile : Text(ParseJSON(varCollectCacheV2.result).KMPrice)});
+            UpdateContext({varMileageTotal : Text(ParseJSON(varCollectCacheV2.result).AmountMST)});
             If(
-                !IsBlank(Text(ParseJSON(varCollectCacheV2.return).Warnings)),
+                !IsBlank(Text(ParseJSON(varCollectCacheV2.result).Warnings)),
                 Notify(
-                    Text(ParseJSON(varCollectCacheV2.return).Warnings),
+                    Text(ParseJSON(varCollectCacheV2.result).Warnings),
                     NotificationType.Warning,
                     gblParams.notificationTime
                 )
@@ -10244,7 +10244,7 @@
                                     varSalesTaxAmount : 
                                     IfError(
                                         Value(
-                                            'Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(
+                                            'Expense mobile master data (mserp)'.getactualsalestaxamount(
                                             LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),
                                             {
                                                 TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), "", ComboBox1_15.Selected.'Sales tax group'),
