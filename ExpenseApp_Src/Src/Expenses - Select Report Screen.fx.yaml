@@ -23,7 +23,7 @@
             =SortByColumns(
                 Filter(
                     'Expense reports (mserp)_1',
-                    'Document Status' in dsDrafts[@Value] && LegalEntity_DataArea = varSelectedLegalEntity
+                    'Document Status' in dsDrafts[@Value] && DEEXLegalEntity_DataArea = varSelectedLegalEntity
                 ),
                 "mserp_createddate",
                 SortOrder.Descending
@@ -156,7 +156,7 @@
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
-                            =Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                            =Concatenate(Text(Value(ThisItem.'Amount (mserp_amounttotal)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                         Width: =Parent.Width
                         ZIndex: =1
 
@@ -174,7 +174,7 @@
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
                             =Text(
-                                DateValue(ThisItem.ReportCreatedDateTime),
+                                DateValue(ThisItem.CreatedDate),
                                 "mmm dd, yyyy"
                             )
                         Width: =Parent.Width
@@ -224,7 +224,7 @@
         OnLeftButtonClick: |-
             =UpdateContext({varCntSelect : false})
         OnRightButtonClick: |-
-            =ForAll(
+            =            ForAll(
                 collSelectedExpenseIds,
                 Collect(
                     colToAttach,
@@ -232,13 +232,16 @@
                 )
             );
             ForAll(
-                Split(scr07_DraftReports.Selected.ExpTransNumber, ",") As attachedExpenses,
+                Filter(
+                    'Expense lines (mserp)',
+                    'Expense report number (mserp_expnumber)' = scr07_DraftReports.Selected.'Expense report number'
+                ),
                 If(
-                    !IsBlank(attachedExpenses.Value),
+                    !IsBlank(ThisRecord.'Expense transaction number (mserp_exptransnumber)'),
                     Collect(
                         colToAttach,
                         {
-                            expenseTransactionNumber : attachedExpenses.Value
+                            expenseTransactionNumber : ThisRecord.'Expense transaction number (mserp_exptransnumber)'
                         }
                     )
                 )
@@ -260,12 +263,12 @@
                     varSelectedReport,
                     LookUp('Expense reports (mserp)_1','Expense report number' = varExpenseReportNumber)
                 );
-                Clear(colAttachedExpensesForReport);
-                ForAll(
-                    Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
-                    Collect(
-                        colAttachedExpensesForReport,
-                        LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+                ClearCollect(
+                    colAttachedExpensesForReport,
+                    Filter(
+                        'Expense lines (mserp)',
+                        'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
+                        && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
                     )
                 );
                 ClearCollect(

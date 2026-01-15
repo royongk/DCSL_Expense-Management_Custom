@@ -18,6 +18,7 @@
         )
         );
         Concurrent(
+        Refresh('Expense reports (mserp)_1'),
         Refresh('DimAttributeTrvTravelTxtEntity (mserp)'),
         Refresh('Travel locations (mserp)')
         );
@@ -144,7 +145,7 @@
                             'Document Status' = 'Document Status (mserp)'.Rejected
                         )
                     ),
-                    Upper(LegalEntity_DataArea) = Upper(varSelectedLegalEntity)
+                    Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity)
                 ), 
                 "mserp_createddate", SortOrder.Descending
             )
@@ -154,18 +155,18 @@
             =UpdateContext({varcntShowFilter:false});
             Set(
                 varSelectedReport,
-                LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
+                LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && DEEXLegalEntity_DataArea = varSelectedLegalEntity)
             );
             Set(
                 varSelectedReportStatusItem,
                 ThisItem.'Document Status'
             );
-            Clear(colAttachedExpensesForReport);
-            ForAll(
-                Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
-                Collect(
-                    colAttachedExpensesForReport,
-                    LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+            ClearCollect(
+                colAttachedExpensesForReport,
+                Filter(
+                    'Expense lines (mserp)',
+                    'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
+                    && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
                 )
             );
             ClearCollect(

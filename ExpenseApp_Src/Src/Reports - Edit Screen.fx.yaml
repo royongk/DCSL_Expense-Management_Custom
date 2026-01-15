@@ -188,7 +188,12 @@
                     =RGBA(34, 102, 227, 1)
                 DisplayMode: |-
                     =If(
-                        !IsBlank(varSelectedReport.ExpTransNumber),
+                        CountRows(
+                            Filter(
+                                'Expense lines (mserp)',
+                                'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
+                            )
+                        ) > 0,
                         DisplayMode.Edit,
                         DisplayMode.Disabled
                     )

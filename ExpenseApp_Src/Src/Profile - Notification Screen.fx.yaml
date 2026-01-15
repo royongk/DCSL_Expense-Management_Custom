@@ -173,14 +173,14 @@
                 ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Reports,
             Set(
                 varSelectedReport,
-                LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
+                LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && DEEXLegalEntity_DataArea = varSelectedLegalEntity)
             );
             If(
                 IsBlank(varSelectedReport),
                 UpdateContext({locSelectedReportDiffLE : LookUp('Expense reports (mserp)_1', 'Expense report number' = ThisItem.'Expense report number')});
                 If(!IsBlank(locSelectedReportDiffLE),
                     Notify(
-                    Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportNotExistPleaseNavigateLabel',"$",locSelectedReportDiffLE.LegalEntity_DataArea),
+                    Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportNotExistPleaseNavigateLabel',"$",locSelectedReportDiffLE.DEEXLegalEntity_DataArea),
                     NotificationType.Warning
                 ),
                 Notify(
@@ -193,12 +193,12 @@
                 varSelectedReportStatusItem,
                 varSelectedReport.'Document status'
             );
-            Clear(colAttachedExpensesForReport);
-            ForAll(
-                Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
-                Collect(
-                    colAttachedExpensesForReport,
-                    LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+            ClearCollect(
+                colAttachedExpensesForReport,
+                Filter(
+                    'Expense lines (mserp)',
+                    'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
+                    && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
                 )
             );
             ClearCollect(
