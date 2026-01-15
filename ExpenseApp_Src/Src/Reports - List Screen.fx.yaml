@@ -58,7 +58,9 @@
                 2,
                 GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubmitReportToGetPaidLabel',
                 3,
-                GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateAndSubmitReportToGetPaidLabel'
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateAndSubmitReportToGetPaidLabel',
+                4,
+                "No rejected reports"
             )
         title: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
@@ -76,9 +78,11 @@
                 1,
                 "List of draft reports",
                 2,
-                "List of in-review reports",
+                "List of submitted reports",
                 3,
-                "List of approved reports"
+                "List of approved reports",
+                4,
+                "List of rejected reports"
             )
         Default: ={}
         DelayItemLoading: =true
@@ -87,20 +91,20 @@
                 scr16_cmp_Footer_1.Y - Self.Y,
                 Self.TemplateHeight * CountRows(Self.AllItems)
             )
-        Items: |
+        Items: |-
             =SortByColumns(
                 Filter(
                     Switch(
                         varcntSelectedStatus,
                         1,
                         Filter(
-                            'Expense reports (mserp)',
-                            'Document status' in dsDrafts[@Value]
+                            'Expense reports (mserp)_1',
+                            'Document Status' = 'Document Status (mserp)'.Draft
                         ),
                         2,
                         Filter(
-                            'Expense reports (mserp)',
-                            'Document status' in dsInReview[@Value]
+                            'Expense reports (mserp)_1',
+                            'Document Status' = 'Document Status (mserp)'.Submitted
                         ),
                         3,
                         Search(
@@ -108,36 +112,41 @@
                                 scr16_btn_DateFilter.Selected.number,
                                 1,
                                 Filter(
-                                    'Expense reports (mserp)',
-                                    'Document status' in dsApproved[@Value] && DateAdd(DateValue(ReportCreatedDateTime), 7, TimeUnit.Days) >= Today()
+                                    'Expense reports (mserp)_1',
+                                    'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 7, TimeUnit.Days) >= Today()
                                 ),
                                 2,
                                 Filter(
-                                    'Expense reports (mserp)',
-                                    'Document status' in dsApproved[@Value] && DateAdd(DateValue(ReportCreatedDateTime), 30, TimeUnit.Days) >= Today()
+                                    'Expense reports (mserp)_1',
+                                    'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 30, TimeUnit.Days) >= Today()
                                 ),
                                 3,
                                 Filter(
-                                    'Expense reports (mserp)',
-                                    'Document status' in dsApproved[@Value] && DateAdd(DateValue(ReportCreatedDateTime), 180, TimeUnit.Days) >= Today()
+                                    'Expense reports (mserp)_1',
+                                    'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 180, TimeUnit.Days) >= Today()
                                 ),
                                 4,
                                 Filter(
-                                    'Expense reports (mserp)',
-                                    'Document status' in dsApproved[@Value] && DateAdd(DateValue(ReportCreatedDateTime), 365, TimeUnit.Days) >= Today()
+                                    'Expense reports (mserp)_1',
+                                    'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 365, TimeUnit.Days) >= Today()
                                 ),
                                 Filter(
-                                    'Expense reports (mserp)',
-                                    'Document status' in dsApproved[@Value]
+                                    'Expense reports (mserp)_1',
+                                    'Document Status' = 'Document Status (mserp)'.Approved
                                 )
                             ),
                             scr16_txt_SearchBox.Text,
-                            Purpose
+                            'Purpose (mserp_purpose)'
+                        ),
+                        4,
+                        Filter(
+                            'Expense reports (mserp)_1',
+                            'Document Status' = 'Document Status (mserp)'.Rejected
                         )
                     ),
                     Upper(LegalEntity_DataArea) = Upper(varSelectedLegalEntity)
                 ), 
-                "mserp_reportcreateddatetime", SortOrder.Descending
+                "mserp_createddate", SortOrder.Descending
             )
         Layout: =Layout.Vertical
         LoadingSpinner: =LoadingSpinner.Data
@@ -145,11 +154,11 @@
             =UpdateContext({varcntShowFilter:false});
             Set(
                 varSelectedReport,
-                LookUp('Expense reports (mserp)','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
+                LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
             );
             Set(
                 varSelectedReportStatusItem,
-                ThisItem.'Document status'
+                ThisItem.'Document Status'
             );
             Clear(colAttachedExpensesForReport);
             ForAll(
@@ -241,9 +250,9 @@
                     Size: =21
                     Text: |-
                         =If(
-                            ThisItem.Purpose <> "" || !IsBlank(ThisItem.Purpose),
-                            Concatenate("Report bearing title ", ThisItem.Purpose, If(Self.Value, " selected", " unselected")),
-                            Concatenate("Report bearing amount ", Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency), If(Self.Value, " selected", " unselected"))
+                            ThisItem.'Purpose (mserp_purpose)' <> "" || !IsBlank(ThisItem.'Purpose (mserp_purpose)'),
+                            Concatenate("Report bearing title ", ThisItem.'Purpose (mserp_purpose)', If(Self.Value, " selected", " unselected")),
+                            Concatenate("Report bearing amount ", Concatenate(Text(Value(ThisItem.Amount),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency), If(Self.Value, " selected", " unselected"))
                         )
                     VerticalAlign: =VerticalAlign.Bottom
                     Visible: =varCntSelect
@@ -278,7 +287,7 @@
                         PaddingRight: =0
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                        Text: =ThisItem.Purpose
+                        Text: =ThisItem.'Purpose (mserp_purpose)'
                         Width: =Parent.Width
                         ZIndex: =1
 
@@ -286,7 +295,7 @@
                         AutoHeight: =true
                         Color: |
                             =If(
-                                ThisItem.'Document status' = 'Document status (mserp)'.Rejected,
+                                ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected,
                                 RGBA(165, 33, 33, 1),
                                 RGBA(102, 102, 102, 1)
                             )
@@ -303,7 +312,7 @@
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
                             =If(
-                                ThisItem.'Document status' = 'Document status (mserp)'.Rejected,
+                                ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected,
                                 GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportRejectedLabel',
                                 ThisItem.Description
                             )
@@ -340,7 +349,7 @@
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
-                            =Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                            =Concatenate(Text(Value(ThisItem.Amount),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                         Width: =Parent.Width
                         ZIndex: =1
 
@@ -358,7 +367,7 @@
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
                             =Text(
-                                DateValue(ThisItem.ReportCreatedDateTime),
+                                DateValue(ThisItem.CreatedDate),
                                 "mmm dd, yyyy"
                             )
                         Width: =Parent.Width
@@ -407,7 +416,7 @@
                 =If(
                     varCntSelect,
                     If(
-                        IsBlank(LookUp(colSelectedReportIds, reportNumber = ThisItem.'Expense report number')) && Text(ThisItem.'Document status') <> "Rejected",
+                        IsBlank(LookUp(colSelectedReportIds, reportNumber = ThisItem.'Expense report number')) && Text(ThisItem.'Document Status') <> "Rejected",
                         Collect(colSelectedReportIds, {reportNumber : ThisItem.'Expense report number'}),
                         RemoveIf(colSelectedReportIds, reportNumber = ThisItem.'Expense report number')
                     ),
@@ -502,12 +511,12 @@
         Size: =13.5
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DraftStatusLabel'
-        Width: =154
+        Width: =103
         X: =scr16_btn_FakeButton.X
         Y: =scr16_btn_FakeButton.Y
         ZIndex: =7
 
-    scr16_btn_Inreview As button:
+    scr16_btn_Submitted As button:
         BorderStyle: =BorderStyle.None
         Color: =If(varcntSelectedStatus=2, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
         Fill: =If(varcntSelectedStatus=2, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
@@ -526,10 +535,9 @@
         RadiusTopLeft: =50
         RadiusTopRight: =50
         Size: =13.5
-        Text: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_InReviewStatusLabel'
-        Width: =154
-        X: =scr16_btn_FakeButton.X+scr16_btn_Draft.Width+((scr16_btn_FakeButton.Width-(3*scr16_btn_Draft.Width))/2)
+        Text: ="Submitted"
+        Width: =103
+        X: =scr16_btn_Draft.X + scr16_btn_Draft.Width + 22
         Y: =scr16_btn_FakeButton.Y
         ZIndex: =8
 
@@ -555,17 +563,41 @@
         Size: =13.5
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovedStatusLabel'
-        Width: =154
-        X: =scr16_btn_Inreview.X+scr16_btn_Inreview.Width+((scr16_btn_FakeButton.Width-(3*scr16_btn_Draft.Width))/2)
+        Width: =103
+        X: =scr16_btn_Submitted.X + scr16_btn_Submitted.Width + 22
         Y: =scr16_btn_FakeButton.Y
         ZIndex: =9
+
+    scr16_btn_Rejected As button:
+        BorderStyle: =BorderStyle.None
+        Color: =If(varcntSelectedStatus=4, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+        Fill: =If(varcntSelectedStatus=4, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
+        Height: =44
+        HoverColor: =Self.Color
+        HoverFill: =Self.Fill
+        OnSelect: |-
+            =UpdateContext({varcntSelectedStatus:4});
+            UpdateContext({varCntSelect:false});
+            Clear(colSelectedReportIds);
+        PressedColor: =Self.Color
+        PressedFill: =Self.Fill
+        RadiusBottomLeft: =50
+        RadiusBottomRight: =50
+        RadiusTopLeft: =50
+        RadiusTopRight: =50
+        Size: =13.5
+        Text: ="Rejected"
+        Width: =103
+        X: =scr16_btn_Approve.X + scr16_btn_Approve.Width + 22
+        Y: =scr16_btn_FakeButton.Y
+        ZIndex: =10
 
     scr16_rct_seprator As rectangle:
         Fill: =RGBA(200, 200, 200, 1)
         Height: =0.85
         Width: =Parent.Width
         Y: =scr16_shp_Rectangle.Y+scr16_shp_Rectangle.Height
-        ZIndex: =10
+        ZIndex: =11
 
     scr16_txt_SearchBox As text:
         AccessibleLabel: ="Textbox to search for report by title"
@@ -686,7 +718,7 @@
         OnSelect: |-
             =Set(
                 varSelectedReportStatusItem,
-                'Document status (mserp)'.Draft
+                'Document Status (mserp)'.Draft
             );
             Set(
                 varSelectedReport,
@@ -745,7 +777,7 @@
             ForAll(
                 scr16_Reports_1.AllItems,
                 If(
-                    Text(ThisRecord.'Document status') <> "Rejected",
+                    Text(ThisRecord.'Document Status') <> "Rejected",
                     Collect(
                         colSelectedReportIds,
                         {reportNumber : ThisRecord.'Expense report number'}
@@ -831,7 +863,7 @@
                 varSelectedTab,
                 3
             );
-            Refresh('Expense reports (mserp)');
+            Refresh('Expense reports (mserp)_1');
             ClearCollect(
                 collectionICLE,
                 ForAll(
@@ -908,9 +940,9 @@
                 colSelectedReportIds,
                 IfError(
                     Remove(
-                        'Expense reports (mserp)',
+                        'Expense reports (mserp)_1',
                         LookUp(
-                            'Expense reports (mserp)',
+                            'Expense reports (mserp)_1',
                             'Expense report number' = colSelectedReportIds[@reportNumber]
                         )
                     ),
