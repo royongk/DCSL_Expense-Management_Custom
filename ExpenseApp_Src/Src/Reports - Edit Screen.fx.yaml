@@ -147,7 +147,7 @@
                         If(
                             !IsBlank(varSelectedReport),
                             Text(
-                                Value(varSelectedReport.AmountTotal),
+                                Value(varSelectedReport.Amount),
                                 "#,#0.00",
                                 varDefaultLanguage
                             ),
@@ -202,8 +202,8 @@
                     );
                     IfError(
                         Patch(
-                            'Expense reports (mserp)',
-                            LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                            'Expense reports (mserp)_1',
+                            LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
                             {
                                 Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                 Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
@@ -223,8 +223,8 @@
                         ),
                         IfError(
                             Patch(
-                                'Expense reports (mserp)',
-                                LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                'Expense reports (mserp)_1',
+                                LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
                                 {
                                     WorkflowAction: "Submit"
                                 }
@@ -270,8 +270,8 @@
                         varIsCreateReport,
                         IfError(
                             Patch(
-                                'Expense reports (mserp)',
-                                Defaults('Expense reports (mserp)'),
+                                'Expense reports (mserp)_1',
+                                Defaults('Expense reports (mserp)_1'),
                                 {
                                     Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                     Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),
@@ -294,8 +294,8 @@
                         ),
                         IfError(
                             Patch(
-                                'Expense reports (mserp)',
-                                LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                'Expense reports (mserp)_1',
+                                LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
                                 {
                                     Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                 Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
@@ -1214,8 +1214,8 @@
                                 Set(
                                     varSelectedReport,
                                     Patch(
-                                        'Expense reports (mserp)',
-                                        Defaults('Expense reports (mserp)'),
+                                        'Expense reports (mserp)_1',
+                                        Defaults('Expense reports (mserp)_1'),
                                         {
                                             Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                     Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),

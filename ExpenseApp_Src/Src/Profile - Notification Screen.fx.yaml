@@ -173,11 +173,11 @@
                 ThisItem.'Notification type' = 'Expense mobile notification types (mserp)'.Reports,
             Set(
                 varSelectedReport,
-                LookUp('Expense reports (mserp)','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
+                LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
             );
             If(
                 IsBlank(varSelectedReport),
-                UpdateContext({locSelectedReportDiffLE : LookUp('Expense reports (mserp)', 'Expense report number' = ThisItem.'Expense report number')});
+                UpdateContext({locSelectedReportDiffLE : LookUp('Expense reports (mserp)_1', 'Expense report number' = ThisItem.'Expense report number')});
                 If(!IsBlank(locSelectedReportDiffLE),
                     Notify(
                     Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportNotExistPleaseNavigateLabel',"$",locSelectedReportDiffLE.LegalEntity_DataArea),
