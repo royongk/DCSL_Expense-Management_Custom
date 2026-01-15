@@ -366,7 +366,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_costtype"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Expense category (mserp_costtype)'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_costtype)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense category (mserp_costtype)')
                         Required: =true
                         Update: =ComboBox1_11.Selected.'Expense category'
                         Visible: =false
@@ -496,8 +496,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_description"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Category description'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_description)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_description)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Category description')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Category description')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue8_7.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -590,7 +590,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_submitterjustification"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Employee justification'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_submitterjustification)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Employee justification')
                         Required: =ThisItem.IsSubmitterJustificationRequired = 1
                         Update: |-
                           =If(
@@ -687,7 +687,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_amountcurr"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Transaction amount'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_amountcurr)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Transaction amount')
                         Required: =true
                         Update: |-
                           =If(currExpenseType = 'TrvExpType (mserp)'.Mileage,
@@ -871,8 +871,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_exchangecode"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Currency (mserp_exchangecode)'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_exchangecode)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_exchangecode)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Currency (mserp_exchangecode)')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Currency (mserp_exchangecode)')
                         Required: =true
                         Update: =ComboBox1_72.Selected.mserp_currencycode
                         Visible: =false
@@ -1101,7 +1101,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_kmowncar"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.Mileage
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_kmowncar)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,Mileage)
                         Required: =false
                         Update: =Value(DataCardValue40_3.Text)
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.Mileage
@@ -1192,7 +1192,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_transdate"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Transaction date'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_transdate)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Transaction date')
                         Required: =true
                         Update: =DatePickerCanvas1_38.SelectedDate
                         Visible: =false
@@ -1387,7 +1387,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_exptype"
                         Default: =LookUp('Expense category (mserp)','Expense category' = ComboBox1_11.Selected.'Expense category', 'Expense type')
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_exptype)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense type')
                         Required: =false
                         Update: =DataCardValue7_7.Selected.Value
                         Visible: =false
@@ -1487,8 +1487,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_vehicletype"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Vehicle type'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_vehicletype)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_vehicletype)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Vehicle type')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Vehicle type')
                         Required: =false
                         Update: =VehicleTypeCombobox_3.Selected.Value
                         Visible: |-
@@ -1639,7 +1639,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_numberofpassengers"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Number of passengers'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_numberofpassengers)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Number of passengers')
                         Required: =false
                         Update: =Value(DataCardValue63_3.Text)
                         Visible: |-
@@ -1765,7 +1765,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_paymethod"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Payment method'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_paymethod)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Payment method')
                         Required: =true
                         Update: =ComboBox3_7.Selected.mserp_paymethod
                         Visible: =false
@@ -1920,7 +1920,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_kmprice"
                         Default: =ThisItem.'Rate per mile'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_kmprice)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Rate per mile')
                         Required: =false
                         Visible: =false
                         Width: =Parent.Width
@@ -1965,8 +1965,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_mileagefromaddress"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'From address'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_mileagefromaddress)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_mileagefromaddress)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'From address')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'From address')
                         Required: =false
                         Update: =DataCardValue60_3.Text
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.Mileage
@@ -2056,8 +2056,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_mileagetoaddress"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'To address'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_mileagetoaddress)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_mileagetoaddress)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'To address')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'To address')
                         Required: =false
                         Update: =DataCardValue61_3.Text
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.Mileage
@@ -2147,7 +2147,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_exchangerate"
                         Default: =ThisItem.'Exchange rate'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_exchangerate)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Exchange rate')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =Value(DataCardValue17_7.Text)
                         Visible: =false
@@ -2255,8 +2255,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_merchantid"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.Merchant
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_merchantid)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_merchantid)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,Merchant)
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, Merchant)
                         Required: =false
                         Update: =DataCardValue2_7.Text
                         Visible: |-
@@ -2373,11 +2373,11 @@ Screens:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
                       Properties:
-                        AllowedValues: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.AllowedValues, mserp_intercompanyle)
+                        AllowedValues: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.AllowedValues, 'Legal entity')
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_intercompanyle"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Legal entity'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_intercompanyle)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Legal entity')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: |
                           =If(
@@ -2617,8 +2617,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_intercompanycategory"
                         Default: =ThisItem.'Intercompany project category'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_intercompanycategory)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_intercompanycategory)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Intercompany project category')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Intercompany project category')
                         Required: =false
                         Update: =ComboBox1_81.Selected.'Expense category'
                         Visible: |-
@@ -2750,7 +2750,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_projid"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Project ID'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_projid)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Project ID')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =ComboBox1_73.Selected.'Project ID'
                         Visible: |-
@@ -3020,7 +3020,7 @@ Screens:
                               varSelectedItemizedExpenseDoc_Approvals.Billable
                               //also check if the project chosen has a default projline property
                           )
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_projstatusid)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,Billable)
                         Required: =false
                         Update: =ComboBox4_7.Selected.mserp_lineproperty
                         Visible: ='Project ID_DataCard2_7'.Visible
@@ -3146,8 +3146,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_projactivitynumber"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Activity number'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_projactivitynumber)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_projactivitynumber)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Activity number')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Activity number')
                         Required: =false
                         Update: =ComboBox1_74.Selected.'Activity number'
                         Visible: ='Project ID_DataCard2_7'.Visible
@@ -3266,11 +3266,11 @@ Screens:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
                       Properties:
-                        AllowedValues: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.AllowedValues, mserp_countryregion)
+                        AllowedValues: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.AllowedValues, 'Country/region (mserp_countryregion)')
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_countryregion"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Country/region (mserp_countryregion)'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_countryregion)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Country/region (mserp_countryregion)')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =ComboBox1_77.Selected.Code
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -3495,11 +3495,11 @@ Screens:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
                       Properties:
-                        AllowedValues: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.AllowedValues, mserp_addressstate)
+                        AllowedValues: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.AllowedValues, 'State/province')
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_addressstate"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'State/province'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_addressstate)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'State/province')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =ComboBox1_78.Selected.State
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -3727,11 +3727,11 @@ Screens:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
                       Properties:
-                        AllowedValues: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.AllowedValues, mserp_city)
+                        AllowedValues: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.AllowedValues, 'City (mserp_city)')
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_city"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'City (mserp_addresscity_name)'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_city)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'City (mserp_city)')
                         Required: |-
                           =If(
                               featureEnabled = "True",
@@ -3879,7 +3879,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_addresszipcode"
                         Default: =//LookUp('ZIP code (mserp)', ZipcodeRecId = varSelectedItemizedExpenseDoc_Approvals.'ZIP/postal code', 'ZIP/postal code')
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_addresszipcode)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'ZIP/postal code')
                         Required: |-
                           =If(
                               featureEnabled = "True",
@@ -4029,7 +4029,7 @@ Screens:
                           )
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_taxgroup"
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_taxgroup)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Sales tax group')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =ComboBox1_75.Selected.'Sales tax group'
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -4219,7 +4219,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_taxitemgroup"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Item sales tax group'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_taxitemgroup)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Item sales tax group')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =ComboBox1_76.Selected.'Item sales tax group'
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -4405,7 +4405,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_taxincluded"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Tax included'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_taxincluded)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Tax included')
                         Height: =120
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: |-
@@ -4647,7 +4647,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_correctedtaxamount"
                         Default: =ThisItem.'Actual sales tax amount'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_correctedtaxamount)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Actual sales tax amount')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =Value(DataCardValue25_7.Text)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -4774,7 +4774,7 @@ Screens:
                           Value(DataCardValue4_7.Text) - Value(DataCardValue25_7.Text),
                           Value(DataCardValue4_7.Text)
                           )
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_nettransactionamount)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Net transaction amount')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -4822,8 +4822,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_entertainmentlocation"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Location of entertainment'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_entertainmentlocation)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_entertainmentlocation)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Location of entertainment')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Location of entertainment')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue20_7.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -4916,7 +4916,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_billissuedto"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Hotel bill issued to'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_billissuedto)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Hotel bill issued to')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue19_7.Selected.Value
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Hotel
@@ -5116,7 +5116,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_reimburseamt"
                         Default: =ThisItem.'Reimbursement amount'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_reimburseamt)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Reimbursement amount')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -5164,7 +5164,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_invoiceamt"
                         Default: =ThisItem.'Invoice amount'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_invoiceamt)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Invoice amount')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -5212,8 +5212,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_additionalinformation"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Additional information'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_additionalinformation)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_additionalinformation)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Additional information')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Additional information')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue11_7.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5309,7 +5309,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_reason"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.Reason
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_reason)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,Reason)
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue15_7.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5404,8 +5404,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_transactiontext"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.'Internal note'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_transactiontext)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_transactiontext)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Internal note')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Internal note')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue18_7.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5501,8 +5501,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_businesspurpose"
                         Default: =varSelectedItemizedExpenseDoc_Approvals.Purpose
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_businesspurpose)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_businesspurpose)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,Purpose)
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, Purpose)
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue24_7.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5595,8 +5595,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_receiptnumber"
                         Default: =ThisItem.'Receipt number'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_receiptnumber)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_receiptnumber)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Receipt number')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Receipt number')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue31_7.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5689,8 +5689,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_ticketnumber"
                         Default: =ThisItem.'Ticket number'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_ticketnumber)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_ticketnumber)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Ticket number')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Ticket number')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue32_7.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5785,7 +5785,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_ticketused"
                         Default: =ThisItem.'Ticket used'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_ticketused)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Ticket used')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue33_7.Selected.Value
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5889,8 +5889,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_ticketclass"
                         Default: =ThisItem.'Ticket class'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_ticketclass)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_ticketclass)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Ticket class')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Ticket class')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue34_7.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5984,8 +5984,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_defaultdimensiondisplayvalue"
                         Default: =ThisItem.'Default dimension display value'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,mserp_defaultdimensiondisplayvalue)
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, mserp_defaultdimensiondisplayvalue)
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Default dimension display value')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Default dimension display value')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue37_7.Text
                         Visible: =false

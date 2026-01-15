@@ -311,28 +311,30 @@ App:
           }
       );
       Clear(dsReceiptImages);
+      // Document Status collections updated to use new 'Document Status (mserp)' OptionSet
+      // New OptionSet values: Draft, Submitted, Approved, Rejected
       ClearCollect(
          dsDrafts,
          [
-             'Document status (mserp)'.Draft,
-             'Document status (mserp)'.Cancelled,
-             'Document status (mserp)'.Rejected,
-             'Document status (mserp)'.None
+             'Document Status (mserp)'.Draft
          ]
       );
       ClearCollect(
          dsInReview,
          [
-             'Document status (mserp)'.Submitted,
-             'Document status (mserp)'.'In review',
-             'Document status (mserp)'.Matched
+             'Document Status (mserp)'.Submitted
          ]
       );
       ClearCollect(
          dsApproved,
          [
-             'Document status (mserp)'.Approved,
-             'Document status (mserp)'.'Processed for payment'
+             'Document Status (mserp)'.Approved
+         ]
+      );
+      ClearCollect(
+         dsRejected,
+         [
+             'Document Status (mserp)'.Rejected
          ]
       );
       Set(
