@@ -213,8 +213,9 @@
                                 Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                 Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                 Description: scr17_txt_Description_1.Text,
-                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
-                                'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                             }
                         ),
                         First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
@@ -281,8 +282,9 @@
                                     Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                     Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),
                                     Description: scr17_txt_Description_1.Text,
-                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
-                                    'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                    // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                    // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                                 }
                             ),
                             First(
@@ -305,8 +307,9 @@
                                     Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                 Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                     Description: scr17_txt_Description_1.Text,
-                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
-                                'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                                 }
                             ),
                             First(
@@ -782,179 +785,6 @@
                 Y: =scr17_hdr_TopHeader_1.Height + 202
                 ZIndex: =3
 
-        "'Project ID - Draft' As groupContainer.verticalAutoLayoutContainer":
-            AlignInContainer: =AlignInContainer.SetByContainer
-            FillPortions: =0
-            Height: =175
-            LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =10
-            LayoutGridColumns: =6
-            LayoutGridRows: =6
-            LayoutJustifyContent: =LayoutJustifyContent.Center
-            LayoutMaxHeight: =
-            LayoutMaxWidth: =
-            LayoutMinHeight: =112
-            LayoutMinWidth: =250
-            LayoutMode: =LayoutMode.Auto
-            LayoutOverflowY: =LayoutOverflow.Scroll
-            PaddingLeft: =25
-            Visible: |+
-                =If ( locReimaginedfeatureEnabled,
-                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "ProjId")),
-                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "ProjId"))
-                )
-                
-                
-                
-                
-                
-                
-                
-                
-                
-            Width: =Parent.Width
-            ZIndex: =4
-
-            ProjectIdContainer_1 As groupContainer.horizontalAutoLayoutContainer:
-                AlignInContainer: =AlignInContainer.SetByContainer
-                FillPortions: =0
-                Height: =50
-                LayoutAlignItems: =LayoutAlignItems.Center
-                LayoutGridColumns: =6
-                LayoutGridRows: =6
-                LayoutMaxHeight: =
-                LayoutMaxWidth: =
-                LayoutMinHeight: =112
-                LayoutMinWidth: =Parent.Width
-                LayoutMode: =LayoutMode.Auto
-                Width: =ComboBox_ProjectId_ExpReport_odata.Width
-                ZIndex: =1
-
-                scr17_img_ProjIdSelected_1 As image:
-                    Height: =22
-                    Image: =ShapeProjIDSelected
-                    LayoutMaxHeight: =
-                    LayoutMaxWidth: =
-                    LayoutMinHeight: =320
-                    LayoutMinWidth: =320
-                    Visible: =ctLabel5
-                    Width: =22
-                    X: =ComboBox_Location.X
-                    Y: |-
-                        =ComboBox_Location.Y - 
-                        (15 + Self.Height)
-                    ZIndex: =1
-
-                scr17_img_ProjId_1 As image:
-                    Height: =22
-                    Image: =ShapeProjID
-                    LayoutMaxHeight: =
-                    LayoutMaxWidth: =
-                    LayoutMinHeight: =320
-                    LayoutMinWidth: =320
-                    Visible: =!scr17_img_ProjIdSelected_1.Visible
-                    Width: =22
-                    X: =ComboBox_Location.X
-                    Y: |-
-                        =ComboBox_Location.Y - 
-                        (15 + Self.Height)
-                    ZIndex: =2
-
-                scr17_lbl_ProjectId_ExpReport As label:
-                    FillPortions: =1
-                    Font: =Font.'Segoe UI'
-                    Height: =32
-                    LayoutMaxHeight: =
-                    LayoutMaxWidth: =
-                    LayoutMinHeight: =70
-                    LayoutMinWidth: =560
-                    PaddingBottom: =0
-                    PaddingTop: =0
-                    Size: =18
-                    Text: |-
-                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ProjectIDLabel'
-                    VerticalAlign: =VerticalAlign.Top
-                    Width: =121 
-                    X: =
-                    Y: =
-                    ZIndex: =3
-
-            ComboBox_ProjectId_ExpReport_odata As combobox:
-                AccessibleLabel: |
-                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
-                DefaultSelectedItems: |-
-                    =
-                        If(!(varIsCreate),
-                        LookUp(colGetProjectsForReportsBasedOnResourceCategory, projectId = varSelectedReport.'Project ID'))
-                    
-                        
-                DisplayFields: =["projectId","projectName"]
-                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
-                InputTextPlaceholder: |
-                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
-                Items: =colGetProjectsForReportsBasedOnResourceCategory
-                LayoutMaxHeight: =
-                LayoutMaxWidth: =
-                LayoutMinHeight: =70
-                LayoutMinWidth: =575
-                MultiValueDelimiter: =
-                OnChange: |-
-                    =UpdateContext({locExpProjectIDChanged: true});
-                    If(
-                        If( 
-                            gblIsProjectValidationFlag,
-                            ComboBox_ProjectId_ExpReport_odata.Selected.projectId,
-                            ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'
-                        ) <> varSelectedReport.'Project ID',
-                        UpdateContext({isExpReportDirty : true})
-                    );
-                OnSelect: |-
-                    =UpdateContext({varOnSelectTriggered: true});
-                    UpdateContext({ctLabel1 : false});
-                    UpdateContext({ctLabel2 : false});
-                    UpdateContext({ctLabel3 : false});
-                    UpdateContext({ctLabel4 : false});
-                    UpdateContext({ctLabel5 : true});
-                Reset: =true
-                SearchFields: =["projectId","projectName"]
-                SearchItems: =Search(colGetProjectsForReportsBasedOnResourceCategory,ComboBox_ProjectId_ExpReport_odata.SearchText,projectId,projectName)
-                SelectMultiple: =false
-                Size: =24
-                Template: =ListItemTemplate.Double
-                Visible: =gblIsProjectValidationFlag
-                Width: |
-                    =Parent.Width -  Self.X*2
-                X: =40
-                Y: =scr17_hdr_TopHeader_1.Height + 202
-                ZIndex: =3
-
-            ComboBox_ProjectId_ExpReport_entity As combobox:
-                DefaultSelectedItems: |-
-                    =
-                        If(!(varIsCreate),
-                        LookUp('Projects (mserp)', 'Project ID' = varSelectedReport.'Project ID'))
-                    
-                        
-                DisplayFields: =["mserp_projectid","mserp_projectname"]
-                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
-                InputTextPlaceholder: |
-                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
-                Items: =Filter('Projects (mserp)', 'Company Code' = Coalesce(ComboBox_LegalEntity_ExpReport.Selected.Value, varSelectedLegalEntity) && ( 'Project stage' = 'Stage (mserp)'.'In process' || 'Project stage' = 'Stage (mserp)'.'User defined status 1' ||  'Project stage' = 'Stage (mserp)'.'User defined status 2' ||  'Project stage' = 'Stage (mserp)'.'User defined status 3'))
-                LayoutMaxHeight: =
-                LayoutMaxWidth: =
-                LayoutMinHeight: =70
-                LayoutMinWidth: =575
-                Reset: =true
-                SearchFields: =["mserp_projectid","mserp_projectname"]
-                SearchItems: =Search(Filter('Projects (mserp)','Company Code'=Coalesce(ComboBox_LegalEntity_ExpReport.Selected.Value,varSelectedLegalEntity)&&('Project stage'='Stage (mserp)'.'In process'||'Project stage'='Stage (mserp)'.'User defined status 1'||'Project stage'='Stage (mserp)'.'User defined status 2'||'Project stage'='Stage (mserp)'.'User defined status 3')),ComboBox_ProjectId_ExpReport_entity.SearchText,'Project ID','Project name')
-                SelectMultiple: =false
-                Size: =24
-                Template: =ListItemTemplate.Double
-                Visible: =!gblIsProjectValidationFlag
-                Width: =Parent.Width -  Self.X*2
-                X: =40
-                ZIndex: =4
-
         "'Description - Draft' As groupContainer.verticalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
             FillPortions: =0
@@ -1225,8 +1055,9 @@
                                             Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                     Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                             Description: scr17_txt_Description_1.Text,
-                                            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
-                                            'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                            // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                            // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                                         }
                                     )
                                 ),
