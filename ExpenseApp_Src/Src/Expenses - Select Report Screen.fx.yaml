@@ -247,16 +247,19 @@
                 )
             );
             UpdateContext({varExpenseReportNumber : scr07_DraftReports.Selected.'Expense report number'});
-            IfError(
-                Patch(
-                    'Expense reports (mserp)_1',
-                    LookUp('Expense reports (mserp)_1','Expense report number' = varExpenseReportNumber),
-                    {
-                        ExpTransNumber: Concat(colToAttach, expenseTransactionNumber, ",")
-                    }
-                ),
-                First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
-            );
+            // ⚠️ COMMENTED OUT: ExpTransNumber field does not exist in new data source (mserp_trvexptablemobileentity)
+            // This Patch operation is no longer needed as we use Filter('Expense lines (mserp)', 'Expense report number' = ...)
+            // to retrieve attached expenses (see lines 266-273 below)
+            // IfError(
+            //     Patch(
+            //         'Expense reports (mserp)_1',
+            //         LookUp('Expense reports (mserp)_1','Expense report number' = varExpenseReportNumber),
+            //         {
+            //             ExpTransNumber: Concat(colToAttach, expenseTransactionNumber, ",")
+            //         }
+            //     ),
+            //     First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+            // );
             If(
                 IsBlank(First(varError).Value) || First(varError).Value <> "",
                 Set(

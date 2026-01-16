@@ -700,16 +700,19 @@
             );
             If(
                 IsBlank(varCreateReportError),
-                Set(
-                    varSelectedReport,
-                    Patch(
-                        'Expense reports (mserp)_1',
-                        varSelectedReport,
-                        {
-                            ExpTransNumber: Concat(collSelectedExpenseIds, transactionId, ",")
-                        }
-                    )
-                );
+                // ⚠️ COMMENTED OUT: ExpTransNumber field does not exist in new data source (mserp_trvexptablemobileentity)
+                // This field was used for storing comma-separated expense transaction numbers, but is no longer needed
+                // as we now use Filter('Expense lines (mserp)', 'Expense report number' = ...) to retrieve attached expenses
+                // Set(
+                //     varSelectedReport,
+                //     Patch(
+                //         'Expense reports (mserp)_1',
+                //         varSelectedReport,
+                //         {
+                //             ExpTransNumber: Concat(collSelectedExpenseIds, transactionId, ",")
+                //         }
+                //     )
+                // );
                 Reset(ComboBox_Location);
                 Reset(ComboBox_Purpose);
                 Reset(scr17_txt_Description_1);
