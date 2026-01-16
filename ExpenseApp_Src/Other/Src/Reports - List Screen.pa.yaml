@@ -28,6 +28,7 @@ Screens:
         )
         );
         Concurrent(
+        Refresh('Expense reports (mserp)_1'),
         Refresh('DimAttributeTrvTravelTxtEntity (mserp)'),
         Refresh('Travel locations (mserp)')
         );
@@ -160,7 +161,7 @@ Screens:
                               'Document Status' = 'Document Status (mserp)'.Rejected
                           )
                       ),
-                      Upper(LegalEntity_DataArea) = Upper(varSelectedLegalEntity)
+                      Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity)
                   ), 
                   "mserp_createddate", SortOrder.Descending
               )
@@ -168,18 +169,18 @@ Screens:
               =UpdateContext({varcntShowFilter:false});
               Set(
                   varSelectedReport,
-                  LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
+                  LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && DEEXLegalEntity_DataArea = varSelectedLegalEntity)
               );
               Set(
                   varSelectedReportStatusItem,
-                  ThisItem.'Document Status'
+                  ThisItem.'Document status'
               );
-              Clear(colAttachedExpensesForReport);
-              ForAll(
-                  Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
-                  Collect(
-                      colAttachedExpensesForReport,
-                      LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+              ClearCollect(
+                  colAttachedExpensesForReport,
+                  Filter(
+                      'Expense lines (mserp)',
+                      'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
+                      && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
                   )
               );
               ClearCollect(
@@ -362,7 +363,7 @@ Screens:
                                     LayoutMaxWidth: =
                                     OnSelect: =Select(scr16_shp_SelectRegion_4)
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                                    Text: =Concatenate(Text(Value(ThisItem.Amount),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                                    Text: =Concatenate(Text(Value(ThisItem.'Amount (mserp_amounttotal)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                                     Width: =Parent.Width
                               - Label6_3:
                                   Control: Label@2.5.1
