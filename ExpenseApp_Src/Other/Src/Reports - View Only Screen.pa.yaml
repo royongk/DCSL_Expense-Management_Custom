@@ -255,7 +255,7 @@ Screens:
                         PressedFill: =Self.Color
                         Size: =19.15
                         Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_WithdrawLabel'
-                        Visible: =!(varSelectedReport.'Document status' in dsApproved)
+                        Visible: =!(varSelectedReport.'Document Status' in dsApproved)
                         Width: |
                           =Parent.Width -  Self.X*2
                         X: =scr20_btn_Done_1.X
@@ -593,120 +593,6 @@ Screens:
                         Size: =22.5
                         X: =40
                         Y: =scr20_hdr_ViewReport_1.Height + 202
-            - Project ID - In Review:
-                Control: GroupContainer@1.4.0
-                Variant: AutoLayout
-                Properties:
-                  AlignInContainer: =AlignInContainer.SetByContainer
-                  ContentLanguage: =Parent.Width
-                  DropShadow: =DropShadow.None
-                  FillPortions: =0
-                  Height: =175
-                  LayoutDirection: =LayoutDirection.Vertical
-                  LayoutMaxHeight: =
-                  LayoutMaxWidth: =
-                  PaddingLeft: =25
-                  RadiusBottomLeft: =0
-                  RadiusBottomRight: =0
-                  RadiusTopLeft: =0
-                  RadiusTopRight: =0
-                  Visible: |+
-                    =If ( locReimaginedfeatureEnabled,
-                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "ProjId")),
-                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "ProjId"))
-                    )
-
-
-
-
-
-
-
-
-
-
-
-                  Width: =Parent.Width
-                Children:
-                  - ProjectIDContainer_3:
-                      Control: GroupContainer@1.4.0
-                      Variant: AutoLayout
-                      Properties:
-                        AlignInContainer: =AlignInContainer.SetByContainer
-                        DropShadow: =DropShadow.None
-                        FillPortions: =0
-                        Height: =50
-                        LayoutAlignItems: =LayoutAlignItems.Center
-                        LayoutDirection: =LayoutDirection.Horizontal
-                        LayoutMaxHeight: =
-                        LayoutMaxWidth: =
-                        LayoutMinWidth: =Parent.Width
-                        RadiusBottomLeft: =0
-                        RadiusBottomRight: =0
-                        RadiusTopLeft: =0
-                        RadiusTopRight: =0
-                        Width: =scr20_txt_ProjId_ExpesneReport_2.Width
-                      Children:
-                        - scr20_img_ProjectID_ExpenseReport_2:
-                            Control: Image@2.2.3
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Height: =22
-                              Image: =ShapeProjID
-                              LayoutMaxHeight: =
-                              LayoutMaxWidth: =
-                              Width: =22
-                              X: =scr20_txt_ProjId_ExpesneReport_2.X
-                              Y: =scr20_txt_ProjId_ExpesneReport_2.Y - (15 + scr20_img_ProjectID_ExpenseReport_2.Height)
-                        - scr20_lbl_ProjectID_ExpenseReport_2:
-                            Control: Label@2.5.1
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              FillPortions: =1
-                              Font: =Font.'Segoe UI'
-                              Height: =32
-                              LayoutMaxHeight: =
-                              LayoutMaxWidth: =
-                              PaddingBottom: =0
-                              PaddingTop: =0
-                              Size: =18
-                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ProjectIDLabel'
-                              VerticalAlign: =VerticalAlign.Top
-                              Width: =126
-                              X: |-
-                                =scr20_img_ProjectID_ExpenseReport_2.X + scr20_img_ProjectID_ExpenseReport_2.Width + 
-                                8
-                              Y: =scr20_img_ProjectID_ExpenseReport_2.Y - 5
-                  - scr20_txt_ProjId_ExpesneReport_2:
-                      Control: Classic/TextInput@2.3.2
-                      Properties:
-                        AccessibleLabel: ="Report project Id"
-                        BorderColor: =RGBA(255, 255, 255, 1)
-                        BorderThickness: =0
-                        Color: =RGBA(145, 145, 145, 1)
-                        Default: =varSelectedReport.'Project ID'
-                        DisabledFill: =RGBA(229, 229, 229, 1)
-                        DisplayMode: =DisplayMode.View
-                        Fill: =RGBA(0, 0, 0, 0)
-                        FocusedBorderThickness: =0
-                        Font: =Font.'Segoe UI'
-                        Height: =105
-                        HoverBorderColor: =RGBA(0, 18, 107, 1)
-                        HoverFill: =
-                        LayoutMaxHeight: =
-                        LayoutMaxWidth: =
-                        Mode: =TextMode.MultiLine
-                        OnSelect: |
-                          =UpdateContext({ctLabel1 : false});
-                          UpdateContext({ctLabel2 : false});
-                          UpdateContext({ctLabel3 : true});
-                        RadiusBottomLeft: =0
-                        RadiusBottomRight: =0
-                        RadiusTopLeft: =0
-                        RadiusTopRight: =0
-                        Size: =22.5
-                        X: =40
-                        Y: =scr20_hdr_ViewReport_1.Height + 332
             - Description - In Review:
                 Control: GroupContainer@1.4.0
                 Variant: AutoLayout

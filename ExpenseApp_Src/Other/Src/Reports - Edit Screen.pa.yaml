@@ -236,8 +236,9 @@ Screens:
                                       Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                       Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                       Description: scr17_txt_Description_1.Text,
-                                      'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
-                                      'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                      'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                      // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                      // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                                   }
                               ),
                               First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
@@ -297,7 +298,7 @@ Screens:
                         HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
                         HoverColor: =RGBA(255, 255, 255, 1)
                         HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                        OnSelect: "=Set(\n    gblNavigationDrawerVisibility,\n    false\n);\nIf(\n    varIsCreateReport,\n    IfError(\n        Patch(\n            'Expense reports (mserp)_1',\n            Defaults('Expense reports (mserp)_1'),\n            {\n                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n                Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),\n                Description: scr17_txt_Description_1.Text,\n                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,\n                'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), \"\", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))\n            }\n        ),\n        First(\n            ClearCollect(\n                varError, \n                Substitute(\n                    Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                    \"\"\"message\"\":\", \n                    \"\"\n                )\n            )\n        )\n        \n    ),\n    IfError(\n        Patch(\n            'Expense reports (mserp)_1',\n            LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),\n            {\n                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n            Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),\n                Description: scr17_txt_Description_1.Text,\n            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,\n            'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), \"\", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))\n            }\n        ),\n        First(\n            ClearCollect(\n                varError, \n                Substitute(\n                    Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                    \"\"\"message\"\":\", \n                    \"\"\n                )\n            )\n        )\n    \n    )\n);\nIf(\n    !(IsBlank(First(varError).Value) || First(varError).Value = \"\"),\n    Notify(\n        Substitute(First(varError).Value, \"\"\"\", \"\"),\n        NotificationType.Error,\n        gblParams.notificationTime\n    ),\n    If(\n        varIsCreateReport,\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel',\n            NotificationType.Success, \n            gblParams.notificationTime\n            ),\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', \n            NotificationType.Success, \n            gblParams.notificationTime\n        )\n    );\n    Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})\n);\nClear(varError)\n\n"
+                        OnSelect: "=Set(\n    gblNavigationDrawerVisibility,\n    false\n);\nIf(\n    varIsCreateReport,\n    IfError(\n        Patch(\n            'Expense reports (mserp)_1',\n            Defaults('Expense reports (mserp)_1'),\n            {\n                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n                Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),\n                Description: scr17_txt_Description_1.Text,\n                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)\n                // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)\n                // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), \"\", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))\n            }\n        ),\n        First(\n            ClearCollect(\n                varError, \n                Substitute(\n                    Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                    \"\"\"message\"\":\", \n                    \"\"\n                )\n            )\n        )\n        \n    ),\n    IfError(\n        Patch(\n            'Expense reports (mserp)_1',\n            LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),\n            {\n                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n            Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),\n                Description: scr17_txt_Description_1.Text,\n            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)\n            // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)\n            // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), \"\", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))\n            }\n        ),\n        First(\n            ClearCollect(\n                varError, \n                Substitute(\n                    Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                    \"\"\"message\"\":\", \n                    \"\"\n                )\n            )\n        )\n    \n    )\n);\nIf(\n    !(IsBlank(First(varError).Value) || First(varError).Value = \"\"),\n    Notify(\n        Substitute(First(varError).Value, \"\"\"\", \"\"),\n        NotificationType.Error,\n        gblParams.notificationTime\n    ),\n    If(\n        varIsCreateReport,\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel',\n            NotificationType.Success, \n            gblParams.notificationTime\n            ),\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', \n            NotificationType.Success, \n            gblParams.notificationTime\n        )\n    );\n    Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})\n);\nClear(varError)\n\n"
                         PressedBorderColor: =Self.Fill
                         PressedColor: =Self.Fill
                         PressedFill: =Self.Color
@@ -768,185 +769,6 @@ Screens:
                           =Parent.Width -  Self.X*2
                         X: =40
                         Y: =scr17_hdr_TopHeader_1.Height + 202
-            - Project ID - Draft:
-                Control: GroupContainer@1.4.0
-                Variant: AutoLayout
-                Properties:
-                  AlignInContainer: =AlignInContainer.SetByContainer
-                  DropShadow: =DropShadow.None
-                  FillPortions: =0
-                  Height: =175
-                  LayoutDirection: =LayoutDirection.Vertical
-                  LayoutGap: =10
-                  LayoutJustifyContent: =LayoutJustifyContent.Center
-                  LayoutMaxHeight: =
-                  LayoutMaxWidth: =
-                  LayoutOverflowY: =LayoutOverflow.Scroll
-                  PaddingLeft: =25
-                  RadiusBottomLeft: =0
-                  RadiusBottomRight: =0
-                  RadiusTopLeft: =0
-                  RadiusTopRight: =0
-                  Visible: |+
-                    =If ( locReimaginedfeatureEnabled,
-                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "ProjId")),
-                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "ProjId"))
-                    )
-
-
-
-
-
-
-
-
-
-                  Width: =Parent.Width
-                Children:
-                  - ProjectIdContainer_1:
-                      Control: GroupContainer@1.4.0
-                      Variant: AutoLayout
-                      Properties:
-                        AlignInContainer: =AlignInContainer.SetByContainer
-                        DropShadow: =DropShadow.None
-                        FillPortions: =0
-                        Height: =50
-                        LayoutAlignItems: =LayoutAlignItems.Center
-                        LayoutDirection: =LayoutDirection.Horizontal
-                        LayoutMaxHeight: =
-                        LayoutMaxWidth: =
-                        LayoutMinWidth: =Parent.Width
-                        RadiusBottomLeft: =0
-                        RadiusBottomRight: =0
-                        RadiusTopLeft: =0
-                        RadiusTopRight: =0
-                        Width: =ComboBox_ProjectId_ExpReport_odata.Width
-                      Children:
-                        - scr17_img_ProjIdSelected_1:
-                            Control: Image@2.2.3
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Height: =22
-                              Image: =ShapeProjIDSelected
-                              LayoutMaxHeight: =
-                              LayoutMaxWidth: =
-                              Visible: =ctLabel5
-                              Width: =22
-                              X: =ComboBox_Location.X
-                              Y: |-
-                                =ComboBox_Location.Y - 
-                                (15 + Self.Height)
-                        - scr17_img_ProjId_1:
-                            Control: Image@2.2.3
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Height: =22
-                              Image: =ShapeProjID
-                              LayoutMaxHeight: =
-                              LayoutMaxWidth: =
-                              Visible: =!scr17_img_ProjIdSelected_1.Visible
-                              Width: =22
-                              X: =ComboBox_Location.X
-                              Y: |-
-                                =ComboBox_Location.Y - 
-                                (15 + Self.Height)
-                        - scr17_lbl_ProjectId_ExpReport:
-                            Control: Label@2.5.1
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              FillPortions: =1
-                              Font: =Font.'Segoe UI'
-                              Height: =32
-                              LayoutMaxHeight: =
-                              LayoutMaxWidth: =
-                              PaddingBottom: =0
-                              PaddingTop: =0
-                              Size: =18
-                              Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ProjectIDLabel'
-                              VerticalAlign: =VerticalAlign.Top
-                              Width: '=121 '
-                              X: =
-                              Y: =
-                  - ComboBox_ProjectId_ExpReport_odata:
-                      Control: Classic/ComboBox@2.4.0
-                      Properties:
-                        AccessibleLabel: |
-                          =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        ChevronBackground: =RGBA(56, 96, 178, 1)
-                        ChevronFill: =RGBA(255, 255, 255, 1)
-                        ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                        ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                        DefaultSelectedItems: "=\n    If(!(varIsCreate),\n    LookUp(colGetProjectsForReportsBasedOnResourceCategory, projectId = varSelectedReport.'Project ID'))\n\n    "
-                        DisplayFields: =["projectId","projectName"]
-                        Font: =Font.'Open Sans'
-                        Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
-                        HoverFill: =RGBA(186, 202, 226, 1)
-                        InputTextPlaceholder: |
-                          =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
-                        Items: =colGetProjectsForReportsBasedOnResourceCategory
-                        LayoutMaxHeight: =
-                        LayoutMaxWidth: =
-                        MultiValueDelimiter: =
-                        OnChange: |-
-                          =UpdateContext({locExpProjectIDChanged: true});
-                          If(
-                              If( 
-                                  gblIsProjectValidationFlag,
-                                  ComboBox_ProjectId_ExpReport_odata.Selected.projectId,
-                                  ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'
-                              ) <> varSelectedReport.'Project ID',
-                              UpdateContext({isExpReportDirty : true})
-                          );
-                        OnSelect: |-
-                          =UpdateContext({varOnSelectTriggered: true});
-                          UpdateContext({ctLabel1 : false});
-                          UpdateContext({ctLabel2 : false});
-                          UpdateContext({ctLabel3 : false});
-                          UpdateContext({ctLabel4 : false});
-                          UpdateContext({ctLabel5 : true});
-                        PressedColor: =RGBA(255, 255, 255, 1)
-                        PressedFill: =RGBA(0, 18, 107, 1)
-                        Reset: =true
-                        SearchFields: =["projectId","projectName"]
-                        SelectMultiple: =false
-                        SelectionColor: =RGBA(255, 255, 255, 1)
-                        SelectionFill: =RGBA(56, 96, 178, 1)
-                        Size: =24
-                        Visible: =gblIsProjectValidationFlag
-                        Width: |
-                          =Parent.Width -  Self.X*2
-                        X: =40
-                        Y: =scr17_hdr_TopHeader_1.Height + 202
-                  - ComboBox_ProjectId_ExpReport_entity:
-                      Control: Classic/ComboBox@2.4.0
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        ChevronBackground: =RGBA(56, 96, 178, 1)
-                        ChevronFill: =RGBA(255, 255, 255, 1)
-                        ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                        ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                        DefaultSelectedItems: "=\n    If(!(varIsCreate),\n    LookUp('Projects (mserp)', 'Project ID' = varSelectedReport.'Project ID'))\n\n    "
-                        DisplayFields: =["mserp_projectid","mserp_projectname"]
-                        Font: =Font.'Open Sans'
-                        Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
-                        HoverFill: =RGBA(186, 202, 226, 1)
-                        InputTextPlaceholder: |
-                          =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
-                        Items: =Filter('Projects (mserp)', 'Company Code' = Coalesce(ComboBox_LegalEntity_ExpReport.Selected.Value, varSelectedLegalEntity) && ( 'Project stage' = 'Stage (mserp)'.'In process' || 'Project stage' = 'Stage (mserp)'.'User defined status 1' ||  'Project stage' = 'Stage (mserp)'.'User defined status 2' ||  'Project stage' = 'Stage (mserp)'.'User defined status 3'))
-                        LayoutMaxHeight: =
-                        LayoutMaxWidth: =
-                        PressedColor: =RGBA(255, 255, 255, 1)
-                        PressedFill: =RGBA(0, 18, 107, 1)
-                        Reset: =true
-                        SearchFields: =["mserp_projectid","mserp_projectname"]
-                        SelectMultiple: =false
-                        SelectionColor: =RGBA(255, 255, 255, 1)
-                        SelectionFill: =RGBA(56, 96, 178, 1)
-                        Size: =24
-                        Visible: =!gblIsProjectValidationFlag
-                        Width: =Parent.Width -  Self.X*2
-                        X: =40
             - Description - Draft:
                 Control: GroupContainer@1.4.0
                 Variant: AutoLayout
@@ -1225,8 +1047,9 @@ Screens:
                                                     Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                             Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                                     Description: scr17_txt_Description_1.Text,
-                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value) ,
-                                                    'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                                    // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                                    // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                                                 }
                                             )
                                         ),
