@@ -247,55 +247,6 @@ Screens:
                   Width: =Parent.Width
                   Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
                 Children:
-                  - CostCenter_DataCard_ViewOnly:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicTextualView
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_deexcostcenter"
-                        Default: |-
-                          =Coalesce(
-                              varExpenseAgainstWorkItem.CostCenter,
-                              varSelectedExpenseDoc.CostCenter
-                          )
-                        DisplayName: ="Cost Center"
-                        Height: =50
-                        Required: =false
-                        Width: =Parent.Width
-                        X: =0
-                        Y: =costCenterFieldOrder_Y
-                      Children:
-                        - CostCenter_DataCardKey_ViewOnly:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =48
-                              Text: =Parent.DisplayName
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - CostCenter_Label_ViewOnly:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(51, 51, 51, 1)
-                              Font: =Font.'Segoe UI'
-                              Height: =48
-                              Text: |-
-                                =If(
-                                    !IsBlank(varSelectedCostCenter),
-                                    varSelectedCostCenter.'Name',
-                                    ""
-                                )
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =CostCenter_DataCardKey_ViewOnly.Y + CostCenter_DataCardKey_ViewOnly.Height + 5
                   - Department_DataCard_ViewOnly:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
@@ -7148,6 +7099,55 @@ Screens:
                                 )
                               Visible: =varExpenseAgainstWorkItem.'Imported credit card' = 'NoYes (mserp)'.Yes
                               Width: =Parent.Width
+                  - CostCenter_DataCard_ViewOnly:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualView
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_deexcostcenter"
+                        Default: |-
+                          =Coalesce(
+                              varExpenseAgainstWorkItem.CostCenter,
+                              varSelectedExpenseDoc.CostCenter
+                          )
+                        DisplayName: ="Cost Center"
+                        Height: =50
+                        Required: =false
+                        Width: =Parent.Width
+                        X: =0
+                        Y: =costCenterFieldOrder_Y
+                      Children:
+                        - CostCenter_DataCardKey_ViewOnly:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              Font: =Font.'Segoe UI'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - CostCenter_Label_ViewOnly:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(51, 51, 51, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =48
+                              Text: |-
+                                =If(
+                                    !IsBlank(varSelectedCostCenter),
+                                    varSelectedCostCenter.'Name',
+                                    ""
+                                )
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =CostCenter_DataCardKey_ViewOnly.Y + CostCenter_DataCardKey_ViewOnly.Height + 5
                   - Default dimension display value_DataCard1_2:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicTextualEdit

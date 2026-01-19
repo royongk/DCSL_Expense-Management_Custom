@@ -93,7 +93,12 @@ Screens:
             ExpensesText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
             Fill: =RGBA(248, 248, 248, 0.94)
             Height: =84
-            OnApprovalsButtonClick: =Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade);
+            OnApprovalsButtonClick: |-
+              =If(
+                  varAppMode = "AirfareAllowance",
+                  Navigate('Travel - List Screen', ScreenTransition.Fade),
+                  Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade)
+              )
             OnExpensesButtonClick: |-
               =If(
                   !IsBlank(varSelectedLegalEntity),

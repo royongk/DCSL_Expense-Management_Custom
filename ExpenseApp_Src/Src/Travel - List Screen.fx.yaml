@@ -8,7 +8,7 @@
 
     emptyStateComponent_Travel As emptyStateComponent:
         subTitle: ="No approved travel requisitions available"
-        title: |- 
+        title: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
         Visible: =scrTravel_Gallery.AllItemsCount <= 0
         X: |
@@ -217,6 +217,39 @@
             Width: =Parent.Width
             ZIndex: =3
 
+    scrTravel_cmp_Footer_1 As cmp_Footer_3:
+        ApprovalsText: |-
+            =If(
+                varAppMode = "AirfareAllowance",
+                "Travel",
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            )
+        DisplayMode: =!IsBlank(varSelectedLegalEntity)
+        ExpensesText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
+        OnApprovalsButtonClick: |-
+            =If(
+                varAppMode = "AirfareAllowance",
+                Navigate('Travel - List Screen', ScreenTransition.Fade),
+                Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1})
+            );
+            Reset(scr25_cmb_Project);
+            Reset(scr25_cmb_User);
+        OnExpensesButtonClick: =Set(varSelectedTab, 2); Navigate('Expenses - List Screen',ScreenTransition.Fade)
+        OnReceiptsButtonClick: =Set(varSelectedTab, 1); Navigate('Receipts - List Screen',ScreenTransition.Fade)
+        OnReportsButtonClick: |-
+            =Set(varSelectedTab, 3); 
+            Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
+        paramInDefaultAppMode: =varAppMode
+        ReceiptText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
+        ReportText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+        SelectedTab: =2
+        Visible: =!varCntSelect
+        Y: =App.Height - Self.Height
+        ZIndex: =4
+
     "scrTravel_hdr_TopHeader As 'main-app-header'":
         firstIcon: =
         firstIconAccessibleLabel: =
@@ -255,45 +288,8 @@
         thirdIconAction: =
         ZIndex: =24
 
-    scrTravel_cmp_Footer_1 As cmp_Footer_3:
-        ApprovalsText: |-
-            =If(
-                varAppMode = "AirfareAllowance",
-                "Travel",
-                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
-            )
-        DisplayMode: =!IsBlank(varSelectedLegalEntity)
-        ExpensesText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
-        OnApprovalsButtonClick: |-
-            =If(
-                varAppMode = "AirfareAllowance",
-                Navigate('Travel - List Screen', ScreenTransition.Fade),
-                Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1})
-            );
-            Reset(scr25_cmb_Project);
-            Reset(scr25_cmb_User);
-        OnExpensesButtonClick: |-
-            =Set(varSelectedTab, 2); Navigate('Expenses - List Screen',ScreenTransition.Fade)
-        OnReceiptsButtonClick: |-
-            =Set(varSelectedTab, 1); Navigate('Receipts - List Screen',ScreenTransition.Fade)
-        OnReportsButtonClick: |-
-            =Set(varSelectedTab, 3); 
-            Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
-        paramInDefaultAppMode: =varAppMode
-        paramInDefaultSelectedTab: =2
-        ReceiptText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
-        ReportText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
-        SelectedTab: =2
-        Visible: =!varCntSelect
-        Y: =App.Height - Self.Height
-        ZIndex: =4
-
     Rectangle5_Travel As rectangle:
-        Fill: |-
-            =RGBA(248, 248, 248, 0.6)
+        Fill: =RGBA(248, 248, 248, 0.6)
         Height: =App.Height
         OnSelect: |-
             =Set(
@@ -345,3 +341,4 @@
         UserNameValue: =User().FullName
         Visible: =gblNavigationDrawerVisibility
         ZIndex: =28
+

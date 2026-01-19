@@ -136,9 +136,13 @@ Screens:
             Fill: =RGBA(248, 248, 248, 0.94)
             Height: =84
             OnApprovalsButtonClick: |-
-              =Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
-              Reset(scr25_cmb_Project);
-              Reset(scr25_cmb_User);
+              =If(
+                  varAppMode = "AirfareAllowance",
+                  Navigate('Travel - List Screen', ScreenTransition.Fade),
+                  Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
+                  Reset(scr25_cmb_Project);
+                  Reset(scr25_cmb_User)
+              )
             OnExpensesButtonClick: |-
               =If(
                   !IsBlank(varSelectedLegalEntity),

@@ -238,7 +238,8 @@ Screens:
                                           Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                           Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                           Description: scr17_txt_Description_1.Text,
-                                          'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                          'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                          'Document Status': 'Document Status (mserp)'.Submitted
                                           // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
                                           // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                                       }
@@ -706,6 +707,240 @@ Screens:
                           =Parent.Width -  Self.X*2
                         X: =40
                         Y: =scr17_hdr_TopHeader_1.Height + 202
+            - TravelRequisitionContainer_1:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =280
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =10
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingLeft: =25
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =varAppMode = "AirfareAllowance" && !IsBlank(varSelectedTravelReq)
+                  Width: =Parent.Width
+                  Y: =ComboBox_Location.Y + ComboBox_Location.Height + 60
+                Children:
+                  - TravelDestinationContainer_1:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =ComboBox_Location.Width
+                      Children:
+                        - scr17_lbl_Destination_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: ="Destination"
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =121
+                              X: =40
+                        - scr17_txt_Destination_1:
+                            Control: Classic/TextInput@2.3.2
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              DisplayMode: =DisplayMode.View
+                              Font: =Font.'Segoe UI'
+                              Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                              HintText: =
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinWidth: =575
+                              Size: =24
+                              Width: =Parent.Width - Self.X*2
+                              X: =40
+                              Y: =scr17_lbl_Destination_1.Y + scr17_lbl_Destination_1.Height + 8
+                  - TravelMapToReqContainer_1:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =ComboBox_Location.Width
+                        Y: =scr17_txt_Destination_1.Y + scr17_txt_Destination_1.Height + 10
+                      Children:
+                        - scr17_lbl_MapToTravelReq_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: ="Map to travel requisition"
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =121
+                              X: =40
+                        - scr17_txt_MapToTravelReq_1:
+                            Control: Classic/TextInput@2.3.2
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              DisplayMode: =DisplayMode.View
+                              Font: =Font.'Segoe UI'
+                              Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                              HintText: =
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinWidth: =575
+                              Size: =24
+                              Width: =Parent.Width - Self.X*2
+                              X: =40
+                              Y: =scr17_lbl_MapToTravelReq_1.Y + scr17_lbl_MapToTravelReq_1.Height + 8
+                  - TravelReqAmountContainer_1:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =ComboBox_Location.Width
+                        Y: =scr17_txt_MapToTravelReq_1.Y + scr17_txt_MapToTravelReq_1.Height + 10
+                      Children:
+                        - scr17_lbl_TravelReqAmount_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: ="Travel requisition amount"
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =121
+                              X: =40
+                        - scr17_txt_TravelReqAmount_1:
+                            Control: Classic/TextInput@2.3.2
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              DisplayMode: =DisplayMode.View
+                              Font: =Font.'Segoe UI'
+                              Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                              HintText: =
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinWidth: =575
+                              Size: =24
+                              Width: =Parent.Width - Self.X*2
+                              X: =40
+                              Y: =scr17_lbl_TravelReqAmount_1.Y + scr17_lbl_TravelReqAmount_1.Height + 8
+                  - TravelRemainingAmountContainer_1:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =50
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =ComboBox_Location.Width
+                        Y: =scr17_txt_TravelReqAmount_1.Y + scr17_txt_TravelReqAmount_1.Height + 10
+                      Children:
+                        - scr17_lbl_RemainingAmount_1:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Segoe UI'
+                              Height: =32
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              PaddingBottom: =0
+                              PaddingTop: =0
+                              Size: =18
+                              Text: ="Remaining amount"
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =121
+                              X: =40
+                        - scr17_txt_RemainingAmount_1:
+                            Control: Classic/TextInput@2.3.2
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              DisplayMode: =DisplayMode.View
+                              Font: =Font.'Segoe UI'
+                              Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                              HintText: =
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinWidth: =575
+                              Size: =24
+                              Width: =Parent.Width - Self.X*2
+                              X: =40
+                              Y: =scr17_lbl_RemainingAmount_1.Y + scr17_lbl_RemainingAmount_1.Height + 8
             - Legal Entity - Draft:
                 Control: GroupContainer@1.4.0
                 Variant: AutoLayout
