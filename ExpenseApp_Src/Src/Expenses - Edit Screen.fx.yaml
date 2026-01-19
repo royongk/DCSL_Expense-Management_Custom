@@ -931,6 +931,7 @@
                 );
                 Set(gblItemizeExpenseButtonClick, false);
                 UpdateContext({msCallStartedForSalestaxCalculation: false});
+                Navigate('Expenses - List Screen', ScreenTransition.None);
             SnapToColumns: =false
             Width: =Parent.Width
             Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
@@ -10698,11 +10699,7 @@
                         locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,
                         UpdateContext({locCategoryChange : true}),
                         UpdateContext({locAllowNavigationBack:true});    
-                        IfError(
-                            SubmitForm(EditExpenseForm),
-                            UpdateContext({varError : FirstError.Message});
-                            UpdateContext({varError2 : FirstError.Kind});
-                        )
+                        SubmitForm(EditExpenseForm)
                     )
                     
                 )
