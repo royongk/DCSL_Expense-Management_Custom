@@ -155,11 +155,11 @@
                                 Filter(
                                     '@DEEX:DEEX_20316 (mserp)',
                                     DelegatedUserInfoRecId = userRecord.CreatingWorker &&
-                                    Today() >= DateValue('Start date') &&
-                                    Today() <= DateValue('End date')
+                                    'Start date' <= Today() &&
+                                    'End date' >= Today() 
                                 ),
                                 Employee
-                            )[Employee],
+                            ),
                         'Employee (mserp_creatingworker)' = userRecord.CreatingWorker
                     )
                 ), 
@@ -544,8 +544,8 @@
                 Filter(
                     '@DEEX:DEEX_20316 (mserp)',
                     DelegatedUserInfoRecId = userRecord.CreatingWorker &&
-                    Today() >= DateValue('Start date') &&
-                    Today() <= DateValue('End date')
+                    'Start date' <= Today() &&
+                    'End date' >= Today() 
                 )
             ) > 0
         Width: =103

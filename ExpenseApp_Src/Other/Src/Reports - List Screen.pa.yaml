@@ -12,6 +12,7 @@ Screens:
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
       OnVisible: |+
         =UpdateContext({varCntSelect: false});
+        UpdateContext({varIsDelegateSelected: false});
         UpdateContext({isExpReportDirty : false});
         Concurrent(
         Set(
@@ -30,7 +31,8 @@ Screens:
         Concurrent(
         Refresh('Expense reports (mserp)_1'),
         Refresh('DimAttributeTrvTravelTxtEntity (mserp)'),
-        Refresh('Travel locations (mserp)')
+        Refresh('Travel locations (mserp)'),
+        Refresh('@DEEX:DEEX_20316 (mserp)')
         );
         If(
             IsEmpty(collApprovedFilterOptions),
@@ -60,6 +62,42 @@ Screens:
         Reset(scr16_txt_SearchBox);
 
     Children:
+      - scr16_btn_Delegate:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            BorderStyle: =BorderStyle.None
+            Color: =If(varIsDelegateSelected, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =If(varIsDelegateSelected, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
+            Font: =Font.'Open Sans'
+            Height: =44
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: |-
+              =UpdateContext({varIsDelegateSelected: !varIsDelegateSelected});
+              UpdateContext({varcntShowFilter: false})
+            PressedBorderColor: =Self.Fill
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =50
+            RadiusBottomRight: =50
+            RadiusTopLeft: =50
+            RadiusTopRight: =50
+            Size: =13.5
+            Text: ="Delegate"
+            Visible: |-
+              =CountRows(
+                  Filter(
+                      '@DEEX:DEEX_20316 (mserp)',
+                      DelegatedUserInfoRecId = userRecord.CreatingWorker &&
+                      'Start date' <= Today() &&
+                      'End date' >= Today() 
+                  )
+              ) > 0
+            Width: =103
+            X: =40
+            Y: =scr16_btn_FakeButton.Y
       - emptyStateComponent_4:
           Control: CanvasComponent
           ComponentName: emptyStateComponent
@@ -161,7 +199,21 @@ Screens:
                               'Document Status' = 'Document Status (mserp)'.Rejected
                           )
                       ),
-                      Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity)
+                      Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity),
+                      If(
+                          varIsDelegateSelected,
+                          'Employee (mserp_creatingworker)' in 
+                              Distinct(
+                                  Filter(
+                                      '@DEEX:DEEX_20316 (mserp)',
+                                      DelegatedUserInfoRecId = userRecord.CreatingWorker &&
+                                      'Start date' <= Today() &&
+                                      'End date' >= Today() 
+                                  ),
+                                  Employee
+                              ),
+                          'Employee (mserp_creatingworker)' = userRecord.CreatingWorker
+                      )
                   ), 
                   "mserp_createddate", SortOrder.Descending
               )
