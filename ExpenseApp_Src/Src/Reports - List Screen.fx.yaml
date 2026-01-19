@@ -2,6 +2,7 @@
     Fill: =Color.White
     OnVisible: |+
         =UpdateContext({varCntSelect: false});
+        UpdateContext({varIsDelegateSelected: false});
         UpdateContext({isExpReportDirty : false});
         Concurrent(
         Set(
@@ -20,7 +21,8 @@
         Concurrent(
         Refresh('Expense reports (mserp)_1'),
         Refresh('DimAttributeTrvTravelTxtEntity (mserp)'),
-        Refresh('Travel locations (mserp)')
+        Refresh('Travel locations (mserp)'),
+        Refresh('@DEEX:DEEX_20316 (mserp)')
         );
         If(
             IsEmpty(collApprovedFilterOptions),
@@ -145,7 +147,21 @@
                             'Document Status' = 'Document Status (mserp)'.Rejected
                         )
                     ),
-                    Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity)
+                    Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity),
+                    If(
+                        varIsDelegateSelected,
+                        'Employee (mserp_creatingworker)' in 
+                            Distinct(
+                                Filter(
+                                    '@DEEX:DEEX_20316 (mserp)',
+                                    DelegatedUserInfoRecId = userRecord.CreatingWorker &&
+                                    Today() >= DateValue('Start date') &&
+                                    Today() <= DateValue('End date')
+                                ),
+                                Employee
+                            )[Employee],
+                        'Employee (mserp_creatingworker)' = userRecord.CreatingWorker
+                    )
                 ), 
                 "mserp_createddate", SortOrder.Descending
             )
@@ -504,6 +520,38 @@
         X: =(Parent.Width - Self.Width)/2
         Y: =scr16_rct_seprator.Y - scr16_shp_Rectangle.Y
         ZIndex: =6
+
+    scr16_btn_Delegate As button:
+        BorderStyle: =BorderStyle.None
+        Color: =If(varIsDelegateSelected, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+        Fill: =If(varIsDelegateSelected, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
+        Height: =44
+        HoverColor: =Self.Color
+        HoverFill: =Self.Fill
+        OnSelect: |-
+            =UpdateContext({varIsDelegateSelected: !varIsDelegateSelected});
+            UpdateContext({varcntShowFilter: false})
+        PressedColor: =Self.Color
+        PressedFill: =Self.Fill
+        RadiusBottomLeft: =50
+        RadiusBottomRight: =50
+        RadiusTopLeft: =50
+        RadiusTopRight: =50
+        Size: =13.5
+        Text: ="Delegate"
+        Visible: |-
+            =CountRows(
+                Filter(
+                    '@DEEX:DEEX_20316 (mserp)',
+                    DelegatedUserInfoRecId = userRecord.CreatingWorker &&
+                    Today() >= DateValue('Start date') &&
+                    Today() <= DateValue('End date')
+                )
+            ) > 0
+        Width: =103
+        X: =40
+        Y: =scr16_btn_FakeButton.Y
+        ZIndex: =6.5
 
     scr16_btn_Draft As button:
         BorderStyle: =BorderStyle.None
