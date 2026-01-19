@@ -27,7 +27,20 @@ cmp_Footer_3 As CanvasComponent:
 
     cmp_footer_img_Approvals As image:
         Height: =28.16
-        Image: =If( Value(cmp_Footer_3.paramInDefaultSelectedTab=4), approvalsSelectedIcon, approvalsIcon)
+        Image: |-
+            =If(
+                varAppMode = "AirfareAllowance",
+                If(
+                    Value(cmp_Footer_3.paramInDefaultSelectedTab=4),
+                    travelSelected,
+                    travelDeselectedIcon
+                ),
+                If(
+                    Value(cmp_Footer_3.paramInDefaultSelectedTab=4),
+                    approvalsSelectedIcon,
+                    approvalsIcon
+                )
+            )
         OnSelect: =cmp_Footer_3.OnApprovalsButtonClick()
         Width: =28.16
         X: =approvalsRegion_1.X + (approvalsRegion_1.Width - Self.Width)/2

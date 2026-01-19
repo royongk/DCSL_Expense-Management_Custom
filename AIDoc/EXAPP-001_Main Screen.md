@@ -32,3 +32,6 @@
 - UI 디자인:
     - 반응형 레이아웃 적용 (모바일/PC)
     - 다른 화면들에서 사용된 구성 요소들을 참고해서 최대한 일관성 있게 구현
+
+- 추가 요구 사항:
+    1. 모든 목록 화면의 제목 왼쪽에 `C:\PJT\Dulwich\ExpenseApp_Src\Assets\Images\homeIcon.png` 아이콘 이미지 추가 (클릭 시 다시 Main Screen으로 이동)

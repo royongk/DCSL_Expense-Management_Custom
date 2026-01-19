@@ -1,0 +1,180 @@
+"'Travel - List Screen' As screen":
+    Fill: =RGBA(248, 248, 248, 1)
+    OnVisible: |-
+        =Set(varSelectedTab, 4)
+
+    GlobalLabels_Travel As Localization:
+        DisplayMode: =DisplayMode.Edit
+        Height: =350
+        Width: =350
+        X: =60
+        Y: =60
+        ZIndex: =1
+
+    TravelScreen_HeaderBackground As rectangle:
+        Fill: =Color.White
+        Height: =85
+        Width: =Parent.Width
+        ZIndex: =2
+
+    TravelScreen_HeaderTitle As label:
+        Color: =RGBA(30, 30, 30, 1)
+        Font: =Font.'Segoe UI'
+        FontWeight: =FontWeight.Bold
+        Height: =40
+        Size: =24
+        Text: ="Travel Requisition"
+        Width: =400
+        X: =20
+        Y: =25
+        ZIndex: =3
+
+    TravelScreen_Separator As rectangle:
+        Fill: =RGBA(225, 225, 225, 1)
+        Height: =1
+        Width: =Parent.Width
+        Y: =TravelScreen_HeaderBackground.Height
+        ZIndex: =4
+
+    TravelScreen_EmptyIcon As image:
+        Height: =80
+        Image: =travelDeselectedIcon
+        ImagePosition: =ImagePosition.Fit
+        Width: =80
+        X: =(Parent.Width - Self.Width) / 2
+        Y: =(Parent.Height - TravelScreen_HeaderBackground.Height - TravelScreen_Footer.Height) / 2 - 50 + TravelScreen_HeaderBackground.Height
+        ZIndex: =5
+
+    TravelScreen_EmptyTitle As label:
+        Align: =Align.Center
+        Color: =RGBA(50, 50, 50, 1)
+        Font: =Font.'Segoe UI'
+        FontWeight: =FontWeight.Bold
+        Height: =40
+        Size: =22
+        Text: ="Coming Soon"
+        Width: =Parent.Width - 40
+        X: =20
+        Y: =TravelScreen_EmptyIcon.Y + TravelScreen_EmptyIcon.Height + 20
+        ZIndex: =6
+
+    TravelScreen_EmptySubtitle As label:
+        Align: =Align.Center
+        Color: =RGBA(100, 100, 100, 1)
+        Font: =Font.'Segoe UI'
+        Height: =30
+        Size: =16
+        Text: ="Travel Requisition 기능이 곧 추가됩니다."
+        Width: =Parent.Width - 40
+        X: =20
+        Y: =TravelScreen_EmptyTitle.Y + TravelScreen_EmptyTitle.Height + 5
+        ZIndex: =7
+
+    TravelScreen_Footer As cmp_Footer_3:
+        ApprovalsAccessibleLabel: |-
+            =Concatenate(
+                "Travel tab ",
+                If(
+                    varSelectedTab = 4,
+                    "selected. ",
+                    "unselected. "
+                ),
+                "Select to open travel tab"
+            )
+        ApprovalsText: ="Travel"
+        DisplayMode: =!IsBlank(varSelectedLegalEntity)
+        ExpenseAccessibleLabel: |-
+            =Concatenate(
+                "Expenses tab ",
+                If(
+                    varSelectedTab = 2,
+                    "selected. ",
+                    "unselected. "
+                ),
+                "Select to open expenses tab"
+            )
+        ExpensesText: |-
+            =GlobalLabels_Travel.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
+        OnApprovalsButtonClick: |-
+            =Set(varSelectedTab, 4)
+        OnExpensesButtonClick: |-
+            =If(
+                !IsBlank(varSelectedLegalEntity),
+                Set(
+                    varSelectedTab,
+                    2
+                );
+                Navigate(
+                    'Expenses - List Screen',
+                    ScreenTransition.Fade
+                ),
+                Notify(
+                    GlobalLabels_Travel.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
+                    NotificationType.Error,
+                    gblParams.notificationTime
+                )
+            )
+        OnReceiptsButtonClick: |-
+            =If(
+                !IsBlank(varSelectedLegalEntity),
+                Set(
+                    varSelectedTab,
+                    1
+                );
+                Navigate(
+                    'Receipts - List Screen',
+                    ScreenTransition.Fade
+                ),
+                Notify(
+                    GlobalLabels_Travel.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
+                    NotificationType.Error,
+                    gblParams.notificationTime
+                )
+            )
+        OnReportsButtonClick: |-
+            =If(
+                !IsBlank(varSelectedLegalEntity),
+                Set(
+                    varSelectedTab,
+                    3
+                );
+                Navigate(
+                    'Reports - List Screen',
+                    ScreenTransition.Fade,
+                    {varcntSelectedStatus: 1}
+                ),
+                Notify(
+                    GlobalLabels_Travel.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
+                    NotificationType.Error,
+                    gblParams.notificationTime
+                )
+            )
+        paramInDefaultSelectedTab: =4
+        ReceiptAccessibleLabel: |-
+            =Concatenate(
+                "Receipts tab ",
+                If(
+                    varSelectedTab = 1,
+                    "selected. ",
+                    "unselected. "
+                ),
+                "Select to open receipts tab"
+            )
+        ReceiptText: |-
+            =GlobalLabels_Travel.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
+        ReportAccessibleLabel: |-
+            =Concatenate(
+                "Reports tab ",
+                If(
+                    varSelectedTab = 3,
+                    "selected. ",
+                    "unselected. "
+                ),
+                "Select to open reports tab"
+            )
+        ReportText: |-
+            =GlobalLabels_Travel.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+        SelectedTab: =4
+        Y: =Parent.Height - Self.Height
+        ZIndex: =8
+

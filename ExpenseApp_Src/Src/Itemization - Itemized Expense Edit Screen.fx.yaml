@@ -14,15 +14,12 @@
         UpdateContext({varSelectedCostCenter: Blank()});
         If(
             !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.CostCenter),
-            UpdateContext(
-                {
-                    varSelectedCostCenter:
-                        LookUp(
-                            'DCSL Financial Dimension CostCenter (mserp)',
-                            'Combination display' = varSelectedItemizedExpenseDoc.CostCenter
-                        )
-                }
-            )
+            UpdateContext({
+                varSelectedCostCenter: LookUp(
+                    'DCSL Financial Dimension CostCenter (mserp)',
+                    'Combination display' = varSelectedItemizedExpenseDoc.CostCenter
+                )
+            })
         );
         // Load existing Department and Benefit Type from Expense Category (reverse lookup)
         If(
@@ -1320,7 +1317,7 @@
                     Y: =Itemization_CostCenter_DataCardKey.Y + Itemization_CostCenter_DataCardKey.Height + 5
                     ZIndex: =2
 
-                Itemization_CostCenter_ErrorMessage As label:
+                Itemization_ErrorMessage_CostCenter As label:
                     AutoHeight: =true
                     BorderColor: =RGBA(0, 0, 0, 1)
                     Color: =RGBA(168, 0, 0, 1)
