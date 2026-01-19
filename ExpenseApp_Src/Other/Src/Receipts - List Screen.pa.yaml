@@ -52,12 +52,27 @@ Screens:
             Y: =scr09_glr_ReceiptGrid.Y + (Parent.Height - scr09_hdr_TopHeader.Height - scr09_cmp_Footer_1.Height - Self.Height)/2
             subTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddaReceiptToAttachToAnExpenseLabel'
             title: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
+      - scr09_homeIcon_image:
+          Control: Image@2.2.3
+          Properties:
+            AccessibleLabel: ="Go to Main Screen"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =scr09_hdr_TopHeader.Height
+            Image: =homeIcon
+            OnSelect: =Navigate('Main Screen', ScreenTransition.Fade)
+            Width: =60
+            Y: =scr09_hdr_TopHeader.Y
       - scr09_cmp_Footer_1:
           Control: CanvasComponent
           ComponentName: cmp_Footer_3
           Properties:
             ApprovalsAccessibleLabel: ="Text"
-            ApprovalsText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            ApprovalsText: |-
+              =If(
+                  varAppMode = "AirfareAllowance",
+                  "Travel",
+                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+              )
             DisplayMode: =!IsBlank(varSelectedLegalEntity)
             ExpenseAccessibleLabel: ="Text"
             ExpensesText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
@@ -78,6 +93,7 @@ Screens:
             Visible: =!varCntSelect
             Width: =Max(App.Width, App.MinScreenWidth)
             Y: =App.Height - Self.Height
+            paramInDefaultAppMode: =varAppMode
             paramInDefaultSelectedTab: |
               =1
       - scr09_glr_ReceiptGrid:
@@ -632,6 +648,9 @@ Screens:
                   UpdateContext({varCntReceiptListView:false})
               )
 
+            homeIcon: ="텍스트"
+            homeIconAccessibleLabel: ="텍스트"
+            homeIconAction: =true
             paramAvatar: =Coalesce(userImage, blankImage)
             paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
             refreshIconAction: |+

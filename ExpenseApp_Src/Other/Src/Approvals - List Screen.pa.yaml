@@ -154,12 +154,18 @@ Screens:
             Visible: =!varCntSelect
             Width: =Max(App.Width, App.MinScreenWidth)
             Y: =App.Height - Self.Height
+            paramInDefaultAppMode: =varAppMode
             paramInDefaultSelectedTab: =4
       - scr21_cmp_ApprovalsFooter:
           Control: CanvasComponent
           ComponentName: cmp_ApprovalsFooter_1
           Properties:
-            ApprovalText: =Upper(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApproveLabel')
+            ApprovalText: |-
+              =If(
+                  varAppMode = "AirfareAllowance",
+                  "Travel",
+                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+              )
             DelegateText: ="DELEGATE"
             DisplayMode: =true
             Fill: =RGBA(250, 249, 248, 1)
@@ -1180,6 +1186,9 @@ Screens:
             firstIcon: =
             firstIconAccessibleLabel: =
             firstIconAction: =true
+            homeIcon: ="텍스트"
+            homeIconAccessibleLabel: ="텍스트"
+            homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
             paramAvatar: =Coalesce(userImage, blankImage)
             paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
             refreshIconAction: "=Refresh('Submitted Reports for Approvals (mserp)');\nRefresh('View/Approve/Reject Expense Lines for Approvals (mserp)');\nConcurrent(\n    UpdateContext({varCntSelect: false}),\n    Clear(colSelectedWorkItemIds);\n    Clear(colSelectedLineItemIds);\n    ClearCollect(\n        workItemsAssignedToMe,\n        Filter(\n            'Submitted Reports for Approvals (mserp)',\n            User = userRecord.ID && 'Document status' = 'Document status (mserp)'.'In review'\n        )\n    );\n    ClearCollect(\n        lineItemsAssignedToMe,\n        Filter(\n            'View/Approve/Reject Expense Lines for Approvals (mserp)',User = userRecord.ID\n        )\n    );\n    ClearCollect(\n        receiptsAgainstWorkItems,\n        'View Attached Receipts to Expense Lines (mserp)'\n    );\n    If(\n        IsEmpty(collApprovedFilterOptions),\n        ClearCollect(\n        collApprovedFilterOptions,\n        {\n            number: 1,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneWeekLabel'  \n        },\n        {\n            number: 2,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneMonthLabel'  \n        },\n        {\n            number: 3,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterSixMonthsLabel'\n        },\n        {\n            number: 4,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneYearLabel'\n        }\n    )\n    );\n    \n)"

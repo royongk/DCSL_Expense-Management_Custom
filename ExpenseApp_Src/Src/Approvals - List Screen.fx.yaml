@@ -127,6 +127,7 @@
                     gblParams.notificationTime
                 )
             )
+        paramInDefaultAppMode: =varAppMode
         paramInDefaultSelectedTab: =4
         ReceiptText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
@@ -139,7 +140,11 @@
 
     scr21_cmp_ApprovalsFooter As cmp_ApprovalsFooter_1:
         ApprovalText: |-
-            =Upper(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApproveLabel')
+            =If(
+                varAppMode = "AirfareAllowance",
+                "Travel",
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            )
         DelegateText: ="DELEGATE"
         Height: =135
         IsDelegateVisible: =false
@@ -1100,6 +1105,7 @@
         firstIcon: =
         firstIconAccessibleLabel: =
         firstIconAction: =true
+        homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
         OnSelectButton: |-
             =Set(
                 gblNavigationDrawerVisibility,
@@ -1219,17 +1225,6 @@
                 UpdateContext({varCntSelect: true})
             )
         ZIndex: =5
-
-    scr21_homeIcon_image As image:
-        AccessibleLabel: ="Go to Main Screen"
-        Height: =scr21_hdr_TopHeader_1.Height
-        Image: =homeIcon
-        ImagePosition: =ImagePosition.Fit
-        OnSelect: =Navigate('Main Screen', ScreenTransition.Fade)
-        Width: =60
-        X: =0
-        Y: =scr21_hdr_TopHeader_1.Y
-        ZIndex: =2
 
     Rectangle5_2 As rectangle:
         Fill: |-

@@ -41,7 +41,11 @@
 
     scr09_cmp_Footer_1 As cmp_Footer_3:
         ApprovalsText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            =If(
+                varAppMode = "AirfareAllowance",
+                "Travel",
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            )
         DisplayMode: =!IsBlank(varSelectedLegalEntity)
         ExpensesText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
@@ -53,6 +57,7 @@
         OnReceiptsButtonClick: =Set(varSelectedTab, 1); Navigate('Receipts - List Screen',ScreenTransition.Fade)
         OnReportsButtonClick: |-
             =Set(varSelectedTab, 3); Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
+        paramInDefaultAppMode: =varAppMode
         paramInDefaultSelectedTab: |
             =1
         ReceiptText: |-
@@ -62,6 +67,15 @@
         SelectedTab: =1
         Visible: =!varCntSelect
         Y: =App.Height - Self.Height
+        ZIndex: =2
+
+    scr09_homeIcon_image As image:
+        AccessibleLabel: ="Go to Main Screen"
+        Height: =scr09_hdr_TopHeader.Height
+        Image: =homeIcon
+        OnSelect: =Navigate('Main Screen', ScreenTransition.Fade)
+        Width: =60
+        Y: =scr09_hdr_TopHeader.Y
         ZIndex: =2
 
     "scr09_glr_ReceiptGrid As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
@@ -577,6 +591,7 @@
                 UpdateContext({varCntReceiptListView:false})
             )
             
+        homeIconAction: =true
         OnSelectButton: |-
             =Set(
                 gblNavigationDrawerVisibility,
@@ -639,17 +654,6 @@
         Width: =Parent.Width
         Y: =1
         ZIndex: =10
-
-    scr09_homeIcon_image As image:
-        AccessibleLabel: ="Go to Main Screen"
-        Height: =scr09_hdr_TopHeader.Height
-        Image: =homeIcon
-        ImagePosition: =ImagePosition.Fit
-        OnSelect: =Navigate('Main Screen', ScreenTransition.Fade)
-        Width: =60
-        X: =0
-        Y: =scr09_hdr_TopHeader.Y
-        ZIndex: =2
 
     scr09_DeleteConfirmationDialog_1 As cmp02_ConfirmationDialog:
         controlName: ="scr09_DeleteConfirmationDialog_1"

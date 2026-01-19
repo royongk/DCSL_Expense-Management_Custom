@@ -76,7 +76,8 @@ App:
       domesticFlightFieldOrder_Y = 57;
       serviceClassFieldOrder_Y = 58;
       ticketIssueDateFieldOrder_Y = 59;
-      defaultDimensionDisplayValueFieldOrder_Y = 60; 
+      defaultDimensionDisplayValueFieldOrder_Y = 60;
+      costCenterFieldOrder_Y = 60;
 
       gblIsProjectValidationFlag = LookUp('Expense management parameters (mserp)','Company Code' = varSelectedLegalEntity).'Enable project validations' = 'NoYes (mserp)'.Yes;
 
@@ -213,6 +214,10 @@ App:
       Set(
           varSelectedTab,
           2
+      );
+      Set(
+          varAppMode,
+          "ExpenseReport"
       );
 
       ClearCollect(
@@ -361,5 +366,5 @@ App:
           gblMax,
           79228162514264337593543950335
       )
-    StartScreen: ='Expenses - List Screen'
+    StartScreen: ='Main Screen'
     Theme: =PowerAppsTheme

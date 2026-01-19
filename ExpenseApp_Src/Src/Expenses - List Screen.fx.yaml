@@ -172,6 +172,7 @@
                     gblParams.notificationTime
                 )
             )
+        paramInDefaultAppMode: =varAppMode
         ReceiptAccessibleLabel: |-
             =Concatenate(
                 "Receipts tab ",
@@ -830,6 +831,7 @@
                 CountRows(collSelectedExpenseIds) > 0,
                 Navigate('Expenses - Select Report Screen')
             )
+        homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
         OnSelectButton: |
             =Set(
                 gblNavigationDrawerVisibility,
@@ -920,17 +922,6 @@
                 UpdateContext({varCntSelect: true})
             )
         ZIndex: =13
-
-    scr01_homeIcon_image As image:
-        AccessibleLabel: ="Go to Main Screen"
-        Height: =scr01_hdr_TopHeader.Height
-        Image: =homeIcon
-        ImagePosition: =ImagePosition.Fit
-        OnSelect: =Navigate('Main Screen', ScreenTransition.Fade)
-        Width: =60
-        X: =0
-        Y: =scr01_hdr_TopHeader.Y
-        ZIndex: =2
 
     cmp02_DeleteConfirmationDialog As cmp02_ConfirmationDialog:
         controlName: ="cmp02_DeleteConfirmationDialog"

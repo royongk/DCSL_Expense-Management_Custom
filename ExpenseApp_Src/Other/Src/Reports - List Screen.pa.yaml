@@ -457,7 +457,12 @@ Screens:
           ComponentName: cmp_Footer_3
           Properties:
             ApprovalsAccessibleLabel: ="Text"
-            ApprovalsText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            ApprovalsText: |-
+              =If(
+                  varAppMode = "AirfareAllowance",
+                  "Travel",
+                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+              )
             DisplayMode: =!IsBlank(varSelectedLegalEntity)
             ExpenseAccessibleLabel: ="Text"
             ExpensesText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
@@ -486,6 +491,7 @@ Screens:
             Visible: =!varCntSelect
             Width: =Max(App.Width, App.MinScreenWidth)
             Y: =App.Height - Self.Height
+            paramInDefaultAppMode: =varAppMode
             paramInDefaultSelectedTab: =3
       - scr16_shp_Rectangle:
           Control: Rectangle@2.3.0
@@ -807,7 +813,7 @@ Screens:
                   ScreenTransition.Fade
               )
             TabIndex: =0
-            Visible: =varcntSelectedStatus = 1 && !varCntSelect
+            Visible: =varcntSelectedStatus = 1 && !varCntSelect && varAppMode = "ExpenseReport"
             Width: =120
             X: =Parent.Width - Self.Width - 15
             Y: =scr16_cmp_Footer_1.Y - Self.Height - 15
@@ -956,6 +962,9 @@ Screens:
             firstIcon: =
             firstIconAccessibleLabel: =
             firstIconAction: =
+            homeIcon: ="텍스트"
+            homeIconAccessibleLabel: ="텍스트"
+            homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
             paramAvatar: =Coalesce(userImage, blankImage)
             paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
             refreshIconAction: |-

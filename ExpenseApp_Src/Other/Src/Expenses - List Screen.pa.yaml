@@ -115,7 +115,12 @@ Screens:
                   ),
                   "Select to open approvals tab"
               )
-            ApprovalsText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            ApprovalsText: |-
+              =If(
+                  varAppMode = "AirfareAllowance",
+                  "Travel",
+                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+              )
             DisplayMode: =true
             ExpenseAccessibleLabel: |-
               =Concatenate(
@@ -212,6 +217,7 @@ Screens:
             Visible: =!varCntSelect
             Width: =Max(App.Width, App.MinScreenWidth)
             Y: =App.Height - Self.Height
+            paramInDefaultAppMode: =varAppMode
             paramInDefaultSelectedTab: =2
       - scr01_glr_ListExpense:
           Control: Gallery@2.15.0
@@ -871,6 +877,9 @@ Screens:
                   CountRows(collSelectedExpenseIds) > 0,
                   Navigate('Expenses - Select Report Screen')
               )
+            homeIcon: ="텍스트"
+            homeIconAccessibleLabel: ="텍스트"
+            homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
             paramAvatar: =Coalesce(userImage, blankImage)
             paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
             refreshIconAction: |-

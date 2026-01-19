@@ -441,7 +441,11 @@
 
     scr16_cmp_Footer_1 As cmp_Footer_3:
         ApprovalsText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            =If(
+                varAppMode = "AirfareAllowance",
+                "Travel",
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            )
         DisplayMode: =!IsBlank(varSelectedLegalEntity)
         ExpensesText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
@@ -460,6 +464,7 @@
             =UpdateContext({varcntShowFilter : false});
             Set(varSelectedTab, 3); 
             Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
+        paramInDefaultAppMode: =varAppMode
         paramInDefaultSelectedTab: =3
         ReceiptText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
@@ -833,6 +838,7 @@
         firstIcon: =
         firstIconAccessibleLabel: =
         firstIconAction: =
+        homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
         OnSelectButton: |-
             =Set(
                 gblNavigationDrawerVisibility,
@@ -932,17 +938,6 @@
             );
             Clear(colSelectedReportIds)
         ZIndex: =24
-
-    scr16_homeIcon_image As image:
-        AccessibleLabel: ="Go to Main Screen"
-        Height: =scr16_hdr_TopHeader.Height
-        Image: =homeIcon
-        ImagePosition: =ImagePosition.Fit
-        OnSelect: =Navigate('Main Screen', ScreenTransition.Fade)
-        Width: =60
-        X: =0
-        Y: =scr16_hdr_TopHeader.Y
-        ZIndex: =2
 
     scr16_cmp_DeleteConfirmationDialog As cmp02_ConfirmationDialog:
         controlName: ="scr16_cmp_DeleteConfirmationDialog"

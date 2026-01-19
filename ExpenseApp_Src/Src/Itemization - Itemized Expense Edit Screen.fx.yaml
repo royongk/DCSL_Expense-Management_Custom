@@ -1237,106 +1237,6 @@
                     Y: =DataCardKey3_4.Y + DataCardKey3_4.Height + 5
                     ZIndex: =5
 
-            Itemization_CostCenter_DataCard As typedDataCard.allowedValuesStringEditCard:
-                AllowedValues: ='DCSL Financial Dimension CostCenter (mserp)'
-                BorderColor: =gblParams.dropDownBorderColor
-                BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_deexcostcenter"
-                Default: =varSelectedItemizedExpenseDoc.CostCenter
-                DisplayMode: =Parent.DisplayMode
-                DisplayName: ="Cost Center"
-                Fill: =RGBA(0, 0, 0, 0)
-                Height: =50
-                Required: =false
-                Update: =Itemization_ComboBox_CostCenter.Selected.'Combination display'
-                Visible: =true
-                Width: =Parent.Width
-                X: =0
-                Y: =costCenterFieldOrder_Y
-                ZIndex: =1
-
-                Itemization_CostCenter_DataCardKey As label:
-                    AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =gblParams.dropDownLabelColor
-                    Font: =Font.'Segoe UI'
-                    Height: =48
-                    Size: =21
-                    Text: =Parent.DisplayName
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =10
-                    ZIndex: =1
-
-                Itemization_ComboBox_CostCenter As combobox:
-                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
-                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                    DefaultSelectedItems: |-
-                        =If(
-                            !IsBlank(varSelectedCostCenter),
-                            varSelectedCostCenter,
-                            Blank()
-                        )
-                    DisplayFields: =["mserp_description"]
-                    DisplayMode: =Parent.DisplayMode
-                    FocusedBorderThickness: =2
-                    Height: =gblParams.dropDownHeight
-                    HoverFill: =gblParams.dropDownHoverFill
-                    InputTextPlaceholder: ="Select Cost Center"
-                    IsSearchable: =true
-                    Items: |-
-                        =SortByColumns(
-                            'DCSL Financial Dimension CostCenter (mserp)',
-                            "mserp_description",
-                            SortOrder.Ascending
-                        )
-                    NoSelectionText: ="Select Cost Center"
-                    OnChange: |-
-                        =UpdateContext(
-                            {
-                                varSelectedCostCenter: Itemization_ComboBox_CostCenter.Selected,
-                                isDirty: true
-                            }
-                        )
-                    SearchFields: =["mserp_description"]
-                    SearchItems: |-
-                        =Search(
-                            'DCSL Financial Dimension CostCenter (mserp)',
-                            Itemization_ComboBox_CostCenter.SearchText,
-                            mserp_description
-                        )
-                    SelectionColor: =Color.Black
-                    SelectionFill: =gblParams.dropDownBorderColor
-                    SelectionTagColor: =RGBA(0, 0, 0, 1)
-                    SelectMultiple: =false
-                    Size: =24
-                    Width: =Parent.Width - 2 * Self.X
-                    X: =30
-                    Y: =Itemization_CostCenter_DataCardKey.Y + Itemization_CostCenter_DataCardKey.Height + 5
-                    ZIndex: =2
-
-                Itemization_ErrorMessage_CostCenter As label:
-                    AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =RGBA(168, 0, 0, 1)
-                    Font: =Font.'Segoe UI'
-                    FontWeight: =FontWeight.Semibold
-                    Height: =10
-                    Live: =Live.Assertive
-                    PaddingBottom: =0
-                    PaddingLeft: =0
-                    PaddingRight: =0
-                    PaddingTop: =0
-                    Size: =gblParams.errorMessageSize
-                    Text: =Parent.Error
-                    Visible: =Parent.DisplayMode=DisplayMode.Edit
-                    Width: =Parent.Width - 60
-                    X: =30
-                    Y: =Itemization_ComboBox_CostCenter.Y + Itemization_ComboBox_CostCenter.Height
-                    ZIndex: =3
-
             "'Category description_DataCard1_4' As typedDataCard.textualEditCard":
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
@@ -7077,6 +6977,105 @@
                     Wrap: =false
                     Y: =DataCardKey38_4.Y
                     ZIndex: =4
+
+            Itemization_CostCenter_DataCard As typedDataCard.allowedValuesStringEditCard:
+                AllowedValues: ='DCSL Financial Dimension CostCenter (mserp)'
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexcostcenter"
+                Default: =varSelectedItemizedExpenseDoc.CostCenter
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: ="Cost Center"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =Itemization_ComboBox_CostCenter.Selected.'Combination display'
+                Visible: =true
+                Width: =Parent.Width
+                X: =0
+                Y: =costCenterFieldOrder_Y
+                ZIndex: =1
+
+                Itemization_CostCenter_DataCardKey As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                Itemization_ComboBox_CostCenter As combobox:
+                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(varSelectedCostCenter),
+                            varSelectedCostCenter,
+                            Blank()
+                        )
+                    DisplayFields: =["mserp_description"]
+                    DisplayMode: =Parent.DisplayMode
+                    FocusedBorderThickness: =2
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
+                    InputTextPlaceholder: ="Select Cost Center"
+                    Items: |-
+                        =SortByColumns(
+                            'DCSL Financial Dimension CostCenter (mserp)',
+                            "mserp_description",
+                            SortOrder.Ascending
+                        )
+                    NoSelectionText: ="Select Cost Center"
+                    OnChange: |-
+                        =UpdateContext(
+                            {
+                                varSelectedCostCenter: Itemization_ComboBox_CostCenter.Selected,
+                                isDirty: true
+                            }
+                        )
+                    SearchFields: =["mserp_description"]
+                    SearchItems: |-
+                        =Search(
+                            'DCSL Financial Dimension CostCenter (mserp)',
+                            Itemization_ComboBox_CostCenter.SearchText,
+                            mserp_description
+                        )
+                    SelectionColor: =Color.Black
+                    SelectionFill: =gblParams.dropDownBorderColor
+                    SelectionTagColor: =RGBA(0, 0, 0, 1)
+                    SelectMultiple: =false
+                    Size: =24
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =Itemization_CostCenter_DataCardKey.Y + Itemization_CostCenter_DataCardKey.Height + 5
+                    ZIndex: =2
+
+                Itemization_ErrorMessage_CostCenter As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(168, 0, 0, 1)
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =10
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =gblParams.errorMessageSize
+                    Text: =Parent.Error
+                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =Itemization_ComboBox_CostCenter.Y + Itemization_ComboBox_CostCenter.Height
+                    ZIndex: =3
 
     formModeRectangle_1 As rectangle:
         Fill: =RGBA(0, 0, 0, 0)

@@ -94,6 +94,13 @@ ComponentDefinitions:
         Description: Currently selected tab
         DataType: Number
         Default: =100
+      paramInDefaultAppMode:
+        PropertyKind: Input
+        DisplayName: paramInDefaultAppMode
+        Description: 사용자 지정 속성
+        RaiseOnReset: true
+        DataType: Text
+        Default: ="텍스트"
       paramInDefaultSelectedTab:
         PropertyKind: Input
         DisplayName: paramInDefaultSelectedTab
@@ -118,7 +125,20 @@ ComponentDefinitions:
           Properties:
             BorderColor: =RGBA(0, 18, 107, 1)
             Height: =28.16
-            Image: =If( Value(cmp_Footer_3.paramInDefaultSelectedTab=4), approvalsSelectedIcon, approvalsIcon)
+            Image: |-
+              =If(
+                  cmp_Footer_3.paramInDefaultAppMode = "AirfareAllowance",
+                  If(
+                      Value(cmp_Footer_3.paramInDefaultSelectedTab=4),
+                      travelSelected,
+                      travelDeselectedIcon
+                  ),
+                  If(
+                      Value(cmp_Footer_3.paramInDefaultSelectedTab=4),
+                      approvalsSelectedIcon,
+                      approvalsIcon
+                  )
+              )
             OnSelect: =cmp_Footer_3.OnApprovalsButtonClick()
             Width: =28.16
             X: =approvalsRegion_1.X + (approvalsRegion_1.Width - Self.Width)/2
@@ -176,7 +196,7 @@ ComponentDefinitions:
           Properties:
             Align: =Align.Center
             BorderColor: =RGBA(0, 18, 107, 1)
-            Color: =If(varSelectedTab=3,RGBA(34, 102, 227, 1), RGBA(110, 110, 110, 1))
+            Color: =If(varSelectedTab=4,RGBA(34, 102, 227, 1), RGBA(110, 110, 110, 1))
             DisplayMode: |-
               =If(
                   cmp_Footer_3.DisplayMode,
