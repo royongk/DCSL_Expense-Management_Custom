@@ -31,7 +31,8 @@
                 Filter(
                     'Travel requisition (mserp)',
                     'Approval status' = 'Approval status (mserp)'.Approved &&
-                    'Legal entity' = Upper(varSelectedLegalEntity)
+                    ReferenceDataAreaId = Upper(varSelectedLegalEntity) &&
+                    Employee = userRecord.CreatingWorker
                 ),
                 "mserp_requisitiondate", SortOrder.Descending
             )
@@ -43,7 +44,7 @@
                 ThisItem
             );
             If(
-                Value(ThisItem.'Amount to reconcile (mserp_remainingamount)') = 0,
+                Value(ThisItem.'Amount to reconcile') = 0,
                 Notify(
                     "This Travel requirement number cannot register an Expense Report because the Remaining Amount is 0 KRW.",
                     NotificationType.Error,
@@ -112,7 +113,7 @@
                         PaddingRight: =0
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                        Text: =ThisItem.'Travel requisition number (mserp_requisitionnumber)'
+                        Text: =ThisItem.'Travel requisition number'
                         Width: =Parent.Width
                         ZIndex: =1
 
@@ -130,7 +131,7 @@
                         PaddingRight: =0
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                        Text: =ThisItem.'Business purpose (mserp_travelpurpose)'
+                        Text: =ThisItem.'Business purpose'
                         Width: =Parent.Width
                         ZIndex: =2
 
@@ -164,7 +165,7 @@
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
-                            =Concatenate(Text(Value(ThisItem.'Amount (mserp_totalestimate)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                            =Concatenate(Text(Value(ThisItem.'Amount'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                         Width: =Parent.Width
                         ZIndex: =1
 
@@ -181,7 +182,7 @@
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
-                            =Concatenate(Text(Value(ThisItem.'Amount to reconcile (mserp_remainingamount)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                            =Concatenate(Text(Value(ThisItem.'Amount to reconcile'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                         Width: =Parent.Width
                         ZIndex: =2
 
@@ -245,7 +246,7 @@
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
         ReportText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
-        SelectedTab: =2
+        SelectedTab: =4
         Visible: =!varCntSelect
         Y: =App.Height - Self.Height
         ZIndex: =4
