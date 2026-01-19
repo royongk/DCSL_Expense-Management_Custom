@@ -153,14 +153,15 @@
         LoadingSpinner: =LoadingSpinner.Data
         OnSelect: |-
             =UpdateContext({varcntShowFilter:false});
-            Set(
-                varSelectedReportStatusItem,
-                ThisItem.'Document Status'
-            );
-            // ⚠️ LookUp from original data source to ensure field name compatibility
+            // ⚠️ LookUp from original data source FIRST to ensure field name compatibility
             Set(
                 varSelectedReport,
                 LookUp('Expense reports (mserp)','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
+            );
+            // ✅ Use varSelectedReport.'Document Status' from original data source for type consistency
+            Set(
+                varSelectedReportStatusItem,
+                varSelectedReport.'Document Status'
             );
             Clear(colAttachedExpensesForReport);
             ForAll(
