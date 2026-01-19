@@ -164,7 +164,7 @@ Screens:
                               If(
                                   !IsBlank(varSelectedReport),
                                   Text(
-                                      Value(varSelectedReport.'Amount (mserp_deextrvrequisitiontotalestimate)'),
+                                      Value(varSelectedReport.Amount),
                                       "#,#0.00",
                                       varDefaultLanguage
                                   ),
@@ -229,20 +229,20 @@ Screens:
                               false
                           );
                           IfError(
-                              Patch(
-                                  'Expense reports (mserp)_1',
-                                  LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
-                                  {
-                                      'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                      Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                      Description: scr17_txt_Description_1.Text,
-                                      'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
-                                      'Document Status': 'Document Status (mserp)'.Submitted,
-                                      'Employee (mserp_creatingworker)': userRecord.CreatingWorker,
-                                      'Employee (mserp_deexcreatingworker)': userRecord.CreatingWorker
-                                      // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
-                                      // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
-                                  }
+                              Set(
+                                  varSelectedReport,
+                                  Patch(
+                                      'Expense reports (mserp)',
+                                      LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                      {
+                                          Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                          Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                          Description: scr17_txt_Description_1.Text,
+                                          'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                          // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                          // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                      }
+                                  )
                               ),
                               First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
                           );
@@ -301,7 +301,106 @@ Screens:
                         HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
                         HoverColor: =RGBA(255, 255, 255, 1)
                         HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                        OnSelect: "=Set(\n    gblNavigationDrawerVisibility,\n    false\n);\nIf(\n    varIsCreateReport,\n    IfError(\n        Patch(\n            'Expense reports (mserp)_1',\n            Defaults('Expense reports (mserp)_1'),\n            {\n                'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n                Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),\n                Description: scr17_txt_Description_1.Text,\n                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),\n                'Employee (mserp_creatingworker)': userRecord.CreatingWorker,\n                'Employee (mserp_deexcreatingworker)': userRecord.CreatingWorker\n                // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)\n                // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), \"\", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))\n            }\n        ),\n        First(\n            ClearCollect(\n                varError, \n                Substitute(\n                    Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                    \"\"\"message\"\":\", \n                    \"\"\n                )\n            )\n        )\n        \n    ),\n    IfError(\n        Patch(\n            'Expense reports (mserp)_1',\n            LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),\n            {\n                'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n            Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),\n                Description: scr17_txt_Description_1.Text,\n            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),\n            'Employee (mserp_creatingworker)': userRecord.CreatingWorker,\n            'Employee (mserp_deexcreatingworker)': userRecord.CreatingWorker\n            // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)\n            // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), \"\", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))\n            }\n        ),\n        First(\n            ClearCollect(\n                varError, \n                Substitute(\n                    Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                    \"\"\"message\"\":\", \n                    \"\"\n                )\n            )\n        )\n    \n    )\n);\nIf(\n    !(IsBlank(First(varError).Value) || First(varError).Value = \"\"),\n    Notify(\n        Substitute(First(varError).Value, \"\"\"\", \"\"),\n        NotificationType.Error,\n        gblParams.notificationTime\n    ),\n    If(\n        varIsCreateReport,\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel',\n            NotificationType.Success, \n            gblParams.notificationTime\n            ),\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', \n            NotificationType.Success, \n            gblParams.notificationTime\n        )\n    );\n    Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})\n);\nClear(varError)\n\n"
+                        OnSelect: |+
+                          =Set(
+                              gblNavigationDrawerVisibility,
+                              false
+                          );
+                          If(
+                              varIsCreateReport,
+                              Clear(varError);
+                              With(
+                                  {
+                                      patchedReport: IfError(
+                                          Patch(
+                                              'Expense reports (mserp)',
+                                              Defaults('Expense reports (mserp)'),
+                                              {
+                                                  Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                  Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),
+                                                  Description: scr17_txt_Description_1.Text,
+                                                  'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                                  // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                                  // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                              }
+                                          ),
+                                          First(
+                                              ClearCollect(
+                                                  varError, 
+                                                  Substitute(
+                                                      Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                                      """message"":", 
+                                                      ""
+                                                  )
+                                              )
+                                          );
+                                          Blank()
+                                      )
+                                  },
+                                  If(
+                                      !IsBlank(patchedReport),
+                                      Set(varSelectedReport, patchedReport)
+                                  )
+                              ),
+                              Clear(varError);
+                              With(
+                                  {
+                                      patchedReport: IfError(
+                                          Patch(
+                                              'Expense reports (mserp)',
+                                              LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                              {
+                                                  Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                          Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                              Description: scr17_txt_Description_1.Text,
+                                          'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                          // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                          // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                              }
+                                          ),
+                                          First(
+                                              ClearCollect(
+                                                  varError, 
+                                                  Substitute(
+                                                      Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                                      """message"":", 
+                                                      ""
+                                                  )
+                                              )
+                                          );
+                                          Blank()
+                                      )
+                                  },
+                                  If(
+                                      !IsBlank(patchedReport),
+                                      Set(varSelectedReport, patchedReport)
+                                  )
+                              )
+                          );
+                          If(
+                              !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                              Notify(
+                                  Substitute(First(varError).Value, """", ""),
+                                  NotificationType.Error,
+                                  gblParams.notificationTime
+                              ),
+                              If(
+                                  varIsCreateReport,
+                                  Notify(
+                                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel',
+                                      NotificationType.Success, 
+                                      gblParams.notificationTime
+                                      ),
+                                  Notify(
+                                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', 
+                                      NotificationType.Success, 
+                                      gblParams.notificationTime
+                                  )
+                              );
+                              Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})
+                          );
+                          Clear(varError)
+
                         PressedBorderColor: =Self.Fill
                         PressedColor: =Self.Fill
                         PressedFill: =Self.Color
@@ -434,22 +533,22 @@ Screens:
                         ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                         ChevronHoverFill: =RGBA(255, 255, 255, 1)
                         Default: =Blank()
-                        DefaultSelectedItems: =LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.'Purpose (mserp_purpose)')
+                        DefaultSelectedItems: =LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.Purpose)
                         DisplayFields: =["mserp_value"]
                         Font: =Font.'Open Sans'
                         Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: |-
-                          =If(IsBlank(varSelectedReport.'Purpose (mserp_purpose)'),
+                          =If(IsBlank(varSelectedReport.Purpose),
                           GlobalLabels.Labels.'15062:LocalizedName,msdyn_TitlePlaceholderLabel',
-                          varSelectedReport.'Purpose (mserp_purpose)')
+                          varSelectedReport.Purpose)
                         Items: |
                           =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         OnChange: |-
                           =If(
-                              ComboBox_Purpose.Selected.'Purpose (mserp_value)' <> varSelectedReport.'Purpose (mserp_purpose)',
+                              ComboBox_Purpose.Selected.'Purpose (mserp_value)' <> varSelectedReport.Purpose,
                                   UpdateContext({isExpReportDirty : true})
                           );
                         OnSelect: |
@@ -1040,32 +1139,38 @@ Screens:
                               OnSelect: |
                                 =If(
                                     varIsCreateReport,
-                                    IfError(
-                                        Set(
-                                            varSelectedReport,
-                                            Patch(
-                                                'Expense reports (mserp)_1',
-                                                Defaults('Expense reports (mserp)_1'),
-                                                {
-                                                    'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                            Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                                    Description: scr17_txt_Description_1.Text,
-                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
-                                                    'Employee (mserp_creatingworker)': userRecord.CreatingWorker,
-                                                    'Employee (mserp_deexcreatingworker)': userRecord.CreatingWorker
-                                                    // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
-                                                    // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
-                                                }
+                                    UpdateContext({varCreateError: Blank()});
+                                    Clear(varError);
+                                    With(
+                                        {
+                                            patchedReport: IfError(
+                                                Patch(
+                                                    'Expense reports (mserp)',
+                                                    Defaults('Expense reports (mserp)'),
+                                                    {
+                                                        Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                                        Description: scr17_txt_Description_1.Text,
+                                                        'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                                        // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                                        // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                                    }
+                                                ),
+                                                UpdateContext({
+                                                        varCreateError : 
+                                                        Substitute(
+                                                            Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                                            """message"":", 
+                                                            ""
+                                                        )
+                                                    }
+                                                );
+                                                Blank()
                                             )
-                                        ),
-                                        UpdateContext({
-                                                varCreateError : 
-                                                Substitute(
-                                                    Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                                    """message"":", 
-                                                    ""
-                                                )
-                                            }
+                                        },
+                                        If(
+                                            !IsBlank(patchedReport),
+                                            Set(varSelectedReport, patchedReport)
                                         )
                                     )
                                 );
