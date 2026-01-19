@@ -248,21 +248,20 @@
             );
             UpdateContext({varExpenseReportNumber : scr07_DraftReports.Selected.'Expense report number'});
             IfError(
-                Patch(
-                    'Expense reports (mserp)',
-                    LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber),
-                    {
-                        ExpTransNumber: Concat(colToAttach, expenseTransactionNumber, ",")
-                    }
+                Set(
+                    varSelectedReport,
+                    Patch(
+                        'Expense reports (mserp)',
+                        LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber),
+                        {
+                            ExpTransNumber: Concat(colToAttach, expenseTransactionNumber, ",")
+                        }
+                    )
                 ),
                 First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
             );
             If(
                 IsBlank(First(varError).Value) || First(varError).Value <> "",
-                Set(
-                    varSelectedReport,
-                    LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber)
-                );
                 Clear(colAttachedExpensesForReport);
                 ForAll(
                     Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
