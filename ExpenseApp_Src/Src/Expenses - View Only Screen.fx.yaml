@@ -6885,6 +6885,58 @@
                     Width: =Parent.Width
                     ZIndex: =6
 
+            CostCenter_DataCard_ViewOnly As typedDataCard.textualViewCard:
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexcostcenter"
+                Default: |-
+                    =Coalesce(
+                        varExpenseAgainstWorkItem.CostCenter,
+                        varSelectedExpenseDoc.CostCenter
+                    )
+                DisplayMode: =DisplayMode.View
+                DisplayName: ="Cost Center"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Visible: =true
+                Width: =Parent.Width
+                X: =0
+                Y: =costCenterFieldOrder_Y
+                ZIndex: =1
+
+                CostCenter_DataCardKey_ViewOnly As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                CostCenter_Label_ViewOnly As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(51, 51, 51, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: |-
+                        =If(
+                            !IsBlank(varSelectedCostCenter),
+                            varSelectedCostCenter.'Name',
+                            ""
+                        )
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =CostCenter_DataCardKey_ViewOnly.Y + CostCenter_DataCardKey_ViewOnly.Height + 5
+                    ZIndex: =2
+
             "'Default dimension display value_DataCard1_2' As typedDataCard.textualEditCard":
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
@@ -6974,58 +7026,6 @@
                     Wrap: =false
                     Y: =DataCardKey38_3.Y
                     ZIndex: =4
-
-            CostCenter_DataCard_ViewOnly As typedDataCard.textualViewCard:
-                BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_deexcostcenter"
-                Default: |-
-                    =Coalesce(
-                        varExpenseAgainstWorkItem.CostCenter,
-                        varSelectedExpenseDoc.CostCenter
-                    )
-                DisplayMode: =DisplayMode.View
-                DisplayName: ="Cost Center"
-                Fill: =RGBA(0, 0, 0, 0)
-                Height: =50
-                Required: =false
-                Visible: =true
-                Width: =Parent.Width
-                X: =0
-                Y: =costCenterFieldOrder_Y
-                ZIndex: =1
-
-                CostCenter_DataCardKey_ViewOnly As label:
-                    AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =gblParams.dropDownLabelColor
-                    Font: =Font.'Segoe UI'
-                    Height: =48
-                    Size: =21
-                    Text: =Parent.DisplayName
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =10
-                    ZIndex: =1
-
-                CostCenter_Label_ViewOnly As label:
-                    AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =RGBA(51, 51, 51, 1)
-                    Font: =Font.'Segoe UI'
-                    Height: =48
-                    Size: =21
-                    Text: |-
-                        =If(
-                            !IsBlank(varSelectedCostCenter),
-                            varSelectedCostCenter.'Name',
-                            ""
-                        )
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =CostCenter_DataCardKey_ViewOnly.Y + CostCenter_DataCardKey_ViewOnly.Height + 5
-                    ZIndex: =2
 
         ViewExpenseDetail As form:
             AlignInContainer: =AlignInContainer.SetByContainer
