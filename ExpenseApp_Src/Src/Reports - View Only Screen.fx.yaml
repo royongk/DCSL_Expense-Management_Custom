@@ -120,7 +120,7 @@
                         If(
                             !IsBlank(varSelectedReport),
                             Text(
-                                Value(varSelectedReport.'Amount (mserp_amounttotal)'),
+                                Value(varSelectedReport.AmountTotal),
                                 "#,#0.00",
                                 varDefaultLanguage
                             ),
@@ -195,8 +195,8 @@
                     );
                     IfError(
                         Patch(
-                            'Expense reports (mserp)_1',
-                            LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
+                            'Expense reports (mserp)',
+                            LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
                             {
                                 WorkflowAction: "Recall"
                             }
@@ -221,7 +221,7 @@
                 Size: =19.15
                 Text: |-
                     =GlobalLabels.Labels.'15062:LocalizedName,msdyn_WithdrawLabel'
-                Visible: =!(varSelectedReport.'Document Status' in dsApproved)
+                Visible: =!(varSelectedReport.'Document status' in dsApproved)
                 Width: |
                     =Parent.Width -  Self.X*2
                 X: =scr20_btn_Done_1.X
