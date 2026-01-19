@@ -31,3 +31,24 @@
     - 참고 화면 구성: 
         > `C:\PJT\Dulwich\ExpenseApp_Src\Src\Reports - List Screen.fx.yaml` 화면 구성 참고
         > `Reports - List Screen`의 필터 버튼, 다중 선택 버튼, 삭제 버튼은 Travel List 화면에서는 사용하지 않음.
+
+- 추가 연관된 수정 사항:
+    - 대상 화면: `C:\PJT\Dulwich\ExpenseApp_Src\Src\Reports - Edit Screen.fx.yaml`
+    - 필드 추가 사항:
+        > 아래 추가 필드는 Travel List 화면에서 Record를 선택해서 화면 이동했을때만 Visible 표시
+        1. 필드 `Destination` 추가
+            - 데이터 소스: `Travel List` 화면에서 사용자가 선택한 Record의 "Destination" 필드
+            - 표시 필드명: "Destination"
+            - UI 구성: View Only 필드로 구성, 필드 추가 위치는 `Location` 아래
+        2. 필드 `Map to travel requisition` 추가
+            - 데이터 소스: `Travel List` 화면에서 사용자가 선택한 Record의 "Travel requisition number" 필드
+            - 표시 필드명: "Map to travel requisition"
+            - UI 구성: View Only 필드로 구성, 필드 추가 위치는 `Destination` 아래
+        3. 필드 `Travel requisition amount` 추가
+            - 데이터 소스: `Travel List` 화면에서 사용자가 선택한 Record의 "Amount" 필드
+            - 표시 필드명: "Travel requisition amount"
+            - UI 구성: View Only 필드로 구성, 필드 추가 위치는 `Map to travel requisition` 아래
+        4. 필드 `Remaining amount` 추가
+            - 데이터 소스: `Travel List` 화면에서 사용자가 선택한 Record의 "Amount to reconcile" 필드
+            - 표시 필드명: "Remaining amount"
+            - UI 구성: View Only 필드로 구성, 필드 추가 위치는 `Travel requisition amount` 아래

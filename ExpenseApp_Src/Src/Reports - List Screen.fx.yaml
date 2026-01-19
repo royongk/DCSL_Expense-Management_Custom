@@ -450,10 +450,14 @@
         ExpensesText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
         OnApprovalsButtonClick: |-
-            =UpdateContext({varcntShowFilter : false});
-            Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
-            Reset(scr25_cmb_Project);
-            Reset(scr25_cmb_User);
+            =If(
+                varAppMode = "AirfareAllowance",
+                Navigate('Travel - List Screen', ScreenTransition.Fade),
+                UpdateContext({varcntShowFilter : false});
+                Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
+                Reset(scr25_cmb_Project);
+                Reset(scr25_cmb_User)
+            )
         OnExpensesButtonClick: |-
             =UpdateContext({varcntShowFilter : false});
             Set(varSelectedTab, 2); Navigate('Expenses - List Screen',ScreenTransition.Fade)

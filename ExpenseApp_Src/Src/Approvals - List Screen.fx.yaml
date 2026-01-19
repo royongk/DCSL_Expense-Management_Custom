@@ -74,7 +74,12 @@
         DisplayMode: =!IsBlank(varSelectedLegalEntity)
         ExpensesText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
-        OnApprovalsButtonClick: =Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade);
+        OnApprovalsButtonClick: |-
+            =If(
+                varAppMode = "AirfareAllowance",
+                Navigate('Travel - List Screen', ScreenTransition.Fade),
+                Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade)
+            )
         OnExpensesButtonClick: |-
             =If(
                 !IsBlank(varSelectedLegalEntity),
