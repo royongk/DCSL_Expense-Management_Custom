@@ -60,6 +60,25 @@
                 )
             )
         );
+        // Cost Center context
+        UpdateContext({varSelectedCostCenter: Blank()});
+        With(
+            {
+                expenseDoc: Coalesce(
+                    varExpenseAgainstWorkItem,
+                    varSelectedExpenseDoc
+                )
+            },
+            If(
+                !IsBlank(expenseDoc.CostCenter),
+                UpdateContext({
+                    varSelectedCostCenter: LookUp(
+                        'DCSL Financial Dimension CostCenter (mserp)',
+                        'Combination display' = expenseDoc.CostCenter
+                    )
+                })
+            )
+        );
         //if labelTableLookUp not empty
         If(
             CountRows(labelTableLookUp) <= 0,
@@ -617,6 +636,60 @@
                     X: =30
                     Y: =DataCardKey3_3.Y + DataCardKey3_3.Height + 5
                     ZIndex: =5
+
+            CostCenter_DataCard_ViewOnly As typedDataCard.textualViewCard:
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexcostcenter"
+                Default: =Coalesce(
+                    varExpenseAgainstWorkItem.CostCenter,
+                    varSelectedExpenseDoc.CostCenter
+                )
+                DisplayMode: =DisplayMode.View
+                DisplayName: ="Cost Center"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Visible: =true
+                Width: =Parent.Width
+                X: =0
+                Y: =costCenterFieldOrder_Y
+                ZIndex: =1
+
+                CostCenter_DataCardKey_ViewOnly As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                CostCenter_DataCardValue_ViewOnly As label:
+                    AutoHeight: =true
+                    DisplayMode: =Parent.DisplayMode
+                    Height: =gblParams.dropDownHeight
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =24
+                    Text: =If(
+                        !IsBlank(varSelectedCostCenter),
+                        varSelectedCostCenter.Name,
+                        Coalesce(
+                            varExpenseAgainstWorkItem.CostCenter,
+                            varSelectedExpenseDoc.CostCenter,
+                            ""
+                        )
+                    )
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =CostCenter_DataCardKey_ViewOnly.Y + CostCenter_DataCardKey_ViewOnly.Height + 5
+                    ZIndex: =2
 
             "'Category description_DataCard1_2' As typedDataCard.textualEditCard":
                 BorderColor: =gblParams.dropDownBorderColor
