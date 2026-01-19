@@ -61,15 +61,13 @@ Screens:
               //any expense not part of this list will be unattached from the chosen report
               IfError(
                   Patch(
-                      'Expense reports (mserp)_1',
-                      LookUp('Expense reports (mserp)_1','Expense report number' = varSelectedReport.'Expense report number'),
+                      'Expense reports (mserp)',
+                      LookUp('Expense reports (mserp)','Expense report number' = varSelectedReport.'Expense report number'),
                       {
-                          // ⚠️ REMOVED: ExpTransNumber field does not exist in new data source
-                          'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                          ExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', ","),
+                          Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                           Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                          Description: scr17_txt_Description_1.Text,
-                          'Employee (mserp_creatingworker)': userRecord.CreatingWorker,
-                          'Employee (mserp_deexcreatingworker)': userRecord.CreatingWorker
+                          Description: scr17_txt_Description_1.Text
                       }
                   ),
                   First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
@@ -90,7 +88,7 @@ Screens:
               UpdateContext({varReportNumber : varSelectedReport.'Expense report number'});
               Set(
                   varSelectedReport,
-                  LookUp('Expense reports (mserp)_1','Expense report number' = varReportNumber)
+                  LookUp('Expense reports (mserp)','Expense report number' = varReportNumber)
               );
               ClearCollect(
                   colAttachedExpensesForReport,

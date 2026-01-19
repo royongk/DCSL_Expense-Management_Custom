@@ -265,31 +265,27 @@ Screens:
                   )
               );
               UpdateContext({varExpenseReportNumber : scr07_DraftReports.Selected.'Expense report number'});
-              // ⚠️ COMMENTED OUT: ExpTransNumber field does not exist in new data source (mserp_trvexptablemobileentity)
-              // This Patch operation is no longer needed as we use Filter('Expense lines (mserp)', 'Expense report number' = ...)
-              // to retrieve attached expenses (see lines 266-273 below)
-              // IfError(
-              //     Patch(
-              //         'Expense reports (mserp)_1',
-              //         LookUp('Expense reports (mserp)_1','Expense report number' = varExpenseReportNumber),
-              //         {
-              //             ExpTransNumber: Concat(colToAttach, expenseTransactionNumber, ",")
-              //         }
-              //     ),
-              //     First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
-              // );
-              If(
-                  IsBlank(First(varError).Value) || First(varError).Value <> "",
+              IfError(
                   Set(
                       varSelectedReport,
-                      LookUp('Expense reports (mserp)_1','Expense report number' = varExpenseReportNumber)
-                  );
-                  ClearCollect(
-                      colAttachedExpensesForReport,
-                      Filter(
-                          'Expense lines (mserp)',
-                          'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
-                          && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
+                      Patch(
+                          'Expense reports (mserp)',
+                          LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber),
+                          {
+                              ExpTransNumber: Concat(colToAttach, expenseTransactionNumber, ",")
+                          }
+                      )
+                  ),
+                  First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+              );
+              If(
+                  IsBlank(First(varError).Value) || First(varError).Value <> "",
+                  Clear(colAttachedExpensesForReport);
+                  ForAll(
+                      Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
+                      Collect(
+                          colAttachedExpensesForReport,
+                          LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
                       )
                   );
                   ClearCollect(

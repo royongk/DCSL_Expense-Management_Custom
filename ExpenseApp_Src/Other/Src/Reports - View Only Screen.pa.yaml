@@ -139,7 +139,7 @@ Screens:
                               If(
                                   !IsBlank(varSelectedReport),
                                   Text(
-                                      Value(varSelectedReport.'Amount (mserp_amounttotal)'),
+                                      Value(varSelectedReport.AmountTotal),
                                       "#,#0.00",
                                       varDefaultLanguage
                                   ),
@@ -227,8 +227,8 @@ Screens:
                           );
                           IfError(
                               Patch(
-                                  'Expense reports (mserp)_1',
-                                  LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                  'Expense reports (mserp)',
+                                  LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
                                   {
                                       WorkflowAction: "Recall"
                                   }
@@ -361,7 +361,7 @@ Screens:
                         BorderThickness: =0
                         Color: =RGBA(145, 145, 145, 1)
                         Default: |
-                          =varSelectedReport.'Purpose (mserp_purpose)'
+                          =varSelectedReport.Purpose
                         DisabledFill: =RGBA(229, 229, 229, 1)
                         DisplayMode: =DisplayMode.View
                         Fill: =RGBA(0, 0, 0, 0)
