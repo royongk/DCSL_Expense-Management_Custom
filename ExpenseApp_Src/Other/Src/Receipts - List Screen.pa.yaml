@@ -90,16 +90,6 @@ Screens:
             paramInDefaultAppMode: =varAppMode
             paramInDefaultSelectedTab: |
               =1
-      - scr09_homeIcon_image:
-          Control: Image@2.2.3
-          Properties:
-            AccessibleLabel: ="Go to Main Screen"
-            BorderColor: =RGBA(0, 18, 107, 1)
-            Height: =scr09_hdr_TopHeader.Height
-            Image: =homeIcon
-            OnSelect: =Navigate('Main Screen', ScreenTransition.Fade)
-            Width: =60
-            Y: =scr09_hdr_TopHeader.Y
       - scr09_glr_ReceiptGrid:
           Control: Gallery@2.15.0
           Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
@@ -652,9 +642,9 @@ Screens:
                   UpdateContext({varCntReceiptListView:false})
               )
 
-            homeIcon: ="텍스트"
-            homeIconAccessibleLabel: ="텍스트"
-            homeIconAction: =true
+            homeIcon: =homeIcon
+            homeIconAccessibleLabel: ="Navigate Home"
+            homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
             paramAvatar: =Coalesce(userImage, blankImage)
             paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
             refreshIconAction: |+

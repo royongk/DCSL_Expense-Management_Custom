@@ -73,15 +73,6 @@
         Y: =App.Height - Self.Height
         ZIndex: =2
 
-    scr09_homeIcon_image As image:
-        AccessibleLabel: ="Go to Main Screen"
-        Height: =scr09_hdr_TopHeader.Height
-        Image: =homeIcon
-        OnSelect: =Navigate('Main Screen', ScreenTransition.Fade)
-        Width: =60
-        Y: =scr09_hdr_TopHeader.Y
-        ZIndex: =2
-
     "scr09_glr_ReceiptGrid As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
         '#CopilotOverlayLabel': ="Filtered"
         AccessibleLabel: ="Grid of unattached receipts"
@@ -595,7 +586,9 @@
                 UpdateContext({varCntReceiptListView:false})
             )
             
-        homeIconAction: =true
+        homeIcon: =homeIcon
+        homeIconAccessibleLabel: ="Navigate Home"
+        homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
         OnSelectButton: |-
             =Set(
                 gblNavigationDrawerVisibility,
@@ -655,6 +648,7 @@
                 Clear(collSelectedReceiptIds),
                 UpdateContext({varCntSelect: true})
             )
+        Visible: =true
         Width: =Parent.Width
         Y: =1
         ZIndex: =10
