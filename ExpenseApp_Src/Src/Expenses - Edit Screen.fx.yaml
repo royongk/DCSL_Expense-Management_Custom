@@ -4016,8 +4016,20 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =true
-                Update: =ComboBox3_1.Selected.mserp_paymethod
-                Visible: =true
+                Update: |-
+                    =Coalesce(
+                        If(
+                            !IsBlank(ComboBox1_8.Selected),
+                            LookUp(
+                                'Expense category (mserp)',
+                                'Expense category' = ComboBox1_8.Selected.'Expense category' &&
+                                'Company Code' = varSelectedLegalEntity
+                            ).DefaultPaymentMethod,
+                            Blank()
+                        ),
+                        First(Parent.AllowedValues).mserp_paymethod
+                    )
+                Visible: =false
                 Width: =Parent.Width
                 X: =0
                 Y: =paymentMethodFieldOrder_Y
@@ -4396,14 +4408,7 @@
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, Merchant)
                 Required: =false
                 Update: =DataCardValue2_1.Text
-                Visible: |-
-                    =currExpenseType <> 'TrvExpType (mserp)'.Mileage &&
-                    currExpenseType <> 'TrvExpType (mserp)'.'Per diem' && 
-                    LookUp(
-                            labelTableLookUp,
-                            labelName = Self.DisplayName,
-                            visible
-                        )
+                Visible: =false
                 Width: =Parent.Width
                 X: =1
                 Y: =merchantFieldOrder_Y
@@ -4521,7 +4526,7 @@
                         varSelectedLegalEntity,
                         DataCardValue39_1.Selected.Value
                     )
-                Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                Visible: =false
                 Width: =Parent.Width
                 X: =1
                 Y: =legalEntityFieldOrder_Y
@@ -9929,7 +9934,7 @@
                             varSelectedCostCenter,
                             Blank()
                         )
-                    DisplayFields: =["mserp_description"]
+                    DisplayFields: =["mserp_dimensionvalue", "mserp_description"]
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -9949,11 +9954,12 @@
                                 isDirty: true
                             }
                         )
-                    SearchFields: =["mserp_description"]
+                    SearchFields: =["mserp_dimensionvalue", "mserp_description"]
                     SearchItems: |-
                         =Search(
                             'DCSL Financial Dimension CostCenter (mserp)',
                             ComboBox_CostCenter.SearchText,
+                            mserp_dimensionvalue,
                             mserp_description
                         )
                     SelectionColor: =Color.Black
