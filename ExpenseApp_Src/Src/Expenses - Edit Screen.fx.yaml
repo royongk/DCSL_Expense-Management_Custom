@@ -4016,19 +4016,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =true
-                Update: |-
-                    =Coalesce(
-                        If(
-                            !IsBlank(ComboBox1_8.Selected),
-                            LookUp(
-                                'Expense category (mserp)',
-                                'Expense category' = ComboBox1_8.Selected.'Expense category' &&
-                                'Company Code' = varSelectedLegalEntity
-                            ).DefaultPaymentMethod,
-                            Blank()
-                        ),
-                        First(Parent.AllowedValues).mserp_paymethod
-                    )
+                Update: ="BANK"
                 Visible: =false
                 Width: =Parent.Width
                 X: =0
@@ -9934,7 +9922,7 @@
                             varSelectedCostCenter,
                             Blank()
                         )
-                    DisplayFields: =["mserp_dimensionvalue", "mserp_description"]
+                    DisplayFields: =["mserp_dimensionvalue","mserp_description"]
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -9943,7 +9931,7 @@
                     Items: |-
                         =SortByColumns(
                             'DCSL Financial Dimension CostCenter (mserp)',
-                            "mserp_description",
+                            "mserp_dimensionvalue",
                             SortOrder.Ascending
                         )
                     NoSelectionText: ="Select Cost Center"
@@ -9954,19 +9942,14 @@
                                 isDirty: true
                             }
                         )
-                    SearchFields: =["mserp_dimensionvalue", "mserp_description"]
-                    SearchItems: |-
-                        =Search(
-                            'DCSL Financial Dimension CostCenter (mserp)',
-                            ComboBox_CostCenter.SearchText,
-                            mserp_dimensionvalue,
-                            mserp_description
-                        )
+                    SearchFields: =["mserp_dimensionvalue","mserp_description"]
+                    SearchItems: =Search(SortByColumns('DCSL Financial Dimension CostCenter (mserp)',"mserp_dimensionvalue",SortOrder.Ascending),ComboBox_CostCenter.SearchText,mserp_dimensionvalue,mserp_description)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
                     SelectMultiple: =false
-                    Size: =24
+                    Size: =20
+                    Template: =ListItemTemplate.Double
                     Width: =Parent.Width - 2 * Self.X
                     X: =30
                     Y: =CostCenter_DataCardKey.Y + CostCenter_DataCardKey.Height + 5
