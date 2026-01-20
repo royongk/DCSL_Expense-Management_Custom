@@ -165,7 +165,17 @@
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
-                            =Concatenate(Text(Value(ThisItem.'Amount'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                            =Concatenate(
+                                Text(
+                                    Value(
+                                        Substitute(Substitute(ThisItem.Amount, "KRW", ""), ",", "")
+                                    ),
+                                    "#,##0.00", 
+                                    varDefaultLanguage
+                                ),
+                                " ",
+                                varDefaultCurrency
+                            )
                         Width: =Parent.Width
                         ZIndex: =1
 
