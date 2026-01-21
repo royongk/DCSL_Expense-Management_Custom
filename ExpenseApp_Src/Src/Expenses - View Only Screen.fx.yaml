@@ -70,11 +70,11 @@
                 )
             },
             If(
-                !IsBlank(expenseDoc.CostCenter),
+                !IsBlank(expenseDoc.mserp_deexcostcenter),
                 UpdateContext({
                     varSelectedCostCenter: LookUp(
                         'DCSL Financial Dimension CostCenter (mserp)',
-                        'Combination display' = expenseDoc.CostCenter
+                        'Combination display' = expenseDoc.mserp_deexcostcenter
                     )
                 })
             )
@@ -471,7 +471,7 @@
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
                                 'Benefit Type'
                             ),
-                            mserp_department = varSelectedDepartment
+                            Department = varSelectedDepartment
                         ),
                         []
                     )
@@ -6928,7 +6928,7 @@
                     Text: |-
                         =If(
                             !IsBlank(varSelectedCostCenter),
-                            varSelectedCostCenter.'Name',
+                            varSelectedCostCenter.Name,
                             ""
                         )
                     Width: =Parent.Width - 60

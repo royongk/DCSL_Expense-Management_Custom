@@ -147,7 +147,7 @@
                         If(
                             !IsBlank(varSelectedReport),
                             Text(
-                                Value(varSelectedReport.Amount),
+                                Value(varSelectedReport.AmountTotal),
                                 "#,#0.00",
                                 varDefaultLanguage
                             ),
@@ -231,7 +231,8 @@
                                         Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                         Description: scr17_txt_Description_1.Text,
                                         'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
-                                        'Document Status': 'Document Status (mserp)'.Submitted
+                                        'Document Status': 'Document Status (mserp)'.Submitted,
+                                        'Created in Apps': 'NoYes (mserp)'.Yes
                                         // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
                                         // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                                     }
@@ -249,13 +250,13 @@
                                     )
                                 },
                                 If(
-                                    !IsBlank(expenseReport1.'DEEXReferenceId'),
+                                    !IsBlank(expenseReport1.DEEXReferenceId),
                                     Patch(
                                         'Expense Header to Travel Requisition Entity (mserp)',
                                         Defaults('Expense Header to Travel Requisition Entity (mserp)'),
                                         {
-                                            'Reference (mserp_trvexptable)': expenseReport1.'DEEXReferenceId',
-                                            'Reference (mserp_trvrequisitiontable)': varSelectedTravelReq.'ReferenceId'
+                                            'Reference (mserp_trvexptable)': expenseReport1.DEEXReferenceId,
+                                            'Reference (mserp_trvrequisitiontable)': varSelectedTravelReq.ReferenceId
                                         }
                                     )
                                 )
@@ -309,12 +310,13 @@
                 Fill: =RGBA(34, 102, 227, 1)
                 Font: =Font.'Segoe UI'
                 Height: =76
-                OnSelect: |+
+                OnSelect: |-
                     =Set(
                         gblNavigationDrawerVisibility,
                         false
                     );
                     If(
+                        // 1. 유효성 검사 (Validation Check)
                         !IsBlank(varSelectedTravelReq) &&
                         (CountRows(colAttachedExpenses) > 0 || 
                          CountRows(
@@ -323,85 +325,94 @@
                                  'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
                              )
                          ) > 0) &&
-                        Value(varSelectedReport.Amount) > Value(varSelectedTravelReq.'Amount to reconcile'),
+                        Value(varSelectedReport.AmountTotal) > Value(varSelectedTravelReq.'Amount to reconcile'),
+                        
+                        // 2. 유효성 검사 실패 시 (Validation Failed)
                         Notify(
                             "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
                             NotificationType.Error,
                             gblParams.notificationTime
                         ),
+                        
+                        // 3. 유효성 검사 통과 시 (Validation Passed - Create or Update)
                         If(
                             varIsCreateReport,
+                            
+                            // 3-1. 신규 생성 로직 (Create Logic)
                             Clear(varError);
                             With(
-                            {
-                                patchedReport: IfError(
-                                    Patch(
-                                        'Expense reports (mserp)',
-                                        Defaults('Expense reports (mserp)'),
-                                        {
-                                            Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                            Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),
-                                            Description: scr17_txt_Description_1.Text,
-                                            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
-                                            // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
-                                            // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
-                                        }
-                                    ),
-                                    First(
-                                        ClearCollect(
-                                            varError, 
-                                            Substitute(
-                                                Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                                """message"":", 
-                                                ""
+                                {
+                                    patchedReport: IfError(
+                                        Patch(
+                                            'Expense reports (mserp)',
+                                            Defaults('Expense reports (mserp)'),
+                                            {
+                                                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),
+                                                Description: scr17_txt_Description_1.Text,
+                                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                                'Created in Apps': 'NoYes (mserp)'.Yes
+                                            }
+                                        ),
+                                        First(
+                                            ClearCollect(
+                                                varError, 
+                                                Substitute(
+                                                    Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                                    """message"":", 
+                                                    ""
+                                                )
                                             )
-                                        )
-                                    );
-                                    Blank()
+                                        );
+                                        Blank()
+                                    )
+                                },
+                                If(
+                                    !IsBlank(patchedReport),
+                                    Set(varSelectedReport, patchedReport)
                                 )
-                            },
-                            If(
-                                !IsBlank(patchedReport),
-                                Set(varSelectedReport, patchedReport)
-                            )
-                        ),
-                        Clear(varError);
-                        With(
-                            {
-                                patchedReport: IfError(
-                                    Patch(
-                                        'Expense reports (mserp)',
-                                        LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
-                                        {
-                                            Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                    Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                        Description: scr17_txt_Description_1.Text,
-                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
-                                    // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
-                                    // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
-                                        }
-                                    ),
-                                    First(
-                                        ClearCollect(
-                                            varError, 
-                                            Substitute(
-                                                Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                                """message"":", 
-                                                ""
+                            ), // ✅ FIXED: 여기 있던 닫는 괄호 ')'를 콤마 ','로 변경하여 Else 구문으로 연결합니다.
+                    
+                            // 3-2. 기존 수정 로직 (Update Logic - Else Block)
+                            Clear(varError);
+                            With(
+                                {
+                                    patchedReport: IfError(
+                                        Patch(
+                                            'Expense reports (mserp)',
+                                            LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                            {
+                                                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose, ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location, ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                                Description: scr17_txt_Description_1.Text,
+                                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                                'Created in Apps': 'NoYes (mserp)'.Yes
+                                            }
+                                        ),
+                                        First(
+                                            ClearCollect(
+                                                varError, 
+                                                Substitute(
+                                                    Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                                    """message"":", 
+                                                    ""
+                                                )
                                             )
-                                        )
-                                    );
-                                    Blank()
+                                        );
+                                        Blank()
+                                    )
+                                },
+                                If(
+                                    !IsBlank(patchedReport),
+                                    Set(varSelectedReport, patchedReport)
                                 )
-                            },
-                            If(
-                                !IsBlank(patchedReport),
-                                Set(varSelectedReport, patchedReport)
                             )
-                        )
-                    );
+                        ) // ✅ FIXED: 내부 If(varIsCreateReport...)를 여기서 닫습니다.
+                    ); // 메인 If 닫기
+                    
+                    // 4. 출장 요청 헤더 연결 (Link Header)
                     If(
-                        !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value) && !IsBlank(varSelectedReport),
+                        !varIsCreateReport && !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value) && !IsBlank(varSelectedReport),
                         With(
                             {
                                 expenseReport1: LookUp(
@@ -410,18 +421,21 @@
                                 )
                             },
                             If(
-                                !IsBlank(expenseReport1.'DEEXReferenceId'),
+                                !IsBlank(expenseReport1.DEEXReferenceId),
                                 Patch(
                                     'Expense Header to Travel Requisition Entity (mserp)',
+                                    //LookUp('Expense Header to Travel Requisition Entity (mserp)', 'Reference (mserp_trvexptable)' = expenseReport1.DEEXReferenceId),
                                     Defaults('Expense Header to Travel Requisition Entity (mserp)'),
                                     {
-                                        'Reference (mserp_trvexptable)': expenseReport1.'DEEXReferenceId',
-                                        'Reference (mserp_trvrequisitiontable)': varSelectedTravelReq.'ReferenceId'
+                                        'Reference (mserp_trvexptable)': expenseReport1.DEEXReferenceId,
+                                        'Reference (mserp_trvrequisitiontable)': varSelectedTravelReq.ReferenceId
                                     }
                                 )
                             )
                         )
                     );
+                    
+                    // 5. 결과 알림 및 이동 (Result Notify & Navigate)
                     If(
                         !(IsBlank(First(varError).Value) || First(varError).Value = ""),
                         Notify(
@@ -435,7 +449,7 @@
                                 GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel',
                                 NotificationType.Success, 
                                 gblParams.notificationTime
-                                ),
+                            ),
                             Notify(
                                 GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', 
                                 NotificationType.Success, 
@@ -445,7 +459,6 @@
                         Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})
                     );
                     Clear(varError)
-                    
                 RadiusBottomLeft: =8
                 RadiusBottomRight: =8
                 RadiusTopLeft: =8
@@ -885,7 +898,7 @@
         TravelRequisitionContainer_1 As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
             FillPortions: =0
-            Height: =280
+            Height: =230
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumns: =6
@@ -919,7 +932,6 @@
                 ZIndex: =1
 
                 scr17_lbl_Destination_1 As label:
-                    FillPortions: =1
                     Font: =Font.'Segoe UI'
                     Height: =32
                     LayoutMaxHeight: =
@@ -929,11 +941,12 @@
                     PaddingBottom: =0
                     PaddingTop: =0
                     Size: =18
-                    Text: ="Destination"
+                    Text: |-
+                        ="Destination : "
                     VerticalAlign: =VerticalAlign.Top
-                    Width: =121
+                    Width: =300
                     X: =40
-                    ZIndex: =3
+                    ZIndex: =1
 
                 scr17_lbl_DestinationValue_1 As label:
                     Color: |-
@@ -942,18 +955,19 @@
                             RGBA(145, 145, 145, 1),
                             RGBA(0, 0, 0, 1)
                         )
+                    FillPortions: =1
                     Font: =Font.'Segoe UI'
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     LayoutMaxHeight: =
                     LayoutMaxWidth: =
                     LayoutMinHeight: =70
-                    LayoutMinWidth: =575
-                    Size: =24
+                    LayoutMinWidth: =100
+                    Size: =18
                     Text: =varSelectedTravelReq.'Destination'
                     Width: =Parent.Width - Self.X*2
                     X: =40
                     Y: =scr17_lbl_Destination_1.Y + scr17_lbl_Destination_1.Height + 8
-                    ZIndex: =3
+                    ZIndex: =2
 
             TravelMapToReqContainer_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -972,7 +986,6 @@
                 ZIndex: =1
 
                 scr17_lbl_MapToTravelReq_1 As label:
-                    FillPortions: =1
                     Font: =Font.'Segoe UI'
                     Height: =32
                     LayoutMaxHeight: =
@@ -982,11 +995,12 @@
                     PaddingBottom: =0
                     PaddingTop: =0
                     Size: =18
-                    Text: ="Map to travel requisition"
+                    Text: |-
+                        ="Map to travel requisition : "
                     VerticalAlign: =VerticalAlign.Top
-                    Width: =121
+                    Width: =300
                     X: =40
-                    ZIndex: =3
+                    ZIndex: =1
 
                 scr17_lbl_MapToTravelReqValue_1 As label:
                     Color: |-
@@ -995,18 +1009,19 @@
                             RGBA(145, 145, 145, 1),
                             RGBA(0, 0, 0, 1)
                         )
+                    FillPortions: =1
                     Font: =Font.'Segoe UI'
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     LayoutMaxHeight: =
                     LayoutMaxWidth: =
                     LayoutMinHeight: =70
-                    LayoutMinWidth: =575
-                    Size: =24
+                    LayoutMinWidth: =100
+                    Size: =18
                     Text: =varSelectedTravelReq.'Travel requisition number'
                     Width: =Parent.Width - Self.X*2
                     X: =40
                     Y: =scr17_lbl_MapToTravelReq_1.Y + scr17_lbl_MapToTravelReq_1.Height + 8
-                    ZIndex: =3
+                    ZIndex: =2
 
             TravelReqAmountContainer_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -1025,7 +1040,6 @@
                 ZIndex: =1
 
                 scr17_lbl_TravelReqAmount_1 As label:
-                    FillPortions: =1
                     Font: =Font.'Segoe UI'
                     Height: =32
                     LayoutMaxHeight: =
@@ -1035,11 +1049,12 @@
                     PaddingBottom: =0
                     PaddingTop: =0
                     Size: =18
-                    Text: ="Travel requisition amount"
+                    Text: |-
+                        ="Travel requisition amount : "
                     VerticalAlign: =VerticalAlign.Top
-                    Width: =121
+                    Width: =300
                     X: =40
-                    ZIndex: =3
+                    ZIndex: =1
 
                 scr17_lbl_TravelReqAmountValue_1 As label:
                     Color: |-
@@ -1048,19 +1063,19 @@
                             RGBA(145, 145, 145, 1),
                             RGBA(0, 0, 0, 1)
                         )
+                    FillPortions: =1
                     Font: =Font.'Segoe UI'
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     LayoutMaxHeight: =
                     LayoutMaxWidth: =
                     LayoutMinHeight: =70
-                    LayoutMinWidth: =575
-                    Size: =24
-                    Text: |-
-                        =Concatenate(Text(Value(varSelectedTravelReq.Amount),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                    LayoutMinWidth: =200
+                    Size: =18
+                    Text: =varSelectedTravelReq.Amount
                     Width: =Parent.Width - Self.X*2
                     X: =40
                     Y: =scr17_lbl_TravelReqAmount_1.Y + scr17_lbl_TravelReqAmount_1.Height + 8
-                    ZIndex: =3
+                    ZIndex: =2
 
             TravelRemainingAmountContainer_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -1079,7 +1094,6 @@
                 ZIndex: =1
 
                 scr17_lbl_RemainingAmount_1 As label:
-                    FillPortions: =1
                     Font: =Font.'Segoe UI'
                     Height: =32
                     LayoutMaxHeight: =
@@ -1089,11 +1103,12 @@
                     PaddingBottom: =0
                     PaddingTop: =0
                     Size: =18
-                    Text: ="Remaining amount"
+                    Text: |-
+                        ="Remaining amount : "
                     VerticalAlign: =VerticalAlign.Top
-                    Width: =121
+                    Width: =300
                     X: =40
-                    ZIndex: =3
+                    ZIndex: =1
 
                 scr17_lbl_RemainingAmountValue_1 As label:
                     Color: |-
@@ -1102,19 +1117,20 @@
                             RGBA(145, 145, 145, 1),
                             RGBA(0, 0, 0, 1)
                         )
+                    FillPortions: =1
                     Font: =Font.'Segoe UI'
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     LayoutMaxHeight: =
                     LayoutMaxWidth: =
                     LayoutMinHeight: =70
-                    LayoutMinWidth: =575
-                    Size: =24
+                    LayoutMinWidth: =200
+                    Size: =18
                     Text: |-
                         =Concatenate(Text(Value(varSelectedTravelReq.'Amount to reconcile'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                     Width: =Parent.Width - Self.X*2
                     X: =40
                     Y: =scr17_lbl_RemainingAmount_1.Y + scr17_lbl_RemainingAmount_1.Height + 8
-                    ZIndex: =3
+                    ZIndex: =2
 
         "'Description - Draft' As groupContainer.verticalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
