@@ -205,42 +205,62 @@
                         gblNavigationDrawerVisibility,
                         false
                     );
-                    IfError(
-                        Set(
-                            varSelectedReport,
-                            Patch(
-                                'Expense reports (mserp)',
-                                LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
-                                {
-                                    Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                    Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                    Description: scr17_txt_Description_1.Text,
-                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
-                                    'Document Status': 'Document Status (mserp)'.Submitted
-                                    // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
-                                    // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
-                                }
-                            )
-                        ),
-                        First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
-                    );
                     If(
-                        !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                        !IsBlank(varSelectedTravelReq) &&
+                        (CountRows(colAttachedExpenses) > 0 || 
+                         CountRows(
+                             Filter(
+                                 'Expense lines (mserp)',
+                                 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
+                             )
+                         ) > 0) &&
+                        Value(varSelectedReport.Amount) > Value(varSelectedTravelReq.'Amount to reconcile'),
                         Notify(
-                            Substitute(First(varError).Value, """", ""),
+                            "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
                             NotificationType.Error,
                             gblParams.notificationTime
                         ),
-                        //IfError(
-                        //    Patch(
-                        //        'Expense reports (mserp)_1',
-                        //        LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
-                        //        {
-                        //            WorkflowAction: "Submit"
-                        //        }
-                        //    ),
-                        //    First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
-                        //);
+                        IfError(
+                            Set(
+                                varSelectedReport,
+                                Patch(
+                                    'Expense reports (mserp)',
+                                    LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                    {
+                                        Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                        Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                        Description: scr17_txt_Description_1.Text,
+                                        'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                        'Document Status': 'Document Status (mserp)'.Submitted
+                                        // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                        // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                    }
+                                )
+                            ),
+                            First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+                        );
+                        If(
+                            !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value),
+                            With(
+                                {
+                                    expenseReport1: LookUp(
+                                        'Expense reports (mserp)_1',
+                                        'Expense report number' = varSelectedReport.'Expense report number'
+                                    )
+                                },
+                                If(
+                                    !IsBlank(expenseReport1.'DEEXReferenceId'),
+                                    Patch(
+                                        'Expense Header to Travel Requisition Entity (mserp)',
+                                        Defaults('Expense Header to Travel Requisition Entity (mserp)'),
+                                        {
+                                            'Reference (mserp_trvexptable)': expenseReport1.'DEEXReferenceId',
+                                            'Reference (mserp_trvrequisitiontable)': varSelectedTravelReq.'ReferenceId'
+                                        }
+                                    )
+                                )
+                            )
+                        );
                         If(
                             !(IsBlank(First(varError).Value) || First(varError).Value = ""),
                             Notify(
@@ -248,15 +268,33 @@
                                 NotificationType.Error,
                                 gblParams.notificationTime
                             ),
-                            Notify(
-                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportSubmittedSuccessfullyLabel', 
-                                NotificationType.Success, 
-                                gblParams.notificationTime
-                                );
-                            Navigate('Reports - List Screen')
-                        )
-                    );
-                    Clear(varError)
+                            //IfError(
+                            //    Patch(
+                            //        'Expense reports (mserp)_1',
+                            //        LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
+                            //        {
+                            //            WorkflowAction: "Submit"
+                            //        }
+                            //    ),
+                            //    First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+                            //);
+                            If(
+                                !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                                Notify(
+                                    Substitute(First(varError).Value, """", ""),
+                                    NotificationType.Error,
+                                    gblParams.notificationTime
+                                ),
+                                Notify(
+                                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportSubmittedSuccessfullyLabel', 
+                                    NotificationType.Success, 
+                                    gblParams.notificationTime
+                                    );
+                                Navigate('Reports - List Screen')
+                            )
+                        );
+                        Clear(varError)
+                    )
                 Size: =19.15
                 Text: |-
                     =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubmitLabel'
@@ -277,9 +315,24 @@
                         false
                     );
                     If(
-                        varIsCreateReport,
-                        Clear(varError);
-                        With(
+                        !IsBlank(varSelectedTravelReq) &&
+                        (CountRows(colAttachedExpenses) > 0 || 
+                         CountRows(
+                             Filter(
+                                 'Expense lines (mserp)',
+                                 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
+                             )
+                         ) > 0) &&
+                        Value(varSelectedReport.Amount) > Value(varSelectedTravelReq.'Amount to reconcile'),
+                        Notify(
+                            "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        ),
+                        If(
+                            varIsCreateReport,
+                            Clear(varError);
+                            With(
                             {
                                 patchedReport: IfError(
                                     Patch(
@@ -344,6 +397,28 @@
                             If(
                                 !IsBlank(patchedReport),
                                 Set(varSelectedReport, patchedReport)
+                            )
+                        )
+                    );
+                    If(
+                        !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value) && !IsBlank(varSelectedReport),
+                        With(
+                            {
+                                expenseReport1: LookUp(
+                                    'Expense reports (mserp)_1',
+                                    'Expense report number' = varSelectedReport.'Expense report number'
+                                )
+                            },
+                            If(
+                                !IsBlank(expenseReport1.'DEEXReferenceId'),
+                                Patch(
+                                    'Expense Header to Travel Requisition Entity (mserp)',
+                                    Defaults('Expense Header to Travel Requisition Entity (mserp)'),
+                                    {
+                                        'Reference (mserp_trvexptable)': expenseReport1.'DEEXReferenceId',
+                                        'Reference (mserp_trvrequisitiontable)': varSelectedTravelReq.'ReferenceId'
+                                    }
+                                )
                             )
                         )
                     );
@@ -860,9 +935,13 @@
                     X: =40
                     ZIndex: =3
 
-                scr17_txt_Destination_1 As text:
-                    Default: =varSelectedTravelReq.'Destination'
-                    DisplayMode: =DisplayMode.View
+                scr17_lbl_DestinationValue_1 As label:
+                    Color: |-
+                        =If(
+                            IsBlank(varSelectedTravelReq.'Destination'),
+                            RGBA(145, 145, 145, 1),
+                            RGBA(0, 0, 0, 1)
+                        )
                     Font: =Font.'Segoe UI'
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     LayoutMaxHeight: =
@@ -889,7 +968,7 @@
                 LayoutMinWidth: =Parent.Width
                 LayoutMode: =LayoutMode.Auto
                 Width: =ComboBox_Location.Width
-                Y: =scr17_txt_Destination_1.Y + scr17_txt_Destination_1.Height + 10
+                Y: =scr17_lbl_DestinationValue_1.Y + scr17_lbl_DestinationValue_1.Height + 10
                 ZIndex: =1
 
                 scr17_lbl_MapToTravelReq_1 As label:
@@ -909,8 +988,13 @@
                     X: =40
                     ZIndex: =3
 
-                scr17_txt_MapToTravelReq_1 As text:
-                    DisplayMode: =DisplayMode.View
+                scr17_lbl_MapToTravelReqValue_1 As label:
+                    Color: |-
+                        =If(
+                            IsBlank(varSelectedTravelReq.'Travel requisition number'),
+                            RGBA(145, 145, 145, 1),
+                            RGBA(0, 0, 0, 1)
+                        )
                     Font: =Font.'Segoe UI'
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     LayoutMaxHeight: =
@@ -937,7 +1021,7 @@
                 LayoutMinWidth: =Parent.Width
                 LayoutMode: =LayoutMode.Auto
                 Width: =ComboBox_Location.Width
-                Y: =scr17_txt_MapToTravelReq_1.Y + scr17_txt_MapToTravelReq_1.Height + 10
+                Y: =scr17_lbl_MapToTravelReqValue_1.Y + scr17_lbl_MapToTravelReqValue_1.Height + 10
                 ZIndex: =1
 
                 scr17_lbl_TravelReqAmount_1 As label:
@@ -957,8 +1041,13 @@
                     X: =40
                     ZIndex: =3
 
-                scr17_txt_TravelReqAmount_1 As text:
-                    DisplayMode: =DisplayMode.View
+                scr17_lbl_TravelReqAmountValue_1 As label:
+                    Color: |-
+                        =If(
+                            IsBlank(varSelectedTravelReq.Amount),
+                            RGBA(145, 145, 145, 1),
+                            RGBA(0, 0, 0, 1)
+                        )
                     Font: =Font.'Segoe UI'
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     LayoutMaxHeight: =
@@ -986,7 +1075,7 @@
                 LayoutMinWidth: =Parent.Width
                 LayoutMode: =LayoutMode.Auto
                 Width: =ComboBox_Location.Width
-                Y: =scr17_txt_TravelReqAmount_1.Y + scr17_txt_TravelReqAmount_1.Height + 10
+                Y: =scr17_lbl_TravelReqAmountValue_1.Y + scr17_lbl_TravelReqAmountValue_1.Height + 10
                 ZIndex: =1
 
                 scr17_lbl_RemainingAmount_1 As label:
@@ -1006,8 +1095,13 @@
                     X: =40
                     ZIndex: =3
 
-                scr17_txt_RemainingAmount_1 As text:
-                    DisplayMode: =DisplayMode.View
+                scr17_lbl_RemainingAmountValue_1 As label:
+                    Color: |-
+                        =If(
+                            IsBlank(varSelectedTravelReq.'Amount to reconcile'),
+                            RGBA(145, 145, 145, 1),
+                            RGBA(0, 0, 0, 1)
+                        )
                     Font: =Font.'Segoe UI'
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     LayoutMaxHeight: =
