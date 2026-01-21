@@ -64,6 +64,40 @@ Screens:
                       NotificationType.Error,
                       gblParams.notificationTime
                   ),
+                  Set(
+                      varSelectedReportStatusItem,
+                      'Document Status (mserp)'.Draft
+                  );
+                  Set(
+                      varSelectedReport,
+                      Blank()
+                  );
+                  Set(
+                      varIsCreateReport, 
+                      true
+                  );
+                  Concurrent(
+                      Clear(colAttachedExpenses),
+                      Clear(colAttachedExpensesForReport),
+                      ClearCollect(
+                          colReportPost,
+                          {
+                              fieldName: "DataArea",
+                              fieldValue: Text(varSelectedLegalEntity),
+                              fieldType: "String"     
+                          },
+                          {
+                              fieldName: "Company",
+                              fieldValue: Lower(Text(varSelectedLegalEntity)),
+                              fieldType: "String"
+                          },
+                          {
+                              fieldName: "LegalEntityForExpenses",
+                              fieldValue: Lower(Text(varSelectedLegalEntity)),
+                              fieldType: "String"
+                          }
+                      )
+                  );
                   Navigate('Reports - Edit Screen', ScreenTransition.Fade)
               )
             TemplateSize: =150
@@ -259,6 +293,7 @@ Screens:
             OnApprovalsButtonClick: |-
               =If(
                   varAppMode = "AirfareAllowance",
+                  Set(varSelectedTab, 4);
                   Navigate('Travel - List Screen', ScreenTransition.Fade),
                   Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1})
               );
