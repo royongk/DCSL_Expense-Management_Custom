@@ -256,7 +256,7 @@
                                         Defaults('Expense Header to Travel Requisition Entity (mserp)'),
                                         {
                                             'Reference (mserp_trvexptable)': expenseReport1.DEEXReferenceId,
-                                            'Reference (mserp_trvrequisitiontable)': varSelectedTravelReq.ReferenceId
+                                            'Travel requisition number': varSelectedTravelReq.'Travel requisition number'
                                         }
                                     )
                                 )
@@ -427,7 +427,7 @@
                                     Defaults('Expense Header to Travel Requisition Entity (mserp)'),
                                     {
                                         'Reference (mserp_trvexptable)': expenseReport1.DEEXReferenceId,
-                                        'Reference (mserp_trvrequisitiontable)': varSelectedTravelReq.ReferenceId
+                                        'Travel requisition number': varSelectedTravelReq.'Travel requisition number'
                                     }
                                 )
                             )
@@ -576,7 +576,13 @@
             ComboBox_Purpose As combobox:
                 AccessibleLabel: ="Dropdown to enter purpose"
                 Default: =Blank()
-                DefaultSelectedItems: =LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.Purpose)
+                DefaultSelectedItems: |-
+                    =//LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.Purpose)
+                    If(
+                        varIsCreateReport && !IsBlank(varSelectedTravelReq) && varAppMode = "AirfareAllowance",
+                        LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedTravelReq.'Business purpose'),
+                        LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.Purpose)
+                    )
                 DisplayFields: =["mserp_value"]
                 Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                 InputTextPlaceholder: |-
@@ -704,7 +710,13 @@
 
             ComboBox_Location As combobox:
                 AccessibleLabel: ="Dropdown to enter location"
-                DefaultSelectedItems: =LookUp('Travel locations (mserp)', Location = varSelectedReport.Location)
+                DefaultSelectedItems: |-
+                    =//LookUp('Travel locations (mserp)', Location = varSelectedReport.Location)
+                    If(
+                        varIsCreateReport && !IsBlank(varSelectedTravelReq) && varAppMode = "AirfareAllowance",
+                        LookUp('Travel locations (mserp)', Location = varSelectedTravelReq.Destination),
+                        LookUp('Travel locations (mserp)', Location = varSelectedReport.Location)
+                    )
                 DisplayFields: =["mserp_destination"]
                 Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                 InputTextPlaceholder: |-
