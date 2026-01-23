@@ -20,6 +20,20 @@
                 )
             })
         );
+        // Project context
+        UpdateContext({varSelectedProject: Blank()});
+        If(
+            !varIsCreate && !IsBlank(varSelectedExpenseDoc.Project),
+            UpdateContext({
+                varSelectedProject: LookUp(
+                    Filter(
+                        'DCSL Financial Dimension Master (mserp)',
+                        'Dimension name' = "Project"
+                    ),
+                    'Dimension value' = varSelectedExpenseDoc.Project
+                )
+            })
+        );
         // Load existing Department and Benefit Type from Expense Category (reverse lookup)
         If(
             !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
@@ -9974,6 +9988,134 @@
                     X: =30
                     Y: =ComboBox_CostCenter.Y + ComboBox_CostCenter.Height
                     ZIndex: =3
+
+            Project_DataCard As typedDataCard.allowedValuesStringEditCard:
+                AllowedValues: |-
+                    =Filter(
+                        'DCSL Financial Dimension Master (mserp)',
+                        'Dimension name' = "Project"
+                    )
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexproject"
+                Default: =varSelectedExpenseDoc.Project
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: ="Project"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =ComboBox_Project.Selected.'Dimension value'
+                Visible: =true
+                Width: =Parent.Width
+                X: =0
+                Y: =projectFieldOrder_Y
+                ZIndex: =1
+
+                Project_DataCardKey As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                ComboBox_Project As combobox:
+                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(varSelectedProject),
+                            varSelectedProject,
+                            Blank()
+                        )
+                    DisplayFields: =["mserp_dimensionvalue","mserp_description"]
+                    DisplayMode: =Parent.DisplayMode
+                    FocusedBorderThickness: =2
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
+                    InputTextPlaceholder: ="Select Project"
+                    Items: |-
+                        =SortByColumns(
+                            Filter(
+                                'DCSL Financial Dimension Master (mserp)',
+                                'Dimension name' = "Project"
+                            ),
+                            "mserp_dimensionvalue",
+                            SortOrder.Ascending
+                        )
+                    NoSelectionText: ="Select Project"
+                    OnChange: |-
+                        =UpdateContext(
+                            {
+                                varSelectedProject: ComboBox_Project.Selected,
+                                isDirty: true
+                            }
+                        )
+                    SearchFields: =["mserp_dimensionvalue","mserp_description"]
+                    SearchItems: |-
+                        =Search(
+                            SortByColumns(
+                                Filter(
+                                    'DCSL Financial Dimension Master (mserp)',
+                                    'Dimension name' = "Project"
+                                ),
+                                "mserp_dimensionvalue",
+                                SortOrder.Ascending
+                            ),
+                            ComboBox_Project.SearchText,
+                            'Dimension value',
+                            'Description'
+                        )
+                    SelectionColor: =Color.Black
+                    SelectionFill: =gblParams.dropDownBorderColor
+                    SelectionTagColor: =RGBA(0, 0, 0, 1)
+                    SelectMultiple: =false
+                    Size: =20
+                    Template: =ListItemTemplate.Double
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =Project_DataCardKey.Y + Project_DataCardKey.Height + 5
+                    ZIndex: =2
+
+                ErrorMessage_Project As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(168, 0, 0, 1)
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =10
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =gblParams.errorMessageSize
+                    Text: =Parent.Error
+                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =ComboBox_Project.Y + ComboBox_Project.Height
+                    ZIndex: =3
+
+                Project_StarVisible As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =Project_DataCardKey.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =Project_DataCardKey.Y
+                    ZIndex: =4
 
             "'Default dimension display value_DataCard1_3' As typedDataCard.textualEditCard":
                 BorderColor: =gblParams.dropDownBorderColor
