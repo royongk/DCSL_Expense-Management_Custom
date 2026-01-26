@@ -346,126 +346,6 @@ Screens:
                   Width: =Parent.Width
                   Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
                 Children:
-                  - Project_DataCard:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicAllowedValuesStringEdit
-                      Properties:
-                        AllowedValues: |-
-                          =Filter(
-                              'DCSL Financial Dimension Master (mserp)',
-                              'Dimension name' = "Project"
-                          )
-                        BorderColor: =gblParams.dropDownBorderColor
-                        DataField: ="mserp_deexproject"
-                        Default: =varSelectedExpenseDoc.Project
-                        DisplayName: ="Project"
-                        Required: =false
-                        Update: =ComboBox_Project.Selected.'Dimension value'
-                        Width: =Parent.Width
-                        X: =0
-                        Y: =projectFieldOrder_Y
-                      Children:
-                        - Project_DataCardKey:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =48
-                              Text: =Parent.DisplayName
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - ComboBox_Project:
-                            Control: Classic/ComboBox@2.4.0
-                            Properties:
-                              AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                              ChevronBackground: =RGBA(56, 96, 178, 1)
-                              ChevronFill: =RGBA(255, 255, 255, 1)
-                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: |-
-                                =If(
-                                    !IsBlank(varSelectedProject),
-                                    varSelectedProject,
-                                    Blank()
-                                )
-                              DisplayFields: =["mserp_dimensionvalue","mserp_description"]
-                              DisplayMode: =Parent.DisplayMode
-                              FocusedBorderThickness: =2
-                              Font: =Font.'Open Sans'
-                              Height: =gblParams.dropDownHeight
-                              HoverFill: =gblParams.dropDownHoverFill
-                              InputTextPlaceholder: ="Select Project"
-                              Items: |-
-                                =SortByColumns(
-                                    Filter(
-                                        'DCSL Financial Dimension Master (mserp)',
-                                        'Dimension name' = "Project"
-                                    ),
-                                    "mserp_dimensionvalue",
-                                    SortOrder.Ascending
-                                )
-                              NoSelectionText: ="Select Project"
-                              OnChange: |-
-                                =UpdateContext(
-                                    {
-                                        varSelectedProject: ComboBox_Project.Selected,
-                                        isDirty: true
-                                    }
-                                )
-                              PaddingBottom: =5
-                              PaddingLeft: =5
-                              PaddingRight: =5
-                              PaddingTop: =5
-                              PressedColor: =RGBA(255, 255, 255, 1)
-                              PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =["mserp_dimensionvalue","mserp_description"]
-                              SelectMultiple: =false
-                              SelectionColor: =Color.Black
-                              SelectionFill: =gblParams.dropDownBorderColor
-                              SelectionTagColor: =RGBA(0, 0, 0, 1)
-                              Size: =20
-                              Width: =Parent.Width - 2 * Self.X
-                              X: =30
-                              Y: =Project_DataCardKey.Y + Project_DataCardKey.Height + 5
-                        - ErrorMessage_Project:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(168, 0, 0, 1)
-                              Font: =Font.'Segoe UI'
-                              FontWeight: =FontWeight.Semibold
-                              Height: =10
-                              Live: =Live.Assertive
-                              PaddingBottom: =0
-                              PaddingLeft: =0
-                              PaddingRight: =0
-                              PaddingTop: =0
-                              Size: =gblParams.errorMessageSize
-                              Text: =Parent.Error
-                              Visible: =Parent.DisplayMode=DisplayMode.Edit
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =ComboBox_Project.Y + ComboBox_Project.Height
-                        - Project_StarVisible:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =Project_DataCardKey.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =Project_DataCardKey.Y
                   - Department_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
@@ -543,7 +423,8 @@ Screens:
                                 Reset(ComboBox_BenefitType);
                                 Reset(ComboBox1_8);
                                 UpdateContext({varSelectedBenefitType: Blank()});
-                                UpdateContext({curCategory: Blank()})
+                                UpdateContext({curCategory: Blank()});
+                                Clear(colExpenseCategories);
                               PaddingBottom: =5
                               PaddingLeft: =5
                               PaddingRight: =5
@@ -593,7 +474,7 @@ Screens:
                         Default: =varSelectedBenefitType
                         DisplayName: ="Benefit Type"
                         Required: =false
-                        Update: =ComboBox_BenefitType.Selected.'Benefit Type'
+                        Update: =ComboBox_BenefitType.Selected.Value
                         Width: =Parent.Width
                         X: =1
                         Y: =expenseCategoryFieldOrder_Y - 60
@@ -646,63 +527,51 @@ Screens:
                               InputTextPlaceholder: ="Select Benefit Type"
                               IsSearchable: =false
                               Items: |-
-                                =If(
-                                    !IsBlank(varSelectedDepartment),
-                                    SortByColumns(
-                                        Distinct(
-                                            Filter(
-                                                'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                                Department = varSelectedDepartment
-                                            ),
-                                            'Benefit Type'
+                                =SortByColumns(
+                                    Distinct(
+                                        Filter(
+                                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                            !IsBlank(varSelectedDepartment) && Department = varSelectedDepartment
                                         ),
-                                        "Value",
-                                        SortOrder.Ascending
+                                        'Benefit Type'
                                     ),
-                                    []
+                                    "Value",
+                                    SortOrder.Ascending
                                 )
                               NoSelectionText: ="Select Benefit Type"
                               OnChange: |-
-                                =UpdateContext({varSelectedBenefitType: Parent.Update});
-                                UpdateContext({varSelectedBenefitTypeValue: Parent.Update});
-                                Reset(ComboBox1_8);
-                                UpdateContext({curCategory:Blank()});
+                                =// 1. 선택된 값을 변수에 저장 (수정된 부분)
+                                UpdateContext({varSelectedBenefitType: ComboBox_BenefitType.Selected.Value});
 
-                                // [추가] Expense Category 목록을 미리 조회하여 컬렉션 생성
+                                // 2. 하위 컨트롤 초기화
+                                Reset(ComboBox1_8); // Expense Category 콤보박스 초기화
+                                UpdateContext({curCategory: Blank()});
+
+                                // 3. Expense Category 목록 필터링 및 컬렉션 생성
                                 If(
-                                    !IsBlank(varSelectedDepartment),
+                                    !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
                                     ClearCollect(
-                                        colExpenseCategories, // 컬렉션 이름
+                                        colExpenseCategories,
                                         SortByColumns(
                                             Filter(
-                                                ForAll(
-                                                    Filter(
-                                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                                        !IsBlank('Expense category') &&
-                                                        Department = varSelectedDepartment 
-                                                        //&& 'Benefit Type' = varSelectedBenefitTypeValue
-                                                    ) As MappingRecord,
-                                                    LookUp(
-                                                        'Expense category (mserp)',
-                                                        'Expense category' = MappingRecord.'Expense category' &&
-                                                        Inactive = 'NoYes (mserp)'.No
-                                                    )
-                                                ),
-                                                !IsBlank('Expense category') // 빈 레코드 제거
+                                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                                !IsBlank('Expense category') &&
+                                                Department = varSelectedDepartment &&
+                                                'Benefit Type' = varSelectedBenefitType
                                             ),
                                             "mserp_expensecategory",
                                             SortOrder.Ascending
                                         )
                                     ),
-                                    Clear(colExpenseCategories) // 조건 불충족 시 초기화
-                                )
+                                    Clear(colExpenseCategories)
+                                );
                               PaddingBottom: =5
                               PaddingLeft: =5
                               PaddingRight: =5
                               PaddingTop: =5
                               PressedColor: =RGBA(255, 255, 255, 1)
                               PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =[""]
+                              SearchFields: =["Value"]
                               SelectMultiple: =false
                               SelectionColor: =Color.Black
                               SelectionFill: =gblParams.dropDownBorderColor
@@ -730,20 +599,10 @@ Screens:
                       Properties:
                         AllowedValues: |-
                           =Filter(
-                              ForAll(
-                                  Filter(
-                                      'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                      !IsBlank('Expense category') &&
-                                      Department = varSelectedDepartment 
-                                      //&& 'Benefit Type' = varSelectedBenefitTypeValue
-                                  ) As MappingRecord,
-                                  LookUp(
-                                      'Expense category (mserp)',
-                                      'Expense category' = MappingRecord.'Expense category' &&
-                                      Inactive = 'NoYes (mserp)'.No
-                                  )
-                              ),
-                              !IsBlank(ThisRecord)
+                              'DCSL Expense Category Mapping Setup Entity (mserp)',
+                              !IsBlank('Expense category') &&
+                              Department = varSelectedDepartment &&
+                              'Benefit Type' = varSelectedBenefitType
                           )
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_costtype"
@@ -845,9 +704,11 @@ Screens:
                                 =If(
                                     !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
                                     LookUp(
-                                        'Expense category (mserp)',
-                                        'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)' &&
-                                        'Company Code' = varSelectedLegalEntity
+                                        Filter(
+                                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                            'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
+                                        ),
+                                        'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
                                     ),
                                     Blank()
                                 )
@@ -866,7 +727,7 @@ Screens:
                               IsSearchable: =false
                               Items: =colExpenseCategories
                               NoSelectionText: "=GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' "
-                              OnChange: "=UpdateContext({varOnChangeTriggered : true});\n// Extract key values from custom record structure\nReset(VehicleTypeCombobox);\nUpdateContext({varDefaultVehicleType : Blank()});\nUpdateContext({msCallStartedForSalestaxCalculation : true});\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\nUpdateContext({ \n    varSelectedCategoryRecord: LookUp(colExpenseCategories, 'Expense category' = ComboBox1_8.Selected.'Expense category') \n});\nIf(\n    varOnShowFields && !IsBlank(ComboBox1_8.Selected),\n    UpdateContext(\n        {\n            locItemizeButtonVisibilityFlag : \n            'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', \n            {\n                CostType: varSelectedCategoryRecord.'Expense category',\n                SplitLineType:\"Default\",\n                LineType: If(!IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Itemization mandatory' = 'NoYes (mserp)'.Yes,\"ItemizedHeader\",\"Default\")\n            }\n            ).return\n        }\n    );\nIf(\n    IsBlank(Self.Selected),\n    Reset(DataCardValue16_1); //remove payment method\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES),  //remove project\n        Reset(ProjectCheckbox_Entity)\n    ); \n    Reset(DataCardValue9_1); //remove line status\n    Reset(ComboBox1_14); //remove activity\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    UpdateContext({varDefaultProjLineStatus: Blank()}); // Reset Billable\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax\n    //Clear(collectionActivities),\n    If(\n        !IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Use in Project' = 'NoYes (mserp)'.No,\n        If( \n            gblIsProjectValidationFlag,\n            Reset(ProjectICheckbox_ES),  //remove project\n            Reset(ProjectCheckbox_Entity)\n        );\n        Reset(DataCardValue9_1); //reset line status id\n        Reset(ComboBox1_14); //remove activity\n        //Clear(collectionActivities)\n    );\n    \n    \n);\nIf(\n    !IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense category' <> curCategory,\n    If( \n        gblIsProjectValidationFlag,\n        Clear(colGetProjectsBasedOnResourceCategory);\n        UpdateContext({\n            varGetProjectsBasedOnResourceCategory :\n            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n            {\n                employeeLegalEntity: varSelectedLegalEntity,\n                interCompanyLegalEntity: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity'),\n                categoryId:If(IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')),\n                    \"\",\n                    If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')\n                )\n            }\n            ).return\n        });\n        Clear(colGetProjectsBasedOnResourceCategory);\n        Collect(\n            colGetProjectsBasedOnResourceCategory ,\n            ForAll(\n                MatchAll(varGetProjectsBasedOnResourceCategory, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n                {\n                    projectId: ProjectListFromCol.projId,\n                    projectName: ProjectListFromCol.projName\n                }\n            )\n        );\n\n    );\n    \n    UpdateContext({categoryModified:true});\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES);  //remove project\n        UpdateContext({varProjectHierarchyId : Blank()}),\n        Reset(ProjectCheckbox_Entity)\n    );\n    Reset(DataCardValue9_1); //remove line status\n    Reset(ComboBox1_14); //remove activity\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax amount\n    Set(\n        varItemSalesTaxDefaultValue,\n        Blank()\n    );\n    If(!IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense type' = 'TrvExpType (mserp)'.Mileage,\n        Set(varCollectCacheV23,\n            'Expense mobile master data (mserp)'.mserp_calckm(\n                If(IsBlank(ExpenseInfo_1.RowId),\"\",ExpenseInfo_1.RowId),\n                {\n                    TransDate: If(IsBlank(DatePickerCanvas1_18.SelectedDate),\"\",Text(DateTimeValue(DatePickerCanvas1_18.SelectedDate),\"yyyy-mm-dd hh:mm:ssZ\")),\n                    CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category'),\n                    KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), \"0\", DataCardValue40.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                    VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),\"\",VehicleTypeCombobox.Selected.Value),\n                    NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)\n                }\n            )\n        );\n        Reset(VehicleTypeCombobox);\n        UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});\n    );\n\nSet(\n    varItemSalesTaxDefaultValue, \n    IfError(\n        'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_getdefaultitemsalestax(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                SubCategoryRecId : \"\",\n                IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n                BillIssuedTo : If(IsBlank(DataCardValue19_1.Selected.Value),\"\",DataCardValue19_1.Selected.Value),\n                LineType : \"Default\",\n                SplitLineType : \"\",\n                ParentRecId : \"\",\n                CostType : If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category')\n            }\n        ).return,\n        UpdateContext({\n            varDefaultItemSalesTaxError : \n                Substitute(\n                    Match(\n                        FirstError.Details.HttpResponse,\n                        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                    ).FullMatch,\n                    \"\"\"message\"\":\"\"\",\n                    \"\"\n                )      \n        })\n    )\n);\nIf(!IsBlank(varDefaultItemSalesTaxError),\n    Notify(\n        Left(varDefaultItemSalesTaxError,Len(varDefaultItemSalesTaxError)-1),\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\nUpdateContext({timerCostType : true});\nIf(\n    !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),\n    UpdateContext({\n        varSalesTaxAmount : \n        IfError(\n        Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), \"0\", DataCardValue4_1.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n            }\n        ).return,\"en-US\"),\n        UpdateContext({\n            varErrorActualTaxCal : \n            Substitute(\n                Match(\n                    FirstError.Details.HttpResponse,\n                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                ).FullMatch,\n                \"\"\"message\"\":\"\"\",\n                \"\"\n            )      \n        })\n        )\n    });\n);\nIf(!IsBlank(varErrorActualTaxCal),\nNotify(\n    Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n\n);\nUpdateContext({isDirty : true});\n\n);\nUpdateContext({curCategory : Self.Selected.'Expense category'});\nUpdateContext({currExpenseType : Self.Selected.'Expense type'});\nUpdateContext({msCallStartedForSalestaxCalculation : false});\nUpdateContext({taxModifiedByUser: false}); "
+                              OnChange: "=UpdateContext({varOnChangeTriggered : true});\n// Extract key values from custom record structure\nReset(VehicleTypeCombobox);\nUpdateContext({varDefaultVehicleType : Blank()});\nUpdateContext({msCallStartedForSalestaxCalculation : true});\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\nUpdateContext({varSelectedCategoryRecord: LookUp('Expense category (mserp)', 'Expense category' = ComboBox1_8.Selected.'Expense category' && 'Company Code' = varSelectedLegalEntity)});\nIf(\n    varOnShowFields && !IsBlank(ComboBox1_8.Selected),\n    UpdateContext(\n        {\n            locItemizeButtonVisibilityFlag : \n            'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', \n            {\n                CostType: varSelectedCategoryRecord.'Expense category',\n                SplitLineType:\"Default\",\n                LineType: If(\n                    !IsBlank(ComboBox1_8.Selected) && \n                    !IsBlank(varSelectedCategoryRecord) &&\n                    varSelectedCategoryRecord.'Itemization mandatory' = 'NoYes (mserp)'.Yes,\n                    \"ItemizedHeader\",\n                    \"Default\"\n                )\n            }\n            ).return\n        }\n    );\nIf(\n    IsBlank(Self.Selected),\n    Reset(DataCardValue16_1); //remove payment method\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES),  //remove project\n        Reset(ProjectCheckbox_Entity)\n    ); \n    Reset(DataCardValue9_1); //remove line status\n    Reset(ComboBox1_14); //remove activity\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    UpdateContext({varDefaultProjLineStatus: Blank()}); // Reset Billable\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax\n    //Clear(collectionActivities),\n    If(\n        !IsBlank(ComboBox1_8.Selected) && \n        !IsBlank(varSelectedCategoryRecord) &&\n        varSelectedCategoryRecord.'Use in Project' = 'NoYes (mserp)'.No,\n        If( \n            gblIsProjectValidationFlag,\n            Reset(ProjectICheckbox_ES),  //remove project\n            Reset(ProjectCheckbox_Entity)\n        );\n        Reset(DataCardValue9_1); //reset line status id\n        Reset(ComboBox1_14); //remove activity\n        //Clear(collectionActivities)\n    );\n    \n    \n);\nIf(\n    !IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense category' <> curCategory,\n    If( \n        gblIsProjectValidationFlag,\n        Clear(colGetProjectsBasedOnResourceCategory);\n        UpdateContext({\n            varGetProjectsBasedOnResourceCategory :\n            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n            {\n                employeeLegalEntity: varSelectedLegalEntity,\n                interCompanyLegalEntity: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity'),\n                categoryId:If(IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')),\n                    \"\",\n                    If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')\n                )\n            }\n            ).return\n        });\n        Clear(colGetProjectsBasedOnResourceCategory);\n        Collect(\n            colGetProjectsBasedOnResourceCategory ,\n            ForAll(\n                MatchAll(varGetProjectsBasedOnResourceCategory, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n                {\n                    projectId: ProjectListFromCol.projId,\n                    projectName: ProjectListFromCol.projName\n                }\n            )\n        );\n\n    );\n    \n    UpdateContext({categoryModified:true});\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES);  //remove project\n        UpdateContext({varProjectHierarchyId : Blank()}),\n        Reset(ProjectCheckbox_Entity)\n    );\n    Reset(DataCardValue9_1); //remove line status\n    Reset(ComboBox1_14); //remove activity\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax amount\n    Set(\n        varItemSalesTaxDefaultValue,\n        Blank()\n    );\n    If(!IsBlank(ComboBox1_8.Selected) && \n       !IsBlank(varSelectedCategoryRecord) &&\n       varSelectedCategoryRecord.'Expense type' = 'TrvExpType (mserp)'.Mileage,\n        Set(varCollectCacheV23,\n            'Expense mobile master data (mserp)'.mserp_calckm(\n                If(IsBlank(ExpenseInfo_1.RowId),\"\",ExpenseInfo_1.RowId),\n                {\n                    TransDate: If(IsBlank(DatePickerCanvas1_18.SelectedDate),\"\",Text(DateTimeValue(DatePickerCanvas1_18.SelectedDate),\"yyyy-mm-dd hh:mm:ssZ\")),\n                    CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category'),\n                    KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), \"0\", DataCardValue40.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                    VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),\"\",VehicleTypeCombobox.Selected.Value),\n                    NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)\n                }\n            )\n        );\n        Reset(VehicleTypeCombobox);\n        UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});\n    );\n\nSet(\n    varItemSalesTaxDefaultValue, \n    IfError(\n        'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_getdefaultitemsalestax(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                SubCategoryRecId : \"\",\n                IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n                BillIssuedTo : If(IsBlank(DataCardValue19_1.Selected.Value),\"\",DataCardValue19_1.Selected.Value),\n                LineType : \"Default\",\n                SplitLineType : \"\",\n                ParentRecId : \"\",\n                CostType : If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category')\n            }\n        ).return,\n        UpdateContext({\n            varDefaultItemSalesTaxError : \n                Substitute(\n                    Match(\n                        FirstError.Details.HttpResponse,\n                        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                    ).FullMatch,\n                    \"\"\"message\"\":\"\"\",\n                    \"\"\n                )      \n        })\n    )\n);\nIf(!IsBlank(varDefaultItemSalesTaxError),\n    Notify(\n        Left(varDefaultItemSalesTaxError,Len(varDefaultItemSalesTaxError)-1),\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\nUpdateContext({timerCostType : true});\nIf(\n    !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),\n    UpdateContext({\n        varSalesTaxAmount : \n        IfError(\n        Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), \"0\", DataCardValue4_1.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n            }\n        ).return,\"en-US\"),\n        UpdateContext({\n            varErrorActualTaxCal : \n            Substitute(\n                Match(\n                    FirstError.Details.HttpResponse,\n                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                ).FullMatch,\n                \"\"\"message\"\":\"\"\",\n                \"\"\n            )      \n        })\n        )\n    });\n);\nIf(!IsBlank(varErrorActualTaxCal),\nNotify(\n    Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n\n);\nUpdateContext({isDirty : true});\n\n);\nUpdateContext({curCategory : Self.Selected.'Expense category'});\nUpdateContext({currExpenseType : varSelectedCategoryRecord.'Expense type'});\nUpdateContext({msCallStartedForSalestaxCalculation : false});\nUpdateContext({taxModifiedByUser: false}); "
                               OnSelect: |-
                                 =UpdateContext({varOnSelectTriggered: true});
                               PressedColor: =RGBA(255, 255, 255, 1)
@@ -955,7 +816,9 @@ Screens:
                         Default: |-
                           =If(
                               varIsCreate || categoryModified,
-                              If(!IsBlank(ComboBox1_8.Selected), ComboBox1_8.Selected.Description, Blank()),
+                              If(!IsBlank(ComboBox1_8.Selected), 
+                                 If(!IsBlank(varSelectedCategoryRecord), varSelectedCategoryRecord.Description, Blank()),
+                                 Blank()),
                               varSelectedExpenseDoc.'Category description'
                           )
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Category description')
@@ -3044,7 +2907,12 @@ Screens:
                       Properties:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_exptype"
-                        Default: =If(!IsBlank(ComboBox1_8.Selected), ComboBox1_8.Selected.'Expense type', Blank())
+                        Default: |-
+                          =If(
+                              !IsBlank(ComboBox1_8.Selected) && !IsBlank(varSelectedCategoryRecord),
+                              varSelectedCategoryRecord.'Expense type',
+                              Blank()
+                          )
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense type')
                         Required: =false
                         Update: =DataCardValue7_1.Selected.Value
@@ -4144,7 +4012,9 @@ Screens:
                         DataField: ="mserp_projid"
                         Default: =varSelectedExpenseDoc.'Project ID'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Project ID')
-                        Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                        Required: |-
+                          =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                          false
                         Update: |-
                           =If(
                               gblIsProjectValidationFlag,
@@ -4152,15 +4022,17 @@ Screens:
                               ProjectCheckbox_Entity.Selected.'Project ID'
                           )
                         Visible: |-
-                          =If(
-                              (IsBlank(ComboBox1_8.Selected) && !'Intercompany project category_DataCard1_3'.Visible) || (ComboBox1_8.Selected.'Use in Project' = 'NoYes (mserp)'.No),
-                              false,
-                              LookUp(
-                                  labelTableLookUp,
-                                  labelName = Self.DisplayName,
-                                  visible
-                              )
-                          )
+                          =//If(
+                          //    (IsBlank(ComboBox1_8.Selected) && !'Intercompany project category_DataCard1_3'.Visible) || 
+                          //    (!IsBlank(varSelectedCategoryRecord) && varSelectedCategoryRecord.'Use in Project' = 'NoYes (mserp)'.No),
+                          //    false,
+                          //    LookUp(
+                          //        labelTableLookUp,
+                          //        labelName = Self.DisplayName,
+                          //        visible
+                          //    )
+                          //)
+                          false
                         Width: =Parent.Width
                         X: =0
                         Y: =projectIdFieldOrder_Y
@@ -6963,7 +6835,9 @@ Screens:
                         Default: =ThisItem.'Additional information'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Additional information')
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Additional information')
-                        Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                        Required: |-
+                          =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                          false
                         Update: =DataCardValue11_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -7155,7 +7029,9 @@ Screens:
                         Default: =ThisItem.'Internal note'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Internal note')
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Internal note')
-                        Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                        Required: |-
+                          =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                          false
                         Update: =DataCardValue18_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -9369,6 +9245,126 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =DataCardKey38_1.Y
+                  - Project_DataCard:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicAllowedValuesStringEdit
+                      Properties:
+                        AllowedValues: |-
+                          =Filter(
+                              'DCSL Financial Dimension Master (mserp)',
+                              'Dimension name' = "Project"
+                          )
+                        BorderColor: =gblParams.dropDownBorderColor
+                        DataField: ="mserp_deexproject"
+                        Default: =varSelectedExpenseDoc.Project
+                        DisplayName: ="Project"
+                        Required: =false
+                        Update: =ComboBox_Project.Selected.'Dimension value'
+                        Width: =Parent.Width
+                        X: =0
+                        Y: =projectFieldOrder_Y
+                      Children:
+                        - Project_DataCardKey:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              Font: =Font.'Segoe UI'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - ComboBox_Project:
+                            Control: Classic/ComboBox@2.4.0
+                            Properties:
+                              AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              DefaultSelectedItems: |-
+                                =If(
+                                    !IsBlank(varSelectedProject),
+                                    varSelectedProject,
+                                    Blank()
+                                )
+                              DisplayFields: =["mserp_dimensionvalue","mserp_description"]
+                              DisplayMode: =Parent.DisplayMode
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Open Sans'
+                              Height: =gblParams.dropDownHeight
+                              HoverFill: =gblParams.dropDownHoverFill
+                              InputTextPlaceholder: ="Select Project"
+                              Items: |-
+                                =SortByColumns(
+                                    Filter(
+                                        'DCSL Financial Dimension Master (mserp)',
+                                        'Dimension name' = "Project"
+                                    ),
+                                    "mserp_dimensionvalue",
+                                    SortOrder.Ascending
+                                )
+                              NoSelectionText: ="Select Project"
+                              OnChange: |-
+                                =UpdateContext(
+                                    {
+                                        varSelectedProject: ComboBox_Project.Selected,
+                                        isDirty: true
+                                    }
+                                )
+                              PaddingBottom: =5
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SearchFields: =["mserp_dimensionvalue","mserp_description"]
+                              SelectMultiple: =false
+                              SelectionColor: =Color.Black
+                              SelectionFill: =gblParams.dropDownBorderColor
+                              SelectionTagColor: =RGBA(0, 0, 0, 1)
+                              Size: =20
+                              Width: =Parent.Width - 2 * Self.X
+                              X: =30
+                              Y: =Project_DataCardKey.Y + Project_DataCardKey.Height + 5
+                        - ErrorMessage_Project:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =gblParams.errorMessageSize
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =ComboBox_Project.Y + ComboBox_Project.Height
+                        - Project_StarVisible:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =Project_DataCardKey.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =Project_DataCardKey.Y
       - formModeRectangle:
           Control: Rectangle@2.3.0
           Properties:
@@ -9811,7 +9807,7 @@ Screens:
                   HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
-                  OnSelect: "=If(\n    currExpenseType = 'TrvExpType (mserp)'.'Per diem' && userRecord.IsReImaginedPerDiemEnabled  <> 'NoYes (mserp)'.Yes,\n    Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarningOnCreate',\n            NotificationType.Error,\n            gblParams.notificationTime\n        ),\n    UpdateContext({msCallStartedForSalestaxCalculation: true});\n    If( \n        locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,\n        UpdateContext({locCategoryChange : true}),\n        UpdateContext({locAllowNavigationBack:true});    \n        SubmitForm(EditExpenseForm)\n    )\n    \n)\n\n\n"
+                  OnSelect: "=If(\n    currExpenseType = 'TrvExpType (mserp)'.'Per diem' && userRecord.IsReImaginedPerDiemEnabled  <> 'NoYes (mserp)'.Yes,\n    Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarningOnCreate',\n            NotificationType.Error,\n            gblParams.notificationTime\n        ),\n    UpdateContext({msCallStartedForSalestaxCalculation: true});\n    If( \n        locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,\n        UpdateContext({locCategoryChange : true}),\n        UpdateContext({locAllowNavigationBack:true});    \n        SubmitForm(EditExpenseForm)\n    )\n    \n)"
                   PressedBorderColor: =Self.Fill
                   PressedColor: =Self.Fill
                   PressedFill: =Self.Color
