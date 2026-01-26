@@ -58,20 +58,57 @@
         );
         // Initialize colExpenseCategories for edit mode (fix for Form Submit error)
         If(
-            !varIsCreate &&
-            !IsBlank(varSelectedDepartment) &&
-            !IsBlank(varSelectedBenefitType),
-            ClearCollect(
-                colExpenseCategories,
-                SortByColumns(
-                    Filter(
-                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                        !IsBlank('Expense category') &&
-                        Department = varSelectedDepartment &&
-                        'Benefit Type' = varSelectedBenefitType
-                    ),
-                    "mserp_expensecategory",
-                    SortOrder.Ascending
+            !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
+            // Case 1: Department와 Benefit Type이 역 조회로 복원된 경우
+            If(
+                !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
+                ClearCollect(
+                    colExpenseCategories,
+                    SortByColumns(
+                        Filter(
+                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                            !IsBlank('Expense category') &&
+                            Department = varSelectedDepartment &&
+                            'Benefit Type' = varSelectedBenefitType
+                        ),
+                        "mserp_expensecategory",
+                        SortOrder.Ascending
+                    )
+                ),
+                // Case 2: 역 조회가 실패했지만 기존 Expense Category가 있는 경우
+                // 기존 Expense Category를 포함한 매핑 레코드를 찾아서 colExpenseCategories 초기화
+                With(
+                    {
+                        existingCategoryMapping: LookUp(
+                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                            'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
+                        )
+                    },
+                    If(
+                        !IsBlank(existingCategoryMapping),
+                        // 매핑 레코드가 있으면 해당 Department와 Benefit Type으로 필터링
+                        ClearCollect(
+                            colExpenseCategories,
+                            SortByColumns(
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    !IsBlank('Expense category') &&
+                                    Department = existingCategoryMapping.Department &&
+                                    'Benefit Type' = existingCategoryMapping.'Benefit Type'
+                                ),
+                                "mserp_expensecategory",
+                                SortOrder.Ascending
+                            )
+                        ),
+                        // 매핑 레코드가 없으면 기존 Expense Category만 포함
+                        ClearCollect(
+                            colExpenseCategories,
+                            Filter(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
+                            )
+                        )
+                    )
                 )
             )
         );
@@ -1258,7 +1295,17 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =true
-                Update: =ComboBox1_8.Selected.mserp_expensecategory
+                Update: |-
+                    =If(
+                        !IsBlank(ComboBox1_8.Selected),
+                        ComboBox1_8.Selected.mserp_expensecategory,
+                        // ComboBox1_8.Selected가 Blank()이면 기존 값 유지 (수정하지 않은 경우)
+                        If(
+                            !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
+                            varSelectedExpenseDoc.'Expense category (mserp_costtype)',
+                            Blank()
+                        )
+                    )
                 Visible: =true
                 Width: =Parent.Width
                 X: =1
