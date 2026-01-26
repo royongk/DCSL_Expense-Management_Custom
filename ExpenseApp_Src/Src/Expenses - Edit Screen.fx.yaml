@@ -735,7 +735,32 @@
             LayoutMinHeight: =250
             LayoutMinWidth: =320
             OnFailure: |-
-                =If(
+                =// [최종 수정] 정확한 카드 이름 반영 (_DataCard2_3)
+                //UpdateContext({
+                //    varDebugErrorMsg: Concatenate(
+                //        // 1. 프로젝트 및 재무 관련
+                //        If(!IsBlank('Project ID_DataCard2_3'.Error), "Project 오류: " & 'Project ID_DataCard2_3'.Error & Char(10), ""),
+                        
+                //        // 2. 숨겨진 세금 관련 (가장 유력한 범인!)
+                //        If(!IsBlank('Sales tax group_DataCard2_3'.Error), "Sales Tax 오류: " & 'Sales tax group_DataCard2_3'.Error & Char(10), ""),
+                //        If(!IsBlank('Item sales tax group_DataCard2_3'.Error), "Item Tax 오류: " & 'Item sales tax group_DataCard2_3'.Error & Char(10), ""),
+                        
+                        // 3. 기타 필드
+                //        If(!IsBlank(Merchant_DataCard1_3.Error), "Merchant(상호) 오류: " & Merchant_DataCard1_3.Error & Char(10), "")
+                //    )
+                //});
+                
+                //Notify(
+                //    If(
+                //        IsBlank(varDebugErrorMsg), 
+                //        "알 수 없는 오류 (폼 메시지): " & EditExpenseForm.Error & " -> 세금(Tax) 필드 설정을 확인하세요.", 
+                //        "★범인 발견!★" & Char(10) & varDebugErrorMsg
+                //    ),
+                //    NotificationType.Error,
+                //    0
+                //);
+                
+                If(
                     CountRows(Split(Text(Self.Error), ":")) > 2,
                     Notify(
                         Mid(Mid(EditExpenseForm.Error, Find(":", EditExpenseForm.Error) + 2), Find(":", Mid(EditExpenseForm.Error, Find(":", EditExpenseForm.Error) + 2)) + 2), 
@@ -1200,12 +1225,13 @@
 
             "'Expense category_DataCard3_3' As typedDataCard.allowedValuesStringEditCard":
                 AllowedValues: |-
-                    =Filter(
-                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                        !IsBlank('Expense category') &&
-                        Department = varSelectedDepartment &&
-                        'Benefit Type' = varSelectedBenefitType
-                    )
+                    =colExpenseCategories
+                    //Filter(
+                    //    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                    //    !IsBlank('Expense category') &&
+                    //    Department = varSelectedDepartment &&
+                    //    'Benefit Type' = varSelectedBenefitType
+                    //)
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_costtype"
@@ -1215,7 +1241,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =true
-                Update: =ComboBox1_8.Selected.'Expense category'
+                Update: =ComboBox1_8.Selected.mserp_expensecategory
                 Visible: =true
                 Width: =Parent.Width
                 X: =1
@@ -1715,7 +1741,9 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Company (mserp_company)')
-                Required: =true
+                Required: |-
+                    =//true
+                    false
                 Update: =DataCardValue14_1.Text
                 Visible: =false
                 Width: =Parent.Width
@@ -4027,7 +4055,9 @@
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Payment method')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                Required: =true
+                Required: |-
+                    =//true
+                    false
                 Update: ="BANK"
                 Visible: =false
                 Width: =Parent.Width
@@ -4519,7 +4549,9 @@
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Legal entity')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                Required: |-
+                    =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                    false
                 Update: |
                     =If(
                         IsBlank(DataCardValue39_1.Selected.Value),
@@ -6511,7 +6543,9 @@
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Sales tax group')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                Required: |-
+                    =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                    false
                 Update: =ComboBox1_15.Selected.'Sales tax group'
                 Visible: =LookUp(labelTableLookUp,fieldName="TaxGroup",visible)
                 Width: =Parent.Width
@@ -6692,7 +6726,9 @@
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Item sales tax group')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                Required: |-
+                    =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                    false
                 Update: =ComboBox1_16.Selected.'Item sales tax group'
                 Visible: =LookUp(labelTableLookUp,fieldName="TaxItemGroup",visible)
                 Width: =Parent.Width

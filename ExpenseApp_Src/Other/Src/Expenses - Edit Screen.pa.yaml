@@ -326,21 +326,7 @@ Screens:
                   Item: =varSelectedExpenseDoc
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
-                  OnFailure: |-
-                    =If(
-                        CountRows(Split(Text(Self.Error), ":")) > 2,
-                        Notify(
-                            Mid(Mid(EditExpenseForm.Error, Find(":", EditExpenseForm.Error) + 2), Find(":", Mid(EditExpenseForm.Error, Find(":", EditExpenseForm.Error) + 2)) + 2), 
-                            NotificationType.Error, 
-                            gblParams.notificationTime
-                        ),
-                        Notify(
-                            Last(Split(Text(Self.Error), ":")).Value, 
-                            NotificationType.Error, 
-                            gblParams.notificationTime
-                        )
-                    );
-                    UpdateContext({msCallStartedForSalestaxCalculation: false});
+                  OnFailure: "=// [최종 수정] 정확한 카드 이름 반영 (_DataCard2_3)\n//UpdateContext({\n//    varDebugErrorMsg: Concatenate(\n//        // 1. 프로젝트 및 재무 관련\n//        If(!IsBlank('Project ID_DataCard2_3'.Error), \"Project 오류: \" & 'Project ID_DataCard2_3'.Error & Char(10), \"\"),\n        \n//        // 2. 숨겨진 세금 관련 (가장 유력한 범인!)\n//        If(!IsBlank('Sales tax group_DataCard2_3'.Error), \"Sales Tax 오류: \" & 'Sales tax group_DataCard2_3'.Error & Char(10), \"\"),\n//        If(!IsBlank('Item sales tax group_DataCard2_3'.Error), \"Item Tax 오류: \" & 'Item sales tax group_DataCard2_3'.Error & Char(10), \"\"),\n        \n        // 3. 기타 필드\n//        If(!IsBlank(Merchant_DataCard1_3.Error), \"Merchant(상호) 오류: \" & Merchant_DataCard1_3.Error & Char(10), \"\")\n//    )\n//});\n\n//Notify(\n//    If(\n//        IsBlank(varDebugErrorMsg), \n//        \"알 수 없는 오류 (폼 메시지): \" & EditExpenseForm.Error & \" -> 세금(Tax) 필드 설정을 확인하세요.\", \n//        \"★범인 발견!★\" & Char(10) & varDebugErrorMsg\n//    ),\n//    NotificationType.Error,\n//    0\n//);\n\nIf(\n    CountRows(Split(Text(Self.Error), \":\")) > 2,\n    Notify(\n        Mid(Mid(EditExpenseForm.Error, Find(\":\", EditExpenseForm.Error) + 2), Find(\":\", Mid(EditExpenseForm.Error, Find(\":\", EditExpenseForm.Error) + 2)) + 2), \n        NotificationType.Error, \n        gblParams.notificationTime\n    ),\n    Notify(\n        Last(Split(Text(Self.Error), \":\")).Value, \n        NotificationType.Error, \n        gblParams.notificationTime\n    )\n);\nUpdateContext({msCallStartedForSalestaxCalculation: false});"
                   OnSuccess: "=UpdateContext({varSubmittedExpTransNumber : EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'});\n//attach receipt if any\nUpdateContext({varAttachReceiptError : Blank()});\nIf(\n    IsBlank(varSelectedExpenseDoc),\n        If(\n            !IsBlank(varSubmittedExpTransNumber) && !IsBlank(varSelectedReceiptNumber),\n            IfError(\n                Patch(\n                    'Expense Mobile Unattached Document Entity (mserp)',\n                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varSelectedReceiptNumber),\n                    {\n                        ExpTransNumber:varSubmittedExpTransNumber\n                    }\n                ),\n                UpdateContext({varAttachReceiptError : FirstError.Details})\n            );\n            If(\n                !IsBlank(varAttachReceiptError) && !(Text(varAttachReceiptError.HttpStatusCode) = NotFoundStatusCode),\n                Notify(\n                    Substitute(\n                        Substitute( Match(varAttachReceiptError.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                            \"\"\"message\"\":\", \n                            \"\"), \"\"\"\", \"\"),\n                    NotificationType.Error,\n                    gblParams.notificationTime\n                ),\n                Notify(\n                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptAttachedSuccessfullyLabel',\n                    NotificationType.Success,\n                    gblParams.notificationTime\n                )\n            )       \n        ),\n\n        If(\n            !IsBlank(varSelectedReceiptNumber) && \n            (IsBlank(varSelectedExpenseDoc.AttachedReceiptId) || Value(varSelectedExpenseDoc.AttachedReceiptId) <> varSelectedReceiptNumber),\n            IfError(\n                Patch(\n                    'Expense Mobile Unattached Document Entity (mserp)',\n                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varSelectedReceiptNumber),\n                    {\n                        ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'\n                    }\n                ),\n                UpdateContext({varAttachReceiptError : FirstError.Details})\n            );\n            If(\n                !IsBlank(varAttachReceiptError) && !(Text(varAttachReceiptError.HttpStatusCode) = NotFoundStatusCode),\n                Notify(\n                    Substitute(\n                        Substitute( \n                            Match(varAttachReceiptError.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                            \"\"\"message\"\":\", \n                            \"\"\n                        ), \"\"\"\", \"\"\n                    ),\n                    NotificationType.Error,\n                    gblParams.notificationTime\n                ),\n               Notify(\n                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptAttachedSuccessfullyLabel',\n                NotificationType.Success,\n                gblParams.notificationTime\n            )\n        )\n    )\n);\n//create or update expense\nIf(\n    varIsCreate,\n    Notify(\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel',\n        NotificationType.Success,\n        gblParams.notificationTime\n    ),\n    If(\n        isDirty || isExpenseReceiptAttached,\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', \n            NotificationType.Success,\n            gblParams.notificationTime)   \n    )\n);\n\n// no longer new expense creation\nSet(\n    varIsCreate,\n    false\n);\n\nSet(\n    varSelectedExpenseDoc,\n    EditExpenseForm.LastSubmit\n);\nUpdateContext({varSubmittedExpTransNumber :Blank()});\nSet(\n    varIsCreate,\n    false\n);\nSet(\n    isExpenseReceiptAttached,\n    false\n);\nSet(\n    OCRresponse,\n    Blank()\n);\nSet(\n    gblNavigationDrawerVisibility,\n    false\n);\nIf(gblItemizeExpenseButtonClick,\n\nSet(\n    IsCreditcardTransactionInLocalCurrency,\n    LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', IsCreditcardTransactionInLocalCurrency\n    )\n        );\n        ClearCollect(\n            dsItemizations,\n            AddColumns(\n                GroupBy(\n                    Filter(\n                        'Expense lines (mserp)',\n                        'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'\n                    ),\n                    'Itemization group',\n                    Itemization\n                ),\n                StartDate, Text(Last(SortByColumns(Itemization,\"mserp_transdate\",SortOrder.Descending)).'Transaction date',\"yyyy-mm-dd hh:mm:ssZ\"),\n                DailyRate,\n                If(\n                    IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,\n                    First(Itemization).'Transaction amount',\n                    First(Itemization).'Local amount'\n                ),\n                Quantity, CountRows(Itemization),\n                SubCategoryName, First(Itemization).'Expense subcategory name',\n                SubCategoryRecId, First(Itemization).'Expense subcategory',\n                ItemizationGroupId , mserp_expenseitemizationgroupid\n            )\n        );\n        \n);\n\n//locAllowNavigationBack is set to false in cases when the user clicks on the perdiems or the itemization button\nIf(\n    locAllowNavigationBack,\n    If(\n        varIsCreate,\n        Navigate('Expenses - List Screen'),\n        If(\n            !IsBlank(varNavigatedFrom),\n            UpdateContext({varExpenseReportNumber : varSelectedReport.'Expense report number'});\n            Set(\n                varSelectedReport,\n                LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber)\n            );\n            ClearCollect(\n                colAttachedExpensesForReport,\n                Filter(\n                    'Expense lines (mserp)',\n                    'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' \n                    && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'\n                )\n            );\n            ClearCollect(\n                colAttachedExpenses,\n                colAttachedExpensesForReport\n            )\n        );\n\n        If(\n            gblItemizeExpenseButtonClick,\n            Navigate('Itemization - Detail Screen',Transition.None,{varNavigatedFrom : varNavigatedFrom, varItemizationScreen: \"itemizationDetailScreen\"}),\n        Switch(\n            varNavigatedFrom,\n            \"scr17\",\n            Navigate('Reports - Edit Screen'),\n            \"scr20\",\n            Navigate('Reports - View Only Screen'),\n            \"scr18\",\n            Navigate('Reports - Attach Expenses Screen'),\n            \"scr19\",\n            Navigate('Reports - View Attached Expenses Screen'),\n            Blank(),\n            Navigate('Expenses - List Screen')\n        );\n        UpdateContext({varNavigatedFrom : Blank()});\n        )\n    );\n    UpdateContext(\n        {\n            dirtyTransAmount:Blank(),\n            dirtyTransDate : Blank(),\n            dirtyMerchant : \"\",\n            varOnSelectTriggered: false,\n            varOnShowFields:false,\n            varOnChangeTriggered:false,\n            varSalesTaxAmount: Blank()\n        }\n    )\n);\nSet(gblItemizeExpenseButtonClick, false);\nUpdateContext({msCallStartedForSalestaxCalculation: false});\nNavigate('Expenses - List Screen', ScreenTransition.None);"
                   SnapToColumns: =false
                   Width: =Parent.Width
@@ -598,18 +584,19 @@ Screens:
                       Variant: ClassicAllowedValuesStringEdit
                       Properties:
                         AllowedValues: |-
-                          =Filter(
-                              'DCSL Expense Category Mapping Setup Entity (mserp)',
-                              !IsBlank('Expense category') &&
-                              Department = varSelectedDepartment &&
-                              'Benefit Type' = varSelectedBenefitType
-                          )
+                          =colExpenseCategories
+                          //Filter(
+                          //    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                          //    !IsBlank('Expense category') &&
+                          //    Department = varSelectedDepartment &&
+                          //    'Benefit Type' = varSelectedBenefitType
+                          //)
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_costtype"
                         Default: =varSelectedExpenseDoc.'Expense category (mserp_costtype)'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense category (mserp_costtype)')
                         Required: =true
-                        Update: =ComboBox1_8.Selected.'Expense category'
+                        Update: =ComboBox1_8.Selected.mserp_expensecategory
                         Width: =Parent.Width
                         X: =1
                         Y: =expenseCategoryFieldOrder_Y
@@ -923,7 +910,9 @@ Screens:
                           )
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Company (mserp_company)')
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Company (mserp_company)')
-                        Required: =true
+                        Required: |-
+                          =//true
+                          false
                         Update: =DataCardValue14_1.Text
                         Visible: =false
                         Width: =Parent.Width
@@ -3245,7 +3234,9 @@ Screens:
                         DataField: ="mserp_paymethod"
                         Default: =varSelectedExpenseDoc.'Payment method'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Payment method')
-                        Required: =true
+                        Required: |-
+                          =//true
+                          false
                         Update: ="BANK"
                         Visible: =false
                         Width: =Parent.Width
@@ -3767,7 +3758,9 @@ Screens:
                         DataField: ="mserp_intercompanyle"
                         Default: =varSelectedExpenseDoc.'Legal entity'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Legal entity')
-                        Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                        Required: |-
+                          =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                          false
                         Update: |
                           =If(
                               IsBlank(DataCardValue39_1.Selected.Value),
@@ -5579,7 +5572,9 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_taxgroup"
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Sales tax group')
-                        Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                        Required: |-
+                          =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                          false
                         Update: =ComboBox1_15.Selected.'Sales tax group'
                         Visible: =LookUp(labelTableLookUp,fieldName="TaxGroup",visible)
                         Width: =Parent.Width
@@ -5774,7 +5769,9 @@ Screens:
                         DataField: ="mserp_taxitemgroup"
                         Default: =//varSelectedExpenseDoc.'Item sales tax group'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Item sales tax group')
-                        Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                        Required: |-
+                          =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                          false
                         Update: =ComboBox1_16.Selected.'Item sales tax group'
                         Visible: =LookUp(labelTableLookUp,fieldName="TaxItemGroup",visible)
                         Width: =Parent.Width
