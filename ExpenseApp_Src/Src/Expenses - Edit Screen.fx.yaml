@@ -1279,13 +1279,20 @@
 
             "'Expense category_DataCard3_3' As typedDataCard.allowedValuesStringEditCard":
                 AllowedValues: |-
-                    =colExpenseCategories
-                    //Filter(
-                    //    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                    //    !IsBlank('Expense category') &&
-                    //    Department = varSelectedDepartment &&
-                    //    'Benefit Type' = varSelectedBenefitType
-                    //)
+                    =If(
+                        !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
+                        SortByColumns(
+                            Filter(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                !IsBlank('Expense category') &&
+                                Department = varSelectedDepartment &&
+                                'Benefit Type' = varSelectedBenefitType
+                            ),
+                            "mserp_expensecategory",
+                            SortOrder.Ascending
+                        ),
+                        []
+                    )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_costtype"
@@ -1381,10 +1388,16 @@
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
                         =If(
-                            !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
+                            !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)') &&
+                            !IsBlank(varSelectedDepartment) &&
+                            !IsBlank(varSelectedBenefitType),
+                            // Items와 동일한 필터링 로직 사용
                             LookUp(
                                 Filter(
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    !IsBlank('Expense category') &&
+                                    Department = varSelectedDepartment &&
+                                    'Benefit Type' = varSelectedBenefitType &&
                                     'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
                                 ),
                                 'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
@@ -1404,7 +1417,22 @@
                     InputTextPlaceholder: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
                     IsSearchable: =false
-                    Items: =colExpenseCategories
+                    Items: |-
+                        =If(
+                            !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
+                            SortByColumns(
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    !IsBlank('Expense category') &&
+                                    Department = varSelectedDepartment &&
+                                    'Benefit Type' = varSelectedBenefitType
+                                ),
+                                "mserp_expensecategory",
+                                SortOrder.Ascending
+                            ),
+                            // Department나 Benefit Type이 선택되지 않은 경우 빈 컬렉션
+                            []
+                        )
                     NoSelectionText: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
                     OnChange: |-
@@ -1625,7 +1653,25 @@
                         =UpdateContext({varOnSelectTriggered: true});
                     Reset: =true
                     SearchFields: =["mserp_expensecategory"]
-                    SearchItems: =Search(colExpenseCategories,ComboBox1_8.SearchText,mserp_expensecategory)
+                    SearchItems: |-
+                        =If(
+                            !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
+                            Search(
+                                SortByColumns(
+                                    Filter(
+                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                        !IsBlank('Expense category') &&
+                                        Department = varSelectedDepartment &&
+                                        'Benefit Type' = varSelectedBenefitType
+                                    ),
+                                    "mserp_expensecategory",
+                                    SortOrder.Ascending
+                                ),
+                                ComboBox1_8.SearchText,
+                                mserp_expensecategory
+                            ),
+                            []
+                        )
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
