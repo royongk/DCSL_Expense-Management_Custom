@@ -8,6 +8,7 @@
         // 3-level category selection variables
         UpdateContext({varSelectedDepartment: Blank()});
         UpdateContext({varSelectedBenefitType: Blank()});
+        UpdateContext({varSelectedBenefitTypeValue: ""});
         UpdateContext({curCategory: If(!varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'), varSelectedExpenseDoc.'Expense category (mserp_costtype)', Blank())});
         // Cost Center context
         UpdateContext({varSelectedCostCenter: Blank()});
@@ -1037,7 +1038,7 @@
                         Reset(ComboBox1_8);
                         UpdateContext({varSelectedBenefitType: Blank()});
                         UpdateContext({curCategory: Blank()});
-                        Clear(colExpenseCategories)
+                        Clear(colExpenseCategories);
                     SearchFields: =["mserp_department"]
                     SearchItems: =[]
                     SelectionColor: =Color.Black
@@ -1296,7 +1297,8 @@
                                 Filter(
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
                                     'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
-                                )
+                                ),
+                                'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
                             ),
                             Blank()
                         )
@@ -1326,13 +1328,7 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
-                        UpdateContext({ 
-                            varSelectedCategoryRecord: LookUp(
-                                'Expense category (mserp)',
-                                'Expense category' = ComboBox1_8.Selected.'Expense category' &&
-                                'Company Code' = varSelectedLegalEntity
-                            )
-                        });
+                        UpdateContext({varSelectedCategoryRecord: LookUp('Expense category (mserp)', 'Expense category' = ComboBox1_8.Selected.'Expense category' && 'Company Code' = varSelectedLegalEntity)});
                         If(
                             varOnShowFields && !IsBlank(ComboBox1_8.Selected),
                             UpdateContext(
@@ -3723,11 +3719,12 @@
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_exptype"
-                Default: =If(
-                    !IsBlank(ComboBox1_8.Selected) && !IsBlank(varSelectedCategoryRecord),
-                    varSelectedCategoryRecord.'Expense type',
-                    Blank()
-                )
+                Default: |-
+                    =If(
+                        !IsBlank(ComboBox1_8.Selected) && !IsBlank(varSelectedCategoryRecord),
+                        varSelectedCategoryRecord.'Expense type',
+                        Blank()
+                    )
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense type')
                 Fill: =RGBA(0, 0, 0, 0)
@@ -10312,9 +10309,7 @@
         HeaderText2: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_TotalLabel'
         Height: =250
-        IconVisibleFlag: =!IsBlank(varSelectedCategoryRecord) && 
-                          varSelectedCategoryRecord.'Expense type' = 'TrvExpType (mserp)'.Mileage && 
-                          !IsBlank(DataCardValue40.Text)
+        IconVisibleFlag: =ComboBox1_8.Selected.'Expense type' = 'TrvExpType (mserp)'.Mileage && !IsBlank(DataCardValue40.Text)
         Mileage: =varCurMileage
         NoOfPassengers: =varCurNoOfPass
         OnReload: |-
