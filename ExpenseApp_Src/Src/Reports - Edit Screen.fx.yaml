@@ -205,21 +205,35 @@
                         gblNavigationDrawerVisibility,
                         false
                     );
+                    // ✅ Purpose 필수 필드 유효성 검사
                     If(
-                        !IsBlank(varSelectedTravelReq) &&
-                        (CountRows(colAttachedExpenses) > 0 || 
-                         CountRows(
-                             Filter(
-                                 'Expense lines (mserp)',
-                                 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
-                             )
-                         ) > 0) &&
-                        Value(varSelectedReport.'Amount (mserp_deextrvrequisitiontotalestimate)') > Value(varSelectedTravelReq.'Amount to reconcile'),
+                        IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)') && 
+                        IsBlank(ComboBox_Purpose.SearchText) && 
+                        IsBlank(varSelectedReport.Purpose),
                         Notify(
-                            "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
+                            Coalesce(
+                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterPurposeLabel',
+                                "Purpose field is required."
+                            ),
                             NotificationType.Error,
                             gblParams.notificationTime
                         ),
+                        // 기존 유효성 검사 및 제출 로직
+                        If(
+                            !IsBlank(varSelectedTravelReq) &&
+                            (CountRows(colAttachedExpenses) > 0 || 
+                             CountRows(
+                                 Filter(
+                                     'Expense lines (mserp)',
+                                     'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
+                                 )
+                             ) > 0) &&
+                            Value(varSelectedReport.'Amount (mserp_deextrvrequisitiontotalestimate)') > Value(varSelectedTravelReq.'Amount to reconcile'),
+                            Notify(
+                                "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            ),
                         IfError(
                             Set(
                                 varSelectedReport,
@@ -315,24 +329,38 @@
                         gblNavigationDrawerVisibility,
                         false
                     );
+                    // ✅ Purpose 필수 필드 유효성 검사
                     If(
-                        // 1. 유효성 검사 (Validation Check)
-                        !IsBlank(varSelectedTravelReq) &&
-                        (CountRows(colAttachedExpenses) > 0 || 
-                         CountRows(
-                             Filter(
-                                 'Expense lines (mserp)',
-                                 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
-                             )
-                         ) > 0) &&
-                        Value(varSelectedReport.AmountTotal) > Value(varSelectedTravelReq.'Amount to reconcile'),
-                        
-                        // 2. 유효성 검사 실패 시 (Validation Failed)
+                        IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)') && 
+                        IsBlank(ComboBox_Purpose.SearchText) && 
+                        IsBlank(varSelectedReport.Purpose),
                         Notify(
-                            "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
+                            Coalesce(
+                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterPurposeLabel',
+                                "Purpose field is required."
+                            ),
                             NotificationType.Error,
                             gblParams.notificationTime
                         ),
+                        // 기존 유효성 검사 및 저장 로직
+                        If(
+                            // 1. 유효성 검사 (Validation Check)
+                            !IsBlank(varSelectedTravelReq) &&
+                            (CountRows(colAttachedExpenses) > 0 || 
+                             CountRows(
+                                 Filter(
+                                     'Expense lines (mserp)',
+                                     'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
+                                 )
+                             ) > 0) &&
+                            Value(varSelectedReport.AmountTotal) > Value(varSelectedTravelReq.'Amount to reconcile'),
+                            
+                            // 2. 유효성 검사 실패 시 (Validation Failed)
+                            Notify(
+                                "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            ),
                         
                         // 3. 유효성 검사 통과 시 (Validation Passed - Create or Update)
                         If(
