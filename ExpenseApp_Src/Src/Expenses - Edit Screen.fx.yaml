@@ -56,6 +56,25 @@
                 )
             )
         );
+        // Initialize colExpenseCategories for edit mode (fix for Form Submit error)
+        If(
+            !varIsCreate &&
+            !IsBlank(varSelectedDepartment) &&
+            !IsBlank(varSelectedBenefitType),
+            ClearCollect(
+                colExpenseCategories,
+                SortByColumns(
+                    Filter(
+                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                        !IsBlank('Expense category') &&
+                        Department = varSelectedDepartment &&
+                        'Benefit Type' = varSelectedBenefitType
+                    ),
+                    "mserp_expensecategory",
+                    SortOrder.Ascending
+                )
+            )
+        );
         UpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')});
         UpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.'Intercompany project category'});
         UpdateContext({curProjIdSelected: varSelectedExpenseDoc.'Project ID'});
