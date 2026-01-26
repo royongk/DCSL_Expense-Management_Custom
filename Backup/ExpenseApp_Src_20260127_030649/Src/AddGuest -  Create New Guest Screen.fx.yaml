@@ -1,0 +1,246 @@
+"'AddGuest -  Create New Guest Screen' As screen":
+    Fill: =RGBA(244, 244, 244, 1)
+
+    "'header-navigation-PolicyViolation_4' As 'header-navigation-PolicyViolation_3'":
+        BackButtonClicked: |-
+            =Back(Transition.Pop);
+            Reset(NameInputText);
+            Reset(DesignationInputText);
+            Reset(CompanyInputText)
+        Fill: =Color.White
+        HeaderText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateNewGuestLabel'
+        Width: =App.Width
+        ZIndex: =4
+
+    CreateNewGuestForm As groupContainer.verticalAutoLayoutContainer:
+        Height: =App.Height * 0.416
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        Width: =App.Width
+        Y: =122
+        ZIndex: =5
+
+        NameInputContainer As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Start
+            FillPortions: =0
+            Height: =NameInputLabel.Height
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =NameInputLabel.Height
+            LayoutMinWidth: =App.Width
+            LayoutMode: =LayoutMode.Auto
+            Width: =App.Width
+            ZIndex: =1
+
+            StarVisible As label:
+                Align: =Align.Right
+                Height: =70
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =Parent.LayoutMinHeight
+                LayoutMinWidth: =560
+                Size: =21
+                Text: ="*"
+                Width: =DesigantionInputLabel.PaddingLeft
+                ZIndex: =1
+
+            NameInputLabel As label:
+                Height: =70
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                Size: =21
+                Text: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NameLabel'
+                Width: =App.Width - StarVisible.Width
+                ZIndex: =2
+
+        NameInputText As text:
+            AlignInContainer: =AlignInContainer.Center
+            BorderColor: =RGBA(255, 255, 255, 1)
+            Default: =""
+            Height: =App.Height * 0.06162
+            HintText: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterGuestNameLabel'
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =560
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            Size: =21
+            Width: =App.Width * 0.875
+            ZIndex: =3
+
+        DesigantionInputLabel As label:
+            Height: =70
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =560
+            PaddingLeft: =(App.Width - DesignationInputText.Width) / 2
+            Size: =21
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DesignationLabel'
+            Width: =App.Width
+            ZIndex: =4
+
+        DesignationInputText As text:
+            AlignInContainer: =AlignInContainer.Center
+            BorderColor: =RGBA(255, 255, 255, 1)
+            Default: =""
+            Height: =App.Height * 0.06162
+            HintText: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterGuestsDesignationLabel'
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =560
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            Size: =21
+            Width: =App.Width * 0.875
+            ZIndex: =5
+
+        CompanyInputLabel As label:
+            Height: =70
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =560
+            PaddingLeft: =(App.Width - CompanyInputText.Width) / 2
+            Size: =21
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CompanyLabel'
+            Width: =App.Width
+            ZIndex: =6
+
+        CompanyInputText As text:
+            AlignInContainer: =AlignInContainer.Center
+            BorderColor: =RGBA(255, 255, 255, 1)
+            Default: =""
+            Height: =App.Height * 0.06162
+            HintText: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterCompanyNameLabel'
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =70
+            LayoutMinWidth: =560
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            Size: =21
+            Width: =App.Width * 0.875
+            ZIndex: =7
+
+    FootorButtonGroup As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =6
+
+        BackgroundForButtons As rectangle:
+            Fill: =Color.White
+            Height: =App.Height * 0.2024
+            OnSelect: =
+            Width: =App.Width
+            Y: =App.Height - Self.Height
+            ZIndex: =1
+
+        SaveAndAddButton As button:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            BorderThickness: =4
+            Color: =RGBA(34, 102, 227, 1)
+            DisplayMode: =
+            Fill: =Color.White
+            Font: =Font.'Segoe UI'
+            Height: =App.Height * 0.0704
+            OnSelect: |
+                =UpdateContext({varGuestPatchCallErrors: Blank()});
+                If(
+                    IsBlank(NameInputText.Text),
+                    Notify(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_GuestNameIsRequiredLabel',
+                        NotificationType.Error,
+                        gblParams.notificationTime
+                    ),
+                    IfError(
+                    Patch(
+                        'Guest Against an Expense Line for Expense Mobile (mserp)',
+                        Defaults('Guest Against an Expense Line for Expense Mobile (mserp)'),
+                        {
+                            'Organization/Country':  CompanyInputText.Text,
+                            Name: NameInputText.Text,
+                            Title: DesignationInputText.Text,
+                            ExpTransNumberAttach: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        }
+                    )
+                    ,
+                    UpdateContext(
+                        {
+                            varGuestPatchCallErrors: Substitute(
+                                Match(
+                                    FirstError.Details.HttpResponse,
+                                    """message"":""([^""]*)"""
+                                ).FullMatch,
+                                """message"":""",
+                                ""
+                            )
+                        }
+                    )
+                );
+                If(
+                    !IsBlank(varGuestPatchCallErrors),
+                    Notify(
+                        Left(
+                            varGuestPatchCallErrors,
+                            Len(varGuestPatchCallErrors) - 1
+                        ),
+                        NotificationType.Error,
+                        gblParams.notificationTime
+                    ),
+                    Refresh('Previous guest Lists for Expense Mobile (mserp)')
+                );
+                    Back(Transition.Pop);
+                    Reset(NameInputText);
+                    Reset(DesignationInputText);
+                    Reset(CompanyInputText)
+                );
+            Size: =App.Height * 0.0211
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SaveAndAddLabel'
+            Width: =App.Width * 0.891
+            X: =App.Width / 2 - SaveAndAddButton.Width/2
+            Y: =BackgroundForButtons.Y + BackgroundForButtons.Height * 0.100
+            ZIndex: =2
+
+        CancelButton As button:
+            DisplayMode: =
+            Fill: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            Height: =App.Height * 0.0704
+            OnSelect: |-
+                =Back(Transition.Pop);
+                Reset(NameInputText);
+                Reset(DesignationInputText);
+                Reset(CompanyInputText)
+            Size: =App.Height * 0.0211
+            Text: |-
+                =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+            Width: =App.Width * 0.891
+            X: =SaveAndAddButton.X
+            Y: =SaveAndAddButton.Y + SaveAndAddButton.Height * 1.25
+            ZIndex: =3
+

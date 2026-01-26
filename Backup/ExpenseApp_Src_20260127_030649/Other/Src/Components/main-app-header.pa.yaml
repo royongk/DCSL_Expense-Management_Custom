@@ -1,0 +1,341 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  main-app-header:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      NavigationDrawerVisibility:
+        PropertyKind: Output
+        DisplayName: NavigationDrawerVisibility
+        Description: Set visible to true if image is clicked
+        DataType: Boolean
+      OnSelectButton:
+        PropertyKind: Event
+        DisplayName: OnSelectButton
+        Description: Making Navigation drawer visible
+        ReturnType: Boolean
+        Default: =true
+      firstIcon:
+        PropertyKind: Input
+        DisplayName: firstIcon
+        Description: Image for left most icon
+        DataType: Text
+        Default: ="Text"
+      firstIconAccessibleLabel:
+        PropertyKind: Input
+        DisplayName: firstIconAccessibleLabel
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      firstIconAction:
+        PropertyKind: Event
+        DisplayName: firstIconAction
+        Description: A custom property
+        ReturnType: Boolean
+        Default: =true
+      homeIcon:
+        PropertyKind: Input
+        DisplayName: homeIcon
+        Description: homeIcon
+        DataType: Text
+        Default: ="텍스트"
+      homeIconAccessibleLabel:
+        PropertyKind: Input
+        DisplayName: homeIconAccessibleLabel
+        Description: homeIconAccessibleLabel
+        DataType: Text
+        Default: ="텍스트"
+      homeIconAction:
+        PropertyKind: Event
+        DisplayName: homeIconAction
+        Description: homeIconAction
+        ReturnType: Boolean
+        Default: =true
+      paramAvatar:
+        PropertyKind: Input
+        DisplayName: paramAvatar
+        Description: A custom property
+        DataType: Image
+        Default: =User().Image
+      paramTitle:
+        PropertyKind: Input
+        DisplayName: paramTitle
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      refreshIconAction:
+        PropertyKind: Event
+        DisplayName: refreshIconAction
+        Description: A custom property
+        ReturnType: Boolean
+        Default: =true
+      secondIcon:
+        PropertyKind: Input
+        DisplayName: secondIcon
+        Description: Image for second icon
+        DataType: Text
+        Default: ="Text"
+      secondIconAccessibleLabel:
+        PropertyKind: Input
+        DisplayName: secondIconAccessibleLabel
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      secondIconAction:
+        PropertyKind: Event
+        DisplayName: secondIconAction
+        Description: A custom property
+        ReturnType: Boolean
+        Default: =true
+      thirdIcon:
+        PropertyKind: Input
+        DisplayName: thirdIcon
+        Description: Image for third icon
+        DataType: Text
+        Default: ="Text"
+      thirdIconAccessibleLabel:
+        PropertyKind: Input
+        DisplayName: thirdIconAccessibleLabel
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      thirdIconAction:
+        PropertyKind: Event
+        DisplayName: thirdIconAction
+        Description: A custom property
+        ReturnType: Boolean
+        Default: =true
+    Properties:
+      Fill: =Color.White
+      Height: =85
+      NavigationDrawerVisibility: =true
+      Width: =Max(App.Width, App.MinScreenWidth)
+    Children:
+      - cmpVerticalContainer:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =Parent.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+          Children:
+            - cmpHorizontalContainer:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =Parent.Height - cmp_footer_rct_Seprator_3.Height
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =Parent.Height
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - shpBorder_1:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =Color.Transparent
+                        Height: =Parent.Height
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =28
+                        Width: =28
+                  - userImage_1:
+                      Control: Image@2.2.3
+                      Properties:
+                        AccessibleLabel: ="Profile"
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =42
+                        Image: ='main-app-header'.paramAvatar
+                        ImagePosition: =ImagePosition.Fill
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: |-
+                          ='main-app-header'.OnSelectButton();
+                          Set(
+                              gblnavigationDrawerVisibility,
+                              true
+                          )
+                        RadiusBottomLeft: =Self.Height
+                        RadiusBottomRight: =Self.Height
+                        RadiusTopLeft: =Self.Height
+                        RadiusTopRight: =Self.Height
+                        TabIndex: =0
+                        Width: =Self.Height
+                        X: =28
+                        Y: =24
+                  - shpBorder_2:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =Color.Transparent
+                        Height: =Parent.Height
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =28
+                        Width: =28
+                  - screenLabel_1:
+                      Control: Label@2.5.1
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =Parent.Height
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =150
+                        Role: =TextRole.Heading1
+                        Size: =30
+                        Text: ='main-app-header'.paramTitle
+                        Width: =366
+                        X: =98
+                        Y: =15
+                  - homeImage_1:
+                      Control: Image@2.2.3
+                      Properties:
+                        AccessibleLabel: ="Home"
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =Parent.Height
+                        Image: =homeIcon
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: ='main-app-header'.homeIconAction()
+                        PaddingBottom: =25
+                        PaddingTop: =25
+                        RadiusBottomLeft: =Self.Height
+                        RadiusBottomRight: =Self.Height
+                        RadiusTopLeft: =Self.Height
+                        RadiusTopRight: =Self.Height
+                        TabIndex: =0
+                        Width: =60
+                        X: =28
+                        Y: =24
+                  - icon1:
+                      Control: Image@2.2.3
+                      Properties:
+                        AccessibleLabel: ='main-app-header'.firstIconAccessibleLabel
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =Parent.Height
+                        Image: ='main-app-header'.firstIcon
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: ='main-app-header'.firstIconAction()
+                        PaddingBottom: =25
+                        PaddingTop: =25
+                        RadiusBottomLeft: =Self.Height
+                        RadiusBottomRight: =Self.Height
+                        RadiusTopLeft: =Self.Height
+                        RadiusTopRight: =Self.Height
+                        TabIndex: =0
+                        Visible: =If(IsBlank('main-app-header'.firstIcon), false, true)
+                        Width: =60
+                        X: =28
+                        Y: =24
+                  - icon2:
+                      Control: Image@2.2.3
+                      Properties:
+                        AccessibleLabel: ='main-app-header'.secondIconAccessibleLabel
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =Parent.Height
+                        Image: ='main-app-header'.secondIcon
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: ='main-app-header'.secondIconAction()
+                        PaddingBottom: =25
+                        PaddingTop: =25
+                        RadiusBottomLeft: =Self.Height
+                        RadiusBottomRight: =Self.Height
+                        RadiusTopLeft: =Self.Height
+                        RadiusTopRight: =Self.Height
+                        TabIndex: =0
+                        Visible: =If(IsBlank('main-app-header'.secondIcon), false, true)
+                        Width: =60
+                        X: =28
+                        Y: =24
+                  - icon3:
+                      Control: Image@2.2.3
+                      Properties:
+                        AccessibleLabel: ='main-app-header'.thirdIconAccessibleLabel
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =Parent.Height
+                        Image: ='main-app-header'.thirdIcon
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: ='main-app-header'.thirdIconAction()
+                        PaddingBottom: =25
+                        PaddingTop: =25
+                        RadiusBottomLeft: =Self.Height
+                        RadiusBottomRight: =Self.Height
+                        RadiusTopLeft: =Self.Height
+                        RadiusTopRight: =Self.Height
+                        TabIndex: =0
+                        Visible: =If(IsBlank('main-app-header'.thirdIcon), false, true)
+                        Width: =60
+                        X: =28
+                        Y: =24
+                  - icon4:
+                      Control: Image@2.2.3
+                      Properties:
+                        AccessibleLabel: ="Refresh"
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =Parent.Height
+                        Image: =RefreshIcon
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnSelect: ='main-app-header'.refreshIconAction()
+                        PaddingBottom: =25
+                        PaddingTop: =25
+                        RadiusBottomLeft: =Self.Height
+                        RadiusBottomRight: =Self.Height
+                        RadiusTopLeft: =Self.Height
+                        RadiusTopRight: =Self.Height
+                        TabIndex: =0
+                        Width: =60
+                        X: =28
+                        Y: =24
+                  - shpBorder:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =Color.Transparent
+                        Height: =Parent.Height
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        Width: =10
+            - cmp_footer_rct_Seprator_3:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(200, 200, 200, 1)
+                  Height: =1.5
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Width: =Parent.Width
+                  Y: =Parent.Height - Self.Height

@@ -1,0 +1,629 @@
+"'Approvals - Filters Screen' As screen":
+    Fill: |
+        =RGBA(244, 244, 244, 1)
+    OnVisible: =
+
+    scr25_cmb_DateFilter As combobox:
+        AccessibleLabel: ="Press to go back"
+        DefaultSelectedItems: =colSelectedFilterOptions
+        DisplayFields: =["title"]
+        Height: =70
+        IsSearchable: =false
+        Items: =collApprovedFilterOptions
+        SearchFields: =["title"]
+        SearchItems: =[]
+        Size: =21
+        TabIndex: =-1
+        Visible: =false
+        Width: =575
+        Y: =637
+        ZIndex: =1
+
+    scr25_shp_ButtonCard As rectangle:
+        Fill: =RGBA(248, 248, 248, 1)
+        Height: =250
+        Width: =Parent.Width
+        Y: =Parent.Height-scr25_shp_ButtonCard.Height
+        ZIndex: =2
+
+    scr25_btn_Cancel As button:
+        BorderColor: =RGBA(34, 102, 227, 1)
+        Color: |
+            =RGBA(34, 102, 227, 1)
+        Fill: =Color.White
+        Font: =Font.'Segoe UI'
+        Height: =76
+        OnSelect: |-
+            =Select(scr25_lbl_ClearAll);
+            Navigate('Approvals - List Screen')
+        RadiusBottomLeft: =8
+        RadiusBottomRight: =8
+        RadiusTopLeft: =8
+        RadiusTopRight: =8
+        Size: =19.15
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+        Width: =Parent.Width -  Self.X*2
+        X: =40
+        Y: =scr25_shp_ButtonCard.Y + 140
+        ZIndex: =3
+
+    scr25_btn_ApplyFilter As button:
+        BorderColor: =RGBA(34, 102, 227, 1)
+        Fill: |
+            =RGBA(34, 102, 227, 1)
+        Font: =Font.'Segoe UI'
+        Height: =76
+        OnSelect: |
+            =//Store the values context variables
+            //Navigate(scr21_ApprovalsList)
+            UpdateContext({varSelectedUsers : scr25_cmb_User.SelectedItems});
+            UpdateContext({varSelectedProjects : scr25_cmb_Project.SelectedItems});
+            UpdateContext({
+                varMinMaxAmounts : {
+                        minAmount : Coalesce(Value(scr25_txt_MinAmount.Text), 0), 
+                        maxAmount : Coalesce(Value(scr25_txt_MaxAmount.Text), 1000000)
+                }
+            });
+            UpdateContext({varDateFilter : First(SortByColumns(colSelectedFilterOptions, "number")).number}); 
+            Navigate('Approvals - List Screen', ScreenTransition.None, 
+                {
+                    varSelectedUsers : varSelectedUsers, 
+                    varSelectedProjects : varSelectedProjects,
+                    varMinMaxAmounts : varMinMaxAmounts,
+                    varDateFilter : varDateFilter,
+                    varFiltersApplied : ((!IsBlank(varSelectedUsers) && !IsEmpty(varSelectedUsers)) ||
+                                         (!IsBlank(varSelectedProjects) && !IsEmpty(varSelectedProjects)) ||
+                                         (varMinMaxAmounts.minAmount <> 0 || varMinMaxAmounts.maxAmount <> 1000000) ||
+                                         (!IsBlank(varSelectedProjects) && !IsEmpty(varSelectedProjects)))
+                }
+            )
+        Size: =19.15
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApplyLabel'
+        Width: =Parent.Width -  Self.X*2
+        X: =40
+        Y: |-
+            =
+            scr25_shp_ButtonCard.Y + 35
+        ZIndex: =4
+
+    Filters As groupContainer.verticalAutoLayoutContainer:
+        Height: =scr25_shp_ButtonCard.Y - Self.Y
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =15
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        LayoutOverflowY: =LayoutOverflow.Scroll
+        Width: =Parent.Width
+        Y: =scr25_hdr_TopHeader.Height
+        ZIndex: =5
+
+        User As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =150
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingLeft: =15
+            Width: =Parent.Width
+            ZIndex: =1
+
+            Container16 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =75
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                ZIndex: =1
+
+                scr25_img_User As image:
+                    Height: =22
+                    Image: =userIcon
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Width: =22
+                    X: =scr17_txt_Description_1.X
+                    Y: =scr25_cmb_User.Y - (15 + Self.Height)
+                    ZIndex: =1
+
+                scr25_lbl_User As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_UserLabel'
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =300
+                    X: |-
+                        =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                        8
+                    Y: =scr25_img_User.Y - 5
+                    ZIndex: =2
+
+            scr25_cmb_User As combobox:
+                AccessibleLabel: ="Dropdown to filter user"
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderThickness: =gblParams.dorpDownBorderThickness
+                DefaultSelectedItems: =
+                DisplayFields: =["Value","mserp_description"]
+                FocusedBorderThickness: =2
+                Height: =gblParams.dropDownHeight
+                HoverFill: =gblParams.dropDownHoverFill
+                InputTextPlaceholder: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterUserNameLabel'
+                Items: =Distinct(Filter(workItemsAssignedToMe[@CreatingUser],!IsBlank(CreatingUser) && CreatingUser <> ""),CreatingUser)
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =575
+                NoSelectionText: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterUserNameLabel'
+                OnChange: =
+                OnSelect: |-
+                    =UpdateContext({varOnSelectTriggered: true});
+                SearchFields: =["Value"]
+                SearchItems: =Search(Distinct(Filter(workItemsAssignedToMe[@CreatingUser],!IsBlank(CreatingUser)&&CreatingUser<>""),CreatingUser),scr25_cmb_User.SearchText,Value)
+                SelectionColor: =Color.Black
+                SelectionFill: =gblParams.dropDownBorderColor
+                SelectionTagColor: =RGBA(0, 0, 0, 1)
+                Size: =24
+                Width: =Parent.Width - 2 * Self.X
+                X: =40
+                Y: =158
+                ZIndex: =2
+
+        Project As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =150
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingLeft: =15
+            Width: =Parent.Width
+            ZIndex: =2
+
+            Container17 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =75
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                ZIndex: =1
+
+                scr25_img_Project As image:
+                    Height: =22
+                    Image: =projectIcon
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Width: =22
+                    X: =scr17_txt_Description_1.X
+                    Y: =scr25_cmb_Project.Y - (15 + Self.Height)
+                    ZIndex: =1
+
+                scr25_lbl_Project As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ProjectLabel'
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =300
+                    X: |-
+                        =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                        8
+                    Y: =scr25_img_Project.Y - 5
+                    ZIndex: =2
+
+            scr25_cmb_Project As combobox:
+                AccessibleLabel: ="Dropdown to filter by project"
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderThickness: =gblParams.dorpDownBorderThickness
+                DefaultSelectedItems: =
+                DisplayFields: =["Value","mserp_description"]
+                FocusedBorderThickness: =2
+                Height: =gblParams.dropDownHeight
+                HoverFill: =gblParams.dropDownHoverFill
+                InputTextPlaceholder: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectNameLabel'
+                Items: =Distinct(Filter(workItemsAssignedToMe[@'Project name'],!IsBlank('Project name') && 'Project name' <> ""),'Project name')
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =575
+                NoSelectionText: |-
+                    =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectNameLabel'
+                OnChange: =
+                OnSelect: |-
+                    =UpdateContext({varOnSelectTriggered: true});
+                SearchFields: =["Value"]
+                SearchItems: =Search(Distinct(Filter(workItemsAssignedToMe[@'Project name'],!IsBlank('Project name')&&'Project name'<>""),'Project name'),scr25_cmb_Project.SearchText,Value)
+                SelectionColor: =Color.Black
+                SelectionFill: =gblParams.dropDownBorderColor
+                SelectionTagColor: =RGBA(0, 0, 0, 1)
+                Size: =24
+                Width: =Parent.Width - 2 * Self.X
+                X: =40
+                Y: =303
+                ZIndex: =2
+
+        Amount As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =275
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingLeft: =15
+            Width: =Parent.Width
+            ZIndex: =3
+
+            Container19 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width - Self.X * 2
+                ZIndex: =1
+
+                scr25_img_Amount As image:
+                    Height: =22
+                    Image: =amountIcon
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Width: =22
+                    X: =scr17_txt_Description_1.X
+                    Y: =scr25_txt_MinAmount.Y - (35 + Self.Height)
+                    ZIndex: =1
+
+                scr25_lbl_Amount As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    TabIndex: =0
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AmountLabel'
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =300
+                    X: |-
+                        =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                        8
+                    Y: =scr25_img_Amount.Y - 5
+                    ZIndex: =2
+
+            scr25_shp_AmountSeparator As rectangle:
+                Fill: =RGBA(200, 200, 200, 1)
+                Height: =0.85
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                Width: |
+                    =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr25_img_Amount.Y + scr25_img_Amount.Height + 7
+                ZIndex: =2
+
+            Container21 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =100
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =50
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width - Self.X * 2
+                ZIndex: =3
+
+                scr25_lbl_MinAmount As label:
+                    Height: =83
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_MinimumAmountLabel'
+                    Width: =250
+                    X: =36
+                    Y: =478
+                    ZIndex: =1
+
+                scr25_txt_MinAmount As text:
+                    AccessibleLabel: ="Textbox to filter by minimum amount"
+                    BorderColor: =gblParams.dropDownBorderColor
+                    Default: =
+                    Height: =gblParams.dropDownHeight
+                    HintText: ="0"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    OnChange: =
+                    Size: =24
+                    Width: =290
+                    X: =310
+                    Y: =493
+                    ZIndex: =2
+
+            Container23 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =100
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width - Self.X * 2
+                ZIndex: =4
+
+                scr25_lbl_MaxAmount As label:
+                    Height: =83
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_MaximumAmountLabel'
+                    Width: =250
+                    X: =36
+                    Y: =561
+                    ZIndex: =1
+
+                scr25_txt_MaxAmount As text:
+                    AccessibleLabel: ="Textbox to filter by maximum amount"
+                    BorderColor: =gblParams.dropDownBorderColor
+                    Default: =
+                    Height: =gblParams.dropDownHeight
+                    HintText: ="10000000"
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    Size: =24
+                    Width: =290
+                    X: =274
+                    Y: =95
+                    ZIndex: =2
+
+        Date As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =225
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingLeft: =15
+            Width: =Parent.Width
+            ZIndex: =4
+
+            Container24 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =250
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width -  Self.X*2
+                ZIndex: =1
+
+                scr25_img_DateFilter As image:
+                    Height: =22
+                    Image: =dateIcon
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Width: =22
+                    X: =scr17_txt_Description_1.X
+                    Y: =scr25_glr_DateFilterOptions.Y - (15 + Self.Height)
+                    ZIndex: =1
+
+                scr25_lbl_DateFilter As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DateLabel'
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =300
+                    X: |-
+                        =scr17_img_Location_1.X + scr17_img_Location_1.Width + 
+                        8
+                    Y: =scr25_img_DateFilter.Y - 5
+                    ZIndex: =2
+
+            scr25_shp_DateSeparator As rectangle:
+                Fill: =RGBA(200, 200, 200, 1)
+                Height: =0.85
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                Width: =scr25_cmb_Project.Width
+                X: |
+                    =40
+                Y: =scr25_img_DateFilter.Y + scr25_img_DateFilter.Height + 7
+                ZIndex: =2
+
+            "scr25_glr_DateFilterOptions As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                '#CopilotOverlayLabel': ="Filtered"
+                AccessibleLabel: ="Choose date "
+                AlignInContainer: =AlignInContainer.SetByContainer
+                DelayItemLoading: =true
+                Height: =182
+                Items: =collApprovedFilterOptions
+                Layout: =Layout.Vertical
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =287
+                LayoutMinWidth: =320
+                LoadingSpinner: =LoadingSpinner.Data
+                OnSelect: =
+                TemplatePadding: =0
+                TemplateSize: =77
+                Width: |
+                    =Parent.Width -  Self.X*2
+                WrapCount: =2
+                Y: =711
+                ZIndex: =3
+
+                scr25_chk_DataSelect As checkbox:
+                    BorderColor: =gblParams.dropDownBorderColor
+                    CheckboxBackgroundFill: |-
+                        =If(
+                            Self.Value,
+                            gblParams.dropDownBorderColor,
+                            Color.White
+                        )
+                    CheckboxBorderColor: =gblParams.dropDownBorderColor
+                    CheckboxSize: =50
+                    CheckmarkFill: =Color.White
+                    Default: =ThisItem in colSelectedFilterOptions
+                    DisplayMode: |
+                        =DisplayMode.Edit
+                    FocusedBorderThickness: |
+                        =0
+                    Height: |
+                        =50
+                    HoverBorderColor: =Color
+                    OnCheck: =Collect(colSelectedFilterOptions, ThisItem)
+                    OnSelect: =
+                    OnUncheck: =Remove(colSelectedFilterOptions, ThisItem)
+                    Size: =18
+                    Text: =ThisItem.title
+                    Width: =280
+                    X: =28
+                    Y: =10
+                    ZIndex: =1
+
+    scr25_hdr_TopHeader As hdr02_Header:
+        Fill: =scr25_hdr_TopHeader.paramFill
+        paramFill: =RGBA(255, 255, 255, 1)
+        paramTitle: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterLabel'
+        ZIndex: =6
+
+    scr25_ico_Back As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =icongconfig_backbutton.Color
+        Fill: =icongconfig_backbutton.Fill
+        Height: =icongconfig_backbutton.Height
+        Icon: =Icon.ChevronLeft
+        OnSelect: =Select(scr25_btn_Cancel)
+        TabIndex: =0
+        Width: =icongconfig_backbutton.Width
+        X: =22
+        Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
+        ZIndex: =7
+
+    scr25_lbl_ClearAll As label:
+        Align: =Align.Center
+        Color: |
+            =RGBA(34, 102, 227, 1)
+        Font: =Font.'Segoe UI'
+        FontWeight: =FontWeight.Semibold
+        Height: =82
+        OnSelect: |-
+            =Reset(scr25_cmb_Project);
+            Reset(scr25_cmb_User);
+            Reset(scr25_txt_MaxAmount);
+            Reset(scr25_txt_MinAmount);
+            Reset(scr25_cmb_DateFilter);
+            Clear(colSelectedFilterOptions)
+        Size: =16
+        TabIndex: =0
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ClearAllLabel'
+        Width: =193
+        X: =(Parent.Width - Self.Width)
+        ZIndex: =8
+

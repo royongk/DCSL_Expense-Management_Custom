@@ -56,62 +56,6 @@
                 )
             )
         );
-        // Initialize colExpenseCategories for edit mode (fix for Form Submit error)
-        If(
-            !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
-            // Case 1: Department와 Benefit Type이 역 조회로 복원된 경우
-            If(
-                !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
-                ClearCollect(
-                    colExpenseCategories,
-                    SortByColumns(
-                        Filter(
-                            'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            !IsBlank('Expense category') &&
-                            Department = varSelectedDepartment &&
-                            'Benefit Type' = varSelectedBenefitType
-                        ),
-                        "mserp_expensecategory",
-                        SortOrder.Ascending
-                    )
-                ),
-                // Case 2: 역 조회가 실패했지만 기존 Expense Category가 있는 경우
-                // 기존 Expense Category를 포함한 매핑 레코드를 찾아서 colExpenseCategories 초기화
-                With(
-                    {
-                        existingCategoryMapping: LookUp(
-                            'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
-                        )
-                    },
-                    If(
-                        !IsBlank(existingCategoryMapping),
-                        // 매핑 레코드가 있으면 해당 Department와 Benefit Type으로 필터링
-                        ClearCollect(
-                            colExpenseCategories,
-                            SortByColumns(
-                                Filter(
-                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank('Expense category') &&
-                                    Department = existingCategoryMapping.Department &&
-                                    'Benefit Type' = existingCategoryMapping.'Benefit Type'
-                                ),
-                                "mserp_expensecategory",
-                                SortOrder.Ascending
-                            )
-                        ),
-                        // 매핑 레코드가 없으면 기존 Expense Category만 포함
-                        ClearCollect(
-                            colExpenseCategories,
-                            Filter(
-                                'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
-                            )
-                        )
-                    )
-                )
-            )
-        );
         UpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')});
         UpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.'Intercompany project category'});
         UpdateContext({curProjIdSelected: varSelectedExpenseDoc.'Project ID'});
@@ -791,32 +735,7 @@
             LayoutMinHeight: =250
             LayoutMinWidth: =320
             OnFailure: |-
-                =// [최종 수정] 정확한 카드 이름 반영 (_DataCard2_3)
-                //UpdateContext({
-                //    varDebugErrorMsg: Concatenate(
-                //        // 1. 프로젝트 및 재무 관련
-                //        If(!IsBlank('Project ID_DataCard2_3'.Error), "Project 오류: " & 'Project ID_DataCard2_3'.Error & Char(10), ""),
-                        
-                //        // 2. 숨겨진 세금 관련 (가장 유력한 범인!)
-                //        If(!IsBlank('Sales tax group_DataCard2_3'.Error), "Sales Tax 오류: " & 'Sales tax group_DataCard2_3'.Error & Char(10), ""),
-                //        If(!IsBlank('Item sales tax group_DataCard2_3'.Error), "Item Tax 오류: " & 'Item sales tax group_DataCard2_3'.Error & Char(10), ""),
-                        
-                        // 3. 기타 필드
-                //        If(!IsBlank(Merchant_DataCard1_3.Error), "Merchant(상호) 오류: " & Merchant_DataCard1_3.Error & Char(10), "")
-                //    )
-                //});
-                
-                //Notify(
-                //    If(
-                //        IsBlank(varDebugErrorMsg), 
-                //        "알 수 없는 오류 (폼 메시지): " & EditExpenseForm.Error & " -> 세금(Tax) 필드 설정을 확인하세요.", 
-                //        "★범인 발견!★" & Char(10) & varDebugErrorMsg
-                //    ),
-                //    NotificationType.Error,
-                //    0
-                //);
-                
-                If(
+                =If(
                     CountRows(Split(Text(Self.Error), ":")) > 2,
                     Notify(
                         Mid(Mid(EditExpenseForm.Error, Find(":", EditExpenseForm.Error) + 2), Find(":", Mid(EditExpenseForm.Error, Find(":", EditExpenseForm.Error) + 2)) + 2), 
@@ -1052,6 +971,7 @@
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_department"
                 Default: =varSelectedDepartment
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: ="Department"
@@ -1117,8 +1037,7 @@
                         Reset(ComboBox_BenefitType);
                         Reset(ComboBox1_8);
                         UpdateContext({varSelectedBenefitType: Blank()});
-                        UpdateContext({curCategory: Blank()});
-                        Clear(colExpenseCategories);
+                        UpdateContext({curCategory: Blank()})
                     SearchFields: =["mserp_department"]
                     SearchItems: =[]
                     SelectionColor: =Color.Black
@@ -1159,6 +1078,7 @@
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_benefittype"
                 Default: =varSelectedBenefitType
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: ="Benefit Type"
@@ -1227,33 +1147,41 @@
                         )
                     NoSelectionText: ="Select Benefit Type"
                     OnChange: |-
-                        =// 1. 선택된 값을 변수에 저장 (수정된 부분)
-                        UpdateContext({varSelectedBenefitType: ComboBox_BenefitType.Selected.Value});
+                        =UpdateContext({varSelectedBenefitType: Parent.Update});
+                        UpdateContext({varSelectedBenefitTypeValue: Parent.Update});
+                        Reset(ComboBox1_8);
+                        UpdateContext({curCategory:Blank()});
                         
-                        // 2. 하위 컨트롤 초기화
-                        Reset(ComboBox1_8); // Expense Category 콤보박스 초기화
-                        UpdateContext({curCategory: Blank()});
-                        
-                        // 3. Expense Category 목록 필터링 및 컬렉션 생성
+                        // [추가] Expense Category 목록을 미리 조회하여 컬렉션 생성
                         If(
-                            !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
+                            !IsBlank(varSelectedDepartment),
                             ClearCollect(
-                                colExpenseCategories,
+                                colExpenseCategories, // 컬렉션 이름
                                 SortByColumns(
                                     Filter(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        !IsBlank('Expense category') &&
-                                        Department = varSelectedDepartment &&
-                                        'Benefit Type' = varSelectedBenefitType
+                                        ForAll(
+                                            Filter(
+                                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                                !IsBlank('Expense category') &&
+                                                Department = varSelectedDepartment 
+                                                && 'Benefit Type' = varSelectedBenefitType
+                                            ) As MappingRecord,
+                                            LookUp(
+                                                'Expense category (mserp)',
+                                                'Expense category' = MappingRecord.'Expense category' &&
+                                                Inactive = 'NoYes (mserp)'.No
+                                            )
+                                        ),
+                                        !IsBlank('Expense category') // 빈 레코드 제거
                                     ),
                                     "mserp_expensecategory",
                                     SortOrder.Ascending
                                 )
                             ),
-                            Clear(colExpenseCategories)
-                        );
-                    SearchFields: =["Value"]
-                    SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank(varSelectedDepartment)&&Department=varSelectedDepartment),'Benefit Type'),"Value",SortOrder.Ascending),ComboBox_BenefitType.SearchText,Value)
+                            Clear(colExpenseCategories) // 조건 불충족 시 초기화
+                        )
+                    SearchFields: =[""]
+                    SearchItems: =[]
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -1279,19 +1207,21 @@
 
             "'Expense category_DataCard3_3' As typedDataCard.allowedValuesStringEditCard":
                 AllowedValues: |-
-                    =If(
-                        !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
-                        SortByColumns(
+                    =Filter(
+                        ForAll(
                             Filter(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
                                 !IsBlank('Expense category') &&
-                                Department = varSelectedDepartment &&
-                                'Benefit Type' = varSelectedBenefitType
-                            ),
-                            "mserp_expensecategory",
-                            SortOrder.Ascending
+                                Department = varSelectedDepartment 
+                                //&& 'Benefit Type' = varSelectedBenefitTypeValue
+                            ) As MappingRecord,
+                            LookUp(
+                                'Expense category (mserp)',
+                                'Expense category' = MappingRecord.'Expense category' &&
+                                Inactive = 'NoYes (mserp)'.No
+                            )
                         ),
-                        []
+                        !IsBlank(ThisRecord)
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
@@ -1302,17 +1232,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =true
-                Update: |-
-                    =If(
-                        !IsBlank(ComboBox1_8.Selected),
-                        ComboBox1_8.Selected.mserp_expensecategory,
-                        // ComboBox1_8.Selected가 Blank()이면 기존 값 유지 (수정하지 않은 경우)
-                        If(
-                            !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
-                            varSelectedExpenseDoc.'Expense category (mserp_costtype)',
-                            Blank()
-                        )
-                    )
+                Update: =ComboBox1_8.Selected.'Expense category'
                 Visible: =true
                 Width: =Parent.Width
                 X: =1
@@ -1388,19 +1308,11 @@
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
                         =If(
-                            !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)') &&
-                            !IsBlank(varSelectedDepartment) &&
-                            !IsBlank(varSelectedBenefitType),
-                            // Items와 동일한 필터링 로직 사용
+                            !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
                             LookUp(
-                                Filter(
-                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank('Expense category') &&
-                                    Department = varSelectedDepartment &&
-                                    'Benefit Type' = varSelectedBenefitType &&
-                                    'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
-                                ),
-                                'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
+                                'Expense category (mserp)',
+                                'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)' &&
+                                'Company Code' = varSelectedLegalEntity
                             ),
                             Blank()
                         )
@@ -1417,22 +1329,7 @@
                     InputTextPlaceholder: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
                     IsSearchable: =false
-                    Items: |-
-                        =If(
-                            !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
-                            SortByColumns(
-                                Filter(
-                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank('Expense category') &&
-                                    Department = varSelectedDepartment &&
-                                    'Benefit Type' = varSelectedBenefitType
-                                ),
-                                "mserp_expensecategory",
-                                SortOrder.Ascending
-                            ),
-                            // Department나 Benefit Type이 선택되지 않은 경우 빈 컬렉션
-                            []
-                        )
+                    Items: =colExpenseCategories
                     NoSelectionText: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
                     OnChange: |-
@@ -1445,7 +1342,9 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
-                        UpdateContext({varSelectedCategoryRecord: LookUp('Expense category (mserp)', 'Expense category' = ComboBox1_8.Selected.'Expense category' && 'Company Code' = varSelectedLegalEntity)});
+                        UpdateContext({ 
+                            varSelectedCategoryRecord: LookUp(colExpenseCategories, 'Expense category' = ComboBox1_8.Selected.'Expense category') 
+                        });
                         If(
                             varOnShowFields && !IsBlank(ComboBox1_8.Selected),
                             UpdateContext(
@@ -1455,13 +1354,7 @@
                                     {
                                         CostType: varSelectedCategoryRecord.'Expense category',
                                         SplitLineType:"Default",
-                                        LineType: If(
-                                            !IsBlank(ComboBox1_8.Selected) && 
-                                            !IsBlank(varSelectedCategoryRecord) &&
-                                            varSelectedCategoryRecord.'Itemization mandatory' = 'NoYes (mserp)'.Yes,
-                                            "ItemizedHeader",
-                                            "Default"
-                                        )
+                                        LineType: If(!IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Itemization mandatory' = 'NoYes (mserp)'.Yes,"ItemizedHeader","Default")
                                     }
                                     ).return
                                 }
@@ -1483,9 +1376,7 @@
                             Reset(DataCardValue25_1); //actual sales tax
                             //Clear(collectionActivities),
                             If(
-                                !IsBlank(ComboBox1_8.Selected) && 
-                                !IsBlank(varSelectedCategoryRecord) &&
-                                varSelectedCategoryRecord.'Use in Project' = 'NoYes (mserp)'.No,
+                                !IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Use in Project' = 'NoYes (mserp)'.No,
                                 If( 
                                     gblIsProjectValidationFlag,
                                     Reset(ProjectICheckbox_ES),  //remove project
@@ -1547,9 +1438,7 @@
                                 varItemSalesTaxDefaultValue,
                                 Blank()
                             );
-                            If(!IsBlank(ComboBox1_8.Selected) && 
-                               !IsBlank(varSelectedCategoryRecord) &&
-                               varSelectedCategoryRecord.'Expense type' = 'TrvExpType (mserp)'.Mileage,
+                            If(!IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense type' = 'TrvExpType (mserp)'.Mileage,
                                 Set(varCollectCacheV23,
                                     'Expense mobile master data (mserp)'.mserp_calckm(
                                         If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
@@ -1646,32 +1535,14 @@
                         
                         );
                         UpdateContext({curCategory : Self.Selected.'Expense category'});
-                        UpdateContext({currExpenseType : varSelectedCategoryRecord.'Expense type'});
+                        UpdateContext({currExpenseType : Self.Selected.'Expense type'});
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
                         UpdateContext({taxModifiedByUser: false}); 
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     Reset: =true
                     SearchFields: =["mserp_expensecategory"]
-                    SearchItems: |-
-                        =If(
-                            !IsBlank(varSelectedDepartment) && !IsBlank(varSelectedBenefitType),
-                            Search(
-                                SortByColumns(
-                                    Filter(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        !IsBlank('Expense category') &&
-                                        Department = varSelectedDepartment &&
-                                        'Benefit Type' = varSelectedBenefitType
-                                    ),
-                                    "mserp_expensecategory",
-                                    SortOrder.Ascending
-                                ),
-                                ComboBox1_8.SearchText,
-                                mserp_expensecategory
-                            ),
-                            []
-                        )
+                    SearchItems: =Search(colExpenseCategories,ComboBox1_8.SearchText,mserp_expensecategory)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -1744,9 +1615,7 @@
                 Default: |-
                     =If(
                         varIsCreate || categoryModified,
-                        If(!IsBlank(ComboBox1_8.Selected), 
-                           If(!IsBlank(varSelectedCategoryRecord), varSelectedCategoryRecord.Description, Blank()),
-                           Blank()),
+                        If(!IsBlank(ComboBox1_8.Selected), ComboBox1_8.Selected.Description, Blank()),
                         varSelectedExpenseDoc.'Category description'
                     )
                 DisplayMode: =Parent.DisplayMode
@@ -1851,9 +1720,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Company (mserp_company)')
-                Required: |-
-                    =//true
-                    false
+                Required: =true
                 Update: =DataCardValue14_1.Text
                 Visible: =false
                 Width: =Parent.Width
@@ -3856,12 +3723,7 @@
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_exptype"
-                Default: |-
-                    =If(
-                        !IsBlank(ComboBox1_8.Selected) && !IsBlank(varSelectedCategoryRecord),
-                        varSelectedCategoryRecord.'Expense type',
-                        Blank()
-                    )
+                Default: =If(!IsBlank(ComboBox1_8.Selected), ComboBox1_8.Selected.'Expense type', Blank())
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense type')
                 Fill: =RGBA(0, 0, 0, 0)
@@ -4165,9 +4027,7 @@
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Payment method')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                Required: |-
-                    =//true
-                    false
+                Required: =true
                 Update: ="BANK"
                 Visible: =false
                 Width: =Parent.Width
@@ -4659,9 +4519,7 @@
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Legal entity')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                Required: |-
-                    =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
-                    false
+                Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                 Update: |
                     =If(
                         IsBlank(DataCardValue39_1.Selected.Value),
@@ -5102,9 +4960,7 @@
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Project ID')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                Required: |-
-                    =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
-                    false
+                Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                 Update: |-
                     =If(
                         gblIsProjectValidationFlag,
@@ -5112,17 +4968,15 @@
                         ProjectCheckbox_Entity.Selected.'Project ID'
                     )
                 Visible: |-
-                    =//If(
-                    //    (IsBlank(ComboBox1_8.Selected) && !'Intercompany project category_DataCard1_3'.Visible) || 
-                    //    (!IsBlank(varSelectedCategoryRecord) && varSelectedCategoryRecord.'Use in Project' = 'NoYes (mserp)'.No),
-                    //    false,
-                    //    LookUp(
-                    //        labelTableLookUp,
-                    //        labelName = Self.DisplayName,
-                    //        visible
-                    //    )
-                    //)
-                    false
+                    =If(
+                        (IsBlank(ComboBox1_8.Selected) && !'Intercompany project category_DataCard1_3'.Visible) || (ComboBox1_8.Selected.'Use in Project' = 'NoYes (mserp)'.No),
+                        false,
+                        LookUp(
+                            labelTableLookUp,
+                            labelName = Self.DisplayName,
+                            visible
+                        )
+                    )
                 Width: =Parent.Width
                 X: =0
                 Y: =projectIdFieldOrder_Y
@@ -6653,9 +6507,7 @@
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Sales tax group')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                Required: |-
-                    =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
-                    false
+                Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                 Update: =ComboBox1_15.Selected.'Sales tax group'
                 Visible: =LookUp(labelTableLookUp,fieldName="TaxGroup",visible)
                 Width: =Parent.Width
@@ -6836,9 +6688,7 @@
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Item sales tax group')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                Required: |-
-                    =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
-                    false
+                Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                 Update: =ComboBox1_16.Selected.'Item sales tax group'
                 Visible: =LookUp(labelTableLookUp,fieldName="TaxItemGroup",visible)
                 Width: =Parent.Width
@@ -7851,9 +7701,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Additional information')
-                Required: |-
-                    =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
-                    false
+                Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                 Update: =DataCardValue11_1.Text
                 Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                 Width: =Parent.Width
@@ -8041,9 +7889,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Internal note')
-                Required: |-
-                    =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
-                    false
+                Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                 Update: =DataCardValue18_1.Text
                 Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                 Width: =Parent.Width
@@ -11079,7 +10925,7 @@
             LayoutMaxWidth: =
             LayoutMinHeight: =70
             LayoutMinWidth: =280
-            OnSelect: |-
+            OnSelect: |+
                 =If(
                     currExpenseType = 'TrvExpType (mserp)'.'Per diem' && userRecord.IsReImaginedPerDiemEnabled  <> 'NoYes (mserp)'.Yes,
                     Notify(
@@ -11096,6 +10942,8 @@
                     )
                     
                 )
+                
+                
             Size: =24
             Text: |-
                 =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'

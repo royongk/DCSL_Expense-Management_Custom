@@ -1,0 +1,84 @@
+ExpenseInfo As CanvasComponent:
+    OnReload():
+        ThisProperty:
+            Default: ="Text"
+    Amount1: ="Text"
+    Amount2: ="Text"
+    ChildTabPriority: =true
+    CostType: ="Text"
+    Currency1: ="Text"
+    Currency2: ="Text"
+    Fill: =RGBA(231, 231, 231, 0.8)
+    HeaderText1: ="Text"
+    HeaderText2: ="Text"
+    Height: =180
+    IconVisibleFlag: =true
+    Mileage: ="Text"
+    NoOfPassengers: ="Text"
+    RowId: ="Text"
+    TransactionDate: ="Text"
+    VehicleType: ="Text"
+    Width: =Max(App.Width, App.MinScreenWidth)
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    HeaderText1 As label:
+        FontWeight: =FontWeight.Bold
+        Height: =Amount1.Height
+        Size: =21
+        Text: =ExpenseInfo.HeaderText1
+        Width: =(App.Width - refreshButton.Width - refreshButton.X) /2
+        X: |-
+            =If(refreshButton.Visible,
+            refreshButton.X + refreshButton.Width + 5,
+            25
+            )
+        ZIndex: =1
+
+    HeaderText2 As label:
+        FontWeight: =FontWeight.Bold
+        Height: =Amount1.Height
+        Size: =21
+        Text: =ExpenseInfo.HeaderText2
+        Width: =HeaderText1.Width
+        X: |-
+            =If(refreshButton.Visible,
+            refreshButton.X + refreshButton.Width + 5,
+            25
+            )
+        Y: =HeaderText1.Height
+        ZIndex: =2
+
+    Amount1 As label:
+        Align: =Align.Right
+        FontWeight: =FontWeight.Bold
+        Height: =62
+        Size: =21
+        Text: =ExpenseInfo.Amount1
+        Width: =(App.Width - refreshButton.Width - refreshButton.X) /2
+        X: =App.Width - Self.Width
+        ZIndex: =3
+
+    Amount2 As label:
+        Align: =Align.Right
+        FontWeight: =FontWeight.Bold
+        Height: =Amount1.Height
+        Size: =21
+        Text: =ExpenseInfo.Amount2
+        Width: =Amount1.Width
+        X: =Amount1.X
+        Y: =Amount1.Height
+        ZIndex: =5
+
+    refreshButton As icon.Sync:
+        AccessibleLabel: ="Refresh"
+        Height: =37
+        Icon: =Icon.Sync
+        OnSelect: =ExpenseInfo.OnReload()
+        Visible: =ExpenseInfo.IconVisibleFlag
+        Width: =33
+        X: =14
+        Y: =HeaderText2.Y + (HeaderText2.Y - HeaderText1.Y - HeaderText1.Height)*2
+        ZIndex: =7
+

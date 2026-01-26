@@ -1,0 +1,371 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Expenses - Select Existing Receipt Screen:
+    Properties:
+      Fill: =RGBA(255, 255, 255, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+    Children:
+      - attachmentControl - Expense_1:
+          Control: Attachments@2.3.0
+          Properties:
+            AccessibleLabel: ="Select receipt from device"
+            AddAttachmentColor: =Color.Red
+            AddAttachmentText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectDromDeviceLabel'
+            AddedItemColor: =
+            AddedItemFill: =
+            BorderColor: =
+            BorderStyle: =
+            BorderThickness: =0
+            Color: =RGBA(255, 255, 255, 1)
+            DropTargetBorderThickness: =0
+            Fill: =RGBA(37, 36, 35, 1)
+            FocusedBorderThickness: =0
+            Font: =Font.'Open Sans'
+            Height: =160
+            HoverBorderColor: =
+            HoverColor: =
+            HoverFill: =
+            ItemColor: =RGBA(255, 255, 255, 1)
+            ItemFill: =
+            ItemHoverFill: =
+            Items: =colDeviceAttachedFile
+            Items.Name: =Name
+            Items.Value: =Value
+            MaxAttachmentSize: =15
+            MaxAttachments: =1
+            MaxAttachmentsText: =
+            NoAttachmentsText: =
+            OnAddFile: |
+              =Set(
+                  varReceiptFileName,
+                  First(Self.Attachments).Name
+              );
+              Set(
+                  varReceiptImage,
+                  First(Self.Attachments).Value
+              );
+              ClearCollect(
+                  colDeviceAttachedFile,
+                  Self.Attachments
+              );
+              ClearCollect(
+                  colFileSplit,
+                  ForAll(
+                      Lower(
+                          ForAll(
+                              Split(
+                                  varReceiptFileName,
+                                  "."
+                              ),
+                              {Result: ThisRecord.Value}
+                          )
+                      ),
+                      {Result: ThisRecord.Value}
+                  )
+              );
+              Set(
+                  varFileFormat,
+                  Last(colFileSplit).Result
+              );
+              Navigate('Expenses - Preview Receipt Screen')
+            OnRemoveFile: |-
+              =ClearCollect(colDeviceAttachedFile, Self.Attachments);
+              Clear(colFileSplit);
+              Set(
+                  varFileFormat,
+                  Blank()
+              );
+              Set(
+                  varReceiptImage,
+                  Blank()
+              )
+            PaddingBottom: =5
+            PaddingLeft: =25
+            PaddingRight: =5
+            PressedColor: =RGBA(255, 255, 255, 1)
+            PressedFill: =
+            Size: =20
+            Tooltip: =
+            Width: =Parent.Width
+            Y: =Parent.Height - Self.Height
+      - Select Existing receipt:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =RGBA(37, 36, 35, 1)
+            Height: =425
+            LayoutDirection: =LayoutDirection.Vertical
+            PaddingLeft: =20
+            PaddingTop: =15
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =Parent.Height - Self.Height - 'attachmentControl - Expense_1'.Height/2
+          Children:
+            - scr10_lbl_SelectAReceipt_2:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(243, 242, 241, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =35
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  Size: =15
+                  Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectExistingReceiptLabel'
+                  Width: =380
+                  X: =25
+                  Y: =710
+            - scr10_glr_Receipts_2:
+                Control: Gallery@2.15.0
+                Variant: BrowseLayout_Horizontal_TwoTextOneImageVariant_ver4.0
+                Properties:
+                  AccessibleLabel: ="List of unattached receipts"
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  BorderColor: =RGBA(255, 255, 255, 1)
+                  DelayItemLoading: =false
+                  FocusedBorderThickness: =0
+                  Height: =300
+                  Items: |
+                    =Filter('Expense Mobile Unattached Document Entity (mserp)', IsReceiptValid = 'NoYes (mserp)'.Yes)
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =250
+                  LoadingSpinner: =LoadingSpinner.None
+                  NavigationStep: =2
+                  ShowScrollbar: =false
+                  TemplatePadding: =10
+                  TemplateSize: =300
+                  Width: =Parent.Width -  Self.X*2
+                  X: =10
+                  Y: =745
+                Children:
+                  - Container3_7:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.Regular
+                        Height: =Parent.Height
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutOverflowY: =LayoutOverflow.Scroll
+                        RadiusBottomLeft: =10
+                        RadiusBottomRight: =10
+                        RadiusTopLeft: =10
+                        RadiusTopRight: =10
+                        Width: =Parent.TemplateWidth
+                      Children:
+                        - scr10_img_ReceiptImage_2:
+                            Control: Image@2.2.3
+                            Properties:
+                              AccessibleLabel: =ThisItem.Description
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              BorderThickness: =1
+                              Fill: |-
+                                =If(
+                                    ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                                    RGBA(0, 0, 0, 0),
+                                    RGBA(229, 229, 229, 1)
+                                )
+                              Height: =250
+                              Image: |-
+                                =If(
+                                    ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"] && !IsBlank(ThisItem.CapturedDocument),
+                                    ThisItem.CapturedDocument,
+                                    ThisItem.FileExtension in ["xlsx", "xls"],
+                                    IconExcel,
+                                    ThisItem.FileExtension in ["docx", "doc"],
+                                    IconWord,
+                                    ThisItem.FileExtension = "pdf",
+                                    IconPDF,
+                                    ThisItem.FileExtension = "txt",
+                                    IconTxt,
+                                    IconMail
+                                )
+                              ImagePosition: |-
+                                =/*If(
+                                    scr09_img_ReceiptList.Image = ThisItem.receiptUrl,
+                                    ImagePosition.Fill,
+                                    ImagePosition.Center
+                                )*/
+                                ImagePosition.Center
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnSelect: |-
+                                =Set(
+                                    varSelectedReceiptNumber,
+                                    ThisItem.EntRecId
+                                );
+                                Set(
+                                    IsreceiptALreadyCreated,
+                                    true
+                                );
+                                Set(
+                                    varFileFormat,
+                                    ThisItem.FileExtension
+                                );
+                                Set(
+                                    varReceiptImage,
+                                    ThisItem.CapturedDocument
+                                );
+                                Navigate('Expenses - Preview Receipt Screen')
+                              Width: =Parent.Width
+                              X: =15
+                              Y: =18
+                        - Container4_7:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Fill: =Color.DimGrey
+                              FillPortions: =0
+                              Height: =80
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinHeight: =70
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                            Children:
+                              - shpBorder_19:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Fill: =Color.Transparent
+                                    Height: =Parent.Height
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    Width: |
+                                      =25
+                              - scr10_icn_AttachIcn_2:
+                                  Control: Image@2.2.3
+                                  Properties:
+                                    AccessibleLabel: ="Attach this receipt"
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =24
+                                    Image: =AttachIcnWhite
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: |-
+                                      =Set(
+                                          varSelectedReceiptNumber,
+                                          ThisItem.EntRecId
+                                      );
+                                      Set(
+                                          varFileFormat,
+                                          ThisItem.FileExtension
+                                      );
+                                      Set(
+                                          IsreceiptALreadyCreated, 
+                                          true
+                                      );
+                                      Set(
+                                          varReceiptImage,
+                                         ThisItem.CapturedDocument
+                                      );
+                                      Navigate('Expenses - Preview Receipt Screen')
+                                    Width: =24
+                                    X: =33
+                                    Y: =201
+                              - scr10_lbl_Attach_2:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: =Color.White
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Lighter
+                                    Height: =48
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: |-
+                                      =Set(
+                                          varSelectedReceiptNumber,
+                                          ThisItem.EntRecId
+                                      );
+                                      Set(
+                                          varFileFormat,
+                                          ThisItem.FileExtension
+                                      );
+                                      Set(
+                                          IsreceiptALreadyCreated, 
+                                          true
+                                      );
+                                      Set(
+                                          varReceiptImage,
+                                          ThisItem.CapturedDocument
+                                      );
+                                      Navigate('Expenses - Preview Receipt Screen')
+                                    TabIndex: =0
+                                    Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachLabel'
+                                    VerticalAlign: =VerticalAlign.Top
+                                    Width: =101
+                                    X: =scr10_icn_AttachIcn_2.X + scr10_icn_AttachIcn_2.Width + 8
+                                    Y: =scr10_icn_AttachIcn_2.Y - 10
+      - scr10_img_SelectedReceipt:
+          Control: Image@2.2.3
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(0, 0, 0, 1)
+            Height: ='Select Existing receipt'.Y - Self.Y
+            HoverFill: =Self.Fill
+            Image: =
+            ImagePosition: =ImagePosition.Center
+            Width: =Parent.Width
+            Y: =scr10_hdr_TopHeader.Height
+      - scr10_hdr_TopHeader:
+          Control: CanvasComponent
+          ComponentName: hdr02_Header
+          Properties:
+            Fill: =scr10_hdr_TopHeader.paramFill
+            Height: =82
+            Width: =Max(App.Width, App.MinScreenWidth)
+            paramColor: =RGBA(255, 255, 255, 1)
+            paramFill: |
+              =RGBA(33, 33, 33, 1)
+            paramTitle: |-
+              =
+              GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
+      - scr10_ico_Back:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =Color.White
+            Fill: =icongconfig_backbutton.Fill
+            Height: =icongconfig_backbutton.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: =Back();
+            TabIndex: =0
+            Width: =icongconfig_backbutton.Width
+            X: =22.5
+            Y: =(scr10_hdr_TopHeader.Height-Self.Height)/2
+      - scr10_lbl_Skip:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Segoe UI'
+            FontWeight: =FontWeight.Semibold
+            Height: =33
+            OnSelect: |-
+              =Navigate('Expenses - Edit Screen',ScreenTransition.Fade,{locItemizeButtonVisibilityFlag: false})
+            Size: =17
+            TabIndex: =0
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SkipLabel'
+            Width: =scr10_hdr_TopHeader.Width * 0.235
+            Wrap: =false
+            X: =(Parent.Width - Self.Width) - 15
+            Y: =24

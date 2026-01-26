@@ -1,0 +1,1311 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Approvals - List Screen:
+    Properties:
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Refresh('Submitted Reports for Approvals (mserp)');
+        Concurrent(
+            UpdateContext({varCntSelect : false}),
+            Clear(reviewedByForReport);
+            Clear(reviewedBy);
+            Clear(colSelectedWorkItemIds);
+            Clear(colSelectedLineItemIds);
+            ClearCollect(
+                workItemsAssignedToMe,
+                Filter(
+                    'Submitted Reports for Approvals (mserp)',
+                    User = userRecord.ID && 'Document status' = 'Document status (mserp)'.'In review'
+                )
+            );
+            ClearCollect(
+                lineItemsAssignedToMe,
+                Filter(
+                    'View/Approve/Reject Expense Lines for Approvals (mserp)',User = userRecord.ID
+                )
+            );
+            ClearCollect(
+                receiptsAgainstWorkItems,
+                'View Attached Receipts to Expense Lines (mserp)'
+            );
+            If(
+                IsEmpty(collApprovedFilterOptions),
+                ClearCollect(
+                collApprovedFilterOptions,
+                {
+                    number: 1,
+                    title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneWeekLabel'  
+                },
+                {
+                    number: 2,
+                    title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneMonthLabel'  
+                },
+                {
+                    number: 3,
+                    title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterSixMonthsLabel'
+                },
+                {
+                    number: 4,
+                    title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneYearLabel'
+                }
+            )
+            );       
+        );
+        Reset(scr21_AssignedWorkItems);
+        Reset(galExpenseLineItems);
+    Children:
+      - emptyStateComponent_8:
+          Control: CanvasComponent
+          ComponentName: emptyStateComponent_7
+          Properties:
+            Height: |
+              =350
+            Visible: |-
+              =Switch(
+                  varcntSelectedStatus,
+                  1,
+                  !(CountRows(workItemsAssignedToMe) > 0 && varcntSelectedStatus = 1),
+                  2,
+                  !(galExpenseLineItems.AllItemsCount > 0 && varcntSelectedStatus = 2)
+              )
+            Width: =Self.Height
+            X: |
+              =(Parent.Width - Self.Width)/2
+            Y: =scr21_hdr_TopHeader_1.Height + (Parent.Height - scr21_hdr_TopHeader_1.Height - scr21_cmp_Footer.Height - Self.Height)/2
+            subTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoPendingApprovalsLabel'
+            title: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
+      - scr21_cmp_Footer:
+          Control: CanvasComponent
+          ComponentName: cmp_Footer_4
+          Properties:
+            ApprovalsAccessibleLabel: ="Text"
+            ApprovalsText: |
+              =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            DisplayMode: =!IsBlank(varSelectedLegalEntity)
+            ExpenseAccessibleLabel: ="Text"
+            ExpensesText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
+            Fill: =RGBA(248, 248, 248, 0.94)
+            Height: =84
+            OnApprovalsButtonClick: |-
+              =If(
+                  varAppMode = "AirfareAllowance",
+                  Set(varSelectedTab, 4);
+                  Navigate('Travel - List Screen', ScreenTransition.Fade),
+                  Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade)
+              )
+            OnExpensesButtonClick: |-
+              =If(
+                  !IsBlank(varSelectedLegalEntity),
+                  Set(
+                      varSelectedTab,
+                      2
+                  );
+                  Navigate(
+                      'Expenses - List Screen',
+                      ScreenTransition.Fade
+                  ),
+                  Notify(
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
+                      NotificationType.Error,
+                      gblParams.notificationTime
+                  )
+              )
+            OnReceiptsButtonClick: |-
+              =If(
+                  !IsBlank(varSelectedLegalEntity),
+                  Set(
+                      varSelectedTab,
+                      1
+                  );
+                  Navigate(
+                      'Receipts - List Screen',
+                      ScreenTransition.Fade
+                  ),
+                  Notify(
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
+                      NotificationType.Error,
+                      gblParams.notificationTime
+                  )
+              )
+            OnReportsButtonClick: |-
+              =If(
+                  !IsBlank(varSelectedLegalEntity),
+                  Set(
+                      varSelectedTab,
+                      3
+                  );
+                  Navigate(
+                      'Reports - List Screen',
+                      ScreenTransition.Fade,
+                      {varcntSelectedStatus: 1}
+                  ),
+                  Notify(
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
+                      NotificationType.Error,
+                      gblParams.notificationTime
+                  )
+              )
+            ReceiptAccessibleLabel: =
+            ReceiptText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
+            ReportAccessibleLabel: ="Text"
+            ReportText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+            SelectedTab: =4
+            Visible: =!varCntSelect
+            Width: =Max(App.Width, App.MinScreenWidth)
+            Y: =App.Height - Self.Height
+            paramInDefaultAppMode: =varAppMode
+            paramInDefaultSelectedTab: =4
+      - scr21_cmp_ApprovalsFooter:
+          Control: CanvasComponent
+          ComponentName: cmp_ApprovalsFooter_1
+          Properties:
+            ApprovalText: |-
+              =If(
+                  varAppMode = "AirfareAllowance",
+                  "Travel",
+                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+              )
+            DelegateText: ="DELEGATE"
+            DisplayMode: =true
+            Fill: =RGBA(250, 249, 248, 1)
+            Height: =135
+            IsDelegateVisible: =false
+            OnApprovalsButtonClick: |-
+              =Switch(
+                  varcntSelectedStatus,
+                  1,
+                  If(
+                      !IsEmpty(colSelectedWorkItemIds),
+                      Navigate('Approvals - Action Screen', ScreenTransition.None, {varAction : 1, varNavigatedFrom : "scr21"});
+                  ),
+                  2,
+                  If(
+                      !IsEmpty(colSelectedLineItemIds),
+                      Navigate('Approvals - Line Action Screen', ScreenTransition.None, {varAction : 1, varNavigatedFrom : "scr21"});
+                  )
+              )
+            OnDelegateButtonClick: ="Text"
+            OnRejectButtonClick: |-
+              =Switch(
+                  varcntSelectedStatus,
+                  1,
+                  If(
+                      !IsEmpty(colSelectedWorkItemIds),
+                      Navigate('Approvals - Action Screen', ScreenTransition.None, {varAction : 2, varNavigatedFrom : "scr21"});
+                  ),
+                  2,
+                  If(
+                      !IsEmpty(colSelectedLineItemIds),
+                      Navigate('Approvals - Line Action Screen', ScreenTransition.None, {varAction : 2, varNavigatedFrom : "scr21"});
+                  )
+              )
+            RejectText: =Upper(GlobalLabels.Labels.'15062:LocalizedName,msdyn_RejectLabel')
+            Visible: =varCntSelect
+            Width: =Max(App.Width, App.MinScreenWidth)
+            Y: =Parent.Height - Self.Height
+            paramInDefaultSelectedTab: =2
+      - WorkItemsDetailsContainer:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: |-
+              =If(
+                  varCntSelect,
+                  scr21_cmp_ApprovalsFooter.Y - Self.Y,
+                  scr21_cmp_Footer.Y - Self.Y
+              )
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =scr21_hdr_TopHeader_1.Height
+          Children:
+            - ToggleContainer_1:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =100
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =50
+                  LayoutMinWidth: =Parent.Width
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - scr21_btn_FakeButton:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =ColorFade(Self.Fill, -15%)
+                        Color: =RGBA(255, 255, 255, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        DisplayMode: =DisplayMode.View
+                        Fill: =RGBA(241, 241, 241, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =44
+                        HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                        HoverColor: =RGBA(255, 255, 255, 1)
+                        HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                        PressedBorderColor: =Self.Fill
+                        PressedColor: =Self.Fill
+                        PressedFill: =Self.Color
+                        RadiusBottomLeft: =50
+                        RadiusBottomRight: =50
+                        RadiusTopLeft: =50
+                        RadiusTopRight: =50
+                        TabIndex: =-1
+                        Text: =""
+                        Visible: =false
+                        Width: =316
+                        X: =(Parent.Width - Self.Width)/2
+                        Y: =ToggleContainer_1.Y + (ToggleContainer_1.Height/2 - Self.Height/2)
+                  - scr21_btn_Reports:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =ColorFade(Self.Fill, -15%)
+                        BorderStyle: =BorderStyle.None
+                        Color: =If(varcntSelectedStatus=1, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        Fill: =If(varcntSelectedStatus=1, RGBA(34, 102, 227, 1),scr21_btn_FakeButton.Fill)
+                        Font: =Font.'Open Sans'
+                        Height: =44
+                        HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                        HoverColor: =Self.Color
+                        HoverFill: =Self.Fill
+                        OnSelect: |-
+                          =UpdateContext({varcntSelectedStatus:1});
+                          UpdateContext({varCntSelect:false});
+                          UpdateContext({varcntShowFilter:false});
+                          Clear(colSelectedWorkItemIds);
+                          Clear(colSelectedLineItemIds)
+                        PressedBorderColor: =Self.Fill
+                        PressedFill: =Self.Fill
+                        RadiusBottomLeft: =50
+                        RadiusBottomRight: =50
+                        RadiusTopLeft: =50
+                        RadiusTopRight: =50
+                        Size: =13.5
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+                        Width: =scr21_btn_FakeButton.Width/2
+                        X: =scr21_btn_FakeButton.X
+                        Y: =scr21_btn_FakeButton.Y
+                  - scr21_btn_Expenses:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =ColorFade(Self.Fill, -15%)
+                        BorderStyle: =BorderStyle.None
+                        Color: =If(varcntSelectedStatus=2, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        Fill: =If(varcntSelectedStatus=2, RGBA(34, 102, 227, 1),scr21_btn_FakeButton.Fill)
+                        Font: =Font.'Open Sans'
+                        Height: =44
+                        HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                        HoverColor: =Self.Color
+                        HoverFill: =Self.Fill
+                        OnSelect: |-
+                          =UpdateContext({varcntSelectedStatus:2});
+                          UpdateContext({varCntSelect:false});
+                          UpdateContext({varcntShowFilter:false});
+                          Clear(colSelectedWorkItemIds);
+                          Clear(colSelectedLineItemIds)
+                        PressedBorderColor: =Self.Fill
+                        PressedFill: =Self.Fill
+                        RadiusBottomLeft: =50
+                        RadiusBottomRight: =50
+                        RadiusTopLeft: =50
+                        RadiusTopRight: =50
+                        Size: =13.5
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
+                        Width: =scr21_btn_FakeButton.Width/2
+                        X: =scr21_btn_FakeButton.X+scr21_btn_Reports.Width+((scr21_btn_FakeButton.Width-(2*scr21_btn_Reports.Width))/2)
+                        Y: =scr21_btn_FakeButton.Y
+            - FiltersContainer_1:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =100
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinWidth: =Parent.Width
+                  PaddingLeft: =25
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =varFiltersApplied
+                  Width: =Parent.Width
+                Children:
+                  - scr21_lbl_FiltersApplied:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =32
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LineHeight: =1.171875
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =18
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_FiltersAppliedLabel'
+                        Visible: =Parent.Visible
+                        Width: =194
+                        X: =71
+                        Y: =119*1
+                  - scr21_lbl_totalFiltersApplied:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(110, 110, 110, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        Height: =35
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =300
+                        PaddingRight: =15
+                        Size: =16
+                        Text: |-
+                          =Substitute(
+                              GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectedLabel',
+                              "$",
+                              CountRows(varSelectedUsers) + CountRows(varSelectedProjects) + Value(varDateFilter <> Blank()) + 
+                              Value(varMinMaxAmounts.minAmount <> 0 || varMinMaxAmounts.maxAmount <> 1000000)
+                          )
+                        Visible: =Parent.Visible
+                        Width: =147*1
+                        X: =(Parent.Width - Self.Width) - 15
+                        Y: =116*1
+            - SelectedItemsContainer_1:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  DropShadow: =DropShadow.None
+                  FillPortions: =0
+                  Height: =100
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinWidth: =Parent.Width
+                  PaddingLeft: =25
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =varCntSelect
+                  Width: =Parent.Width
+                Children:
+                  - scr21_chk_SelectAll:
+                      Control: Classic/CheckBox@2.1.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        BorderStyle: =BorderStyle.None
+                        CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+                        CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+                        CheckboxSize: =42
+                        CheckmarkFill: =Color.White
+                        Color: =RGBA(34, 102, 227, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Lighter
+                        Height: =35
+                        HoverColor: =RGBA(0, 18, 107, 1)
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        OnCheck: |-
+                          =Switch(
+                              varcntSelectedStatus,
+                              1,
+                              ForAll(
+                                  scr21_AssignedWorkItems.AllItems,
+                                  Collect(
+                                      colSelectedWorkItemIds,
+                                      {
+                                          expenseReportNumber : ThisRecord.'Expense report number',
+                                          workItemRecId : ThisRecord.WorkItemRecId
+                                      }
+                                  )
+                              ),
+                              2,
+                              ForAll(
+                                  galExpenseLineItems.AllItems,
+                                  Collect(
+                                      colSelectedLineItemIds,
+                                      {
+                                          transactionId : ThisRecord.'Expense transaction number (mserp_exptransnumber)'
+                                      }
+                                  )
+                              )
+                          )
+                        OnSelect: =
+                        OnUncheck: |-
+                          =Switch(
+                              varcntSelectedStatus,
+                              1,
+                              Clear(colSelectedWorkItemIds),
+                              2,
+                              Clear(colSelectedLineItemIds)
+                          )
+                        Reset: =varCntSelect
+                        Text: =Concatenate("All workitems ", If(Self.Value, "selected", "unselected"))
+                        VerticalAlign: =VerticalAlign.Bottom
+                        Visible: =Parent.Visible
+                        Width: =43
+                        X: =18
+                        Y: =If(varFiltersApplied, 216*1, 116)
+                  - scr21_lbl_SelectAll:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =32
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LineHeight: =1.171875
+                        PaddingBottom: =0
+                        PaddingLeft: =10
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =18
+                        Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectAllLabel'
+                        Visible: =Parent.Visible
+                        Width: =194
+                        X: =53
+                        Y: =If(varFiltersApplied, 219*1, 119)
+                  - scr21_totalExpenseSelected:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(110, 110, 110, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        Height: =35
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =245
+                        PaddingRight: =15
+                        Size: =16
+                        Text: |-
+                          =Switch(
+                              varcntSelectedStatus,
+                              1,
+                              Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectedLabel',"$",CountRows(colSelectedWorkItemIds)),
+                              2,
+                              Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectedLabel',"$",CountRows(colSelectedLineItemIds))
+                          )
+                        Visible: =Parent.Visible
+                        Width: =147*1
+                        X: =(Parent.Width - Self.Width) - 15
+                        Y: =If(varFiltersApplied, 216*1, 116)
+            - shpBaseSeparatorLineItems_3:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(225, 225, 225, 1)
+                  Height: =1
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinHeight: =1
+                  Width: =Parent.Width
+            - scr21_AssignedWorkItems:
+                Control: Gallery@2.15.0
+                Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver4.0
+                Properties:
+                  AccessibleLabel: ="List of assigned workitems"
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  BorderStyle: =BorderStyle.None
+                  Default: ={}
+                  DelayItemLoading: =false
+                  Fill: =RGBA(244, 244, 244, 1)
+                  FocusedBorderThickness: =0
+                  Height: |-
+                    =If(
+                        !varCntSelect,
+                        scr21_cmp_Footer.Y - Self.Y,
+                        scr21_cmp_ApprovalsFooter.Y - Self.Y
+                    )
+                  Items: |-
+                    =SortByColumns(Filter(
+                        workItemsAssignedToMe,
+                        (IsEmpty(varSelectedUsers) || IsBlank(varSelectedUsers) || CreatingUser in varSelectedUsers[@Value]),
+                        (IsEmpty(varSelectedProjects) || IsBlank(varSelectedProjects) || 'Project name' in varSelectedProjects[@Value]),
+                        (IsBlank(varDateFilter) || 
+                        Switch(
+                            varDateFilter,
+                            1,
+                            DateAdd(DateValue(CreatedDate), 7, TimeUnit.Days) >= Today(),
+                            2,
+                            DateAdd(DateValue(CreatedDate), 30, TimeUnit.Days) >= Today(),
+                            3,
+                            DateAdd(DateValue(CreatedDate), 180, TimeUnit.Days) >= Today(),
+                            4,
+                            DateAdd(DateValue(CreatedDate), 365, TimeUnit.Days) >= Today()
+                        )),
+                        (TotalAmount >= Coalesce(varMinMaxAmounts.minAmount, gblMin) && TotalAmount <= Coalesce(varMinMaxAmounts.maxAmount, gblMax))
+                    ),"mserp_createddate",SortOrder.Descending)
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  OnSelect: |
+                    =//hold the details of the selected work item in a record to be referenced
+                    Set(
+                        varSelectedWorkItem,
+                        LookUp(workItemsAssignedToMe,'Expense report number' = ThisItem.'Expense report number')
+                    );
+                    //collect the expenses against the workitem, as well as the workitem to be shown later 
+                    ClearCollect(
+                        colExpensesAgainstWorkItem,
+                        Filter(
+                            'Expense Lines Attached to a Report for Approvals (mserp)',
+                            'Expense report number (mserp_expnumber)' = varSelectedWorkItem.'Expense report number'  &&
+                            ReferenceDataAreaId = varSelectedWorkItem.ReferenceDataAreaId &&
+                            User = userRecord.ID
+                        )
+                    );
+                    ClearCollect(
+                        colSelectedWorkItemIds,
+                        {
+                            expenseReportNumber : varSelectedWorkItem.'Expense report number',
+                            workItemRecId : varSelectedWorkItem.WorkItemRecId
+                        }
+                    );
+                    Set(
+                        varSelectedExpenseDoc,
+                        Blank()
+                    );
+                    //collect details for timeline
+                    //recordIndex contains the index at which the particular timeline record needs to be shown
+                    Clear(reviewedByForReport);
+                    UpdateContext({
+                        flowResponse:
+                        'Submitted Reports for Approvals (mserp)'.mserp_trvexpmobilereportapprovalentity_getworkflowtimeline(ThisItem.'Submitted Reports for Approvals (mserp)').return
+                    });
+                    ClearCollect(recordIndex, {idx : 1});
+                    ForAll(
+                        Table(
+                            ParseJSON(
+                                flowResponse
+                            )
+                        ),
+                        Collect(
+                            reviewedByForReport,
+                            {
+                                message: Text(ThisRecord.Value.Message),       
+                                comment : Text(ThisRecord.Value.Comment),
+                                createdDateTime : Text(ThisRecord.Value.CreatedDateTime),
+                                assignedTo : Text(ThisRecord.Value.User),
+                                index: First(recordIndex).idx
+                            }
+                        );
+                        Patch(
+                            recordIndex,
+                            First(recordIndex),
+                            {
+                                idx : First(recordIndex).idx + 1
+                            }
+                        )     
+                    );
+                    ClearCollect(recordIndex, {idx : 1});
+                    //navigate to the report details screen
+                    Navigate('Approvals - Details Screen', ScreenTransition.Fade, {varSelectedTab : 1});
+                  ShowScrollbar: =false
+                  TemplateFill: =Color.White
+                  TemplatePadding: =20
+                  TemplateSize: =200
+                  Visible: =CountRows(workItemsAssignedToMe) > 0 && varcntSelectedStatus = 1
+                  Width: =Max(Parent.Width, App.Width)
+                  Y: =
+                Children:
+                  - reportAttachedExpenses:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: |
+                          =RGBA(102, 102, 102, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =45
+                        OnSelect: =Select(scr21_shp_SelectRegion)
+                        Size: =16.5
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: =Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachedExpensesCountLabel', "$", ThisItem.AttachedExpenseCount)
+                        Width: =555
+                        X: =25
+                        Y: =Parent.TemplateHeight - 50
+                  - reportDescription:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =35
+                        OnSelect: =Select(scr21_shp_SelectRegion)
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: =ThisItem.Description
+                        Width: =503
+                        X: =25
+                        Y: =120
+                  - reportOwner:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =32
+                        OnSelect: =Select(scr21_shp_SelectRegion)
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: =ThisItem.CreatingUser
+                        Width: =371
+                        Wrap: =false
+                        X: =scr21_chk_Select.X + scr21_chk_Select.Width + 10
+                        Y: =56
+                  - reportPurpose:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =34
+                        OnSelect: =Select(scr21_shp_SelectRegion)
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: =ThisItem.Purpose
+                        Width: =reportAmount.X - Self.X
+                        Wrap: =false
+                        X: =scr21_chk_Select.X + scr21_chk_Select.Width + 10
+                        Y: =22
+                  - reportDate:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: |
+                          =RGBA(102, 102, 102, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =29
+                        OnSelect: =Select(scr21_shp_SelectRegion)
+                        Size: =16.5
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: |-
+                          =Text(
+                              DateValue(ThisItem.'Posted date'),
+                              "mmm dd, yyyy"
+                          )
+                        Width: =150
+                        X: =reportAmount.X +reportAmount.Width - Self.Width
+                        Y: =reportAmount.Y + reportAmount.Height
+                  - reportAmount:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        AutoHeight: =true
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =39
+                        OnSelect: =Select(scr21_shp_SelectRegion)
+                        TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                        Text: |
+                          =Concatenate(Text(Value(ThisItem.TotalAmount),"#,#0.00", varDefaultLanguage), " ", ThisItem.AmountCurrency)
+                        Width: =250
+                        X: =Parent.Width - Self.Width - 50
+                        Y: =22
+                  - scr21_shp_Seprator:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =RGBA(225, 225, 225, 1)
+                        Height: =1
+                        OnSelect: |-
+                          =If(
+                              varCntSelect,
+                              If(
+                                  IsBlank(LookUp(colSelectedWorkItemIds, expenseReportNumber = ThisItem.'Expense report number')),
+                                  Collect(
+                                      colSelectedWorkItemIds, 
+                                      {expenseReportNumber : ThisItem.'Expense report number'}
+                                  ),
+                                  RemoveIf(colSelectedWorkItemIds, expenseReportNumber = ThisItem.'Expense report number')
+                              ),
+                              Select(Parent)
+                          )
+                        Width: =Parent.TemplateWidth - (2 * Self.X)
+                        X: =10
+                        Y: =Parent.TemplateHeight/2
+                  - scr21_img_UserImage:
+                      Control: Image@2.2.3
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =45
+                        Image: =blankImage
+                        OnSelect: =Select(scr21_shp_SelectRegion)
+                        RadiusBottomLeft: =45
+                        RadiusBottomRight: =45
+                        RadiusTopLeft: =45
+                        RadiusTopRight: =45
+                        Visible: =!varCntSelect
+                        Width: =45
+                        X: =scr21_chk_Select.X
+                        Y: '=scr21_chk_Select.Y '
+                  - scr21_shp_SelectRegion:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        AccessibleLabel: ="Select workitem"
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =Color.Transparent
+                        Height: =Parent.TemplateHeight
+                        OnSelect: |-
+                          =If(
+                              varCntSelect,
+                              If(
+                                  IsBlank(LookUp(colSelectedWorkItemIds, workItemRecId = ThisItem.WorkItemRecId)),
+                                  Collect(
+                                      colSelectedWorkItemIds, 
+                                      {
+                                          expenseReportNumber : ThisItem.'Expense report number',
+                                          workItemRecId : ThisItem.WorkItemRecId
+                                      }
+                                  ),
+                                  RemoveIf(colSelectedWorkItemIds, workItemRecId = ThisItem.WorkItemRecId)
+                              ),
+                              Select(Parent)
+                          )
+                        Width: =Parent.TemplateWidth
+                  - scr21_chk_Select:
+                      Control: Classic/CheckBox@2.1.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        BorderStyle: =BorderStyle.None
+                        CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+                        CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+                        CheckboxSize: =42
+                        CheckmarkFill: =Color.White
+                        Color: =RGBA(34, 102, 227, 1)
+                        Default: =!IsBlank(LookUp(colSelectedWorkItemIds, expenseReportNumber = ThisItem.'Expense report number'))
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Lighter
+                        Height: =35
+                        HoverColor: =RGBA(0, 18, 107, 1)
+                        OnCheck: =Select(scr21_shp_SelectRegion)
+                        OnSelect: =
+                        OnUncheck: =Select(scr21_shp_SelectRegion)
+                        Reset: =varCntSelect Or scr21_chk_SelectAll.Value
+                        Text: |-
+                          =If(
+                              ThisItem.Purpose <> "" || !IsBlank(ThisItem.Purpose),
+                              Concatenate("Workitem with title ", ThisItem.Purpose, If(Self.Value, " selected", " unselected")),
+                              Concatenate("Workitem bearing amount ", reportAmount.Text, " created by ", reportOwner.Text, If(Self.Value, " selected", " unselected"))
+                          )
+                        VerticalAlign: =VerticalAlign.Bottom
+                        Visible: =varCntSelect
+                        Width: =43
+                        X: =25
+                        Y: =31
+            - galExpenseLineItems:
+                Control: Gallery@2.15.0
+                Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Default: ={}
+                  Items: |-
+                    =SortByColumns(Filter(
+                        lineItemsAssignedToMe,
+                        (IsEmpty(varSelectedUsers) || IsBlank(varSelectedUsers) || User in varSelectedUsers[@Value]),
+                        (IsEmpty(varSelectedProjects) || IsBlank(varSelectedProjects) || ProjectName in varSelectedProjects[@Value]),
+                        (IsBlank(varDateFilter) || 
+                        Switch(
+                            varDateFilter,
+                            1,
+                            DateAdd(DateValue('Transaction date'), 7, TimeUnit.Days) >= Today(),
+                            2,
+                            DateAdd(DateValue('Transaction date'), 30, TimeUnit.Days) >= Today(),
+                            3,
+                            DateAdd(DateValue('Transaction date'), 180, TimeUnit.Days) >= Today(),
+                            4,
+                            DateAdd(DateValue('Transaction date'), 365, TimeUnit.Days) >= Today()
+                        )),
+                        ('Transaction amount' >= Coalesce(varMinMaxAmounts.minAmount, gblMin) && 'Transaction amount' <= Coalesce(varMinMaxAmounts.maxAmount, gblMax))
+                    ),"mserp_transdate",SortOrder.Descending)
+                  LayoutMaxHeight: =
+                  LayoutMaxWidth: =
+                  LayoutMinWidth: =Parent.Width
+                  OnSelect: |
+                    =
+                    Concurrent(
+                        Set(
+                            varIsCreate,
+                            false
+                        ),
+                        Set(
+                            varReceiptImage, 
+                            Blank()
+                        )
+                    );
+                    // the line item and receipt image is set inside a variable to be referenced later
+                    Set(
+                        varSelectedLineItem,
+                        LookUp('View/Approve/Reject Expense Lines for Approvals (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                    );
+                    Set(
+                        varReceiptImage,
+                        LookUp('View privilege for Receipts attached to Expense Lines for Approvals (mserp)', EntRecId = Value(varSelectedLineItem.AttachedReceiptId),CapturedDocument)
+                    );
+                    Set(
+                        varFileFormat,
+                        LookUp('View privilege for Receipts attached to Expense Lines for Approvals (mserp)', EntRecId = Value(varSelectedLineItem.AttachedReceiptId),FileExtension)
+                    );
+                    Set(
+                        varSelectedReceiptNumber,
+                        Blank()
+                    );
+                    // the line item is collected to be shown later
+                    ClearCollect(
+                        colSelectedLineItemIds,
+                        {
+                            transactionId : ThisItem.'Expense transaction number (mserp_exptransnumber)'
+                        }
+                    );
+                    // the timeline item is collected here and recordIndex shows which index the timeline record will be shown
+                    Clear(reviewedBy);
+                    UpdateContext({
+                        flowResponse:
+                        'View/Approve/Reject Expense Lines for Approvals (mserp)'.mserp_trvexpmobilelineapprovalentity_getworkflowtimeline(ThisItem.'View/Approve/Reject Expense Lines for Approvals (mserp)').return
+                    });
+                    ClearCollect(recordIndex, {idx : 1});
+                    ForAll(
+                        Table(
+                            ParseJSON(
+                                flowResponse
+                            )
+                        ),
+                        Collect(
+                            reviewedBy,
+                            {
+                                message: Text(ThisRecord.Value.Message),       
+                                comment : Text(ThisRecord.Value.Comment),
+                                createdDateTime : Text(ThisRecord.Value.CreatedDateTime),
+                                assignedTo : Text(ThisRecord.Value.User),
+                                index : First(recordIndex).idx
+                            }
+                        );
+                        Patch(
+                            recordIndex,
+                            First(recordIndex),
+                            {
+                                idx : First(recordIndex).idx + 1
+                            }
+                        )
+                    );
+                    ClearCollect(recordIndex, {idx : 1});
+                    Navigate('Approvals - Line Details Screen', ScreenTransition.None, {varSelectedTab : 1, locItemizationLineFlag: varSelectedLineItem.'Expense line type' = 'Expense line type (mserp)'.'Itemized line'})
+                  TemplateSize: =150
+                  Visible: =varcntSelectedStatus = 2
+                  Width: =Parent.Width
+                Children:
+                  - lineContainerApprovals:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =Parent.TemplateHeight
+                        LayoutDirection: =LayoutDirection.Vertical
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width
+                      Children:
+                        - lineDetailsContainerApprovals:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              AlignInContainer: =AlignInContainer.SetByContainer
+                              DropShadow: =DropShadow.None
+                              Height: =Parent.Height - shpBaseSeparatorLineItems.Height
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width
+                            Children:
+                              - shpBorder_6:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Fill: =Color.Transparent
+                                    Height: =Parent.Height
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    Width: =10
+                              - chkSelectLineItem_1:
+                                  Control: Classic/CheckBox@2.1.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Center
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    BorderStyle: =BorderStyle.None
+                                    CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+                                    CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+                                    CheckboxSize: =42
+                                    CheckmarkFill: =Color.White
+                                    Color: =RGBA(34, 102, 227, 1)
+                                    Default: =!IsEmpty(Filter(colSelectedLineItemIds, transactionId = ThisItem.'Expense transaction number (mserp_exptransnumber)'))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Lighter
+                                    Height: =35
+                                    HoverColor: =RGBA(0, 18, 107, 1)
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnCheck: |-
+                                      =Collect(
+                                          colSelectedLineItemIds, 
+                                          {transactionId : ThisItem.'Expense transaction number (mserp_exptransnumber)'}
+                                      )
+                                    OnSelect: =
+                                    OnUncheck: =RemoveIf(colSelectedLineItemIds, transactionId = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                                    Reset: =varCntSelect Or scr01_chk_SelectAll.Value
+                                    Text: |-
+                                      =If(
+                                          ThisItem.Merchant <> "" || !IsBlank(ThisItem.Merchant),
+                                          Concatenate("Expense against merchant ", ThisItem.Merchant, If(Self.Value, " selected", " unselected")),
+                                          Concatenate("Expense bearing amount ", Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", ThisItem.'Currency (mserp_exchangecode)'), If(Self.Value, " selected", " unselected"))
+                                      )
+                                    VerticalAlign: =VerticalAlign.Bottom
+                                    Visible: =varCntSelect
+                                    Width: =43
+                                    X: =18
+                                    Y: =41
+                              - imgUserImageLineItem_1:
+                                  Control: Image@2.2.3
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Center
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =50
+                                    Image: =blankImage
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    LayoutMinHeight: =Self.Height
+                                    RadiusBottomLeft: =Self.Height
+                                    RadiusBottomRight: =Self.Height
+                                    RadiusTopLeft: =Self.Height
+                                    RadiusTopRight: =Self.Height
+                                    Visible: =!varCntSelect
+                                    Width: =Self.Height
+                              - MerchantOwnerContainer_1:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.SetByContainer
+                                    DropShadow: =DropShadow.None
+                                    Height: =Parent.Height
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    LayoutMinHeight: =Parent.Height
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                  Children:
+                                    - lblMerchantLineItem_1:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          AutoHeight: =true
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Font: =Font.'Segoe UI'
+                                          LayoutMaxHeight: =
+                                          LayoutMaxWidth: =
+                                          OnSelect: =
+                                          PaddingLeft: =15
+                                          PaddingRight: =0
+                                          TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                          Text: |-
+                                            =If(
+                                                ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
+                                                Concatenate("Perdiem - ", ThisItem.Location),
+                                                ThisItem.Merchant
+                                            )
+                                          Width: =Parent.Width
+                                    - lblOwnerLineItem_1:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          AutoHeight: =true
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: |-
+                                            =If(
+                                                Value(ThisItem.PolicyViolationCount) > 0,
+                                                If(
+                                                    Value(ThisItem.PolicyViolationsLevel) <= 2,
+                                                    RGBA(152, 111, 11, 1),
+                                                    RGBA(217, 44, 44, 1)
+                                                ),
+                                                RGBA(102, 102, 102, 1)
+                                            )
+                                          Font: =Font.'Segoe UI'
+                                          LayoutMaxHeight: =
+                                          LayoutMaxWidth: =
+                                          OnSelect: =
+                                          PaddingLeft: =15
+                                          PaddingRight: =0
+                                          TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                          Text: =ThisItem.CreatingUser
+                                          Width: =Parent.Width
+                              - AmountDateContainer_1:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.SetByContainer
+                                    DropShadow: =DropShadow.None
+                                    FillPortions: =0
+                                    Height: =Parent.Height
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Vertical
+                                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    LayoutMinHeight: =Parent.Height
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                    Width: =200
+                                  Children:
+                                    - lblAmountLineItem_1:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Right
+                                          AutoHeight: =true
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Font: =Font.'Segoe UI'
+                                          FontWeight: =FontWeight.Bold
+                                          LayoutMaxHeight: =
+                                          LayoutMaxWidth: =
+                                          OnSelect: =
+                                          PaddingRight: =20
+                                          TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                          Text: |+
+                                            =Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", ThisItem.'Currency (mserp_exchangecode)')
+
+                                          Width: =Parent.Width
+                                    - lblDateLineItem_1:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Right
+                                          AutoHeight: =true
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: |
+                                            =RGBA(102, 102, 102, 1)
+                                          Font: =Font.'Segoe UI'
+                                          LayoutMaxHeight: =
+                                          LayoutMaxWidth: =
+                                          OnSelect: =
+                                          PaddingRight: =20
+                                          TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                          Text: |-
+                                            =Text(
+                                                DateValue(ThisItem.'Transaction date'),
+                                                "mmm dd, yyyy"
+                                            )
+                                          Width: =Parent.Width
+                        - shpBaseSeparatorLineItems:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =RGBA(225, 225, 225, 1)
+                              Height: =1
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinHeight: =1
+                              Width: =Parent.Width - 10
+                  - shpSelectRegionLineItem:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =Color.Transparent
+                        Height: =Parent.TemplateHeight
+                        OnSelect: |-
+                          =If(
+                              varCntSelect,
+                              If(
+                                  IsBlank(LookUp(colSelectedLineItemIds, transactionId = ThisItem.'Expense transaction number (mserp_exptransnumber)')),
+                                  Collect(
+                                      colSelectedLineItemIds, 
+                                      {transactionId : ThisItem.'Expense transaction number (mserp_exptransnumber)'}
+                                  ),
+                                  RemoveIf(colSelectedLineItemIds, transactionId = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                              ),
+                              Select(Parent)
+                          )
+                        Width: =Parent.Width
+      - scr21_hdr_TopHeader_1:
+          Control: CanvasComponent
+          ComponentName: main-app-header
+          Properties:
+            Fill: =Color.White
+            Height: =85
+            OnSelectButton: |-
+              =Set(
+                  gblNavigationDrawerVisibility,
+                  true
+              );
+              Set(
+                  gblScreenName,
+                  'Approvals - List Screen'
+              );
+              Refresh('Expense mobile notifications (mserp)');
+              ClearCollect(
+                  colExpenseNoticationInfo,
+                  ForAll(
+                      Filter('Expense mobile notifications (mserp)',NotifiedEmailId = User().Email) As ExpenseNotification,
+                      {
+                          RecId: ExpenseNotification.EntRecId,
+                          ReadMessage: ExpenseNotification.Read
+                      }
+                  )
+              );
+            Width: =Max(App.Width, App.MinScreenWidth)
+            firstIcon: =
+            firstIconAccessibleLabel: =
+            firstIconAction: =true
+            homeIcon: =HomeIcon
+            homeIconAccessibleLabel: ="Navigate Home"
+            homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
+            paramAvatar: =Coalesce(userImage, blankImage)
+            paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            refreshIconAction: "=Refresh('Submitted Reports for Approvals (mserp)');\nRefresh('View/Approve/Reject Expense Lines for Approvals (mserp)');\nConcurrent(\n    UpdateContext({varCntSelect: false}),\n    Clear(colSelectedWorkItemIds);\n    Clear(colSelectedLineItemIds);\n    ClearCollect(\n        workItemsAssignedToMe,\n        Filter(\n            'Submitted Reports for Approvals (mserp)',\n            User = userRecord.ID && 'Document status' = 'Document status (mserp)'.'In review'\n        )\n    );\n    ClearCollect(\n        lineItemsAssignedToMe,\n        Filter(\n            'View/Approve/Reject Expense Lines for Approvals (mserp)',User = userRecord.ID\n        )\n    );\n    ClearCollect(\n        receiptsAgainstWorkItems,\n        'View Attached Receipts to Expense Lines (mserp)'\n    );\n    If(\n        IsEmpty(collApprovedFilterOptions),\n        ClearCollect(\n        collApprovedFilterOptions,\n        {\n            number: 1,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneWeekLabel'  \n        },\n        {\n            number: 2,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneMonthLabel'  \n        },\n        {\n            number: 3,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterSixMonthsLabel'\n        },\n        {\n            number: 4,\n            title: GlobalLabels.Labels.'15062:LocalizedName,msdyn_FilterOneYearLabel'\n        }\n    )\n    );\n    \n)"
+            secondIcon: =icnFilter
+            secondIconAccessibleLabel: ="Filter"
+            secondIconAction: |-
+              =UpdateContext({varcntShowFilter:true});
+              Clear(usersList);
+              Clear(projectsList);
+              ForAll(
+                  workItemsAssignedToMe,
+                  Collect(
+                      usersList,
+                      {
+                          userName : ThisRecord.CreatingUser
+                      }
+                  );
+                  Collect(
+                      projectsList,
+                      {
+                          projectName : ThisRecord.'Project name'
+                      }
+                  )
+              );
+              ForAll(
+                  lineItemsAssignedToMe,
+                  Collect(
+                      usersList,
+                      {
+                          userName : ThisRecord.CreatingUser
+                      }
+                  );
+                  Collect(
+                      projectsList,
+                      {
+                          projectName : ThisRecord.ProjectName
+                      }
+                  )
+              );
+              Navigate('Approvals - Filters Screen', ScreenTransition.None);
+            thirdIcon: =If(varCntSelect,SelectorCloseIcon,SelectorIcon)
+            thirdIconAccessibleLabel: =If(Self.thirdIcon = SelectorIcon, If(varcntSelectedStatus = 1, "Multiselect reports", "Multiselect expenses"), "Cancel")
+            thirdIconAction: |-
+              =If(
+                  varCntSelect,
+                  UpdateContext({varCntSelect: false});
+                  Clear(colSelectedWorkItemIds);
+                  Clear(colSelectedLineItemIds),
+                  UpdateContext({varCntSelect: true})
+              )
+      - Rectangle5_2:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: |-
+              =//RGBA(201, 201, 201, 0.5)
+              RGBA(248, 248, 248, 0.6)
+            Height: =App.Height
+            OnSelect: |-
+              =Set(
+                  gblNavigationDrawerVisibility,
+                  false
+              )
+            Visible: =gblNavigationDrawerVisibility
+            Width: =App.Width
+      - ShadowElement_3:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.ExtraBold
+            Height: =App.Height
+            LayoutDirection: =LayoutDirection.Horizontal
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Visible: =gblNavigationDrawerVisibility
+            Width: =4
+            X: ='Navigation-Drawer_1'.Width - 1
+            Y: ='Navigation-Drawer_1'.Y
+      - Navigation-Drawer_4:
+          Control: CanvasComponent
+          ComponentName: Navigation-Drawer
+          Properties:
+            CountNoification: =CountRows(Filter(colExpenseNoticationInfo, ReadMessage = 'NoYes (mserp)'.No))
+            Fill: =RGBA(255, 255, 255, 100)
+            Height: =App.Height
+            MenuItems: |-
+              =Table({
+                      Index : 1,
+                      ScreenName: 'Profile - Notification Screen',
+                      Icon : Notification,
+                      Value : GlobalLabels.Labels.'15062:LocalizedName,msdyn_NotificationsLabel'
+                  },
+                  {
+                      Index : 2,
+                      ScreenName: 'Profile - Change Legal Entity Screen',
+                      Icon : ChangeLE,
+                      Value : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ChangeLegalEntityLabel'
+                  },
+                  {
+                      Index : 3,
+                      ScreenName: 'Profile - About Screen',
+                      Icon : About,
+                      Value : GlobalLabels.Labels.'15062:LocalizedName,msdyn_AboutLabel'
+                  }
+              )
+            UserEmailValue: =User().Email
+            UserImageValue: =Coalesce(userImage, blankImage)
+            UserLegalEntityValue: =LookUp('Legal entities (mserp)', Company = varSelectedLegalEntity).Name
+            UserNameValue: =User().FullName
+            Visible: =gblNavigationDrawerVisibility
+            Width: =App.Width * 0.8
+            unreadNotificationVisibility: =CountRows(Filter(colExpenseNoticationInfo, ReadMessage = 'NoYes (mserp)'.No)) > 0

@@ -1,0 +1,550 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Reports - Attach Expenses Screen:
+    Properties:
+      Fill: =RGBA(229, 229, 229, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =UpdateContext({varCntBack:false});
+
+        ClearCollect(
+            dsExpenses,
+            colAttachedExpenses
+        );
+        Collect(
+            dsExpenses,
+            Filter(
+                SortByColumns('Expense lines (mserp)', "mserp_transdate", SortOrder.Descending),
+                'Company (mserp_company)' = varSelectedLegalEntity && 
+                'Approval status' = 'Document status (mserp)'.Draft && 
+                IsBlank('Expense report number (mserp_expnumber)') && 
+                ('Expense line type' = 'Expense line type (mserp)'.Default 
+                || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header')
+            ) 
+        );
+        ClearCollect(
+            colExpensesToBeAttached,
+            colAttachedExpenses
+        );
+        ClearCollect(
+            colAttachedExpensesForReport,
+            colAttachedExpenses
+        );
+        Clear(colToAttach);
+    Children:
+      - scr18_btn_Done:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Open Sans'
+            Height: =88
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |
+              =//on pressing done, we navigate back to previous screen having updated the colAttachedExpenses based on whether checked or //unchecked
+              ClearCollect(
+                  colAttachedExpenses,
+                  colExpensesToBeAttached
+              );
+              //colAttachedExpenses now contains those expenses which remain to be attached and those which are attached already
+              //any expense not part of this list will be unattached from the chosen report
+              IfError(
+                  Patch(
+                      'Expense reports (mserp)',
+                      LookUp('Expense reports (mserp)','Expense report number' = varSelectedReport.'Expense report number'),
+                      {
+                          ExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', ","),
+                          Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                          Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                          Description: scr17_txt_Description_1.Text
+                      }
+                  ),
+                  First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+              );
+              If(
+                  !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                  Notify(
+                      Substitute(First(varError).Value, """", ""),
+                      NotificationType.Error,
+                      gblParams.notificationTime
+                  ),
+                  If(
+                      varCntBack_scr17,
+                      Navigate('Reports - Edit Screen'),
+                      Navigate('Reports - View Attached Expenses Screen')
+                  )
+              );
+              UpdateContext({varReportNumber : varSelectedReport.'Expense report number'});
+              Set(
+                  varSelectedReport,
+                  LookUp('Expense reports (mserp)','Expense report number' = varReportNumber)
+              );
+              ClearCollect(
+                  colAttachedExpensesForReport,
+                  Filter(
+                      'Expense lines (mserp)',
+                      'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
+                      && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
+                  )
+              );
+              Refresh('Expense lines (mserp)');
+              ClearCollect(
+                  colAttachedExpenses,
+                  colAttachedExpensesForReport
+              );
+              Clear(varError)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'
+            Width: =Parent.Width -  Self.X*2
+            X: =40
+            Y: =Parent.Height - Self.Height- 25
+      - scr18_glr_SelectExpenses_1:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =scr18_btn_Done.Y - Self.Y - 25
+            Items: =dsExpenses
+            OnSelect: |
+              =
+              //set details for the next screen 
+              Concurrent(
+                  Set(
+                      varIsCreate,
+                      false
+                  ),
+                  Set(
+                      varReceiptImage,
+                      Blank()
+                  )
+              );
+              //assign the expense to a varSelectedExpenseDoc
+              Set(
+                  varSelectedExpenseDoc,
+                  LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+              );
+
+              //collect policy violations
+              If(
+                  varSelectedExpenseDoc.PolicyViolationCount,
+                  ClearCollect(
+                      colPolViolations,
+                      Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                  );
+                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
+                  UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                  Clear(colPolViolations);
+                  UpdateContext({varMaxViolationLevel : 0});
+                  UpdateContext({varNumViolation : 0})
+              );
+              //set receipt image if attachedDocuRefRecId is not 0
+              If(
+                  varSelectedExpenseDoc.AttachedReceiptId <> "0",
+                  Set(
+                      varReceiptImage,
+                      LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)
+                  );
+                  Set(
+                      varFileFormat,
+                      LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
+                  );
+                  Set(
+                      varSelectedReceiptNumber,
+                      Blank()
+                  )
+              );
+
+              Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : "scr18", varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation})
+            TemplateSize: =150
+            Width: =Parent.Width
+            Y: =scr18_shp_Rectangle.Y + scr18_shp_Rectangle.Height
+          Children:
+            - Container11_4:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Height: =150
+                  LayoutDirection: =LayoutDirection.Vertical
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Container6_5:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =Parent.Height - scr18_shp_GalleryBaseSeparator_4.Height
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width
+                      Children:
+                        - shpBorder_13:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =Color.Transparent
+                              Height: =Parent.Height
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: =10
+                        - scr18_chk_Select_2:
+                            Control: Classic/CheckBox@2.1.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              BorderStyle: =BorderStyle.None
+                              CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+                              CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+                              CheckboxSize: =42
+                              CheckmarkFill: =Color.White
+                              Color: =RGBA(34, 102, 227, 1)
+                              Default: =!IsBlank(LookUp(colExpensesToBeAttached, 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)'))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Lighter
+                              Height: =42
+                              HoverColor: =RGBA(0, 18, 107, 1)
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnCheck: |-
+                                =Collect(
+                                    colExpensesToBeAttached,
+                                    ThisItem
+                                )
+                              OnSelect: =
+                              OnUncheck: =RemoveIf(colExpensesToBeAttached,'Expense transaction number (mserp_exptransnumber)'=ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                              Reset: =scr18_chk_SelectAll.Value
+                              Text: |-
+                                =If(
+                                    ThisItem.Merchant <> "" || !IsBlank(ThisItem.Merchant),
+                                    Concatenate("Expense against merchant ", ThisItem.Merchant, If(Self.Value, " selected", " unselected")),
+                                    Concatenate("Expense bearing amount ", Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", ThisItem.'Currency (mserp_exchangecode)'), If(Self.Value, " selected", " unselected"))
+                                )
+                              VerticalAlign: =VerticalAlign.Bottom
+                              Width: =43
+                              X: =22
+                              Y: =33.5
+                        - Container7_5:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                            Children:
+                              - Label5_8:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr18_shp_SelectRegion)
+                                    PaddingLeft: =15
+                                    PaddingRight: =0
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: |-
+                                      =If(
+                                          ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
+                                          Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
+                                          ThisItem.Merchant
+                                      )
+                                    Width: =Parent.Width
+                              - Label6_8:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: |-
+                                      =If(
+                                          Value(ThisItem.PolicyViolationCount) > 0,
+                                          If(
+                                              Value(ThisItem.PolicyViolationsLevel) <= 2,
+                                              RGBA(152, 111, 11, 1),
+                                              RGBA(217, 44, 44, 1)
+                                          ),
+                                          RGBA(0, 0, 0, 1)
+                                      )
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr18_shp_SelectRegion)
+                                    PaddingLeft: =15
+                                    PaddingRight: =0
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: |-
+                                      =If(
+                                          Value(ThisItem.PolicyViolationCount) > 0,
+                                          Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_FoundPolicyViolationLabel', "$", Text(ThisItem.PolicyViolationCount)),
+                                          ThisItem.ProjectName
+                                      )
+                                    Width: =Parent.Width
+                        - Container9_5:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =200
+                            Children:
+                              - Label5_9:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Bold
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr18_shp_SelectRegion_RightIcon)
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: |+
+                                      =Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", ThisItem.'Currency (mserp_exchangecode)')
+
+                                    Width: =Parent.Width
+                              - Label6_9:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scr18_shp_SelectRegion_RightIcon)
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: |-
+                                      =Text(
+                                          DateValue(ThisItem.'Transaction date'),
+                                          "mmm dd, yyyy"
+                                      )
+                                    Width: =Parent.Width
+                        - Icon3_2:
+                            Control: Classic/Icon@2.5.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(110, 110, 110, 1)
+                              Icon: =Icon.ChevronRight
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnSelect: =Select(scr18_shp_SelectRegion_RightIcon)
+                              PaddingBottom: =15
+                              PaddingTop: =15
+                  - scr18_shp_GalleryBaseSeparator_4:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =RGBA(225, 225, 225, 1)
+                        Height: =1
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =1
+                        Width: =Parent.Width - 10
+            - scr18_shp_SelectRegion_RightIcon:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: ="Select expense"
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  FocusedBorderThickness: =0
+                  Height: =Parent.TemplateHeight
+                  OnSelect: =Select(Parent);
+                  TabIndex: =0
+                  Width: =Parent.Width - Self.X
+                  X: =scr18_shp_SelectRegion.Width
+            - scr18_shp_SelectRegion:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: ="Select expense"
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  FocusedBorderThickness: =0
+                  Height: =Parent.TemplateHeight
+                  OnSelect: |-
+                    =If(
+                        IsBlank(
+                            LookUp(
+                                colExpensesToBeAttached,
+                                'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)'
+                            )
+                        ),
+                        Collect(
+                            colExpensesToBeAttached,
+                            ThisItem
+                        ),
+                        RemoveIf(
+                            colExpensesToBeAttached,
+                            'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)'
+                        )
+                    )
+                  TabIndex: =0
+                  Width: =Container9_5.X + Container9_5.Width
+      - scr18_shp_Seprator:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(225, 225, 225, 1)
+            Height: =1
+            Width: =App.Width
+            Y: =scr18_shp_Rectangle.Y + scr18_shp_Rectangle.Height
+      - scr18_shp_Rectangle:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =105
+            Width: =Parent.Width
+            Y: =scr18_hdr_TopHeader.Height + 3
+      - scr18_chk_SelectAll:
+          Control: Classic/CheckBox@2.1.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            BorderStyle: =BorderStyle.None
+            CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1),Color.White)
+            CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+            CheckboxSize: =42
+            CheckmarkFill: =Color.White
+            Color: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Segoe UI'
+            FontWeight: =FontWeight.Lighter
+            Height: =35
+            HoverColor: =RGBA(0, 18, 107, 1)
+            OnCheck: |-
+              =ClearCollect(
+                  colExpensesToBeAttached,
+                  dsExpenses 
+              );
+            OnSelect: =
+            OnUncheck: =Clear(colExpensesToBeAttached);
+            Reset: =
+            Text: =Concatenate("All expenses ", If(Self.Value, "selected", "unselected"))
+            VerticalAlign: =VerticalAlign.Bottom
+            Width: =43
+            X: =22
+            Y: =scr18_shp_Rectangle.Y + 32
+      - scr18_lbl_SelectAll:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Segoe UI'
+            Height: =32
+            LineHeight: =1.171875
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =18
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SelectAllLabel'
+            Width: =194
+            X: =71
+            Y: =scr18_shp_Rectangle.Y + 34
+      - scr18_hdr_TopHeader:
+          Control: CanvasComponent
+          ComponentName: hdr02_Header
+          Properties:
+            Fill: =scr18_hdr_TopHeader.paramFill
+            Height: =82
+            Width: =Max(App.Width, App.MinScreenWidth)
+            paramColor: =RGBA(0, 0, 0, 1)
+            paramFill: =RGBA(255, 255, 255, 1)
+            paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachExpensesLabel'
+      - scr18_ico_Back:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =icongconfig_backbutton.Color
+            Fill: =icongconfig_backbutton.Fill
+            Height: =icongconfig_backbutton.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: |+
+              =UpdateContext({
+                  diffTable : Filter(
+                      colExpensesToBeAttached,
+                      !('Expense report number (mserp_expnumber)' in colAttachedExpenses[@'Expense report number (mserp_expnumber)'])
+                  )
+              });
+              If(
+                  CountRows(diffTable) > 0,
+                  UpdateContext({varCntBack: true}),
+                  If(
+                      varCntBack_scr17,
+                      Navigate('Reports - Edit Screen'),
+                      Navigate('Reports - View Attached Expenses Screen')
+                  )
+              );
+
+            TabIndex: =0
+            Width: =icongconfig_backbutton.Width
+            X: =22
+            Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
+      - scr18_cmp02_CancelDialog:
+          Control: CanvasComponent
+          ComponentName: cmp02_ConfirmationDialog
+          Properties:
+            Height: =App.Height
+            LegalEntity: ="Text"
+            OnLeftButtonClick: |-
+              =UpdateContext({varCntBack: false});
+            OnRightButtonClick: |-
+              =UpdateContext({varCntBack: false});
+              If(
+                  varCntBack_scr17,
+                  Navigate('Reports - Edit Screen'),
+                  Navigate('Reports - View Attached Expenses Screen')
+              )
+            SelectedExpense: =
+            SelectedList: ="Text"
+            SelectedReceiptNumber: =
+            Visible: |
+              =varCntBack
+            Width: =Max(App.Width, App.MinScreenWidth)
+            controlName: ="scr18_cmp02_CancelDialog"
+            parmInDescriptionText: ="All unsaved changes will be lost."
+            parmInHeaderText: ="Do you want to go back?"
+            parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+            parmInLeftButtonText: ="No"
+            parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+            parmInRightButtonText: ="Yes"
+            returnFocus: ="scr18_ico_Back"

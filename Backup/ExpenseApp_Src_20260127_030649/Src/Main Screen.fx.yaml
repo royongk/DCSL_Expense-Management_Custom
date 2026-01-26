@@ -1,0 +1,83 @@
+"'Main Screen' As screen":
+    Fill: =RGBA(248, 248, 248, 1)
+    OnVisible: =
+
+    MainScreen_Logo As image:
+        Height: =120
+        Image: =DCSL_Logo
+        Width: =Parent.Width - 80
+        X: =(Parent.Width - Self.Width) / 2
+        Y: =Parent.Height / 3
+        ZIndex: =1
+
+    MainScreen_TitleLabel As label:
+        Align: =Align.Center
+        Color: =RGBA(30, 30, 30, 1)
+        Font: =Font.'Segoe UI'
+        FontWeight: =FontWeight.Bold
+        Height: =50
+        Size: =28
+        Text: ="Expense Management"
+        Width: =Parent.Width - 40
+        X: =(Parent.Width - Self.Width) / 2
+        Y: =MainScreen_Logo.Y + MainScreen_Logo.Height + 40
+        ZIndex: =4
+
+    MainScreen_WelcomeLabel As label:
+        Align: =Align.Center
+        Color: =RGBA(80, 80, 80, 1)
+        Font: =Font.'Segoe UI'
+        Height: =35
+        Size: =18
+        Text: ="Welcome, " & Coalesce(User().FullName, "User")
+        Width: =Parent.Width - 40
+        X: =(Parent.Width - Self.Width) / 2
+        Y: =MainScreen_TitleLabel.Y + MainScreen_TitleLabel.Height + 10
+        ZIndex: =5
+
+    MainScreen_ExpenseReportBtn As button:
+        BorderColor: =RGBA(163, 32, 53, 1)
+        Color: =Color.White
+        Fill: =RGBA(163, 32, 53, 1)
+        Font: =Font.'Segoe UI'
+        Height: =60
+        HoverFill: =RGBA(123, 12, 33, 1)
+        OnSelect: |-
+            =Set(varAppMode, "ExpenseReport");
+            Set(varSelectedTab, 2);
+            Navigate('Expenses - List Screen', ScreenTransition.Fade)
+        PressedFill: =RGBA(123, 12, 33, 1)
+        RadiusBottomLeft: =8
+        RadiusBottomRight: =8
+        RadiusTopLeft: =8
+        RadiusTopRight: =8
+        Size: =18
+        Text: ="Expense Report"
+        Width: =Parent.Width - 240
+        X: =(Parent.Width - Self.Width) / 2
+        Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + 50
+        ZIndex: =6
+
+    MainScreen_AirfareAllowanceBtn As button:
+        BorderColor: =RGBA(163, 32, 53, 1)
+        Color: =RGBA(163, 32, 53, 1)
+        Fill: =Color.White
+        Font: =Font.'Segoe UI'
+        Height: =60
+        HoverFill: =RGBA(184, 0, 0, 1)
+        OnSelect: |-
+            =Set(varAppMode, "AirfareAllowance");
+            Set(varSelectedTab, 2);
+            Navigate('Expenses - List Screen', ScreenTransition.Fade)
+        PressedFill: =RGBA(240, 230, 230, 1)
+        RadiusBottomLeft: =8
+        RadiusBottomRight: =8
+        RadiusTopLeft: =8
+        RadiusTopRight: =8
+        Size: =18
+        Text: ="Airfare/Shipping Allowance"
+        Width: =Parent.Width - 240
+        X: =(Parent.Width - Self.Width) / 2
+        Y: =MainScreen_ExpenseReportBtn.Y + MainScreen_ExpenseReportBtn.Height + 20
+        ZIndex: =7
+
