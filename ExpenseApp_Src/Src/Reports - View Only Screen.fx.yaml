@@ -198,7 +198,8 @@
                             'Expense reports (mserp)',
                             LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
                             {
-                                WorkflowAction: "Recall"
+                                //WorkflowAction: "Recall"
+                                'Document Status': 'Document Status (mserp)'.Draft
                             }
                         ),
                         First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
@@ -221,7 +222,10 @@
                 Size: =19.15
                 Text: |-
                     =GlobalLabels.Labels.'15062:LocalizedName,msdyn_WithdrawLabel'
-                Visible: =!(varSelectedReport.'Document Status' in dsApproved)
+                Visible: |-
+                    =//!(varSelectedReport.'Document Status' in dsApproved)
+                    
+                    !(varSelectedReport.'Document Status' in dsApproved) && !(varSelectedReport.'Document Status' in dsInReview)
                 Width: |
                     =Parent.Width -  Self.X*2
                 X: =scr20_btn_Done_1.X

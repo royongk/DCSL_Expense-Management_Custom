@@ -346,126 +346,6 @@ Screens:
                   Width: =Parent.Width
                   Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
                 Children:
-                  - Project_DataCard:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicAllowedValuesStringEdit
-                      Properties:
-                        AllowedValues: |-
-                          =Filter(
-                              'DCSL Financial Dimension Master (mserp)',
-                              'Dimension name' = "Project"
-                          )
-                        BorderColor: =gblParams.dropDownBorderColor
-                        DataField: ="mserp_deexproject"
-                        Default: =varSelectedExpenseDoc.Project
-                        DisplayName: ="Project"
-                        Required: =false
-                        Update: =ComboBox_Project.Selected.'Dimension value'
-                        Width: =Parent.Width
-                        X: =0
-                        Y: =projectFieldOrder_Y
-                      Children:
-                        - Project_DataCardKey:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =48
-                              Text: =Parent.DisplayName
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - ComboBox_Project:
-                            Control: Classic/ComboBox@2.4.0
-                            Properties:
-                              AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                              ChevronBackground: =RGBA(56, 96, 178, 1)
-                              ChevronFill: =RGBA(255, 255, 255, 1)
-                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: |-
-                                =If(
-                                    !IsBlank(varSelectedProject),
-                                    varSelectedProject,
-                                    Blank()
-                                )
-                              DisplayFields: =["mserp_dimensionvalue","mserp_description"]
-                              DisplayMode: =Parent.DisplayMode
-                              FocusedBorderThickness: =2
-                              Font: =Font.'Open Sans'
-                              Height: =gblParams.dropDownHeight
-                              HoverFill: =gblParams.dropDownHoverFill
-                              InputTextPlaceholder: ="Select Project"
-                              Items: |-
-                                =SortByColumns(
-                                    Filter(
-                                        'DCSL Financial Dimension Master (mserp)',
-                                        'Dimension name' = "Project"
-                                    ),
-                                    "mserp_dimensionvalue",
-                                    SortOrder.Ascending
-                                )
-                              NoSelectionText: ="Select Project"
-                              OnChange: |-
-                                =UpdateContext(
-                                    {
-                                        varSelectedProject: ComboBox_Project.Selected,
-                                        isDirty: true
-                                    }
-                                )
-                              PaddingBottom: =5
-                              PaddingLeft: =5
-                              PaddingRight: =5
-                              PaddingTop: =5
-                              PressedColor: =RGBA(255, 255, 255, 1)
-                              PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =["mserp_dimensionvalue","mserp_description"]
-                              SelectMultiple: =false
-                              SelectionColor: =Color.Black
-                              SelectionFill: =gblParams.dropDownBorderColor
-                              SelectionTagColor: =RGBA(0, 0, 0, 1)
-                              Size: =20
-                              Width: =Parent.Width - 2 * Self.X
-                              X: =30
-                              Y: =Project_DataCardKey.Y + Project_DataCardKey.Height + 5
-                        - ErrorMessage_Project:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(168, 0, 0, 1)
-                              Font: =Font.'Segoe UI'
-                              FontWeight: =FontWeight.Semibold
-                              Height: =10
-                              Live: =Live.Assertive
-                              PaddingBottom: =0
-                              PaddingLeft: =0
-                              PaddingRight: =0
-                              PaddingTop: =0
-                              Size: =gblParams.errorMessageSize
-                              Text: =Parent.Error
-                              Visible: =Parent.DisplayMode=DisplayMode.Edit
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =ComboBox_Project.Y + ComboBox_Project.Height
-                        - Project_StarVisible:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =Project_DataCardKey.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =Project_DataCardKey.Y
                   - Department_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
@@ -593,7 +473,7 @@ Screens:
                         Default: =varSelectedBenefitType
                         DisplayName: ="Benefit Type"
                         Required: =false
-                        Update: =ComboBox_BenefitType.Selected.'Benefit Type'
+                        Update: =ComboBox_BenefitType.Selected.Value
                         Width: =Parent.Width
                         X: =1
                         Y: =expenseCategoryFieldOrder_Y - 60
@@ -646,20 +526,16 @@ Screens:
                               InputTextPlaceholder: ="Select Benefit Type"
                               IsSearchable: =false
                               Items: |-
-                                =If(
-                                    !IsBlank(varSelectedDepartment),
-                                    SortByColumns(
-                                        Distinct(
-                                            Filter(
-                                                'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                                Department = varSelectedDepartment
-                                            ),
-                                            'Benefit Type'
+                                =SortByColumns(
+                                    Distinct(
+                                        Filter(
+                                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                            !IsBlank(varSelectedDepartment) && Department = varSelectedDepartment
                                         ),
-                                        "Value",
-                                        SortOrder.Ascending
+                                        'Benefit Type'
                                     ),
-                                    []
+                                    "Value",
+                                    SortOrder.Ascending
                                 )
                               NoSelectionText: ="Select Benefit Type"
                               OnChange: |-
@@ -680,7 +556,7 @@ Screens:
                                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
                                                         !IsBlank('Expense category') &&
                                                         Department = varSelectedDepartment 
-                                                        //&& 'Benefit Type' = varSelectedBenefitTypeValue
+                                                        && 'Benefit Type' = varSelectedBenefitType
                                                     ) As MappingRecord,
                                                     LookUp(
                                                         'Expense category (mserp)',
@@ -9369,6 +9245,126 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =DataCardKey38_1.Y
+                  - Project_DataCard:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicAllowedValuesStringEdit
+                      Properties:
+                        AllowedValues: |-
+                          =Filter(
+                              'DCSL Financial Dimension Master (mserp)',
+                              'Dimension name' = "Project"
+                          )
+                        BorderColor: =gblParams.dropDownBorderColor
+                        DataField: ="mserp_deexproject"
+                        Default: =varSelectedExpenseDoc.Project
+                        DisplayName: ="Project"
+                        Required: =false
+                        Update: =ComboBox_Project.Selected.'Dimension value'
+                        Width: =Parent.Width
+                        X: =0
+                        Y: =projectFieldOrder_Y
+                      Children:
+                        - Project_DataCardKey:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              Font: =Font.'Segoe UI'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - ComboBox_Project:
+                            Control: Classic/ComboBox@2.4.0
+                            Properties:
+                              AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              DefaultSelectedItems: |-
+                                =If(
+                                    !IsBlank(varSelectedProject),
+                                    varSelectedProject,
+                                    Blank()
+                                )
+                              DisplayFields: =["mserp_dimensionvalue","mserp_description"]
+                              DisplayMode: =Parent.DisplayMode
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Open Sans'
+                              Height: =gblParams.dropDownHeight
+                              HoverFill: =gblParams.dropDownHoverFill
+                              InputTextPlaceholder: ="Select Project"
+                              Items: |-
+                                =SortByColumns(
+                                    Filter(
+                                        'DCSL Financial Dimension Master (mserp)',
+                                        'Dimension name' = "Project"
+                                    ),
+                                    "mserp_dimensionvalue",
+                                    SortOrder.Ascending
+                                )
+                              NoSelectionText: ="Select Project"
+                              OnChange: |-
+                                =UpdateContext(
+                                    {
+                                        varSelectedProject: ComboBox_Project.Selected,
+                                        isDirty: true
+                                    }
+                                )
+                              PaddingBottom: =5
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SearchFields: =["mserp_dimensionvalue","mserp_description"]
+                              SelectMultiple: =false
+                              SelectionColor: =Color.Black
+                              SelectionFill: =gblParams.dropDownBorderColor
+                              SelectionTagColor: =RGBA(0, 0, 0, 1)
+                              Size: =20
+                              Width: =Parent.Width - 2 * Self.X
+                              X: =30
+                              Y: =Project_DataCardKey.Y + Project_DataCardKey.Height + 5
+                        - ErrorMessage_Project:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =gblParams.errorMessageSize
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =ComboBox_Project.Y + ComboBox_Project.Height
+                        - Project_StarVisible:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =Project_DataCardKey.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =Project_DataCardKey.Y
       - formModeRectangle:
           Control: Rectangle@2.3.0
           Properties:
