@@ -1070,7 +1070,8 @@
                         Distinct(
                             Filter(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                Department = varSelectedDepartment
+                                Department = varSelectedDepartment &&
+                                (varAppMode = "AirfareAllowance" ? Airfare = 'NoYes (mserp)'.Yes : Airfare = 'NoYes (mserp)'.No)
                             ),
                             'Benefit Type'
                         ),
@@ -1118,7 +1119,8 @@
                                 Distinct(
                                     Filter(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        Department = varSelectedDepartment
+                                        Department = varSelectedDepartment &&
+                                        (varAppMode = "AirfareAllowance" ? Airfare = 'NoYes (mserp)'.Yes : Airfare = 'NoYes (mserp)'.No)
                                     ),
                                     'Benefit Type'
                                 ),
@@ -1138,7 +1140,9 @@
                             Distinct(
                                 Filter(
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank(varSelectedDepartment) && Department = varSelectedDepartment
+                                    !IsBlank(varSelectedDepartment) && 
+                                    Department = varSelectedDepartment &&
+                                    (varAppMode = "AirfareAllowance" ? Airfare = 'NoYes (mserp)'.Yes : Airfare = 'NoYes (mserp)'.No)
                                 ),
                                 'Benefit Type'
                             ),
