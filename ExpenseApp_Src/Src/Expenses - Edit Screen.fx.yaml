@@ -1071,7 +1071,10 @@
                             Filter(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
                                 Department = varSelectedDepartment &&
-                                If(varAppMode = "AirfareAllowance", Airfare = 'NoYes (mserp)'.Yes, Airfare = 'NoYes (mserp)'.No)
+                                (
+                                    (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                    (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                )
                             ),
                             'Benefit Type'
                         ),
@@ -1120,7 +1123,10 @@
                                     Filter(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
                                         Department = varSelectedDepartment &&
-                                        If(varAppMode = "AirfareAllowance", Airfare = 'NoYes (mserp)'.Yes, Airfare = 'NoYes (mserp)'.No)
+                                        (
+                                            (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                            (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                        )
                                     ),
                                     'Benefit Type'
                                 ),
@@ -1142,7 +1148,10 @@
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
                                     !IsBlank(varSelectedDepartment) && 
                                     Department = varSelectedDepartment &&
-                                    If(varAppMode = "AirfareAllowance", Airfare = 'NoYes (mserp)'.Yes, Airfare = 'NoYes (mserp)'.No)
+                                    (
+                                        (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                        (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                    )
                                 ),
                                 'Benefit Type'
                             ),
@@ -1168,7 +1177,11 @@
                                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
                                                 !IsBlank('Expense category') &&
                                                 Department = varSelectedDepartment 
-                                                && 'Benefit Type' = varSelectedBenefitType
+                                                && 'Benefit Type' = varSelectedBenefitType &&
+                                                (
+                                                    (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                                    (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                                )
                                             ) As MappingRecord,
                                             LookUp(
                                                 'Expense category (mserp)',
@@ -1184,8 +1197,8 @@
                             ),
                             Clear(colExpenseCategories) // 조건 불충족 시 초기화
                         )
-                    SearchFields: =[""]
-                    SearchItems: =[]
+                    SearchFields: =["Value"]
+                    SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank(varSelectedDepartment)&&Department=varSelectedDepartment&&((varAppMode="AirfareAllowance"&&Airfare='NoYes (mserp)'.Yes)||(varAppMode<>"AirfareAllowance"&&Airfare='NoYes (mserp)'.No))),'Benefit Type'),"Value",SortOrder.Ascending),ComboBox_BenefitType.SearchText,Value)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)

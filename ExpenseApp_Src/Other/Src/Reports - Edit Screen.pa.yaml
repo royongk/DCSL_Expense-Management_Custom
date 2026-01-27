@@ -228,80 +228,82 @@ Screens:
                               gblNavigationDrawerVisibility,
                               false
                           );
+                          // ✅ Purpose 필수 필드 유효성 검사
+                          UpdateContext({varPurposeValidationFailed: false});
                           If(
-                              !IsBlank(varSelectedTravelReq) &&
-                              (CountRows(colAttachedExpenses) > 0 || 
-                               CountRows(
-                                   Filter(
-                                       'Expense lines (mserp)',
-                                       'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
-                                   )
-                               ) > 0) &&
-                              Value(varSelectedReport.'Amount (mserp_deextrvrequisitiontotalestimate)') > Value(varSelectedTravelReq.'Amount to reconcile'),
+                              IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)') && 
+                              IsBlank(ComboBox_Purpose.SearchText) && 
+                              IsBlank(varSelectedReport.Purpose),
+                              UpdateContext({varPurposeValidationFailed: true});
                               Notify(
-                                  "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
+                                  Coalesce(
+                                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterPurposeLabel',
+                                      "Purpose field is required."
+                                  ),
                                   NotificationType.Error,
                                   gblParams.notificationTime
-                              ),
-                              IfError(
-                                  Set(
-                                      varSelectedReport,
-                                      Patch(
-                                          'Expense reports (mserp)',
-                                          LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
-                                          {
-                                              Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                              Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                              Description: scr17_txt_Description_1.Text,
-                                              'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
-                                              'Document Status': 'Document Status (mserp)'.Submitted,
-                                              'Created in Apps': 'NoYes (mserp)'.Yes
-                                              // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
-                                              // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
-                                          }
-                                      )
-                                  ),
-                                  First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
-                              );
+                              )
+                          );
+                          // 기존 유효성 검사 및 제출 로직 (Purpose 유효성 검사 통과 시에만 실행)
+                          If(
+                              !varPurposeValidationFailed,
                               If(
-                                  !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value),
-                                  With(
-                                      {
-                                          expenseReport1: LookUp(
-                                              'Expense reports (mserp)_1',
-                                              'Expense report number' = varSelectedReport.'Expense report number'
-                                          )
-                                      },
-                                      If(
-                                          !IsBlank(expenseReport1.DEEXReferenceId),
-                                          Patch(
-                                              'Expense Header to Travel Requisition Entity (mserp)',
-                                              Defaults('Expense Header to Travel Requisition Entity (mserp)'),
-                                              {
-                                                  'Reference (mserp_trvexptable)': expenseReport1.DEEXReferenceId,
-                                                  'Travel requisition number': varSelectedTravelReq.'Travel requisition number'
-                                              }
-                                          )
-                                      )
-                                  )
-                              );
-                              If(
-                                  !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                                  !IsBlank(varSelectedTravelReq) &&
+                                  (CountRows(colAttachedExpenses) > 0 || 
+                                   CountRows(
+                                       Filter(
+                                           'Expense lines (mserp)',
+                                           'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
+                                       )
+                                   ) > 0) &&
+                                  Value(varSelectedReport.'Amount (mserp_deextrvrequisitiontotalestimate)') > Value(varSelectedTravelReq.'Amount to reconcile'),
                                   Notify(
-                                      Substitute(First(varError).Value, """", ""),
+                                      "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
                                       NotificationType.Error,
                                       gblParams.notificationTime
                                   ),
-                                  //IfError(
-                                  //    Patch(
-                                  //        'Expense reports (mserp)_1',
-                                  //        LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
-                                  //        {
-                                  //            WorkflowAction: "Submit"
-                                  //        }
-                                  //    ),
-                                  //    First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
-                                  //);
+                                  IfError(
+                                      Set(
+                                          varSelectedReport,
+                                          Patch(
+                                              'Expense reports (mserp)',
+                                              LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                              {
+                                                  Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                  Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                                  Description: scr17_txt_Description_1.Text,
+                                                  'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                                  'Document Status': 'Document Status (mserp)'.Submitted,
+                                                  'Created in Apps': 'NoYes (mserp)'.Yes
+                                                  // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
+                                                  // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
+                                              }
+                                          )
+                                      ),
+                                      First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+                                  );
+                                  If(
+                                      !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value),
+                                      With(
+                                          {
+                                              expenseReport1: LookUp(
+                                                  'Expense reports (mserp)_1',
+                                                  'Expense report number' = varSelectedReport.'Expense report number'
+                                              )
+                                          },
+                                          If(
+                                              !IsBlank(expenseReport1.DEEXReferenceId),
+                                              Patch(
+                                                  'Expense Header to Travel Requisition Entity (mserp)',
+                                                  Defaults('Expense Header to Travel Requisition Entity (mserp)'),
+                                                  {
+                                                      'Reference (mserp_trvexptable)': expenseReport1.DEEXReferenceId,
+                                                      'Travel requisition number': varSelectedTravelReq.'Travel requisition number'
+                                                  }
+                                              )
+                                          )
+                                      )
+                                  );
                                   If(
                                       !(IsBlank(First(varError).Value) || First(varError).Value = ""),
                                       Notify(
@@ -309,15 +311,33 @@ Screens:
                                           NotificationType.Error,
                                           gblParams.notificationTime
                                       ),
-                                      Notify(
-                                          GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportSubmittedSuccessfullyLabel', 
-                                          NotificationType.Success, 
-                                          gblParams.notificationTime
-                                          );
-                                      Navigate('Reports - List Screen')
-                                  )
-                              );
-                              Clear(varError)
+                                      //IfError(
+                                      //    Patch(
+                                      //        'Expense reports (mserp)_1',
+                                      //        LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                      //        {
+                                      //            WorkflowAction: "Submit"
+                                      //        }
+                                      //    ),
+                                      //    First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
+                                      //);
+                                      If(
+                                          !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                                          Notify(
+                                              Substitute(First(varError).Value, """", ""),
+                                              NotificationType.Error,
+                                              gblParams.notificationTime
+                                          ),
+                                          Notify(
+                                              GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportSubmittedSuccessfullyLabel', 
+                                              NotificationType.Success, 
+                                              gblParams.notificationTime
+                                              );
+                                          Navigate('Reports - List Screen')
+                                      )
+                                  );
+                                  Clear(varError)
+                              )
                           )
                         PressedBorderColor: =Self.Fill
                         PressedColor: =Self.Fill
@@ -341,7 +361,7 @@ Screens:
                         HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
                         HoverColor: =RGBA(255, 255, 255, 1)
                         HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                        OnSelect: "=Set(\n    gblNavigationDrawerVisibility,\n    false\n);\nIf(\n    // 1. 유효성 검사 (Validation Check)\n    !IsBlank(varSelectedTravelReq) &&\n    (CountRows(colAttachedExpenses) > 0 || \n     CountRows(\n         Filter(\n             'Expense lines (mserp)',\n             'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'\n         )\n     ) > 0) &&\n    Value(varSelectedReport.AmountTotal) > Value(varSelectedTravelReq.'Amount to reconcile'),\n    \n    // 2. 유효성 검사 실패 시 (Validation Failed)\n    Notify(\n        \"The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.\",\n        NotificationType.Error,\n        gblParams.notificationTime\n    ),\n    \n    // 3. 유효성 검사 통과 시 (Validation Passed - Create or Update)\n    If(\n        varIsCreateReport,\n        \n        // 3-1. 신규 생성 로직 (Create Logic)\n        Clear(varError);\n        With(\n            {\n                patchedReport: IfError(\n                    Patch(\n                        'Expense reports (mserp)',\n                        Defaults('Expense reports (mserp)'),\n                        {\n                            Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n                            Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),\n                            Description: scr17_txt_Description_1.Text,\n                            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),\n                            'Created in Apps': 'NoYes (mserp)'.Yes\n                        }\n                    ),\n                    First(\n                        ClearCollect(\n                            varError, \n                            Substitute(\n                                Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                                \"\"\"message\"\":\", \n                                \"\"\n                            )\n                        )\n                    );\n                    Blank()\n                )\n            },\n            If(\n                !IsBlank(patchedReport),\n                Set(varSelectedReport, patchedReport)\n            )\n        ), // ✅ FIXED: 여기 있던 닫는 괄호 ')'를 콤마 ','로 변경하여 Else 구문으로 연결합니다.\n\n        // 3-2. 기존 수정 로직 (Update Logic - Else Block)\n        Clear(varError);\n        With(\n            {\n                patchedReport: IfError(\n                    Patch(\n                        'Expense reports (mserp)',\n                        LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),\n                        {\n                            Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose, ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n                            Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location, ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),\n                            Description: scr17_txt_Description_1.Text,\n                            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),\n                            'Created in Apps': 'NoYes (mserp)'.Yes\n                        }\n                    ),\n                    First(\n                        ClearCollect(\n                            varError, \n                            Substitute(\n                                Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                                \"\"\"message\"\":\", \n                                \"\"\n                            )\n                        )\n                    );\n                    Blank()\n                )\n            },\n            If(\n                !IsBlank(patchedReport),\n                Set(varSelectedReport, patchedReport)\n            )\n        )\n    ) // ✅ FIXED: 내부 If(varIsCreateReport...)를 여기서 닫습니다.\n); // 메인 If 닫기\n\n// 4. 출장 요청 헤더 연결 (Link Header)\nIf(\n    !varIsCreateReport && !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value) && !IsBlank(varSelectedReport),\n    With(\n        {\n            expenseReport1: LookUp(\n                'Expense reports (mserp)_1',\n                'Expense report number' = varSelectedReport.'Expense report number'\n            )\n        },\n        If(\n            !IsBlank(expenseReport1.DEEXReferenceId),\n            Patch(\n                'Expense Header to Travel Requisition Entity (mserp)',\n                Defaults('Expense Header to Travel Requisition Entity (mserp)'),\n                {\n                    'Reference (mserp_trvexptable)': expenseReport1.DEEXReferenceId,\n                    'Travel requisition number': varSelectedTravelReq.'Travel requisition number'\n                }\n            )\n        )\n    )\n);\n\n// 5. 결과 알림 및 이동 (Result Notify & Navigate)\nIf(\n    !(IsBlank(First(varError).Value) || First(varError).Value = \"\"),\n    Notify(\n        Substitute(First(varError).Value, \"\"\"\", \"\"),\n        NotificationType.Error,\n        gblParams.notificationTime\n    ),\n    If(\n        varIsCreateReport,\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel',\n            NotificationType.Success, \n            gblParams.notificationTime\n        ),\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', \n            NotificationType.Success, \n            gblParams.notificationTime\n        )\n    );\n    Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})\n);\nClear(varError)"
+                        OnSelect: "=Set(\n    gblNavigationDrawerVisibility,\n    false\n);\n// ✅ Purpose 필수 필드 유효성 검사\nUpdateContext({varPurposeValidationFailed: false});\nIf(\n    IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)') && \n    IsBlank(ComboBox_Purpose.SearchText) && \n    IsBlank(varSelectedReport.Purpose),\n    UpdateContext({varPurposeValidationFailed: true});\n    Notify(\n        Coalesce(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterPurposeLabel',\n            \"Purpose field is required.\"\n        ),\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\n// 기존 유효성 검사 및 저장 로직 (Purpose 유효성 검사 통과 시에만 실행)\nIf(\n    !varPurposeValidationFailed,\n    // 기존 유효성 검사 및 저장 로직\n    If(\n        // 1. 유효성 검사 (Validation Check)\n        !IsBlank(varSelectedTravelReq) &&\n        (CountRows(colAttachedExpenses) > 0 || \n         CountRows(\n             Filter(\n                 'Expense lines (mserp)',\n                 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'\n             )\n         ) > 0) &&\n        Value(varSelectedReport.AmountTotal) > Value(varSelectedTravelReq.'Amount to reconcile'),\n        \n        // 2. 유효성 검사 실패 시 (Validation Failed)\n        Notify(\n            \"The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.\",\n            NotificationType.Error,\n            gblParams.notificationTime\n        ),\n    \n        // 3. 유효성 검사 통과 시 (Validation Passed - Create or Update)\n        If(\n            varIsCreateReport,\n            \n            // 3-1. 신규 생성 로직 (Create Logic)\n            Clear(varError);\n            With(\n                {\n                    patchedReport: IfError(\n                        Patch(\n                            'Expense reports (mserp)',\n                            Defaults('Expense reports (mserp)'),\n                            {\n                                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n                                Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),\n                                Description: scr17_txt_Description_1.Text,\n                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),\n                                'Created in Apps': 'NoYes (mserp)'.Yes\n                            }\n                        ),\n                        First(\n                            ClearCollect(\n                                varError, \n                                Substitute(\n                                    Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                                    \"\"\"message\"\":\", \n                                    \"\"\n                                )\n                            )\n                        );\n                        Blank()\n                    )\n                },\n                If(\n                    !IsBlank(patchedReport),\n                    Set(varSelectedReport, patchedReport)\n                )\n            ), // ✅ FIXED: 여기 있던 닫는 괄호 ')'를 콤마 ','로 변경하여 Else 구문으로 연결합니다.\n    \n            // 3-2. 기존 수정 로직 (Update Logic - Else Block)\n            Clear(varError);\n            With(\n                {\n                    patchedReport: IfError(\n                        Patch(\n                            'Expense reports (mserp)',\n                            LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),\n                            {\n                                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose, ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n                                Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location, ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),\n                                Description: scr17_txt_Description_1.Text,\n                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),\n                                'Created in Apps': 'NoYes (mserp)'.Yes\n                            }\n                        ),\n                        First(\n                            ClearCollect(\n                                varError, \n                                Substitute(\n                                    Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                                    \"\"\"message\"\":\", \n                                    \"\"\n                                )\n                            )\n                        );\n                        Blank()\n                    )\n                },\n                If(\n                    !IsBlank(patchedReport),\n                    Set(varSelectedReport, patchedReport)\n                )\n            )\n        ); // ✅ FIXED: 내부 If(varIsCreateReport...)를 여기서 닫습니다.\n    \n    // 4. 출장 요청 헤더 연결 (Link Header)\n    If(\n        varIsCreateReport && !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value) && !IsBlank(varSelectedReport),\n        With(\n            {\n                expenseReport1: LookUp(\n                    'Expense reports (mserp)_1',\n                    'Expense report number' = varSelectedReport.'Expense report number'\n                )\n            },\n            If(\n                !IsBlank(expenseReport1.DEEXReferenceId),\n                Patch(\n                    'Expense Header to Travel Requisition Entity (mserp)',\n                    Defaults('Expense Header to Travel Requisition Entity (mserp)'),\n                    {\n                        'Reference (mserp_trvexptable)': expenseReport1.DEEXReferenceId,\n                        'Travel requisition number': varSelectedTravelReq.'Travel requisition number'\n                    }\n                )\n            )\n        )\n    );\n    \n    // 5. 결과 알림 및 이동 (Result Notify & Navigate)\n    If(\n        !(IsBlank(First(varError).Value) || First(varError).Value = \"\"),\n        Notify(\n            Substitute(First(varError).Value, \"\"\"\", \"\"),\n            NotificationType.Error,\n            gblParams.notificationTime\n        ),\n        If(\n            varIsCreateReport,\n            Notify(\n                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel',\n                NotificationType.Success, \n                gblParams.notificationTime\n            ),\n            Notify(\n                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', \n                NotificationType.Success, \n                gblParams.notificationTime\n            )\n        );\n        Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})\n    );\n    Clear(varError)\n    )\n)"
                         PressedBorderColor: =Self.Fill
                         PressedColor: =Self.Fill
                         PressedFill: =Self.Color
