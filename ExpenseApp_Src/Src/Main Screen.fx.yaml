@@ -53,8 +53,8 @@
         RadiusTopRight: =8
         Size: =18
         Text: ="Expense Report"
-        Width: =Parent.Width - 240
-        X: =(Parent.Width - Self.Width) / 2
+        Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
+        X: =If(App.Width > 640, 20, (Parent.Width - Self.Width) / 2)
         Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + 50
         ZIndex: =6
 
@@ -76,8 +76,30 @@
         RadiusTopRight: =8
         Size: =18
         Text: ="Airfare/Shipping Allowance"
-        Width: =Parent.Width - 240
-        X: =(Parent.Width - Self.Width) / 2
-        Y: =MainScreen_ExpenseReportBtn.Y + MainScreen_ExpenseReportBtn.Height + 20
+        Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
+        X: =If(App.Width > 640, MainScreen_ExpenseReportBtn.X + MainScreen_ExpenseReportBtn.Width + 20, (Parent.Width - Self.Width) / 2)
+        Y: =If(App.Width > 640, MainScreen_ExpenseReportBtn.Y, MainScreen_ExpenseReportBtn.Y + MainScreen_ExpenseReportBtn.Height + 20)
         ZIndex: =7
 
+    MainScreen_CashAdvanceBtn As button:
+        BorderColor: =RGBA(163, 32, 53, 1)
+        Color: =RGBA(163, 32, 53, 1)
+        Fill: =Color.White
+        Font: =Font.'Segoe UI'
+        Height: =60
+        HoverFill: =RGBA(184, 0, 0, 1)
+        OnSelect: |-
+            =Set(varAppMode, "CashAdvance");
+            Set(varSelectedTab, 2);
+            Navigate('Cash Advance - List Screen', ScreenTransition.Fade)
+        PressedFill: =RGBA(240, 230, 230, 1)
+        RadiusBottomLeft: =8
+        RadiusBottomRight: =8
+        RadiusTopLeft: =8
+        RadiusTopRight: =8
+        Size: =18
+        Text: ="Cash Advance"
+        Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
+        X: =If(App.Width > 640, 20, (Parent.Width - Self.Width) / 2)
+        Y: =If(App.Width > 640, MainScreen_ExpenseReportBtn.Y + MainScreen_ExpenseReportBtn.Height + 20, MainScreen_AirfareAllowanceBtn.Y + MainScreen_AirfareAllowanceBtn.Height + 20)
+        ZIndex: =8

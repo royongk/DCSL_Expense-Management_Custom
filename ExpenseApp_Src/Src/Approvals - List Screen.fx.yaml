@@ -69,17 +69,30 @@
         Y: =scr21_hdr_TopHeader_1.Height + (Parent.Height - scr21_hdr_TopHeader_1.Height - scr21_cmp_Footer.Height - Self.Height)/2
 
     scr21_cmp_Footer As cmp_Footer_4:
-        ApprovalsText: |
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+        ApprovalsText: |-
+            =If(
+                varAppMode = "CashAdvance",
+                "Cash",
+                If(
+                    varAppMode = "AirfareAllowance",
+                    "Travel",
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                )
+            )
         DisplayMode: =!IsBlank(varSelectedLegalEntity)
         ExpensesText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
         OnApprovalsButtonClick: |-
             =If(
-                varAppMode = "AirfareAllowance",
+                varAppMode = "CashAdvance",
                 Set(varSelectedTab, 4);
-                Navigate('Travel - List Screen', ScreenTransition.Fade),
-                Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade)
+                Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
+                If(
+                    varAppMode = "AirfareAllowance",
+                    Set(varSelectedTab, 4);
+                    Navigate('Travel - List Screen', ScreenTransition.Fade),
+                    Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade)
+                )
             )
         OnExpensesButtonClick: |-
             =If(
@@ -147,9 +160,13 @@
     scr21_cmp_ApprovalsFooter As cmp_ApprovalsFooter_1:
         ApprovalText: |-
             =If(
-                varAppMode = "AirfareAllowance",
-                "Travel",
-                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                varAppMode = "CashAdvance",
+                "Cash",
+                If(
+                    varAppMode = "AirfareAllowance",
+                    "Travel",
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                )
             )
         DelegateText: ="DELEGATE"
         Height: =135
