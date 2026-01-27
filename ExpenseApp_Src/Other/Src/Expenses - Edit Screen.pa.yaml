@@ -462,7 +462,11 @@ Screens:
                               Distinct(
                                   Filter(
                                       'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                      Department = varSelectedDepartment
+                                      Department = varSelectedDepartment &&
+                                      (
+                                          (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                          (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                      )
                                   ),
                                   'Benefit Type'
                               ),
@@ -509,7 +513,11 @@ Screens:
                                         Distinct(
                                             Filter(
                                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                                Department = varSelectedDepartment
+                                                Department = varSelectedDepartment &&
+                                                (
+                                                    (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                                    (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                                )
                                             ),
                                             'Benefit Type'
                                         ),
@@ -530,7 +538,12 @@ Screens:
                                     Distinct(
                                         Filter(
                                             'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                            !IsBlank(varSelectedDepartment) && Department = varSelectedDepartment
+                                            !IsBlank(varSelectedDepartment) && 
+                                            Department = varSelectedDepartment &&
+                                            (
+                                                (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                                (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                            )
                                         ),
                                         'Benefit Type'
                                     ),
@@ -556,7 +569,11 @@ Screens:
                                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
                                                         !IsBlank('Expense category') &&
                                                         Department = varSelectedDepartment 
-                                                        && 'Benefit Type' = varSelectedBenefitType
+                                                        && 'Benefit Type' = varSelectedBenefitType &&
+                                                        (
+                                                            (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                                            (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                                        )
                                                     ) As MappingRecord,
                                                     LookUp(
                                                         'Expense category (mserp)',
@@ -578,7 +595,7 @@ Screens:
                               PaddingTop: =5
                               PressedColor: =RGBA(255, 255, 255, 1)
                               PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =[""]
+                              SearchFields: =["Value"]
                               SelectMultiple: =false
                               SelectionColor: =Color.Black
                               SelectionFill: =gblParams.dropDownBorderColor

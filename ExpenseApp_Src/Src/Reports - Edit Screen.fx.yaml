@@ -451,7 +451,7 @@
                         
                         // 4. 출장 요청 헤더 연결 (Link Header)
                         If(
-                            !varIsCreateReport && !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value) && !IsBlank(varSelectedReport),
+                            varIsCreateReport && !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value) && !IsBlank(varSelectedReport),
                             With(
                                 {
                                     expenseReport1: LookUp(
@@ -497,6 +497,7 @@
                             Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})
                         );
                         Clear(varError)
+                        )
                     )
                 RadiusBottomLeft: =8
                 RadiusBottomRight: =8

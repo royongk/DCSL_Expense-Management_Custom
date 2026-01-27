@@ -952,7 +952,14 @@
     "BenefitType_DataCard": {
       "AllowAccessToGlobals": true,
       "ControlPropertyState": [
-        "AllowedValues",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "If(\n    !IsBlank(varSelectedDepartment),\n    Distinct(\n        Filter(\n            'DCSL Expense Category Mapping Setup Entity (mserp)',\n            Department = varSelectedDepartment &&\n            If(varAppMode = \"AirfareAllowance\", Airfare = 'NoYes (mserp)'.Yes, Airfare = 'NoYes (mserp)'.No)\n        ),\n        'Benefit Type'\n    ),\n    []\n)",
+          "InvariantPropertyName": "AllowedValues",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "BorderColor",
         "BorderStyle",
         "DataField",
@@ -6882,7 +6889,14 @@
         "AccessibleLabel",
         "BorderColor",
         "BorderThickness",
-        "DefaultSelectedItems",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "If(\n    !IsBlank(varSelectedBenefitType) && !IsBlank(varSelectedDepartment),\n    LookUp(\n        Distinct(\n            Filter(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                Department = varSelectedDepartment &&\n                If(varAppMode = \"AirfareAllowance\", Airfare = 'NoYes (mserp)'.Yes, Airfare = 'NoYes (mserp)'.No)\n            ),\n            'Benefit Type'\n        ),\n        Value = varSelectedBenefitType\n    ),\n    Blank()\n)",
+          "InvariantPropertyName": "DefaultSelectedItems",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
@@ -6897,7 +6911,14 @@
         "HoverFill",
         "InputTextPlaceholder",
         "IsSearchable",
-        "Items",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "SortByColumns(\n    Distinct(\n        Filter(\n            'DCSL Expense Category Mapping Setup Entity (mserp)',\n            !IsBlank(varSelectedDepartment) && \n            Department = varSelectedDepartment &&\n            If(varAppMode = \"AirfareAllowance\", Airfare = 'NoYes (mserp)'.Yes, Airfare = 'NoYes (mserp)'.No)\n        ),\n        'Benefit Type'\n    ),\n    \"Value\",\n    SortOrder.Ascending\n)",
+          "InvariantPropertyName": "Items",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "NoSelectionText",
         {
           "AFDDataSourceName": "",
@@ -6908,7 +6929,14 @@
           "NameMapSourceSchema": "?"
         },
         "SearchFields",
-        "SearchItems",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "",
+          "InvariantPropertyName": "SearchItems",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "SelectionColor",
         "SelectionFill",
         "SelectionTagColor",
