@@ -128,16 +128,24 @@ ComponentDefinitions:
             Height: =28.16
             Image: |-
               =If(
-                  cmp_Footer_3.paramInDefaultAppMode = "AirfareAllowance",
+                  cmp_Footer_3.paramInDefaultAppMode = "CashAdvance",
                   If(
                       Value(cmp_Footer_3.paramInDefaultSelectedTab=4),
-                      travelSelected,
-                      travelDeselectedIcon
+                      cashSelectedIcon,
+                      cashDeselectedIcon
                   ),
                   If(
-                      Value(cmp_Footer_3.paramInDefaultSelectedTab=4),
-                      approvalsSelectedIcon,
-                      approvalsIcon
+                      cmp_Footer_3.paramInDefaultAppMode = "AirfareAllowance",
+                      If(
+                          Value(cmp_Footer_3.paramInDefaultSelectedTab=4),
+                          travelSelected,
+                          travelDeselectedIcon
+                      ),
+                      If(
+                          Value(cmp_Footer_3.paramInDefaultSelectedTab=4),
+                          approvalsSelectedIcon,
+                          approvalsIcon
+                      )
                   )
               )
             OnSelect: =cmp_Footer_3.OnApprovalsButtonClick()

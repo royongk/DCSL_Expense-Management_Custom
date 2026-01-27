@@ -86,8 +86,16 @@ Screens:
           ComponentName: cmp_Footer_4
           Properties:
             ApprovalsAccessibleLabel: ="Text"
-            ApprovalsText: |
-              =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+            ApprovalsText: |-
+              =If(
+                  varAppMode = "CashAdvance",
+                  "Cash",
+                  If(
+                      varAppMode = "AirfareAllowance",
+                      "Travel",
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                  )
+              )
             DisplayMode: =!IsBlank(varSelectedLegalEntity)
             ExpenseAccessibleLabel: ="Text"
             ExpensesText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
@@ -95,10 +103,15 @@ Screens:
             Height: =84
             OnApprovalsButtonClick: |-
               =If(
-                  varAppMode = "AirfareAllowance",
+                  varAppMode = "CashAdvance",
                   Set(varSelectedTab, 4);
-                  Navigate('Travel - List Screen', ScreenTransition.Fade),
-                  Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade)
+                  Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
+                  If(
+                      varAppMode = "AirfareAllowance",
+                      Set(varSelectedTab, 4);
+                      Navigate('Travel - List Screen', ScreenTransition.Fade),
+                      Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade)
+                  )
               )
             OnExpensesButtonClick: |-
               =If(
@@ -168,9 +181,13 @@ Screens:
           Properties:
             ApprovalText: |-
               =If(
-                  varAppMode = "AirfareAllowance",
-                  "Travel",
-                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                  varAppMode = "CashAdvance",
+                  "Cash",
+                  If(
+                      varAppMode = "AirfareAllowance",
+                      "Travel",
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                  )
               )
             DelegateText: ="DELEGATE"
             DisplayMode: =true

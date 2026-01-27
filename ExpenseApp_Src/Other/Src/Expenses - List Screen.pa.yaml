@@ -117,9 +117,13 @@ Screens:
               )
             ApprovalsText: |-
               =If(
-                  varAppMode = "AirfareAllowance",
-                  "Travel",
-                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                  varAppMode = "CashAdvance",
+                  "Cash",
+                  If(
+                      varAppMode = "AirfareAllowance",
+                      "Travel",
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                  )
               )
             DisplayMode: =true
             ExpenseAccessibleLabel: |-
@@ -137,12 +141,17 @@ Screens:
             Height: =84
             OnApprovalsButtonClick: |-
               =If(
-                  varAppMode = "AirfareAllowance",
+                  varAppMode = "CashAdvance",
                   Set(varSelectedTab, 4);
-                  Navigate('Travel - List Screen', ScreenTransition.Fade),
-                  Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
-                  Reset(scr25_cmb_Project);
-                  Reset(scr25_cmb_User)
+                  Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
+                  If(
+                      varAppMode = "AirfareAllowance",
+                      Set(varSelectedTab, 4);
+                      Navigate('Travel - List Screen', ScreenTransition.Fade),
+                      Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
+                      Reset(scr25_cmb_Project);
+                      Reset(scr25_cmb_User)
+                  )
               )
             OnExpensesButtonClick: |-
               =If(

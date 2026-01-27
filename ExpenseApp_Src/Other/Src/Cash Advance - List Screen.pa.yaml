@@ -1,0 +1,664 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Cash Advance - List Screen:
+    Properties:
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =UpdateContext({varCntSelect: false});
+        UpdateContext({varCashAdvanceStatusFilter: Blank()});
+        UpdateContext({
+            varSelectedCashAdvance: If(
+                false, 
+                First('Cash advances (mserp)'), 
+                Blank()
+            )
+        });
+        UpdateContext({varCntDelete: false});
+        Refresh('Cash advances (mserp)');
+        Clear(colSelectedCashAdvanceIds);
+        Reset(scrCashAdvance_Gallery);
+        Reset(ComboBox_CashAdvanceStatusFilter);
+        Reset(txt_CashAdvanceDateFilter);
+    Children:
+      - emptyStateComponent_CashAdvance:
+          Control: CanvasComponent
+          ComponentName: emptyStateComponent
+          Properties:
+            Height: |
+              =350
+            Visible: =scrCashAdvance_Gallery.AllItemsCount <= 0
+            Width: =Self.Height
+            X: |
+              =(Parent.Width - Self.Width)/2
+            Y: |
+              =scrCashAdvance_Gallery.Y + (Parent.Height - scrCashAdvance_hdr_TopHeader.Height - scrCashAdvance_cmp_Footer_1.Height - Self.Height)/2
+            subTitle: ="No cash advances available"
+            title: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
+      - scrCashAdvance_Gallery:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="List of cash advances"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: ={}
+            Height: |-
+              =Min(
+                  scrCashAdvance_cmp_Footer_1.Y - Self.Y,
+                  Self.TemplateHeight * CountRows(Self.AllItems)
+              )
+            Items: "=SortByColumns(\n    Filter(\n        'Cash advances (mserp)',\n        // 1. 법인 필터 (기본 조건)\n        'Company (mserp_company)' = Upper(varSelectedLegalEntity),\n        \n        // 2. 상태 필터 (If 제거 -> OR 로직 변경)\n        (\n            IsBlank(varCashAdvanceStatusFilter) || \n            'Cash advance status' = varCashAdvanceStatusFilter\n        ),\n        \n        // 3. 날짜 필터 (If 제거 및 컬럼 가공 제거)\n        (\n            IsBlank(txt_CashAdvanceDateFilter.Text) || \n            'Requested date' = DateValue(txt_CashAdvanceDateFilter.Text)\n        )\n    ),\n    \"mserp_requesteddate\", \n    SortOrder.Descending\n)"
+            OnSelect: |-
+              =If(
+                  varCntSelect,
+                  If(
+                      IsBlank(LookUp(colSelectedCashAdvanceIds, cashAdvanceNumber = ThisItem.'Cash advance number')),
+                      Collect(colSelectedCashAdvanceIds, {cashAdvanceNumber: ThisItem.'Cash advance number'}),
+                      RemoveIf(colSelectedCashAdvanceIds, cashAdvanceNumber = ThisItem.'Cash advance number')
+                  ),
+                  Set(varSelectedCashAdvance, ThisItem);
+                  If(
+                      ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft,
+                      Notify("Cash Advance Edit Screen is not yet implemented", NotificationType.Information, 3000),
+                      Notify("Cash Advance View Only Screen is not yet implemented", NotificationType.Information, 3000)
+                  )
+              )
+            TemplateSize: =150
+            Width: =Parent.Width
+            Y: |-
+              =If(
+                  varCntSelect,
+                  scrCashAdvance_shp_Rectangle_1.Y + scrCashAdvance_shp_Rectangle_1.Height,
+                  scrCashAdvance_shp_Rectangle.Y + scrCashAdvance_shp_Rectangle.Height
+              )
+          Children:
+            - Container11_CashAdvance:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Height: =150
+                  LayoutDirection: =LayoutDirection.Vertical
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Container6_CashAdvance:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: =Parent.Height - scrCashAdvance_shp_GalleryBaseSeparator_1.Height
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width
+                      Children:
+                        - shpBorder_CashAdvance:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =Color.Transparent
+                              Height: =Parent.Height
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              Width: =10
+                        - scrCashAdvance_chk_Select:
+                            Control: Classic/CheckBox@2.1.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              BorderStyle: =BorderStyle.None
+                              CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1), Color.White)
+                              CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+                              CheckboxSize: =42
+                              CheckmarkFill: =Color.White
+                              Color: =RGBA(34, 102, 227, 1)
+                              Default: =!IsEmpty(Filter(colSelectedCashAdvanceIds, cashAdvanceNumber = ThisItem.'Cash advance number'))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Lighter
+                              Height: =35
+                              HoverColor: =RGBA(0, 18, 107, 1)
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnCheck: |-
+                                =Collect(colSelectedCashAdvanceIds, {cashAdvanceNumber: ThisItem.'Cash advance number'})
+                              OnSelect: =Select(scrCashAdvance_shp_SelectRegion)
+                              OnUncheck: =RemoveIf(colSelectedCashAdvanceIds, cashAdvanceNumber = ThisItem.'Cash advance number')
+                              Reset: =varCntSelect Or scrCashAdvance_chk_SelectAll.Value
+                              Text: =Concatenate("Cash advance ", ThisItem.'Cash advance number', If(Self.Value, " selected", " unselected"))
+                              VerticalAlign: =VerticalAlign.Bottom
+                              Visible: =varCntSelect
+                              Width: =43
+                              X: =18
+                              Y: =40
+                        - Container7_CashAdvance:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                            Children:
+                              - Label_CashAdvanceNumber:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scrCashAdvance_shp_SelectRegion)
+                                    PaddingLeft: =15
+                                    PaddingRight: =0
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: =ThisItem.'Cash advance number'
+                                    Width: =Parent.Width
+                              - Label_RequestedDate:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: =RGBA(102, 102, 102, 1)
+                                    Font: =Font.'Segoe UI'
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scrCashAdvance_shp_SelectRegion)
+                                    PaddingLeft: =15
+                                    PaddingRight: =0
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: =Text(DateValue(ThisItem.'Requested date'), "mmm dd, yyyy")
+                                    Width: =Parent.Width
+                        - Container9_CashAdvance:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =200
+                            Children:
+                              - Label_RequestedAmount:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Bold
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    OnSelect: =Select(scrCashAdvance_shp_SelectRegion)
+                                    TabIndex: =If(IsBlank(Self.Text), -1, 0)
+                                    Text: |-
+                                      =Concatenate(
+                                          Text(Value(ThisItem.'Requested amount'), "#,#0.00", varDefaultLanguage),
+                                          " ",
+                                          varDefaultCurrency
+                                      )
+                                    Width: =Parent.Width
+                        - Icon3_CashAdvance:
+                            Control: Classic/Icon@2.5.0
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(110, 110, 110, 1)
+                              Icon: =Icon.ChevronRight
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnSelect: =Select(scrCashAdvance_shp_SelectRegion);
+                              PaddingBottom: =15
+                              PaddingTop: =15
+                              Visible: =!varCntSelect
+                  - scrCashAdvance_shp_GalleryBaseSeparator_1:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =RGBA(225, 225, 225, 1)
+                        Height: =1
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =1
+                        Width: =Parent.Width - 10
+            - scrCashAdvance_shp_SelectRegion:
+                Control: Rectangle@2.3.0
+                Properties:
+                  AccessibleLabel: ="Select cash advance"
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  FocusedBorderThickness: =0
+                  Height: =Parent.TemplateHeight
+                  OnSelect: |-
+                    =If(
+                        varCntSelect,
+                        If(
+                            IsBlank(LookUp(colSelectedCashAdvanceIds, cashAdvanceNumber = ThisItem.'Cash advance number')) && ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft,
+                            Collect(colSelectedCashAdvanceIds, {cashAdvanceNumber: ThisItem.'Cash advance number'}),
+                            RemoveIf(colSelectedCashAdvanceIds, cashAdvanceNumber = ThisItem.'Cash advance number')
+                        ),
+                        Select(Parent)
+                    )
+                  TabIndex: =0
+                  Width: =Container9_CashAdvance.X + Container9_CashAdvance.Width
+      - scrCashAdvance_cmp_Footer_1:
+          Control: CanvasComponent
+          ComponentName: cmp_Footer_3
+          Properties:
+            ApprovalsAccessibleLabel: ="Text"
+            ApprovalsText: |-
+              =If(
+                  varAppMode = "CashAdvance",
+                  "Cash",
+                  If(
+                      varAppMode = "AirfareAllowance",
+                      "Travel",
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                  )
+              )
+            DisplayMode: =!IsBlank(varSelectedLegalEntity)
+            ExpenseAccessibleLabel: ="Text"
+            ExpensesText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
+            Fill: =RGBA(248, 248, 248, 0.94)
+            Height: =84
+            OnApprovalsButtonClick: |-
+              =If(
+                  varAppMode = "CashAdvance",
+                  Set(varSelectedTab, 4);
+                  Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
+                  If(
+                      varAppMode = "AirfareAllowance",
+                      Set(varSelectedTab, 4);
+                      Navigate('Travel - List Screen', ScreenTransition.Fade),
+                      UpdateContext({varcntShowFilter: false});
+                      Set(varSelectedTab, 4);
+                      Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
+                      Reset(scr25_cmb_Project);
+                      Reset(scr25_cmb_User)
+                  )
+              )
+            OnExpensesButtonClick: |-
+              =UpdateContext({varcntShowFilter: false});
+              Set(varSelectedTab, 2);
+              Navigate('Expenses - List Screen', ScreenTransition.Fade)
+            OnReceiptsButtonClick: |-
+              =UpdateContext({varcntShowFilter: false});
+              Set(varSelectedTab, 1);
+              Navigate('Receipts - List Screen', ScreenTransition.Fade)
+            OnReportsButtonClick: |-
+              =UpdateContext({varcntShowFilter: false});
+              Set(varSelectedTab, 3);
+              Navigate('Reports - List Screen', ScreenTransition.Fade, {varcntSelectedStatus:1})
+            ReceiptAccessibleLabel: =
+            ReceiptText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
+            ReportAccessibleLabel: ="Text"
+            ReportText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+            SelectedTab: =4
+            Visible: =!varCntSelect
+            Width: =Max(App.Width, App.MinScreenWidth)
+            Y: =App.Height - Self.Height
+            paramInDefaultAppMode: =varAppMode
+            paramInDefaultSelectedTab: =4
+      - scrCashAdvance_shp_Rectangle:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =105
+            OnSelect: |-
+              =UpdateContext({varcntShowFilter: false})
+            Width: =Parent.Width
+            Y: =scrCashAdvance_hdr_TopHeader.Height - 2
+      - ComboBox_CashAdvanceStatusFilter:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            AccessibleLabel: ="Filter by cash advance status"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            ChevronBackground: =RGBA(56, 96, 178, 1)
+            ChevronFill: =RGBA(255, 255, 255, 1)
+            ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            ChevronHoverFill: =RGBA(255, 255, 255, 1)
+            Default: =Blank()
+            DefaultSelectedItems: =First(ComboBoxSample)
+            DisplayFields: =["Value"]
+            Font: =Font.'Segoe UI'
+            Height: =44
+            HoverFill: =RGBA(186, 202, 226, 1)
+            InputTextPlaceholder: ="Filter by Status"
+            Items: |-
+              =Table(
+                  {Value: Blank(), DisplayName: "All"},
+                  {Value: 'Cash advance status (mserp)'.Draft, DisplayName: "Draft"},
+                  {Value: 'Cash advance status (mserp)'.Submitted, DisplayName: "Submitted"},
+                  {Value: 'Cash advance status (mserp)'.'In review', DisplayName: "In review"},
+                  {Value: 'Cash advance status (mserp)'.Approved, DisplayName: "Approved"},
+                  {Value: 'Cash advance status (mserp)'.Returned, DisplayName: "Returned"},
+                  {Value: 'Cash advance status (mserp)'.Ordered, DisplayName: "Ordered"},
+                  {Value: 'Cash advance status (mserp)'.'Ready to pay', DisplayName: "Ready to pay"},
+                  {Value: 'Cash advance status (mserp)'.Paid, DisplayName: "Paid"}
+              )
+            OnChange: |-
+              =UpdateContext({varCashAdvanceStatusFilter: Self.Selected.Value});
+              UpdateContext({varCntSelect: false});
+              Clear(colSelectedCashAdvanceIds)
+            PaddingBottom: =5
+            PaddingLeft: =5
+            PaddingRight: =5
+            PaddingTop: =5
+            PressedColor: =RGBA(255, 255, 255, 1)
+            PressedFill: =RGBA(0, 18, 107, 1)
+            SearchFields: =["DisplayName"]
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =RGBA(56, 96, 178, 1)
+            Size: =16
+            Width: =593
+            X: =20
+            Y: =scrCashAdvance_shp_Rectangle.Y + 10
+      - txt_CashAdvanceDateFilter:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Filter by requested date"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Segoe UI'
+            Height: =44
+            HintText: ="Filter by date (YYYY-MM-DD)"
+            HoverBorderColor: =RGBA(0, 18, 107, 1)
+            HoverFill: =RGBA(186, 202, 226, 1)
+            OnChange: |-
+              =UpdateContext({varCntSelect: false});
+              Clear(colSelectedCashAdvanceIds)
+            Size: =16
+            Width: =595
+            X: =18
+            Y: =144
+      - scrCashAdvance_shp_Rectangle_1:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =105
+            Visible: =varCntSelect
+            Width: =Parent.Width
+            Y: =scrCashAdvance_shp_Rectangle.Y + scrCashAdvance_shp_Rectangle.Height
+      - scrCashAdvance_img_Create:
+          Control: Image@2.2.3
+          Properties:
+            AccessibleLabel: ="Create new cash advance"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =Self.Width
+            Image: =CreateButton
+            ImagePosition: =ImagePosition.Fill
+            OnSelect: |-
+              =Set(varSelectedCashAdvance, Blank());
+              Notify("Cash Advance Edit Screen is not yet implemented", NotificationType.Information, 3000)
+            TabIndex: =0
+            Visible: =varCashAdvanceStatusFilter = 'Cash advance status (mserp)'.Draft && !varCntSelect
+            Width: =120
+            X: =Parent.Width - Self.Width - 15
+            Y: =scrCashAdvance_cmp_Footer_1.Y - Self.Height - 15
+      - scrCashAdvance_chk_SelectAll:
+          Control: Classic/CheckBox@2.1.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            BorderStyle: =BorderStyle.None
+            CheckboxBackgroundFill: =If(Self.Value, RGBA(34, 102, 227, 1), Color.White)
+            CheckboxBorderColor: =RGBA(34, 102, 227, 1)
+            CheckboxSize: =42
+            CheckmarkFill: =Color.White
+            Font: =Font.'Open Sans'
+            Height: =35
+            HoverColor: =RGBA(0, 18, 107, 1)
+            OnCheck: |-
+              =Clear(colSelectedCashAdvanceIds);
+              ForAll(
+                  Filter(
+                      scrCashAdvance_Gallery.AllItems,
+                      'Cash advance status' = 'Cash advance status (mserp)'.Draft
+                  ),
+                  Collect(colSelectedCashAdvanceIds, {cashAdvanceNumber: ThisRecord.'Cash advance number'})
+              )
+            OnUncheck: =Clear(colSelectedCashAdvanceIds)
+            Reset: =varCntSelect
+            Text: =Concatenate("All cash advances ", If(Self.Value, "selected", "unselected"))
+            Visible: =varCntSelect && varCashAdvanceStatusFilter = 'Cash advance status (mserp)'.Draft
+            Width: =43
+            X: =18
+            Y: =scrCashAdvance_shp_Rectangle_1.Y + 10
+      - scrCashAdvance_lbl_SelectAll:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Segoe UI'
+            Height: =32
+            Size: =18
+            Text: ="Select All"
+            Visible: =varCntSelect && varCashAdvanceStatusFilter = 'Cash advance status (mserp)'.Draft
+            Width: =194
+            X: =71
+            Y: =scrCashAdvance_chk_SelectAll.Y
+      - scrCashAdvance_totalSelected:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(110, 110, 110, 1)
+            Font: =Font.'Segoe UI'
+            Height: =35
+            Size: =16
+            Text: =Concatenate(CountRows(colSelectedCashAdvanceIds), " selected")
+            Visible: =varCntSelect
+            Width: =147
+            X: =Parent.Width - Self.Width - 25
+            Y: =scrCashAdvance_lbl_SelectAll.Y
+      - scrCashAdvance_hdr_TopHeader:
+          Control: CanvasComponent
+          ComponentName: main-app-header
+          Properties:
+            Fill: =Color.White
+            Height: =85
+            OnSelectButton: |-
+              =Set(
+                  gblNavigationDrawerVisibility,
+                  true
+              );
+              Set(
+                  gblScreenName,
+                  'Cash Advance - List Screen'
+              );
+              Refresh('Expense mobile notifications (mserp)');
+              ClearCollect(
+                  colExpenseNoticationInfo,
+                  ForAll(
+                      Filter('Expense mobile notifications (mserp)', NotifiedEmailId = User().Email) As ExpenseNotification,
+                      {
+                          RecId: ExpenseNotification.EntRecId,
+                          ReadMessage: ExpenseNotification.Read
+                      }
+                  )
+              );
+            Width: =Max(App.Width, App.MinScreenWidth)
+            firstIcon: =
+            firstIconAccessibleLabel: =
+            firstIconAction: =
+            homeIcon: =homeIcon
+            homeIconAccessibleLabel: ="Navigate Home"
+            homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
+            paramAvatar: =Coalesce(userImage, blankImage)
+            paramTitle: ="Cash Advance"
+            refreshIconAction: |-
+              =UpdateContext({varCntSelect: false});
+              Refresh('Cash advances (mserp)');
+              Clear(colSelectedCashAdvanceIds);
+              Reset(scrCashAdvance_Gallery)
+            secondIcon: |-
+              =If(
+                  varCashAdvanceStatusFilter = 'Cash advance status (mserp)'.Draft,
+                  If(
+                      CountRows(colSelectedCashAdvanceIds) > 0,
+                      DeleteIconEnabled,
+                      DeleteIconDisabled
+                  )
+              )
+            secondIconAccessibleLabel: =If(Self.secondIcon = DeleteIconEnabled, "Delete cash advances", "Disabled delete")
+            secondIconAction: |-
+              =If(
+                  varCashAdvanceStatusFilter = 'Cash advance status (mserp)'.Draft && CountRows(colSelectedCashAdvanceIds) > 0,
+                  UpdateContext({varCntDelete: true})
+              )
+            thirdIcon: |-
+              =If(
+                  varCashAdvanceStatusFilter = 'Cash advance status (mserp)'.Draft,
+                  If(
+                      varCntSelect,
+                      SelectorCloseIcon,
+                      SelectorIcon
+                  )
+              )
+            thirdIconAccessibleLabel: =If(Self.thirdIcon = SelectorIcon, "Multiselect cash advances", "Cancel")
+            thirdIconAction: |-
+              =If(
+                  varCntSelect,
+                  UpdateContext({varCntSelect: false}),
+                  UpdateContext({varCntSelect: true})
+              );
+              Clear(colSelectedCashAdvanceIds)
+      - scrCashAdvance_cmp_DeleteConfirmationDialog:
+          Control: CanvasComponent
+          ComponentName: cmp02_ConfirmationDialog
+          Properties:
+            Height: =App.Height
+            LegalEntity: ="Text"
+            OnLeftButtonClick: |-
+              =UpdateContext({varCntDelete: false})
+            OnRightButtonClick: |-
+              =ClearCollect(deleteErrorsList, []);
+              ForAll(
+                  colSelectedCashAdvanceIds,
+                  IfError(
+                      Remove(
+                          'Cash advances (mserp)',
+                          LookUp(
+                              'Cash advances (mserp)',
+                              'Cash advance number' = colSelectedCashAdvanceIds[@cashAdvanceNumber] &&
+                              'Cash advance status' = 'Cash advance status (mserp)'.Draft
+                          )
+                      ),
+                      Collect(
+                          deleteErrorsList,
+                          {
+                              message: Last(Split(FirstError.Message, ":")).Value
+                          }
+                      )
+                  )
+              );
+              If(
+                  CountRows(deleteErrorsList) = 0,
+                  Notify("Cash advances deleted successfully", NotificationType.Success, gblParams.notificationTime),
+                  ForAll(
+                      Distinct(deleteErrorsList, message),
+                      Notify(ThisRecord.Value, NotificationType.Error, gblParams.notificationTime)
+                  )
+              );
+              UpdateContext({varCntDelete: false});
+              UpdateContext({varCntSelect: false});
+              Clear(colSelectedCashAdvanceIds)
+            SelectedExpense: =
+            SelectedList: ="Text"
+            SelectedReceiptNumber: =
+            Visible: =varCntDelete
+            Width: =Max(App.Width, App.MinScreenWidth)
+            controlName: ="scrCashAdvance_cmp_DeleteConfirmationDialog"
+            parmInDescriptionText: ="Are you sure you want to delete the selected cash advances?"
+            parmInHeaderText: ="Delete Cash Advances"
+            parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+            parmInLeftButtonText: ="Cancel"
+            parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+            parmInRightButtonText: ="Delete"
+            returnFocus: ="scrCashAdvance_hdr_TopHeader"
+      - Rectangle5_CashAdvance:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(248, 248, 248, 0.6)
+            Height: =App.Height
+            OnSelect: |-
+              =Set(
+                  gblNavigationDrawerVisibility,
+                  false
+              )
+            Visible: =gblNavigationDrawerVisibility
+            Width: =App.Width
+      - ShadowElement_CashAdvance:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.ExtraBold
+            Height: =App.Height
+            LayoutDirection: =LayoutDirection.Horizontal
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Visible: =gblNavigationDrawerVisibility
+            Width: =4
+            X: ='Navigation-Drawer_CashAdvance'.Width - 1
+            Y: ='Navigation-Drawer_CashAdvance'.Y
+      - Navigation-Drawer_CashAdvance:
+          Control: CanvasComponent
+          ComponentName: Navigation-Drawer
+          Properties:
+            CountNoification: =CountRows(Filter(colExpenseNoticationInfo, ReadMessage = 'NoYes (mserp)'.No))
+            Fill: =RGBA(255, 255, 255, 100)
+            Height: =App.Height
+            MenuItems: |-
+              =Table({
+                      Index: 1,
+                      ScreenName: 'Profile - Notification Screen',
+                      Icon: Notification,
+                      Value: GlobalLabels.Labels.'15062:LocalizedName,msdyn_NotificationsLabel'
+                  },
+                  {
+                      Index: 2,
+                      ScreenName: 'Profile - Change Legal Entity Screen',
+                      Icon: ChangeLE,
+                      Value: GlobalLabels.Labels.'15062:LocalizedName,msdyn_ChangeLegalEntityLabel'
+                  },
+                  {
+                      Index: 3,
+                      ScreenName: 'Profile - About Screen',
+                      Icon: About,
+                      Value: GlobalLabels.Labels.'15062:LocalizedName,msdyn_AboutLabel'
+                  }
+              )
+            UserEmailValue: =User().Email
+            UserImageValue: =Coalesce(userImage, blankImage)
+            UserLegalEntityValue: =LookUp('Legal entities (mserp)', Company = varSelectedLegalEntity).Name
+            UserNameValue: =User().FullName
+            Visible: =gblNavigationDrawerVisibility
+            Width: =App.Width * 0.8
+            unreadNotificationVisibility: =CountRows(Filter(colExpenseNoticationInfo, ReadMessage = 'NoYes (mserp)'.No)) > 0

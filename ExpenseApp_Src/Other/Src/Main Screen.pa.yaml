@@ -73,8 +73,8 @@ Screens:
             RadiusTopRight: =8
             Size: =18
             Text: ="Expense Report"
-            Width: =Parent.Width - 240
-            X: =(Parent.Width - Self.Width) / 2
+            Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
+            X: =If(App.Width > 640, 20, (Parent.Width - Self.Width) / 2)
             Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + 50
       - MainScreen_AirfareAllowanceBtn:
           Control: Classic/Button@2.2.0
@@ -101,6 +101,34 @@ Screens:
             RadiusTopRight: =8
             Size: =18
             Text: ="Airfare/Shipping Allowance"
-            Width: =Parent.Width - 240
-            X: =(Parent.Width - Self.Width) / 2
-            Y: =MainScreen_ExpenseReportBtn.Y + MainScreen_ExpenseReportBtn.Height + 20
+            Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
+            X: =If(App.Width > 640, MainScreen_ExpenseReportBtn.X + MainScreen_ExpenseReportBtn.Width + 20, (Parent.Width - Self.Width) / 2)
+            Y: =If(App.Width > 640, MainScreen_ExpenseReportBtn.Y, MainScreen_ExpenseReportBtn.Y + MainScreen_ExpenseReportBtn.Height + 20)
+      - MainScreen_CashAdvanceBtn:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(163, 32, 53, 1)
+            Color: =RGBA(163, 32, 53, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =Color.White
+            Font: =Font.'Segoe UI'
+            Height: =60
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(184, 0, 0, 1)
+            OnSelect: |-
+              =Set(varAppMode, "CashAdvance");
+              Set(varSelectedTab, 2);
+              Navigate('Expenses - List Screen', ScreenTransition.Fade)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =RGBA(240, 230, 230, 1)
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Size: =18
+            Text: ="Cash Advance"
+            Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
+            X: =If(App.Width > 640, 20, (Parent.Width - Self.Width) / 2)
+            Y: =If(App.Width > 640, MainScreen_ExpenseReportBtn.Y + MainScreen_ExpenseReportBtn.Height + 20, MainScreen_AirfareAllowanceBtn.Y + MainScreen_AirfareAllowanceBtn.Height + 20)
