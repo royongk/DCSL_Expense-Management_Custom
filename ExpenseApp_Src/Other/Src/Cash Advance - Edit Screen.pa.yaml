@@ -1,0 +1,424 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  Cash Advance - Edit Screen:
+    Properties:
+      Fill: =RGBA(248, 248, 248, 1)
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =UpdateContext({varIsCreateCashAdvance: IsBlank(varSelectedCashAdvance)});
+        // [추가] 변수 상태에 따라 폼 모드 강제 설정
+        If(
+            varIsCreateCashAdvance, 
+            NewForm(EditCashAdvanceForm), 
+            EditForm(EditCashAdvanceForm)
+        );
+    Children:
+      - CashAdvanceEdit_Header:
+          Control: CanvasComponent
+          ComponentName: hdr02_Header
+          Properties:
+            Fill: =CashAdvanceEdit_Header.paramFill
+            Height: =82
+            Width: =Max(App.Width, App.MinScreenWidth)
+            paramColor: =RGBA(0, 0, 0, 1)
+            paramFill: =RGBA(255, 255, 255, 1)
+            paramTitle: |-
+              =If(
+                  varIsCreateCashAdvance,
+                  "New Cash Advance",
+                  "Edit Cash Advance"
+              )
+      - CashAdvanceEdit_BackIcon:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            AccessibleLabel: ="Press to go back"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =icongconfig_backbutton.Color
+            Fill: =icongconfig_backbutton.Fill
+            Height: =icongconfig_backbutton.Height
+            Icon: =Icon.ChevronLeft
+            OnSelect: =Navigate('Cash Advance - List Screen', ScreenTransition.None)
+            TabIndex: =0
+            Width: =icongconfig_backbutton.Width
+            X: =22.5
+            Y: =(CashAdvanceEdit_Header.Height-Self.Height)/2
+      - CashAdvanceEdit_Container:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =Parent.Height - CashAdvanceEdit_Header.Height - CashAdvanceEdit_ButtonsContainer.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =CashAdvanceEdit_Header.Height
+          Children:
+            - EditCashAdvanceForm:
+                Control: Form@2.4.4
+                Variant: Classic
+                Layout: Horizontal
+                Properties:
+                  AcceptsFocus: =
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  DataSource: ='Cash advances (mserp)'
+                  DefaultMode: |-
+                    =If(
+                        varIsCreateCashAdvance,
+                        FormMode.New,
+                        FormMode.Edit
+                    )
+                  Item: =varSelectedCashAdvance
+                  OnFailure: |-
+                    =If(
+                        CountRows(Split(Text(Self.Error), ":")) > 2,
+                        Notify(
+                            Mid(Mid(EditCashAdvanceForm.Error, Find(":", EditCashAdvanceForm.Error) + 2), Find(":", Mid(EditCashAdvanceForm.Error, Find(":", EditCashAdvanceForm.Error) + 2)) + 2),
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        ),
+                        Notify(
+                            Last(Split(Text(Self.Error), ":")).Value,
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        )
+                    )
+                  OnSuccess: |-
+                    =Set(varSelectedCashAdvance, EditCashAdvanceForm.LastSubmit);
+                    Notify("Cash advance saved successfully", NotificationType.Success, gblParams.notificationTime);
+                    Navigate('Cash Advance - List Screen', ScreenTransition.None)
+                  Width: =Parent.Width
+                Children:
+                  - Requested date_DataCard:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicDateTimeEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_requesteddate"
+                        Default: =ThisItem.'Requested date'
+                        DisplayName: ="Requested date"
+                        Height: =80
+                        Required: =true
+                        Update: =DatePicker_CashAdvance_RequestedDate.SelectedDate
+                        X: =0
+                        Y: =0
+                      Children:
+                        - DatePicker_CashAdvance_RequestedDate:
+                            Control: Classic/DatePicker@2.6.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Height: =gblParams.dropDownHeight
+                              IconBackground: =RGBA(56, 96, 178, 1)
+                              IconFill: =RGBA(255, 255, 255, 1)
+                              Size: =14
+                              Width: =Parent.Width - 80
+                              X: =40
+                              Y: =32
+                  - Location_DataCard:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_location"
+                        Default: =ThisItem.Location
+                        DisplayName: ="Location"
+                        Height: =80
+                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
+                        Required: =true
+                        Update: =If(IsBlank(ComboBox_CashAdvance_Location.Selected.Location), ComboBox_CashAdvance_Location.SearchText, ComboBox_CashAdvance_Location.Selected.Location)
+                        X: =0
+                        Y: =1
+                      Children:
+                        - ComboBox_CashAdvance_Location:
+                            Control: Classic/ComboBox@2.4.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              DefaultSelectedItems: =If(IsBlank(ThisItem.Location), Blank(), LookUp('Travel locations (mserp)', Location = ThisItem.Location))
+                              DisplayFields: =["mserp_destination"]
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Height: =gblParams.dropDownHeight
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              Items: =Filter('Travel locations (mserp)', 'Company Code' = varSelectedLegalEntity)
+                              PaddingBottom: =5
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SearchFields: =["mserp_destination"]
+                              SelectMultiple: =false
+                              SelectionColor: =RGBA(255, 255, 255, 1)
+                              SelectionFill: =RGBA(56, 96, 178, 1)
+                              Size: =13
+                              Width: =Parent.Width - 80
+                              X: =40
+                              Y: =32
+                  - Purpose_DataCard:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_purpose"
+                        Default: =ThisItem.Purpose
+                        DisplayName: ="Purpose"
+                        Height: =80
+                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
+                        Required: =true
+                        Update: =If(IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)'), ComboBox_CashAdvance_Purpose.SearchText, ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)')
+                        X: =0
+                        Y: =2
+                      Children:
+                        - ComboBox_CashAdvance_Purpose:
+                            Control: Classic/ComboBox@2.4.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              DefaultSelectedItems: =If(IsBlank(ThisItem.Purpose), Blank(), LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = ThisItem.Purpose))
+                              DisplayFields: =["mserp_value"]
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Height: =gblParams.dropDownHeight
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
+                              PaddingBottom: =5
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SearchFields: =["mserp_value"]
+                              SelectMultiple: =false
+                              SelectionColor: =RGBA(255, 255, 255, 1)
+                              SelectionFill: =RGBA(56, 96, 178, 1)
+                              Size: =13
+                              Width: =Parent.Width - 80
+                              X: =40
+                              Y: =32
+                  - Requested amount_DataCard:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicNumberEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_requestedamount"
+                        Default: =ThisItem.'Requested amount'
+                        DisplayName: ="Requested amount"
+                        Height: =80
+                        Required: =true
+                        Update: =Value(DataCardValue_CashAdvance_RequestedAmount.Text)
+                        X: =0
+                        Y: =3
+                      Children:
+                        - DataCardValue_CashAdvance_RequestedAmount:
+                            Control: Classic/TextInput@2.3.2
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Default: =If(IsBlank(ThisItem.'Requested amount'), "", Text(ThisItem.'Requested amount'))
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Format: =TextFormat.Number
+                              Height: =gblParams.dropDownHeight
+                              HintText: =
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              Size: =13
+                              Width: =Parent.Width - 80
+                              X: =40
+                              Y: =32
+                  - Currency_DataCard:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_currency"
+                        Default: =ThisItem.Currency
+                        DisplayName: ="Currency"
+                        Height: =80
+                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
+                        Required: =true
+                        Update: =ComboBox_CashAdvance_Currency.Selected.mserp_currencycode
+                        X: =0
+                        Y: =4
+                      Children:
+                        - ComboBox_CashAdvance_Currency:
+                            Control: Classic/ComboBox@2.4.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              DefaultSelectedItems: =If(IsBlank(ThisItem.Currency), Blank(), LookUp('Currencies (mserp)', 'Currency code' = ThisItem.Currency))
+                              DisplayFields: =["mserp_currencycode"]
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Height: =gblParams.dropDownHeight
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              Items: =ShowColumns('Currencies (mserp)', 'Currency code', Name)
+                              PaddingBottom: =5
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SearchFields: =["mserp_currencycode"]
+                              SelectMultiple: =false
+                              SelectionColor: =RGBA(255, 255, 255, 1)
+                              SelectionFill: =RGBA(56, 96, 178, 1)
+                              Size: =13
+                              Width: =Parent.Width - 80
+                              X: =40
+                              Y: =32
+                  - Note_DataCard:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_note"
+                        Default: =ThisItem.Note
+                        DisplayName: ="Note"
+                        Height: =120
+                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
+                        Required: =false
+                        Update: =DataCardValue_CashAdvance_Note.Text
+                        X: =0
+                        Y: =5
+                      Children:
+                        - DataCardValue_CashAdvance_Note:
+                            Control: Classic/TextInput@2.3.2
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Default: =ThisItem.Note
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Height: =80
+                              HintText: =
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              Mode: =TextMode.MultiLine
+                              Size: =13
+                              Width: =Parent.Width - 80
+                              X: =40
+                              Y: =32
+                  - CompanyCode_DataCard:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_dataareaid"
+                        Default: =varSelectedLegalEntity
+                        DisplayName: ="Company Code"
+                        Height: =0
+                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
+                        Required: =true
+                        Update: =varSelectedLegalEntity
+                        Visible: =false
+                        X: =0
+                        Y: =6
+      - CashAdvanceEdit_ButtonsContainer:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =RGBA(250, 249, 248, 1)
+            Height: =160
+            LayoutDirection: =LayoutDirection.Vertical
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =Parent.Height - Self.Height
+          Children:
+            - CashAdvanceEdit_SaveDraftButton:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(34, 102, 227, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =60
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  LayoutMinHeight: =40
+                  LayoutMinWidth: =160
+                  OnSelect: |-
+                    =If(
+                        IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||
+                        IsBlank(ComboBox_CashAdvance_Location.Selected.Location) ||
+                        IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)') && IsBlank(ComboBox_CashAdvance_Purpose.SearchText) ||
+                        IsBlank(DataCardValue_CashAdvance_RequestedAmount.Text) ||
+                        IsBlank(ComboBox_CashAdvance_Currency.Selected.mserp_currencycode),
+                        Notify("Please fill in all required fields", NotificationType.Error, gblParams.notificationTime),
+                        SubmitForm(EditCashAdvanceForm)
+                    )
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =18
+                  Text: ="Save Draft"
+                  Width: =Parent.Width - 80
+                  X: =40
+                  Y: =20
+            - CashAdvanceEdit_SubmitButton:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(34, 102, 227, 1)
+                  Color: =RGBA(34, 102, 227, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =Color.White
+                  Font: =Font.'Segoe UI'
+                  Height: =60
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  LayoutMinHeight: =40
+                  LayoutMinWidth: =160
+                  OnSelect: |-
+                    =If(
+                        IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||
+                        IsBlank(ComboBox_CashAdvance_Location.Selected.Location) ||
+                        IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)') && IsBlank(ComboBox_CashAdvance_Purpose.SearchText) ||
+                        IsBlank(DataCardValue_CashAdvance_RequestedAmount.Text) ||
+                        IsBlank(ComboBox_CashAdvance_Currency.Selected.mserp_currencycode),
+                        Notify("Please fill in all required fields", NotificationType.Error, gblParams.notificationTime),
+                        SubmitForm(EditCashAdvanceForm)
+                    )
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =18
+                  Text: ="Submit(추후 적용)"
+                  Width: =Parent.Width - 80
+                  X: =40
+                  Y: =CashAdvanceEdit_SaveDraftButton.Y + CashAdvanceEdit_SaveDraftButton.Height + 10

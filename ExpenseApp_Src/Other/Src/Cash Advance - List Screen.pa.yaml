@@ -16,13 +16,14 @@ Screens:
         UpdateContext({varCashAdvanceDateFilterStart: Blank()});
         UpdateContext({varCashAdvanceDateFilterEnd: Blank()});
         UpdateContext({varCashAdvanceShowDateFilter: false});
-        UpdateContext({
-            varSelectedCashAdvance: If(
-                false, 
-                First('Cash advances (mserp)'), 
-                Blank()
-            )
-        });
+        //UpdateContext({
+        //    varSelectedCashAdvance: If(
+        //        false, 
+        //        First('Cash advances (mserp)'), 
+        //        Blank()
+        //    )
+        //});
+        Set(varSelectedCashAdvance, Blank());
         UpdateContext({varCntDelete: false});
         Refresh('Cash advances (mserp)');
         Clear(colSelectedCashAdvanceIds);
@@ -88,7 +89,8 @@ Screens:
                   Set(varSelectedCashAdvance, ThisItem);
                   If(
                       ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft,
-                      Notify("Cash Advance Edit Screen is not yet implemented", NotificationType.Information, 3000),
+                      Set(varIsCreateCashAdvance, false);
+                      Navigate('Cash Advance - Edit Screen', ScreenTransition.Fade),
                       Notify("Cash Advance View Only Screen is not yet implemented", NotificationType.Information, 3000)
                   )
               )
@@ -655,7 +657,9 @@ Screens:
             ImagePosition: =ImagePosition.Fill
             OnSelect: |-
               =Set(varSelectedCashAdvance, Blank());
-              Notify("Cash Advance Edit Screen is not yet implemented", NotificationType.Information, 3000)
+              Set(varIsCreateCashAdvance, true);
+              NewForm(EditCashAdvanceForm); // [추가] 폼을 강제로 새 항목 모드로 초기화
+              Navigate('Cash Advance - Edit Screen', ScreenTransition.Fade)
             TabIndex: =0
             Visible: =!varCntSelect
             Width: =120
