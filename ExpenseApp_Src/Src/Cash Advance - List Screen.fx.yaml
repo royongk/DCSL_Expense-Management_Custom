@@ -419,9 +419,21 @@
         SearchFields: =["DisplayName"]
         SearchItems: =Search(colCashAdvanceStatusOptions,ComboBox_CashAdvanceStatusFilter.SearchText,DisplayName)
         Size: =16
-        Width: =If(App.Width > 640, 200, Parent.Width - 40)
-        X: =20
-        Y: =scrCashAdvance_shp_Rectangle.Y + 10
+        Width: |-
+            =//If(App.Width > 640, 200, Parent.Width - 40)
+            If(App.Width > 640, Min(400, Parent.Width * 0.4), Parent.Width - 40)
+        X: |-
+            =//20
+            If(
+                App.Width > 640,
+                // PC: 날짜 필터 라벨의 왼쪽에 위치 (여백 20)
+                scrCashAdvance_lbl_DateFilter.X - Self.Width - 20,
+                // Mobile: 왼쪽 벽에 붙임 (여백 20)
+                20
+            )
+        Y: |-
+            =//scrCashAdvance_shp_Rectangle.Y + 10
+            scrCashAdvance_shp_Rectangle.Y + 10
         ZIndex: =6
 
     scrCashAdvance_img_DateFilter As image:
@@ -436,10 +448,20 @@
         TabIndex: =0
         Visible: |-
             =//!varCashAdvanceShowDateFilter && IsBlank(varCashAdvanceDateFilterStart) && IsBlank(varCashAdvanceDateFilterEnd)
-            IsBlank(varCashAdvanceDateFilterStart) && IsBlank(varCashAdvanceDateFilterEnd)
+            IsBlank(varCashAdvanceDateFilterStart) && IsBlank(varCashAdvanceDateFilterEnd) && (App.Width > 400)
         Width: =28
-        X: =If(App.Width > 640, Parent.Width - Self.Width - 25, Parent.Width - Self.Width - 25)
-        Y: =If(App.Width > 640, scrCashAdvance_shp_Rectangle.Y + 10, ComboBox_CashAdvanceStatusFilter.Y + ComboBox_CashAdvanceStatusFilter.Height + 10)
+        X: |-
+            =//If(App.Width > 640, Parent.Width - Self.Width - 25, Parent.Width - Self.Width - 25)
+            Parent.Width - Self.Width - 25
+        Y: |-
+            =//If(App.Width > 640, scrCashAdvance_shp_Rectangle.Y + 10, ComboBox_CashAdvanceStatusFilter.Y + ComboBox_CashAdvanceStatusFilter.Height + 10)
+            If(
+                App.Width > 640,
+                // PC: 콤보박스와 같은 높이 (윗줄)
+                scrCashAdvance_shp_Rectangle.Y + 10,
+                // Mobile: 콤보박스 아래로 내려감 (아랫줄)
+                ComboBox_CashAdvanceStatusFilter.Y + ComboBox_CashAdvanceStatusFilter.Height + 10
+            )
         ZIndex: =13
 
     scrCashAdvance_lbl_DateFilter As label:
@@ -449,10 +471,14 @@
         Height: =32
         Size: =18
         Text: ="Filter by request date"
-        Visible: =!varCashAdvanceShowDateFilter && IsBlank(varCashAdvanceDateFilterStart) && IsBlank(varCashAdvanceDateFilterEnd)
+        Visible: =!varCashAdvanceShowDateFilter && IsBlank(varCashAdvanceDateFilterStart) && IsBlank(varCashAdvanceDateFilterEnd) && (App.Width > 400)
         Width: =250
-        X: =scrCashAdvance_img_DateFilter.X - Self.Width - 15
-        Y: =If(App.Width > 640, scrCashAdvance_shp_Rectangle.Y + 14, scrCashAdvance_img_DateFilter.Y + 2)
+        X: |-
+            =//scrCashAdvance_img_DateFilter.X - Self.Width - 15
+            scrCashAdvance_img_DateFilter.X - Self.Width - 10
+        Y: |-
+            =//If(App.Width > 640, scrCashAdvance_shp_Rectangle.Y + 14, scrCashAdvance_img_DateFilter.Y + 2)
+            scrCashAdvance_img_DateFilter.Y + 8
         ZIndex: =14
 
     scrCashAdvance_shp_Rectangle_1 As rectangle:
@@ -494,9 +520,19 @@
         PaddingRight: =10
         PaddingTop: =10
         Visible: =varCashAdvanceShowDateFilter
-        Width: =If(App.Width > 640, 280, Parent.Width - 40)
-        X: =If(App.Width > 640, scrCashAdvance_img_DateFilter.X + scrCashAdvance_img_DateFilter.Width - Self.Width, 20)
-        Y: =scrCashAdvance_img_DateFilter.Y
+        Width: |-
+            =//If(App.Width > 640, 280, Parent.Width - 40)
+            If(
+                App.Width > 640, 
+                Min(450, Parent.Width * 0.45), // PC: 화면의 45%를 쓰되, 최대 450px을 넘지 않음
+                Parent.Width - 40              // Mobile: 꽉 채움
+            )
+        X: |-
+            =//If(App.Width > 640, scrCashAdvance_img_DateFilter.X + scrCashAdvance_img_DateFilter.Width - Self.Width, 20)
+            If(App.Width > 640, scrCashAdvance_img_DateFilter.X + scrCashAdvance_img_DateFilter.Width - Self.Width, 20)
+        Y: |-
+            =//scrCashAdvance_img_DateFilter.Y
+            scrCashAdvance_img_DateFilter.Y
         ZIndex: =17
 
         scrCashAdvance_grp_Horizontal_Container1 As groupContainer.horizontalAutoLayoutContainer:
@@ -581,9 +617,6 @@
             ZIndex: =3
 
             scrCashAdvance_lbl_EndDate As label:
-                BorderColor: =RGBA(0, 18, 107, 1)
-                Color: =RGBA(0, 0, 0, 1)
-                DisabledColor: =RGBA(166, 166, 166, 1)
                 Font: =Font.'Segoe UI'
                 Height: =30
                 LayoutMaxHeight: =0
