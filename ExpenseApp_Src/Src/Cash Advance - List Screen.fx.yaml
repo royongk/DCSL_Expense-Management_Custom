@@ -3,6 +3,9 @@
     OnVisible: |-
         =UpdateContext({varCntSelect: false});
         UpdateContext({varCashAdvanceStatusFilter: Blank()});
+        UpdateContext({varCashAdvanceDateFilterStart: Blank()});
+        UpdateContext({varCashAdvanceDateFilterEnd: Blank()});
+        UpdateContext({varCashAdvanceShowDateFilter: false});
         UpdateContext({
             varSelectedCashAdvance: If(
                 false, 
@@ -15,7 +18,6 @@
         Clear(colSelectedCashAdvanceIds);
         Reset(scrCashAdvance_Gallery);
         Reset(ComboBox_CashAdvanceStatusFilter);
-        Reset(txt_CashAdvanceDateFilter);
 
     emptyStateComponent_CashAdvance As emptyStateComponent:
         subTitle: ="No cash advances available"
@@ -50,10 +52,16 @@
                         'Cash advance status' = varCashAdvanceStatusFilter
                     ),
                     
-                    // 3. 날짜 필터 (If 제거 및 컬럼 가공 제거)
+                    // 3. 날짜 범위 필터
                     (
-                        IsBlank(txt_CashAdvanceDateFilter.Text) || 
-                        'Requested date' = DateValue(txt_CashAdvanceDateFilter.Text)
+                        (
+                            IsBlank(varCashAdvanceDateFilterStart) || 
+                            DateValue('Requested date') >= DateValue(varCashAdvanceDateFilterStart)
+                        ) &&
+                        (
+                            IsBlank(varCashAdvanceDateFilterEnd) || 
+                            DateValue('Requested date') <= DateValue(varCashAdvanceDateFilterEnd)
+                        )
                     )
                 ),
                 "mserp_requesteddate", 
@@ -83,7 +91,15 @@
             =If(
                 varCntSelect,
                 scrCashAdvance_shp_Rectangle_1.Y + scrCashAdvance_shp_Rectangle_1.Height,
-                scrCashAdvance_shp_Rectangle.Y + scrCashAdvance_shp_Rectangle.Height
+                If(
+                    varCashAdvanceShowDateFilter,
+                    scrCashAdvance_grp_DateFilterContainer.Y + scrCashAdvance_grp_DateFilterContainer.Height + 10,
+                    If(
+                        !IsBlank(varCashAdvanceDateFilterStart) || !IsBlank(varCashAdvanceDateFilterEnd),
+                        scrCashAdvance_lbl_DateFilterChoice.Y + scrCashAdvance_lbl_DateFilterChoice.Height + 10,
+                        scrCashAdvance_shp_Rectangle.Y + scrCashAdvance_shp_Rectangle.Height
+                    )
+                )
             )
         ZIndex: =2
 
@@ -330,7 +346,8 @@
         Fill: =Color.White
         Height: =105
         OnSelect: |-
-            =UpdateContext({varcntShowFilter: false})
+            =UpdateContext({varcntShowFilter: false});
+            UpdateContext({varCashAdvanceShowDateFilter: false})
         Width: =Parent.Width
         Y: =scrCashAdvance_hdr_TopHeader.Height - 2
         ZIndex: =5
@@ -338,7 +355,7 @@
     ComboBox_CashAdvanceStatusFilter As combobox:
         AccessibleLabel: ="Filter by cash advance status"
         Default: =Blank()
-        DisplayFields: =["Value"]
+        DisplayFields: =["DisplayName"]
         Font: =Font.'Segoe UI'
         Height: =44
         InputTextPlaceholder: ="Filter by Status"
@@ -360,24 +377,188 @@
             Clear(colSelectedCashAdvanceIds)
         SearchFields: =["DisplayName"]
         Size: =16
-        Width: =593
+        Width: =If(App.Width > 640, 200, Parent.Width - 40)
         X: =20
         Y: =scrCashAdvance_shp_Rectangle.Y + 10
         ZIndex: =6
 
-    txt_CashAdvanceDateFilter As text:
-        AccessibleLabel: ="Filter by requested date"
+    scrCashAdvance_img_DateFilter As image:
+        AccessibleLabel: ="Filter by date collapsed"
+        Height: =45
+        Image: =icnFilter
+        OnSelect: |-
+            =UpdateContext({varCashAdvanceShowDateFilter: true});
+            SetFocus(scrCashAdvance_lbl_DateFilterFocus)
+        TabIndex: =0
+        Visible: =!varCashAdvanceShowDateFilter && IsBlank(varCashAdvanceDateFilterStart) && IsBlank(varCashAdvanceDateFilterEnd)
+        Width: =28
+        X: =If(App.Width > 640, Parent.Width - Self.Width - 25, Parent.Width - Self.Width - 25)
+        Y: =If(App.Width > 640, scrCashAdvance_shp_Rectangle.Y + 10, ComboBox_CashAdvanceStatusFilter.Y + ComboBox_CashAdvanceStatusFilter.Height + 10)
+        ZIndex: =13
+
+    scrCashAdvance_lbl_DateFilter As label:
+        Align: =Align.Right
+        Color: =RGBA(34, 102, 227, 1)
         Font: =Font.'Segoe UI'
-        Height: =44
-        HintText: ="Filter by date (YYYY-MM-DD)"
-        OnChange: |-
-            =UpdateContext({varCntSelect: false});
-            Clear(colSelectedCashAdvanceIds)
-        Size: =16
-        Width: =595
-        X: =18
-        Y: =144
-        ZIndex: =7
+        Height: =32
+        Size: =18
+        Text: ="Filter"
+        Visible: =!varCashAdvanceShowDateFilter && IsBlank(varCashAdvanceDateFilterStart) && IsBlank(varCashAdvanceDateFilterEnd)
+        Width: =79
+        X: =scrCashAdvance_img_DateFilter.X - Self.Width - 15
+        Y: =If(App.Width > 640, scrCashAdvance_shp_Rectangle.Y + 14, scrCashAdvance_img_DateFilter.Y + 2)
+        ZIndex: =14
+
+    scrCashAdvance_lbl_DateFilterFocus As label:
+        BorderColor: =RGBA(0, 0, 0, 0)
+        Color: =RGBA(0, 0, 0, 0)
+        Height: =164
+        PaddingBottom: =10
+        PaddingLeft: =0
+        PaddingRight: =0
+        PaddingTop: =10
+        Size: =21
+        TabIndex: =0
+        Text: ="Date filter expanded"
+        Visible: =varCashAdvanceShowDateFilter
+        Width: =232
+        X: =scrCashAdvance_img_DateFilter.X + scrCashAdvance_img_DateFilter.Width - Self.Width
+        Y: =scrCashAdvance_img_DateFilter.Y
+        ZIndex: =16
+
+    scrCashAdvance_grp_DateFilterContainer As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(248, 248, 248, 1)
+        Height: =200
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =10
+        LayoutMode: =LayoutMode.Auto
+        PaddingBottom: =10
+        PaddingLeft: =10
+        PaddingRight: =10
+        PaddingTop: =10
+        Visible: =varCashAdvanceShowDateFilter
+        Width: =If(App.Width > 640, 280, Parent.Width - 40)
+        X: =If(App.Width > 640, scrCashAdvance_img_DateFilter.X + scrCashAdvance_img_DateFilter.Width - Self.Width, 20)
+        Y: =scrCashAdvance_img_DateFilter.Y
+        ZIndex: =17
+
+        scrCashAdvance_lbl_StartDate As label:
+            Font: =Font.'Segoe UI'
+            Height: =30
+            Size: =16
+            Text: ="Start Date"
+            Width: =Parent.Width
+            ZIndex: =1
+
+        "scrCashAdvance_DatePicker_Start As '날짜 선택'":
+            AccessibleLabel: ="Select start date"
+            Height: =44
+            SelectedDate: =varCashAdvanceDateFilterStart
+            OnChange: |-
+                =UpdateContext({varCashAdvanceDateFilterStart: Self.SelectedDate});
+                UpdateContext({varCntSelect: false});
+                Clear(colSelectedCashAdvanceIds)
+            Width: =Parent.Width
+            ZIndex: =2
+
+        scrCashAdvance_lbl_EndDate As label:
+            Font: =Font.'Segoe UI'
+            Height: =30
+            Size: =16
+            Text: ="End Date"
+            Width: =Parent.Width
+            Y: =scrCashAdvance_DatePicker_Start.Y + scrCashAdvance_DatePicker_Start.Height + 10
+            ZIndex: =3
+
+        "scrCashAdvance_DatePicker_End As '날짜 선택'":
+            AccessibleLabel: ="Select end date"
+            Height: =44
+            SelectedDate: =varCashAdvanceDateFilterEnd
+            OnChange: |-
+                =UpdateContext({varCashAdvanceDateFilterEnd: Self.SelectedDate});
+                UpdateContext({varCntSelect: false});
+                Clear(colSelectedCashAdvanceIds)
+            Width: =Parent.Width
+            Y: =scrCashAdvance_lbl_EndDate.Y + scrCashAdvance_lbl_EndDate.Height + 5
+            ZIndex: =4
+
+        scrCashAdvance_btn_ApplyDateFilter As button:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            Color: =Color.White
+            Fill: =RGBA(34, 102, 227, 1)
+            Height: =40
+            OnSelect: |-
+                =UpdateContext({varCashAdvanceShowDateFilter: false})
+            Size: =16
+            Text: ="Apply"
+            Width: =Parent.Width
+            Y: =scrCashAdvance_DatePicker_End.Y + scrCashAdvance_DatePicker_End.Height + 10
+            ZIndex: =5
+
+    scrCashAdvance_grp_DateFilterChoice As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =33
+
+        scrCashAdvance_lbl_DateFilterChoice As button:
+            Align: =Align.Left
+            BorderColor: =RGBA(34, 102, 227, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =46
+            OnSelect: |-
+                =UpdateContext({varCashAdvanceShowDateFilter: true});
+                SetFocus(scrCashAdvance_lbl_DateFilterFocus)
+            PaddingLeft: =12
+            RadiusBottomLeft: =3
+            RadiusBottomRight: =3
+            RadiusTopLeft: =3
+            RadiusTopRight: =3
+            Size: =18
+            Text: |-
+                =If(
+                    !IsBlank(varCashAdvanceDateFilterStart) && !IsBlank(varCashAdvanceDateFilterEnd),
+                    Concatenate(
+                        Text(varCashAdvanceDateFilterStart, "mmm dd, yyyy"),
+                        " - ",
+                        Text(varCashAdvanceDateFilterEnd, "mmm dd, yyyy")
+                    ),
+                    If(
+                        !IsBlank(varCashAdvanceDateFilterStart),
+                        Concatenate("From ", Text(varCashAdvanceDateFilterStart, "mmm dd, yyyy")),
+                        If(
+                            !IsBlank(varCashAdvanceDateFilterEnd),
+                            Concatenate("Until ", Text(varCashAdvanceDateFilterEnd, "mmm dd, yyyy")),
+                            ""
+                        )
+                    )
+                )
+            Visible: |-
+                =!IsBlank(varCashAdvanceDateFilterStart) || !IsBlank(varCashAdvanceDateFilterEnd)
+            Width: =250
+            X: =Parent.Width - Self.Width - 15
+            Y: =scrCashAdvance_shp_Rectangle.Y + scrCashAdvance_shp_Rectangle.Height + 1
+            ZIndex: =19
+
+        scrCashAdvance_img_DeselectDateFilter As image:
+            AccessibleLabel: ="Remove date filter"
+            Height: =23
+            Image: =SelectorCloseIcon
+            ImagePosition: =ImagePosition.Center
+            OnSelect: |-
+                =UpdateContext({varCashAdvanceDateFilterStart: Blank()});
+                UpdateContext({varCashAdvanceDateFilterEnd: Blank()});
+                UpdateContext({varCntSelect: false});
+                Clear(colSelectedCashAdvanceIds)
+            TabIndex: =0
+            Visible: |-
+                =!IsBlank(varCashAdvanceDateFilterStart) || !IsBlank(varCashAdvanceDateFilterEnd)
+            Width: =30
+            X: =scrCashAdvance_lbl_DateFilterChoice.X + scrCashAdvance_lbl_DateFilterChoice.Width - Self.Width - 5
+            Y: =scrCashAdvance_lbl_DateFilterChoice.Y + (scrCashAdvance_lbl_DateFilterChoice.Height - Self.Height) / 2
+            ZIndex: =20
 
     scrCashAdvance_shp_Rectangle_1 As rectangle:
         Fill: =Color.White
