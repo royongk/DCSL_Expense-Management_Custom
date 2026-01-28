@@ -132,7 +132,8 @@
                 Set(varSelectedCashAdvance, ThisItem);
                 If(
                     ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft,
-                    Notify("Cash Advance Edit Screen is not yet implemented", NotificationType.Information, 3000),
+                    Set(varIsCreateCashAdvance, false);
+                    Navigate('Cash Advance - Edit Screen', ScreenTransition.Fade),
                     Notify("Cash Advance View Only Screen is not yet implemented", NotificationType.Information, 3000)
                 )
             )
@@ -668,7 +669,8 @@
         ImagePosition: =ImagePosition.Fill
         OnSelect: |-
             =Set(varSelectedCashAdvance, Blank());
-            Notify("Cash Advance Edit Screen is not yet implemented", NotificationType.Information, 3000)
+            Set(varIsCreateCashAdvance, true);
+            Navigate('Cash Advance - Edit Screen', ScreenTransition.Fade)
         TabIndex: =0
         Visible: =!varCntSelect
         Width: =120
