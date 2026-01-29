@@ -2,12 +2,6 @@
     Fill: =RGBA(248, 248, 248, 1)
     OnVisible: |-
         =UpdateContext({varIsCreateCashAdvance: IsBlank(varSelectedCashAdvance)});
-        // [추가] 변수 상태에 따라 폼 모드 강제 설정
-        If(
-            varIsCreateCashAdvance, 
-            NewForm(EditCashAdvanceForm), 
-            EditForm(EditCashAdvanceForm)
-        );
 
     CashAdvanceEdit_Header As hdr02_Header:
         Fill: =CashAdvanceEdit_Header.paramFill
@@ -86,10 +80,38 @@
                 Height: =80
                 Required: =true
                 Update: =DatePicker_CashAdvance_RequestedDate.SelectedDate
-                Width: =640
-                X: =0
+                Width: =Min(Parent.Width, 640)
+                X: =(Parent.Width - Self.Width) / 2
                 Y: =0
                 ZIndex: =1
+
+                CashAdvance_RequestedDate_Label As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =24
+                    Size: =21
+                    Text: =DataSourceInfo([@'Cash advances (mserp)'], DataSourceInfo.DisplayName, "mserp_requesteddate")
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =5
+                    ZIndex: =1
+
+                CashAdvance_RequestedDate_Star As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =CashAdvance_RequestedDate_Label.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    X: =CashAdvance_RequestedDate_Label.X + CashAdvance_RequestedDate_Label.Width
+                    Y: =CashAdvance_RequestedDate_Label.Y
+                    ZIndex: =2
 
                 DatePicker_CashAdvance_RequestedDate As datepicker:
                     DisplayMode: =Parent.DisplayMode
@@ -97,8 +119,8 @@
                     SelectedDate: =If(varIsCreateCashAdvance, Today(), ThisItem.'Requested date')
                     Width: =Parent.Width - 80
                     X: =40
-                    Y: =32
-                    ZIndex: =2
+                    Y: =CashAdvance_RequestedDate_Label.Y + CashAdvance_RequestedDate_Label.Height + 8
+                    ZIndex: =3
 
             Location_DataCard As typedDataCard.textualEditCard:
                 BorderStyle: =BorderStyle.Solid
@@ -110,10 +132,38 @@
                 Height: =80
                 Required: =true
                 Update: =If(IsBlank(ComboBox_CashAdvance_Location.Selected.Location), ComboBox_CashAdvance_Location.SearchText, ComboBox_CashAdvance_Location.Selected.Location)
-                Width: =640
-                X: =0
+                Width: =Min(Parent.Width, 640)
+                X: =(Parent.Width - Self.Width) / 2
                 Y: =1
                 ZIndex: =2
+
+                CashAdvance_Location_Label As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =24
+                    Size: =21
+                    Text: =DataSourceInfo([@'Cash advances (mserp)'], DataSourceInfo.DisplayName, "mserp_location")
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =5
+                    ZIndex: =1
+
+                CashAdvance_Location_Star As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =RGBA(0, 0, 0, 1)
+                    Height: =CashAdvance_Location_Label.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    X: =CashAdvance_Location_Label.X + CashAdvance_Location_Label.Width
+                    Y: =CashAdvance_Location_Label.Y
+                    ZIndex: =2
 
                 ComboBox_CashAdvance_Location As combobox:
                     DefaultSelectedItems: =If(IsBlank(ThisItem.Location), Blank(), LookUp('Travel locations (mserp)', Location = ThisItem.Location))
@@ -126,8 +176,8 @@
                     SelectMultiple: =false
                     Width: =Parent.Width - 80
                     X: =40
-                    Y: =32
-                    ZIndex: =2
+                    Y: =CashAdvance_Location_Label.Y + CashAdvance_Location_Label.Height + 8
+                    ZIndex: =3
 
             Purpose_DataCard As typedDataCard.textualEditCard:
                 BorderStyle: =BorderStyle.Solid
@@ -139,10 +189,38 @@
                 Height: =80
                 Required: =true
                 Update: =If(IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)'), ComboBox_CashAdvance_Purpose.SearchText, ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)')
-                Width: =640
-                X: =0
+                Width: =Min(Parent.Width, 640)
+                X: =(Parent.Width - Self.Width) / 2
                 Y: =2
                 ZIndex: =3
+
+                CashAdvance_Purpose_Label As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =24
+                    Size: =21
+                    Text: =DataSourceInfo([@'Cash advances (mserp)'], DataSourceInfo.DisplayName, "mserp_purpose")
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =5
+                    ZIndex: =1
+
+                CashAdvance_Purpose_Star As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =RGBA(0, 0, 0, 1)
+                    Height: =CashAdvance_Purpose_Label.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    X: =CashAdvance_Purpose_Label.X + CashAdvance_Purpose_Label.Width
+                    Y: =CashAdvance_Purpose_Label.Y
+                    ZIndex: =2
 
                 ComboBox_CashAdvance_Purpose As combobox:
                     DefaultSelectedItems: =If(IsBlank(ThisItem.Purpose), Blank(), LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = ThisItem.Purpose))
@@ -155,8 +233,8 @@
                     SelectMultiple: =false
                     Width: =Parent.Width - 80
                     X: =40
-                    Y: =32
-                    ZIndex: =2
+                    Y: =CashAdvance_Purpose_Label.Y + CashAdvance_Purpose_Label.Height + 8
+                    ZIndex: =3
 
             "'Requested amount_DataCard' As typedDataCard.numberEditCard":
                 BorderStyle: =BorderStyle.Solid
@@ -168,10 +246,38 @@
                 Height: =80
                 Required: =true
                 Update: =Value(DataCardValue_CashAdvance_RequestedAmount.Text)
-                Width: =640
-                X: =0
+                Width: =Min(Parent.Width, 640)
+                X: =(Parent.Width - Self.Width) / 2
                 Y: =3
                 ZIndex: =4
+
+                CashAdvance_RequestedAmount_Label As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =24
+                    Size: =21
+                    Text: =DataSourceInfo([@'Cash advances (mserp)'], DataSourceInfo.DisplayName, "mserp_requestedamount")
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =5
+                    ZIndex: =1
+
+                CashAdvance_RequestedAmount_Star As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =RGBA(0, 0, 0, 1)
+                    Height: =CashAdvance_RequestedAmount_Label.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    X: =CashAdvance_RequestedAmount_Label.X + CashAdvance_RequestedAmount_Label.Width
+                    Y: =CashAdvance_RequestedAmount_Label.Y
+                    ZIndex: =2
 
                 DataCardValue_CashAdvance_RequestedAmount As text:
                     Default: =If(IsBlank(ThisItem.'Requested amount'), "", Text(ThisItem.'Requested amount'))
@@ -180,8 +286,8 @@
                     Height: =gblParams.dropDownHeight
                     Width: =Parent.Width - 80
                     X: =40
-                    Y: =32
-                    ZIndex: =2
+                    Y: =CashAdvance_RequestedAmount_Label.Y + CashAdvance_RequestedAmount_Label.Height + 8
+                    ZIndex: =3
 
             Currency_DataCard As typedDataCard.textualEditCard:
                 BorderStyle: =BorderStyle.Solid
@@ -193,10 +299,38 @@
                 Height: =80
                 Required: =true
                 Update: =ComboBox_CashAdvance_Currency.Selected.mserp_currencycode
-                Width: =640
-                X: =0
+                Width: =Min(Parent.Width, 640)
+                X: =(Parent.Width - Self.Width) / 2
                 Y: =4
                 ZIndex: =5
+
+                CashAdvance_Currency_Label As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =24
+                    Size: =21
+                    Text: =DataSourceInfo([@'Cash advances (mserp)'], DataSourceInfo.DisplayName, "mserp_currency")
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =5
+                    ZIndex: =1
+
+                CashAdvance_Currency_Star As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =RGBA(0, 0, 0, 1)
+                    Height: =CashAdvance_Currency_Label.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    X: =CashAdvance_Currency_Label.X + CashAdvance_Currency_Label.Width
+                    Y: =CashAdvance_Currency_Label.Y
+                    ZIndex: =2
 
                 ComboBox_CashAdvance_Currency As combobox:
                     DefaultSelectedItems: =If(IsBlank(ThisItem.Currency), Blank(), LookUp('Currencies (mserp)', 'Currency code' = ThisItem.Currency))
@@ -209,8 +343,8 @@
                     SelectMultiple: =false
                     Width: =Parent.Width - 80
                     X: =40
-                    Y: =32
-                    ZIndex: =2
+                    Y: =CashAdvance_Currency_Label.Y + CashAdvance_Currency_Label.Height + 8
+                    ZIndex: =3
 
             Note_DataCard As typedDataCard.textualEditCard:
                 BorderStyle: =BorderStyle.Solid
@@ -222,10 +356,24 @@
                 Height: =120
                 Required: =false
                 Update: =DataCardValue_CashAdvance_Note.Text
-                Width: =640
-                X: =0
+                Width: =Min(Parent.Width, 640)
+                X: =(Parent.Width - Self.Width) / 2
                 Y: =5
                 ZIndex: =6
+
+                CashAdvance_Note_Label As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =24
+                    Size: =21
+                    Text: =DataSourceInfo([@'Cash advances (mserp)'], DataSourceInfo.DisplayName, "mserp_note")
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =5
+                    ZIndex: =1
 
                 DataCardValue_CashAdvance_Note As text:
                     Default: =ThisItem.Note
@@ -234,7 +382,7 @@
                     Mode: =TextMode.MultiLine
                     Width: =Parent.Width - 80
                     X: =40
-                    Y: =32
+                    Y: =CashAdvance_Note_Label.Y + CashAdvance_Note_Label.Height + 8
                     ZIndex: =2
 
             CompanyCode_DataCard As typedDataCard.textualEditCard:
@@ -248,8 +396,8 @@
                 Required: =true
                 Update: =varSelectedLegalEntity
                 Visible: =false
-                Width: =640
-                X: =0
+                Width: =Min(Parent.Width, 640)
+                X: =(Parent.Width - Self.Width) / 2
                 Y: =6
                 ZIndex: =7
 
@@ -284,8 +432,8 @@
             RadiusTopRight: =8
             Size: =18
             Text: ="Save Draft"
-            Width: =Parent.Width - 80
-            X: =40
+            Width: =Min(Parent.Width - 80, 640)
+            X: =(Parent.Width - Self.Width) / 2
             Y: =20
             ZIndex: =1
 
@@ -313,8 +461,8 @@
             RadiusTopRight: =8
             Size: =18
             Text: ="Submit(추후 적용)"
-            Width: =Parent.Width - 80
-            X: =40
+            Width: =Min(Parent.Width - 80, 640)
+            X: =(Parent.Width - Self.Width) / 2
             Y: =CashAdvanceEdit_SaveDraftButton.Y + CashAdvanceEdit_SaveDraftButton.Height + 10
             ZIndex: =2
 
