@@ -71,6 +71,81 @@
             Width: =Parent.Width
             ZIndex: =8
 
+            Employee_DataCard1 As typedDataCard.numberEditCard:
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexrequestingworker"
+                Default: =ThisItem.Employee
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: =DataSourceInfo([@'Cash advances (mserp)'],DataSourceInfo.DisplayName,'mserp_deexrequestingworker')
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =true
+                Update: |-
+                    =//Value(DataCardValue18.Text)
+                    userRecord.CreatingWorker
+                Visible: =false
+                Width: =640
+                X: =0
+                Y: =6
+                ZIndex: =1
+
+                DataCardKey25 As label:
+                    AutoHeight: =true
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =(Parent.Width - 60) * 0.4
+                    Wrap: =false
+                    X: =30
+                    Y: =10 + (DataCardValue18.Height / 2) - (Self.Height / 2)
+                    ZIndex: =1
+
+                DataCardValue18 As text:
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    Default: =Parent.Default
+                    DelayOutput: =true
+                    DisplayMode: =Parent.DisplayMode
+                    Format: =TextFormat.Number
+                    Height: =70
+                    PaddingLeft: =5
+                    RadiusBottomLeft: =0
+                    RadiusBottomRight: =0
+                    RadiusTopLeft: =0
+                    RadiusTopRight: =0
+                    Size: =21
+                    Tooltip: =Parent.DisplayName
+                    Width: =(Parent.Width - 60) * 0.6
+                    X: =DataCardKey25.X + DataCardKey25.Width
+                    Y: =10
+                    ZIndex: =2
+
+                ErrorMessage25 As label:
+                    AutoHeight: =true
+                    Height: =10
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =24
+                    Text: =Parent.Error
+                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =DataCardValue18.Y + DataCardValue18.Height
+                    ZIndex: =3
+
+                StarVisible25 As label:
+                    Align: =Align.Center
+                    Height: =DataCardKey25.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =DataCardKey25.Y
+                    ZIndex: =4
+
             "'Requested date_DataCard' As typedDataCard.dateTimeEditCard":
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_requesteddate"
@@ -100,6 +175,15 @@
                     Y: =5
                     ZIndex: =1
 
+                DatePicker_CashAdvance_RequestedDate As datepicker:
+                    DisplayMode: =Parent.DisplayMode
+                    Height: =gblParams.dropDownHeight
+                    SelectedDate: =If(varIsCreateCashAdvance, Today(), ThisItem.'Requested date')
+                    Width: =Parent.Width - 80
+                    X: =40
+                    Y: =CashAdvance_RequestedDate_Label.Y + CashAdvance_RequestedDate_Label.Height + 8
+                    ZIndex: =3
+
                 CashAdvance_RequestedDate_Star As label:
                     Align: =Align.Center
                     BorderColor: =RGBA(0, 0, 0, 0)
@@ -110,18 +194,8 @@
                     Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    X: =0
                     Y: =CashAdvance_RequestedDate_Label.Y
                     ZIndex: =4
-
-                DatePicker_CashAdvance_RequestedDate As datepicker:
-                    DisplayMode: =Parent.DisplayMode
-                    Height: =gblParams.dropDownHeight
-                    SelectedDate: =If(varIsCreateCashAdvance, Today(), ThisItem.'Requested date')
-                    Width: =Parent.Width - 80
-                    X: =40
-                    Y: =CashAdvance_RequestedDate_Label.Y + CashAdvance_RequestedDate_Label.Height + 8
-                    ZIndex: =3
 
             Location_DataCard As typedDataCard.textualEditCard:
                 BorderStyle: =BorderStyle.Solid
@@ -153,6 +227,21 @@
                     Y: =5
                     ZIndex: =1
 
+                ComboBox_CashAdvance_Location As combobox:
+                    DefaultSelectedItems: =If(IsBlank(ThisItem.Location), Blank(), LookUp('Travel locations (mserp)', Location = ThisItem.Location))
+                    DisplayFields: =["mserp_destination"]
+                    DisplayMode: =Parent.DisplayMode
+                    Height: =gblParams.dropDownHeight
+                    InputTextPlaceholder: ="Select Location."
+                    Items: =Filter('Travel locations (mserp)', 'Company Code' = varSelectedLegalEntity)
+                    SearchFields: =["mserp_destination"]
+                    SearchItems: =Search(Filter('Travel locations (mserp)', 'Company Code' = varSelectedLegalEntity), ComboBox_CashAdvance_Location.SearchText, Location)
+                    SelectMultiple: =false
+                    Width: =Parent.Width - 80
+                    X: =40
+                    Y: =CashAdvance_Location_Label.Y + CashAdvance_Location_Label.Height + 8
+                    ZIndex: =3
+
                 CashAdvance_Location_Star As label:
                     Align: =Align.Center
                     BorderColor: =RGBA(0, 0, 0, 0)
@@ -164,23 +253,8 @@
                     Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    X: =0
                     Y: =CashAdvance_Location_Label.Y
                     ZIndex: =4
-
-                ComboBox_CashAdvance_Location As combobox:
-                    DefaultSelectedItems: =If(IsBlank(ThisItem.Location), Blank(), LookUp('Travel locations (mserp)', Location = ThisItem.Location))
-                    DisplayFields: =["mserp_destination"]
-                    DisplayMode: =Parent.DisplayMode
-                    Height: =gblParams.dropDownHeight
-                    Items: =Filter('Travel locations (mserp)', 'Company Code' = varSelectedLegalEntity)
-                    SearchFields: =["mserp_destination"]
-                    SearchItems: =Search(Filter('Travel locations (mserp)', 'Company Code' = varSelectedLegalEntity), ComboBox_CashAdvance_Location.SearchText, Location)
-                    SelectMultiple: =false
-                    Width: =Parent.Width - 80
-                    X: =40
-                    Y: =CashAdvance_Location_Label.Y + CashAdvance_Location_Label.Height + 8
-                    ZIndex: =3
 
             Purpose_DataCard As typedDataCard.textualEditCard:
                 BorderStyle: =BorderStyle.Solid
@@ -211,6 +285,21 @@
                     Y: =5
                     ZIndex: =1
 
+                ComboBox_CashAdvance_Purpose As combobox:
+                    DefaultSelectedItems: =If(IsBlank(ThisItem.Purpose), Blank(), LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = ThisItem.Purpose))
+                    DisplayFields: =["mserp_value"]
+                    DisplayMode: =Parent.DisplayMode
+                    Height: =gblParams.dropDownHeight
+                    InputTextPlaceholder: ="Select Purpose."
+                    Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
+                    SearchFields: =["mserp_value"]
+                    SearchItems: =Search(Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity), ComboBox_CashAdvance_Purpose.SearchText, 'Purpose (mserp_value)')
+                    SelectMultiple: =false
+                    Width: =Parent.Width - 80
+                    X: =40
+                    Y: =CashAdvance_Purpose_Label.Y + CashAdvance_Purpose_Label.Height + 8
+                    ZIndex: =3
+
                 CashAdvance_Purpose_Star As label:
                     Align: =Align.Center
                     BorderColor: =RGBA(0, 0, 0, 0)
@@ -220,23 +309,8 @@
                     Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    X: =0
                     Y: =CashAdvance_Purpose_Label.Y
                     ZIndex: =4
-
-                ComboBox_CashAdvance_Purpose As combobox:
-                    DefaultSelectedItems: =If(IsBlank(ThisItem.Purpose), Blank(), LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = ThisItem.Purpose))
-                    DisplayFields: =["mserp_value"]
-                    DisplayMode: =Parent.DisplayMode
-                    Height: =gblParams.dropDownHeight
-                    Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
-                    SearchFields: =["mserp_value"]
-                    SearchItems: =Search(Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity), ComboBox_CashAdvance_Purpose.SearchText, 'Purpose (mserp_value)')
-                    SelectMultiple: =false
-                    Width: =Parent.Width - 80
-                    X: =40
-                    Y: =CashAdvance_Purpose_Label.Y + CashAdvance_Purpose_Label.Height + 8
-                    ZIndex: =3
 
             "'Requested amount_DataCard' As typedDataCard.numberEditCard":
                 BorderStyle: =BorderStyle.Solid
@@ -267,19 +341,6 @@
                     Y: =5
                     ZIndex: =1
 
-                CashAdvance_RequestedAmount_Star As label:
-                    Align: =Align.Center
-                    BorderColor: =RGBA(0, 0, 0, 0)
-                    Height: =CashAdvance_RequestedAmount_Label.Height
-                    Size: =21
-                    Text: ="*"
-                    Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                    Width: =30
-                    Wrap: =false
-                    X: =0
-                    Y: =CashAdvance_RequestedAmount_Label.Y
-                    ZIndex: =4
-
                 DataCardValue_CashAdvance_RequestedAmount As text:
                     Default: =If(IsBlank(ThisItem.'Requested amount'), "", Text(ThisItem.'Requested amount'))
                     DisplayMode: =Parent.DisplayMode
@@ -289,6 +350,18 @@
                     X: =40
                     Y: =CashAdvance_RequestedAmount_Label.Y + CashAdvance_RequestedAmount_Label.Height + 8
                     ZIndex: =3
+
+                CashAdvance_RequestedAmount_Star As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Height: =CashAdvance_RequestedAmount_Label.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =CashAdvance_RequestedAmount_Label.Y
+                    ZIndex: =4
 
             Currency_DataCard As typedDataCard.textualEditCard:
                 BorderStyle: =BorderStyle.Solid
@@ -301,7 +374,7 @@
                 Required: =true
                 Update: =ComboBox_CashAdvance_Currency.Selected.mserp_currencycode
                 Width: =Parent.Width/2
-                X: =Parent.Width/2
+                X: =0
                 Y: =3
                 ZIndex: =5
 
@@ -319,6 +392,21 @@
                     Y: =5
                     ZIndex: =1
 
+                ComboBox_CashAdvance_Currency As combobox:
+                    DefaultSelectedItems: =If(IsBlank(ThisItem.Currency), Blank(), LookUp('Currencies (mserp)', 'Currency code' = ThisItem.Currency))
+                    DisplayFields: =["mserp_currencycode"]
+                    DisplayMode: =Parent.DisplayMode
+                    Height: =gblParams.dropDownHeight
+                    InputTextPlaceholder: ="Select Currency."
+                    Items: =ShowColumns('Currencies (mserp)', 'Currency code', Name)
+                    SearchFields: =["mserp_currencycode"]
+                    SearchItems: =Search(ShowColumns('Currencies (mserp)', 'Currency code', Name), ComboBox_CashAdvance_Currency.SearchText, mserp_currencycode)
+                    SelectMultiple: =false
+                    Width: =Parent.Width - 80
+                    X: =40
+                    Y: =CashAdvance_Currency_Label.Y + CashAdvance_Currency_Label.Height + 8
+                    ZIndex: =3
+
                 CashAdvance_Currency_Star As label:
                     Align: =Align.Center
                     BorderColor: =RGBA(0, 0, 0, 0)
@@ -328,23 +416,8 @@
                     Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    X: =0
                     Y: =CashAdvance_Currency_Label.Y
                     ZIndex: =4
-
-                ComboBox_CashAdvance_Currency As combobox:
-                    DefaultSelectedItems: =If(IsBlank(ThisItem.Currency), Blank(), LookUp('Currencies (mserp)', 'Currency code' = ThisItem.Currency))
-                    DisplayFields: =["mserp_currencycode"]
-                    DisplayMode: =Parent.DisplayMode
-                    Height: =gblParams.dropDownHeight
-                    Items: =ShowColumns('Currencies (mserp)', 'Currency code', Name)
-                    SearchFields: =["mserp_currencycode"]
-                    SearchItems: =Search(ShowColumns('Currencies (mserp)', 'Currency code', Name), ComboBox_CashAdvance_Currency.SearchText, mserp_currencycode)
-                    SelectMultiple: =false
-                    Width: =Parent.Width - 80
-                    X: =40
-                    Y: =CashAdvance_Currency_Label.Y + CashAdvance_Currency_Label.Height + 8
-                    ZIndex: =3
 
             Note_DataCard As typedDataCard.textualEditCard:
                 BorderStyle: =BorderStyle.Solid
@@ -358,7 +431,7 @@
                 Update: =DataCardValue_CashAdvance_Note.Text
                 Width: =Parent.Width
                 X: =0
-                Y: =5
+                Y: =4
                 ZIndex: =6
 
                 CashAdvance_Note_Label As label:
@@ -398,19 +471,14 @@
                 Visible: =false
                 Width: =Parent.Width
                 X: =0
-                Y: =6
+                Y: =5
                 ZIndex: =7
 
     CashAdvanceEdit_ButtonsContainer As groupContainer.manualLayoutContainer:
-        AlignInContainer: =AlignInContainer.SetByContainer
         Fill: =RGBA(250, 249, 248, 1)
         Height: =225
         LayoutGridColumns: =6
         LayoutGridRows: =6
-        LayoutMaxHeight: =
-        LayoutMaxWidth: =
-        LayoutMinHeight: =112
-        LayoutMinWidth: =250
         Width: =Parent.Width
         Y: =Parent.Height - Self.Height
         ZIndex: =4
@@ -419,8 +487,6 @@
             Fill: =RGBA(34, 102, 227, 1)
             Font: =Font.'Segoe UI'
             Height: =76
-            LayoutMaxHeight: =0
-            LayoutMaxWidth: =0
             OnSelect: |-
                 =If(
                     IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||
@@ -448,8 +514,6 @@
             Fill: =Color.White
             Font: =Font.'Segoe UI'
             Height: =76
-            LayoutMaxHeight: =0
-            LayoutMaxWidth: =0
             OnSelect: |-
                 =If(
                     IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||

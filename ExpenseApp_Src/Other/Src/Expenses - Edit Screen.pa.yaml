@@ -2209,19 +2209,7 @@ Screens:
                           )
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Transaction amount')
                         Required: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
-                        Update: |-
-                          =Value(If(
-                              currExpenseType = 'TrvExpType (mserp)'.Mileage,
-                              If(
-                                  IsBlank(varMileageTotal),
-                                  varSelectedExpenseDoc.'Transaction amount',
-                                  Value(varMileageTotal,"en-US")
-                              ),
-                              If(Value(DataCardValue4_1.Text) = 0,
-                                  Blank(),
-                                  Value(DataCardValue4_1.Text)
-                              )
-                          ),varDefaultLanguage)
+                        Update: "=/*\nValue(If(\n    currExpenseType = 'TrvExpType (mserp)'.Mileage,\n    If(\n        IsBlank(varMileageTotal),\n        varSelectedExpenseDoc.'Transaction amount',\n        Value(varMileageTotal,\"en-US\")\n    ),\n    If(Value(DataCardValue4_1.Text) = 0,\n        Blank(),\n        Value(DataCardValue4_1.Text)\n    )\n),varDefaultLanguage)\n*/\n// 천단위 구분 기호 해제 로직 포함\nValue(\n    If(\n        currExpenseType = 'TrvExpType (mserp)'.Mileage,\n        // 마일리지인 경우 계산된 합계 사용\n        If(IsBlank(varMileageTotal), varSelectedExpenseDoc.'Transaction amount', Value(varMileageTotal, \"en-US\")),\n        \n        // 일반 경비인 경우 입력된 텍스트 사용\n        If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,\n            Blank(),\n            // [중요] 텍스트 입력값(\"1,000\")을 숫자(1000)로 변환\n            Substitute(DataCardValue4_1.Text, \",\", \"\") // 입력된 텍스트에서 쉼표(,)를 모두 빈값으로 치환\n        )\n    ),\n    varDefaultLanguage\n)"
                         Visible: =true && currExpenseType <> 'TrvExpType (mserp)'.Mileage && !(Breakfast_DataCard1.Visible)
                         Width: =Parent.Width/2 - 10
                         X: =0
@@ -2251,7 +2239,8 @@ Screens:
                               BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                               BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                               Default: |-
-                                =Text(If(
+                                =/*
+                                Text(If(
                                     varIsCreate && !IsBlank(OCRresponse) && !onReloadButtonClick && IsBlank(dirtyTransAmount),    
                                     Value(
                                         Text(OCRresponse.amountCurr),
@@ -2274,11 +2263,31 @@ Screens:
                                         Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))
                                     )
                                 ), "#,#0.00",varDefaultLanguage)
+                                */
+                                // 천단위 구분 기호 로직 수정
+                                If(
+                                    locIsEditingAmount, 
+                                    // 1. 편집 중일 때: 콤마 없는 순수 숫자 표시
+                                    Text(
+                                         /* 기존 값 가져오는 로직 (dirtyTransAmount 등) */
+                                         Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'),
+                                         "#" // 포맷 없이 숫자만 표시
+                                    ),
+
+                                    // 2. 평상시: 천 단위 콤마 포맷 표시
+                                    Text(
+                                         Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'),
+                                         "#,##0.00", 
+                                         varDefaultLanguage
+                                    )
+                                )
                               DelayOutput: =true
                               DisplayMode: =Parent.DisplayMode
                               FocusedBorderThickness: =gblParams.dorpDownBorderThickness
                               Font: =Font.'Open Sans'
-                              Format: =TextFormat.Number
+                              Format: |-
+                                =//TextFormat.Number
+                                TextFormat.Text
                               Height: =gblParams.dropDownHeight
                               HintText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionAmountLabel'
                               HoverBorderColor: =
@@ -2336,9 +2345,11 @@ Screens:
                                 );
 
                                 Reset(DataCardValue25_1);
-                                UpdateContext({msCallStartedForSalestaxCalculation : false})
+                                UpdateContext({msCallStartedForSalestaxCalculation : false});
+                                UpdateContext({ locIsEditingAmount: false }) // 편집 모드 종료 (값 변경 후 포커스 아웃 시)
                               OnSelect: |-
                                 =UpdateContext({varOnSelectTriggered: true});
+                                UpdateContext({ locIsEditingAmount: true }) // 편집 모드 시작
                               PaddingLeft: =5
                               RadiusBottomLeft: =0
                               RadiusBottomRight: =0
@@ -2347,6 +2358,9 @@ Screens:
                               Reset: =
                               Size: =24
                               Tooltip: =Parent.DisplayName
+                              VirtualKeyboardMode: |-
+                                =//VirtualKeyboardMode.Auto
+                                VirtualKeyboardMode.Numeric
                               Width: =Parent.Width - 2 * Self.X
                               X: =33
                               Y: =DataCardKey4_1.Y + DataCardKey4_1.Height + 5
@@ -2741,12 +2755,15 @@ Screens:
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Transaction date')
                         Required: =true
                         Update: |-
-                          =If(
-                              currExpenseType = 'TrvExpType (mserp)'.'Per diem',
-                              DatePickerCanvas1_25.SelectedDate,
-                              DatePickerCanvas1_18.SelectedDate
-                          )
-                        Visible: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
+                          =//If(
+                          //    currExpenseType = 'TrvExpType (mserp)'.'Per diem',
+                          //    DatePickerCanvas1_25.SelectedDate,
+                          //    DatePickerCanvas1_18.SelectedDate
+                          //)
+                          Today()
+                        Visible: |-
+                          =//currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
+                          false
                         Width: =Parent.Width
                         X: =0
                         Y: =transactionDateFieldOrder_Y
@@ -7050,7 +7067,9 @@ Screens:
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Internal note')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue18_1.Text
-                        Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                        Visible: |-
+                          =//LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                          false
                         Width: =Parent.Width
                         X: =0
                         Y: =internalNoteFieldOrder_Y

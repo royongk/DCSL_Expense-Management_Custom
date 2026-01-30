@@ -62,34 +62,7 @@
                 Self.TemplateHeight * CountRows(Self.AllItems)
             )
         Items: |-
-            =//SortByColumns(
-            //    Filter(
-            //        'Cash advances (mserp)',
-            //        // 1. 법인 필터 (기본 조건)
-            //        'Company (mserp_company)' = Upper(varSelectedLegalEntity),
-                    
-            //        // 2. 상태 필터 (If 제거 -> OR 로직 변경)
-            //        (
-            //            IsBlank(varCashAdvanceStatusFilter) || 
-            //            'Cash advance status' = varCashAdvanceStatusFilter
-            //        ),
-                    
-            //        // 3. 날짜 범위 필터
-            //        (
-            //            (
-            //                IsBlank(varCashAdvanceDateFilterStart) || 
-            //                DateValue('Requested date') >= DateValue(varCashAdvanceDateFilterStart)
-            //            ) &&
-            //            (
-            //                IsBlank(varCashAdvanceDateFilterEnd) || 
-            //                DateValue('Requested date') <= DateValue(varCashAdvanceDateFilterEnd)
-            //            )
-            //        )
-            //    ),
-            //    "mserp_requesteddate", 
-            //    SortOrder.Descending
-            //)
-            SortByColumns(
+            =SortByColumns(
                 Filter(
                     'Cash advances (mserp)',
                     // 1. 법인 필터
@@ -115,7 +88,10 @@
                     (
                         IsBlank(varCashAdvanceDateFilterEnd) || 
                         'Requested date' < DateAdd(varCashAdvanceDateFilterEnd, 1, TimeUnit.Days)
-                    )
+                    ),
+            
+                    // 4. 로그인한 사용자 필터
+                    Employee = userRecord.CreatingWorker
                 ),
                 "mserp_requesteddate", 
                 SortOrder.Descending

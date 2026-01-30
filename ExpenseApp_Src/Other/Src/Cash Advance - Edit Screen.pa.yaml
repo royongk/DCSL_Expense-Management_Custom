@@ -105,8 +105,8 @@ Screens:
                         Height: =80
                         Required: =true
                         Update: =DatePicker_CashAdvance_RequestedDate.SelectedDate
-                        Width: =Min(Parent.Width, 640)
-                        X: =(Parent.Width - Self.Width) / 2
+                        Width: =Parent.Width
+                        X: =0
                         Y: =0
                       Children:
                         - CashAdvance_RequestedDate_Label:
@@ -122,20 +122,6 @@ Screens:
                               Wrap: =false
                               X: =30
                               Y: =5
-                        - CashAdvance_RequestedDate_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_RequestedDate_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              X: =CashAdvance_RequestedDate_Label.X + CashAdvance_RequestedDate_Label.Width
-                              Y: =CashAdvance_RequestedDate_Label.Y
                         - DatePicker_CashAdvance_RequestedDate:
                             Control: Classic/DatePicker@2.6.0
                             Properties:
@@ -149,6 +135,19 @@ Screens:
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_RequestedDate_Label.Y + CashAdvance_RequestedDate_Label.Height + 8
+                        - CashAdvance_RequestedDate_Star:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =CashAdvance_RequestedDate_Label.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =CashAdvance_RequestedDate_Label.Y
                   - Location_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicTextualEdit
@@ -161,8 +160,8 @@ Screens:
                         MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
                         Required: =true
                         Update: =If(IsBlank(ComboBox_CashAdvance_Location.Selected.Location), ComboBox_CashAdvance_Location.SearchText, ComboBox_CashAdvance_Location.Selected.Location)
-                        Width: =Min(Parent.Width, 640)
-                        X: =(Parent.Width - Self.Width) / 2
+                        Width: =Parent.Width
+                        X: =0
                         Y: =1
                       Children:
                         - CashAdvance_Location_Label:
@@ -176,21 +175,8 @@ Screens:
                               Text: ="Location"
                               Width: =Parent.Width - 60
                               Wrap: =false
-                              X: =20
+                              X: =30
                               Y: =5
-                        - CashAdvance_Location_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_Location_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              X: =CashAdvance_Location_Label.X + CashAdvance_Location_Label.Width
-                              Y: =CashAdvance_Location_Label.Y
                         - ComboBox_CashAdvance_Location:
                             Control: Classic/ComboBox@2.4.0
                             Properties:
@@ -205,6 +191,7 @@ Screens:
                               Font: =Font.'Open Sans'
                               Height: =gblParams.dropDownHeight
                               HoverFill: =RGBA(186, 202, 226, 1)
+                              InputTextPlaceholder: ="Select Location."
                               Items: =Filter('Travel locations (mserp)', 'Company Code' = varSelectedLegalEntity)
                               PaddingBottom: =5
                               PaddingLeft: =5
@@ -220,6 +207,18 @@ Screens:
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_Location_Label.Y + CashAdvance_Location_Label.Height + 8
+                        - CashAdvance_Location_Star:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Open Sans'
+                              Height: =CashAdvance_Location_Label.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =CashAdvance_Location_Label.Y
                   - Purpose_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicTextualEdit
@@ -232,8 +231,8 @@ Screens:
                         MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
                         Required: =true
                         Update: =If(IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)'), ComboBox_CashAdvance_Purpose.SearchText, ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)')
-                        Width: =Min(Parent.Width, 640)
-                        X: =(Parent.Width - Self.Width) / 2
+                        Width: =Parent.Width
+                        X: =0
                         Y: =2
                       Children:
                         - CashAdvance_Purpose_Label:
@@ -249,19 +248,6 @@ Screens:
                               Wrap: =false
                               X: =30
                               Y: =5
-                        - CashAdvance_Purpose_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_Purpose_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              X: =CashAdvance_Purpose_Label.X + CashAdvance_Purpose_Label.Width
-                              Y: =CashAdvance_Purpose_Label.Y
                         - ComboBox_CashAdvance_Purpose:
                             Control: Classic/ComboBox@2.4.0
                             Properties:
@@ -276,6 +262,7 @@ Screens:
                               Font: =Font.'Open Sans'
                               Height: =gblParams.dropDownHeight
                               HoverFill: =RGBA(186, 202, 226, 1)
+                              InputTextPlaceholder: ="Select Purpose."
                               Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
                               PaddingBottom: =5
                               PaddingLeft: =5
@@ -291,6 +278,18 @@ Screens:
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_Purpose_Label.Y + CashAdvance_Purpose_Label.Height + 8
+                        - CashAdvance_Purpose_Star:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Open Sans'
+                              Height: =CashAdvance_Purpose_Label.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =CashAdvance_Purpose_Label.Y
                   - Requested amount_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicNumberEdit
@@ -302,8 +301,8 @@ Screens:
                         Height: =80
                         Required: =true
                         Update: =Value(DataCardValue_CashAdvance_RequestedAmount.Text)
-                        Width: =Min(Parent.Width, 640)
-                        X: =(Parent.Width - Self.Width) / 2
+                        Width: =Parent.Width/2 - 10
+                        X: =0
                         Y: =3
                       Children:
                         - CashAdvance_RequestedAmount_Label:
@@ -319,19 +318,6 @@ Screens:
                               Wrap: =false
                               X: =30
                               Y: =5
-                        - CashAdvance_RequestedAmount_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_RequestedAmount_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              X: =CashAdvance_RequestedAmount_Label.X + CashAdvance_RequestedAmount_Label.Width
-                              Y: =CashAdvance_RequestedAmount_Label.Y
                         - DataCardValue_CashAdvance_RequestedAmount:
                             Control: Classic/TextInput@2.3.2
                             Properties:
@@ -348,6 +334,18 @@ Screens:
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_RequestedAmount_Label.Y + CashAdvance_RequestedAmount_Label.Height + 8
+                        - CashAdvance_RequestedAmount_Star:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Open Sans'
+                              Height: =CashAdvance_RequestedAmount_Label.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =CashAdvance_RequestedAmount_Label.Y
                   - Currency_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicTextualEdit
@@ -360,9 +358,9 @@ Screens:
                         MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
                         Required: =true
                         Update: =ComboBox_CashAdvance_Currency.Selected.mserp_currencycode
-                        Width: =Min(Parent.Width, 640)
-                        X: =(Parent.Width - Self.Width) / 2
-                        Y: =4
+                        Width: =Parent.Width/2
+                        X: =0
+                        Y: =3
                       Children:
                         - CashAdvance_Currency_Label:
                             Control: Label@2.5.1
@@ -377,19 +375,6 @@ Screens:
                               Wrap: =false
                               X: =30
                               Y: =5
-                        - CashAdvance_Currency_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_Currency_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              X: =CashAdvance_Currency_Label.X + CashAdvance_Currency_Label.Width
-                              Y: =CashAdvance_Currency_Label.Y
                         - ComboBox_CashAdvance_Currency:
                             Control: Classic/ComboBox@2.4.0
                             Properties:
@@ -404,6 +389,7 @@ Screens:
                               Font: =Font.'Open Sans'
                               Height: =gblParams.dropDownHeight
                               HoverFill: =RGBA(186, 202, 226, 1)
+                              InputTextPlaceholder: ="Select Currency."
                               Items: =ShowColumns('Currencies (mserp)', 'Currency code', Name)
                               PaddingBottom: =5
                               PaddingLeft: =5
@@ -419,6 +405,18 @@ Screens:
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_Currency_Label.Y + CashAdvance_Currency_Label.Height + 8
+                        - CashAdvance_Currency_Star:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Open Sans'
+                              Height: =CashAdvance_Currency_Label.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =CashAdvance_Currency_Label.Y
                   - Note_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicTextualEdit
@@ -431,9 +429,9 @@ Screens:
                         MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
                         Required: =false
                         Update: =DataCardValue_CashAdvance_Note.Text
-                        Width: =Min(Parent.Width, 640)
-                        X: =(Parent.Width - Self.Width) / 2
-                        Y: =5
+                        Width: =Parent.Width
+                        X: =0
+                        Y: =4
                       Children:
                         - CashAdvance_Note_Label:
                             Control: Label@2.5.1
@@ -477,17 +475,101 @@ Screens:
                         Required: =true
                         Update: =varSelectedLegalEntity
                         Visible: =false
-                        Width: =Min(Parent.Width, 640)
-                        X: =(Parent.Width - Self.Width) / 2
+                        Width: =Parent.Width
+                        X: =0
+                        Y: =5
+                  - Employee_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicNumberEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_deexrequestingworker"
+                        Default: =ThisItem.Employee
+                        DisplayName: =DataSourceInfo([@'Cash advances (mserp)'],DataSourceInfo.DisplayName,'mserp_deexrequestingworker')
+                        Required: =true
+                        Update: |-
+                          =//Value(DataCardValue18.Text)
+                          userRecord.CreatingWorker
+                        Visible: =false
+                        X: =0
                         Y: =6
+                      Children:
+                        - DataCardKey25:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =(Parent.Width - 60) * 0.4
+                              Wrap: =false
+                              X: =30
+                              Y: =10 + (DataCardValue18.Height / 2) - (Self.Height / 2)
+                        - DataCardValue18:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Format: =TextFormat.Number
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Tooltip: =Parent.DisplayName
+                              Width: =(Parent.Width - 60) * 0.6
+                              X: =DataCardKey25.X + DataCardKey25.Width
+                              Y: =10
+                        - ErrorMessage25:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardValue18.Y + DataCardValue18.Height
+                        - StarVisible25:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey25.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey25.Y
       - CashAdvanceEdit_ButtonsContainer:
           Control: GroupContainer@1.4.0
-          Variant: AutoLayout
+          Variant: ManualLayout
           Properties:
             DropShadow: =DropShadow.None
             Fill: =RGBA(250, 249, 248, 1)
-            Height: =160
-            LayoutDirection: =LayoutDirection.Vertical
             RadiusBottomLeft: =0
             RadiusBottomRight: =0
             RadiusTopLeft: =0
@@ -503,12 +585,10 @@ Screens:
                   DisabledBorderColor: =RGBA(166, 166, 166, 1)
                   Fill: =RGBA(34, 102, 227, 1)
                   Font: =Font.'Segoe UI'
-                  Height: =60
+                  Height: =76
                   HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
                   HoverColor: =RGBA(255, 255, 255, 1)
                   HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                  LayoutMinHeight: =40
-                  LayoutMinWidth: =160
                   OnSelect: |-
                     =If(
                         IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||
@@ -526,10 +606,10 @@ Screens:
                   RadiusBottomRight: =8
                   RadiusTopLeft: =8
                   RadiusTopRight: =8
-                  Size: =18
+                  Size: =19.15
                   Text: ="Save Draft"
-                  Width: =Min(Parent.Width - 80, 640)
-                  X: =(Parent.Width - Self.Width) / 2
+                  Width: =Parent.Width - Self.X*2
+                  X: =40
                   Y: =20
             - CashAdvanceEdit_SubmitButton:
                 Control: Classic/Button@2.2.0
@@ -539,12 +619,10 @@ Screens:
                   DisabledBorderColor: =RGBA(166, 166, 166, 1)
                   Fill: =Color.White
                   Font: =Font.'Segoe UI'
-                  Height: =60
+                  Height: =76
                   HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
                   HoverColor: =RGBA(255, 255, 255, 1)
                   HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                  LayoutMinHeight: =40
-                  LayoutMinWidth: =160
                   OnSelect: |-
                     =If(
                         IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||
@@ -562,8 +640,8 @@ Screens:
                   RadiusBottomRight: =8
                   RadiusTopLeft: =8
                   RadiusTopRight: =8
-                  Size: =18
+                  Size: =19.15
                   Text: ="Submit(추후 적용)"
-                  Width: =Min(Parent.Width - 80, 640)
-                  X: =(Parent.Width - Self.Width) / 2
-                  Y: =CashAdvanceEdit_SaveDraftButton.Y + CashAdvanceEdit_SaveDraftButton.Height + 10
+                  Width: =Parent.Width - Self.X*2
+                  X: =40
+                  Y: =CashAdvanceEdit_SaveDraftButton.Y + CashAdvanceEdit_SaveDraftButton.Height + 20
