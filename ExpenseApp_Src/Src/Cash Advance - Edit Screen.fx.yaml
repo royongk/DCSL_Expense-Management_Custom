@@ -110,9 +110,9 @@
                     Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    X: =CashAdvance_RequestedDate_Label.X + CashAdvance_RequestedDate_Label.Width
+                    X: =0
                     Y: =CashAdvance_RequestedDate_Label.Y
-                    ZIndex: =2
+                    ZIndex: =4
 
                 DatePicker_CashAdvance_RequestedDate As datepicker:
                     DisplayMode: =Parent.DisplayMode
@@ -164,9 +164,9 @@
                     Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    X: =CashAdvance_Location_Label.X + CashAdvance_Location_Label.Width
+                    X: =0
                     Y: =CashAdvance_Location_Label.Y
-                    ZIndex: =2
+                    ZIndex: =4
 
                 ComboBox_CashAdvance_Location As combobox:
                     DefaultSelectedItems: =If(IsBlank(ThisItem.Location), Blank(), LookUp('Travel locations (mserp)', Location = ThisItem.Location))
@@ -220,9 +220,9 @@
                     Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    X: =CashAdvance_Purpose_Label.X + CashAdvance_Purpose_Label.Width
+                    X: =0
                     Y: =CashAdvance_Purpose_Label.Y
-                    ZIndex: =2
+                    ZIndex: =4
 
                 ComboBox_CashAdvance_Purpose As combobox:
                     DefaultSelectedItems: =If(IsBlank(ThisItem.Purpose), Blank(), LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = ThisItem.Purpose))
@@ -248,7 +248,7 @@
                 Height: =80
                 Required: =true
                 Update: =Value(DataCardValue_CashAdvance_RequestedAmount.Text)
-                Width: =Parent.Width
+                Width: =Parent.Width/2 - 10
                 X: =0
                 Y: =3
                 ZIndex: =4
@@ -276,9 +276,9 @@
                     Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    X: =CashAdvance_RequestedAmount_Label.X + CashAdvance_RequestedAmount_Label.Width
+                    X: =0
                     Y: =CashAdvance_RequestedAmount_Label.Y
-                    ZIndex: =2
+                    ZIndex: =4
 
                 DataCardValue_CashAdvance_RequestedAmount As text:
                     Default: =If(IsBlank(ThisItem.'Requested amount'), "", Text(ThisItem.'Requested amount'))
@@ -300,9 +300,9 @@
                 Height: =80
                 Required: =true
                 Update: =ComboBox_CashAdvance_Currency.Selected.mserp_currencycode
-                Width: =Parent.Width
-                X: =0
-                Y: =4
+                Width: =Parent.Width/2
+                X: =Parent.Width/2
+                Y: =3
                 ZIndex: =5
 
                 CashAdvance_Currency_Label As label:
@@ -328,9 +328,9 @@
                     Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    X: =CashAdvance_Currency_Label.X + CashAdvance_Currency_Label.Width
+                    X: =0
                     Y: =CashAdvance_Currency_Label.Y
-                    ZIndex: =2
+                    ZIndex: =4
 
                 ComboBox_CashAdvance_Currency As combobox:
                     DefaultSelectedItems: =If(IsBlank(ThisItem.Currency), Blank(), LookUp('Currencies (mserp)', 'Currency code' = ThisItem.Currency))
@@ -401,11 +401,16 @@
                 Y: =6
                 ZIndex: =7
 
-    CashAdvanceEdit_ButtonsContainer As groupContainer.verticalAutoLayoutContainer:
+    CashAdvanceEdit_ButtonsContainer As groupContainer.manualLayoutContainer:
+        AlignInContainer: =AlignInContainer.SetByContainer
         Fill: =RGBA(250, 249, 248, 1)
-        Height: =160
-        LayoutDirection: =LayoutDirection.Vertical
-        LayoutMode: =LayoutMode.Auto
+        Height: =225
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        LayoutMaxHeight: =
+        LayoutMaxWidth: =
+        LayoutMinHeight: =112
+        LayoutMinWidth: =250
         Width: =Parent.Width
         Y: =Parent.Height - Self.Height
         ZIndex: =4
@@ -413,7 +418,7 @@
         CashAdvanceEdit_SaveDraftButton As button:
             Fill: =RGBA(34, 102, 227, 1)
             Font: =Font.'Segoe UI'
-            Height: =60
+            Height: =76
             LayoutMaxHeight: =0
             LayoutMaxWidth: =0
             OnSelect: |-
@@ -430,10 +435,10 @@
             RadiusBottomRight: =8
             RadiusTopLeft: =8
             RadiusTopRight: =8
-            Size: =18
+            Size: =19.15
             Text: ="Save Draft"
-            Width: =Min(Parent.Width - 80, 640)
-            X: =(Parent.Width - Self.Width) / 2
+            Width: =Parent.Width - Self.X*2
+            X: =40
             Y: =20
             ZIndex: =1
 
@@ -442,7 +447,7 @@
             Color: =RGBA(34, 102, 227, 1)
             Fill: =Color.White
             Font: =Font.'Segoe UI'
-            Height: =60
+            Height: =76
             LayoutMaxHeight: =0
             LayoutMaxWidth: =0
             OnSelect: |-
@@ -459,10 +464,10 @@
             RadiusBottomRight: =8
             RadiusTopLeft: =8
             RadiusTopRight: =8
-            Size: =18
+            Size: =19.15
             Text: ="Submit(추후 적용)"
-            Width: =Min(Parent.Width - 80, 640)
-            X: =(Parent.Width - Self.Width) / 2
-            Y: =CashAdvanceEdit_SaveDraftButton.Y + CashAdvanceEdit_SaveDraftButton.Height + 10
+            Width: =Parent.Width - Self.X*2
+            X: =40
+            Y: =CashAdvanceEdit_SaveDraftButton.Y + CashAdvanceEdit_SaveDraftButton.Height + 20
             ZIndex: =2
 
