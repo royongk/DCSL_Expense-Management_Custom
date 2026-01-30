@@ -11,7 +11,7 @@ Screens:
     Properties:
       Fill: =RGBA(248, 248, 248, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
-      OnVisible: "=UpdateContext({varStateSelected: Blank()});\nUpdateContext({varZipCodeSelectedRecId: -1 });\nUpdateContext({varProjectHierarchyId: Blank()});\nUpdateContext({onReloadButtonClick: false});\n// 3-level category selection variables\nUpdateContext({varSelectedDepartment: Blank()});\nUpdateContext({varSelectedBenefitType: Blank()});\nUpdateContext({varSelectedBenefitTypeValue: \"\"});\nUpdateContext({curCategory: If(!varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'), varSelectedExpenseDoc.'Expense category (mserp_costtype)', Blank())});\n// Cost Center context\nUpdateContext({varSelectedCostCenter: Blank()});\nIf(\n    !varIsCreate && !IsBlank(varSelectedExpenseDoc.CostCenter),\n    UpdateContext({\n        varSelectedCostCenter: LookUp(\n            'DCSL Financial Dimension CostCenter (mserp)',\n            'Combination display' = varSelectedExpenseDoc.CostCenter\n        )\n    })\n);\n// Project context\nUpdateContext({varSelectedProject: Blank()});\nIf(\n    !varIsCreate && !IsBlank(varSelectedExpenseDoc.Project),\n    UpdateContext({\n        varSelectedProject: LookUp(\n            Filter(\n                'DCSL Financial Dimension Master (mserp)',\n                'Dimension name' = \"Project\"\n            ),\n            'Dimension value' = varSelectedExpenseDoc.Project\n        )\n    })\n);\n// Load existing Department and Benefit Type from Expense Category (reverse lookup)\nIf(\n    !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),\n    With(\n        {\n            mappingRecord: LookUp(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'\n            )\n        },\n        If(\n            !IsBlank(mappingRecord),\n            UpdateContext({\n                varSelectedDepartment: mappingRecord.Department\n            });\n            UpdateContext({\n                varSelectedBenefitType: mappingRecord.'Benefit Type'\n            })\n        )\n    )\n);\nUpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')});\nUpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.'Intercompany project category'});\nUpdateContext({curProjIdSelected: varSelectedExpenseDoc.'Project ID'});\nUpdateContext({curCountrySelected: varSelectedExpenseDoc.'Country/region (mserp_countryregion)'});\nUpdateContext({curStateSelected: varSelectedExpenseDoc.'State/province'});\nUpdateContext({curBillIssuedToSelected: varSelectedExpenseDoc.'Hotel bill issued to'});\nUpdateContext({taxModifiedByUser: false});\nUpdateContext({varLoadingSpinner : true});\nIf(\n    !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),\n    UpdateContext(\n        {\n            locItemizeButtonVisibilityFlag : 'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', \n            {\n                CostType: varSelectedExpenseDoc.'Expense category (mserp_costtype)',\n                SplitLineType:\"Default\",\n                LineType: If(varSelectedExpenseDoc.'Expense line type' = 'Expense line type (mserp)'.'Itemized header',\"ItemizedHeader\",\"Default\")\n            }).return\n\n        }\n    )\n);\nIf(\n    !varIsCreate && gblIsProjectValidationFlag,\n    Clear(colGetProjectsBasedOnResourceCategory);\n    UpdateContext({\n        varGetProjectsJson :\n        IfError(\n            Text(\n                'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n                    {\n                        employeeLegalEntity: varSelectedLegalEntity,\n                        interCompanyLegalEntity: curIntercompanyLE,\n                        categoryId: \n                        If(\n                            IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE), varSelectedExpenseDoc.'Intercompany project category', curCategory)),\n                            \"\",\n                            If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE), varSelectedExpenseDoc.'Intercompany project category', curCategory)\n                        )\n                    }).return\n            ),\n            \"\"\n        )\n    });\n    If(\n        !IsBlank(varGetProjectsJson),\n        ClearCollect(\n            colGetProjectsBasedOnResourceCategory,\n            ForAll(\n                MatchAll(varGetProjectsJson, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n                {\n                    projectId: ProjectListFromCol.projId, \n                    projectName: ProjectListFromCol.projName\n                }\n            )\n        ),\n        Clear(colGetProjectsBasedOnResourceCategory)\n    );\n    \n    If(\n        !IsBlankOrError(curProjIdSelected),\n        UpdateContext({\n            varProjectHierarchyId:\n                LookUp(\n                    'Projects (mserp)',\n                    'Project ID' = curProjIdSelected,\n                    HierarchyId\n                )\n        })\n    );\n);\nUpdateContext({locItemizationCheck : locItemizeButtonVisibilityFlag});\nUpdateContext(\n    {\n        timerCostType: false,\n        timerProj: false,\n        timerHBIT: false,\n        timerCountry: false,\n        timerState: false,\n        locAllowNavigationBack: true\n    }\n);\n// populate the current expense type of the selected document\nUpdateContext(\n    {\n        currExpenseType: Coalesce(\n            varSelectedExpenseDoc.'Expense type',\n            If(\n                !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),\n                LookUp(\n                    'Expense category (mserp)',\n                    'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)',\n                    'Expense type'\n                ),\n                Blank()\n            )\n        )\n    }\n);\nIf(\n    !varIsCreate,\n    UpdateContext({msCallStartedForSalestaxCalculation: true});\n    UpdateContext({varOnShowFields: false});\n    UpdateContext({varOnSelectTriggered: false});\n    UpdateContext({varOnChangeTriggered: false});\n    \n);\nUpdateContext(\n    {\n        featureEnabled: If(\n            userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes,\n            \"True\",\n            \"False\"\n        ),\n        perdiemFeatureEnabled: If(\n            userRecord.IsReImaginedPerDiemEnabled = 'NoYes (mserp)'.Yes,  //this needs to be changed to the perdiem feature enabled\n            \"True\",\n            \"False\"\n        )\n    }\n);\n//Check if the itemization is over or under distributed\nIf(\n    !varIsCreate,\n    If(\n        varRemainingAmount < 0,\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ThisExpenseIsOverItemizedLabel',\n            NotificationType.Error,\n            gblParams.notificationTime\n        ),\n        varRemainingAmount > 0,\n        Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ThisExpenseIsNotCompletelyItemizedLabel',\n            NotificationType.Warning,\n            gblParams.notificationTime\n        )\n    )\n);\nIf(\n    currExpenseType = 'TrvExpType (mserp)'.'Per diem' && (featureEnabled = \"False\" || perdiemFeatureEnabled = \"False\"),\n    Notify(\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarning',\n        //\"Enable both re-imagined features to be able to edit this expense\",\n        NotificationType.Warning,\n        gblParams.notificationTime\n    )\n);\n//if labelTableLookUp not empty\nIf(\n    CountRows(labelTableLookUp) <= 0,\n    Collect(\n        labelTableLookUp,\n        {\n            fieldName: \"CostType\",\n            labelName: \"Expense category\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"TransDate\",\n            labelName: \"Transaction date\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"AmountCurr\",\n            labelName: \"Transaction amount\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"ExchangeCode\",\n            labelName: \"Currency\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"PayMethod\",\n            labelName: \"Payment method\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"SubmitterJustification\",\n            labelName: \"Employee justification\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\n            visible: false,\n            required: false\n        }\n    );\n    ForAll(\n        Filter(\n            '@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',\n            LegalEntityId = varSelectedLegalEntity\n        ) As VisibilityTable,\n        Collect(\n            labelTableLookUp,\n            {\n                fieldName: VisibilityTable.FieldName,\n                labelName: VisibilityTable.Labels,\n                localisedLabelName: VisibilityTable.LocalisedLabelName\n            }\n        )\n    );\n    If(\n        featureEnabled = \"True\",\n        ForAll(\n            Filter(\n                '@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',\n                LegalEntityId = varSelectedLegalEntity\n            ) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(\n                    labelTableLookUp,\n                    fieldName = VisibilityTable.FieldName\n                ),\n                {\n                    visible: VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\n                    required: VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\n                }\n            )\n        ),\n        ForAll(\n            Filter(\n                'Display fields (mserp)',\n                'Company Code' = varSelectedLegalEntity\n            ) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(\n                    labelTableLookUp,\n                    fieldName = VisibilityTable.FieldName\n                ),\n                {\n                    visible: VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\n                    required: false\n                }\n            )\n        )\n    )\n);\nUpdateContext({varLoadingSpinner : false});\nSet(\n    varDefaultSalesTaxGroupCode,\n    varSelectedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValueCode,\n    varSelectedExpenseDoc.'Item sales tax group'\n);\nUpdateContext(\n    {\n        varSalesTaxAmount: Coalesce(\n            varSalesTaxAmount,\n            varSelectedExpenseDoc.'Actual sales tax amount'\n        )\n    }\n);\nUpdateContext({msCallStartedForSalestaxCalculation: false});\nSet(\n    IsreceiptALreadyCreated,\n    false\n);\nSet(\n    isProjIdCalledFromAttach,\n    false\n);\nSet(\n    gblParams,\n    {\n        dropDownHeight: 60,\n        dorpDownBorderThickness: 2,\n        dropDownBorderColor: RGBA(\n            34,\n            102,\n            227,\n            1\n        ),\n        dropDownLabelColor: Color.Black,\n        dropDownHoverFill: RGBA(\n            204,\n            222,\n            255,\n            1\n        ),\n        errorMessageSize: 18,\n        dropDownFontSize: 24,\n        expenseDataCardViewOnly: RGBA(\n            110,\n            110,\n            110,\n            1\n        ),\n        notificationTime: 4000\n    }\n);\n//varibale determines whether any fields were changed\nUpdateContext({isDirty: false});\n\nUpdateContext({categoryModified: false});\nUpdateContext({varDefaultItemSalesTaxError: Blank()});\nUpdateContext({varDefaultSalesTaxError: Blank()});\nUpdateContext({leModified: false});\nUpdateContext({varRatePerMile: Blank()});\nUpdateContext({varMileageTotal: Blank()});\nUpdateContext(\n    {\n        locPerdiemAmountCurr: If(\n            currExpenseType = 'TrvExpType (mserp)'.'Per diem',\n            Text(varSelectedExpenseDoc.'Transaction amount'),\n            Blank()\n        )\n    }\n);\nUpdateContext(\n    {\n        varCurrentSelectedDate: If(\n            varIsCreate,\n            If(\n                IsBlank(OCRresponse),\n                Today(),\n                OCRresponse.transDate\n            ),\n            varSelectedExpenseDoc.'Transaction date'\n        )\n    }\n);\nSet(\n    varDefaultSalesTaxGroupCode,\n    varSelectedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValueCode,\n    varSelectedExpenseDoc.'Item sales tax group'\n);\nUpdateContext(\n    {\n        varSalesTaxAmount: Coalesce(\n            varSalesTaxAmount,\n            varSelectedExpenseDoc.'Actual sales tax amount'\n        )\n    }\n);\nSet(\n    varCurMileage,\n    varSelectedExpenseDoc.Mileage\n);\n\nUpdateContext({varCurVehicleType: varSelectedExpenseDoc.'Vehicle type'});\nUpdateContext({varCurNoOfPass: varSelectedExpenseDoc.'Number of passengers'});\nUpdateContext({varDefaultProjLineStatus: varSelectedExpenseDoc.Billable});\nUpdateContext({varZipCodeChanged: false});\nUpdateContext({varCityChanged: false});\nUpdateContext({varStateChanged: false});\nUpdateContext({varCountryChanged: false});\nUpdateContext({varProjectChanged: false});\n"
+      OnVisible: "=UpdateContext({varStateSelected: Blank()});\nUpdateContext({varZipCodeSelectedRecId: -1 });\nUpdateContext({varProjectHierarchyId: Blank()});\nUpdateContext({onReloadButtonClick: false});\n// 3-level category selection variables\nUpdateContext({varSelectedDepartment: Blank()});\nUpdateContext({varSelectedBenefitType: Blank()});\nUpdateContext({varSelectedBenefitTypeValue: \"\"});\nUpdateContext({curCategory: If(!varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'), varSelectedExpenseDoc.'Expense category (mserp_costtype)', Blank())});\n// Cost Center context\nUpdateContext({varSelectedCostCenter: Blank()});\nIf(\n    !varIsCreate && !IsBlank(varSelectedExpenseDoc.CostCenter),\n    UpdateContext({\n        varSelectedCostCenter: LookUp(\n            'DCSL Financial Dimension CostCenter (mserp)',\n            'Combination display' = varSelectedExpenseDoc.CostCenter\n        )\n    })\n);\n// Project context\nUpdateContext({varSelectedProject: Blank()});\nIf(\n    !varIsCreate && !IsBlank(varSelectedExpenseDoc.Project),\n    UpdateContext({\n        varSelectedProject: LookUp(\n            Filter(\n                'DCSL Financial Dimension Master (mserp)',\n                'Dimension name' = \"Project\"\n            ),\n            'Dimension value' = varSelectedExpenseDoc.Project\n        )\n    })\n);\n// Load existing Department and Benefit Type from Expense Category (reverse lookup)\nIf(\n    !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),\n    With(\n        {\n            mappingRecord: LookUp(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'\n            )\n        },\n        If(\n            !IsBlank(mappingRecord),\n            UpdateContext({\n                varSelectedDepartment: mappingRecord.Department\n            });\n            UpdateContext({\n                varSelectedBenefitType: mappingRecord.'Benefit Type'\n            })\n        )\n    )\n);\nUpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')});\nUpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.'Intercompany project category'});\nUpdateContext({curProjIdSelected: varSelectedExpenseDoc.'Project ID'});\nUpdateContext({curCountrySelected: varSelectedExpenseDoc.'Country/region (mserp_countryregion)'});\nUpdateContext({curStateSelected: varSelectedExpenseDoc.'State/province'});\nUpdateContext({curBillIssuedToSelected: varSelectedExpenseDoc.'Hotel bill issued to'});\nUpdateContext({taxModifiedByUser: false});\nUpdateContext({varLoadingSpinner : true});\nIf(\n    !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),\n    UpdateContext(\n        {\n            locItemizeButtonVisibilityFlag : 'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', \n            {\n                CostType: varSelectedExpenseDoc.'Expense category (mserp_costtype)',\n                SplitLineType:\"Default\",\n                LineType: If(varSelectedExpenseDoc.'Expense line type' = 'Expense line type (mserp)'.'Itemized header',\"ItemizedHeader\",\"Default\")\n            }).return\n\n        }\n    )\n);\nIf(\n    !varIsCreate && gblIsProjectValidationFlag,\n    Clear(colGetProjectsBasedOnResourceCategory);\n    UpdateContext({\n        varGetProjectsJson :\n        IfError(\n            Text(\n                'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n                    {\n                        employeeLegalEntity: varSelectedLegalEntity,\n                        interCompanyLegalEntity: curIntercompanyLE,\n                        categoryId: \n                        If(\n                            IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE), varSelectedExpenseDoc.'Intercompany project category', curCategory)),\n                            \"\",\n                            If(Upper(varSelectedLegalEntity) <> Upper(curIntercompanyLE), varSelectedExpenseDoc.'Intercompany project category', curCategory)\n                        )\n                    }).return\n            ),\n            \"\"\n        )\n    });\n    If(\n        !IsBlank(varGetProjectsJson),\n        ClearCollect(\n            colGetProjectsBasedOnResourceCategory,\n            ForAll(\n                MatchAll(varGetProjectsJson, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n                {\n                    projectId: ProjectListFromCol.projId, \n                    projectName: ProjectListFromCol.projName\n                }\n            )\n        ),\n        Clear(colGetProjectsBasedOnResourceCategory)\n    );\n    \n    If(\n        !IsBlankOrError(curProjIdSelected),\n        UpdateContext({\n            varProjectHierarchyId:\n                LookUp(\n                    'Projects (mserp)',\n                    'Project ID' = curProjIdSelected,\n                    HierarchyId\n                )\n        })\n    );\n);\nUpdateContext({locItemizationCheck : locItemizeButtonVisibilityFlag});\nUpdateContext(\n    {\n        timerCostType: false,\n        timerProj: false,\n        timerHBIT: false,\n        timerCountry: false,\n        timerState: false,\n        locAllowNavigationBack: true\n    }\n);\n// populate the current expense type of the selected document\nUpdateContext(\n    {\n        currExpenseType: Coalesce(\n            varSelectedExpenseDoc.'Expense type',\n            If(\n                !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),\n                LookUp(\n                    'Expense category (mserp)',\n                    'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)',\n                    'Expense type'\n                ),\n                Blank()\n            )\n        )\n    }\n);\nIf(\n    !varIsCreate,\n    UpdateContext({msCallStartedForSalestaxCalculation: true});\n    UpdateContext({varOnShowFields: false});\n    UpdateContext({varOnSelectTriggered: false});\n    UpdateContext({varOnChangeTriggered: false});\n    \n);\nUpdateContext(\n    {\n        featureEnabled: If(\n            userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes,\n            \"True\",\n            \"False\"\n        ),\n        perdiemFeatureEnabled: If(\n            userRecord.IsReImaginedPerDiemEnabled = 'NoYes (mserp)'.Yes,  //this needs to be changed to the perdiem feature enabled\n            \"True\",\n            \"False\"\n        )\n    }\n);\n//Check if the itemization is over or under distributed\nIf(\n    !varIsCreate,\n    If(\n        varRemainingAmount < 0,\n        Notify(\n            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ThisExpenseIsOverItemizedLabel',\n            NotificationType.Error,\n            gblParams.notificationTime\n        ),\n        varRemainingAmount > 0,\n        Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ThisExpenseIsNotCompletelyItemizedLabel',\n            NotificationType.Warning,\n            gblParams.notificationTime\n        )\n    )\n);\nIf(\n    currExpenseType = 'TrvExpType (mserp)'.'Per diem' && (featureEnabled = \"False\" || perdiemFeatureEnabled = \"False\"),\n    Notify(\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarning',\n        //\"Enable both re-imagined features to be able to edit this expense\",\n        NotificationType.Warning,\n        gblParams.notificationTime\n    )\n);\n//if labelTableLookUp not empty\nIf(\n    CountRows(labelTableLookUp) <= 0,\n    Collect(\n        labelTableLookUp,\n        {\n            fieldName: \"CostType\",\n            labelName: \"Expense category\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"TransDate\",\n            labelName: \"Transaction date\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"AmountCurr\",\n            labelName: \"Transaction amount\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"ExchangeCode\",\n            labelName: \"Currency\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"PayMethod\",\n            labelName: \"Payment method\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\n            visible: true,\n            required: true\n        },\n        {\n            fieldName: \"SubmitterJustification\",\n            labelName: \"Employee justification\",\n            localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\n            visible: false,\n            required: false\n        }\n    );\n    ForAll(\n        Filter(\n            '@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',\n            LegalEntityId = varSelectedLegalEntity\n        ) As VisibilityTable,\n        Collect(\n            labelTableLookUp,\n            {\n                fieldName: VisibilityTable.FieldName,\n                labelName: VisibilityTable.Labels,\n                localisedLabelName: VisibilityTable.LocalisedLabelName\n            }\n        )\n    );\n    If(\n        featureEnabled = \"True\",\n        ForAll(\n            Filter(\n                '@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',\n                LegalEntityId = varSelectedLegalEntity\n            ) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(\n                    labelTableLookUp,\n                    fieldName = VisibilityTable.FieldName\n                ),\n                {\n                    visible: VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\n                    required: VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\n                }\n            )\n        ),\n        ForAll(\n            Filter(\n                'Display fields (mserp)',\n                'Company Code' = varSelectedLegalEntity\n            ) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(\n                    labelTableLookUp,\n                    fieldName = VisibilityTable.FieldName\n                ),\n                {\n                    visible: VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\n                    required: false\n                }\n            )\n        )\n    )\n);\nUpdateContext({varLoadingSpinner : false});\nSet(\n    varDefaultSalesTaxGroupCode,\n    varSelectedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValueCode,\n    varSelectedExpenseDoc.'Item sales tax group'\n);\nUpdateContext(\n    {\n        varSalesTaxAmount: Coalesce(\n            varSalesTaxAmount,\n            varSelectedExpenseDoc.'Actual sales tax amount'\n        )\n    }\n);\nUpdateContext({msCallStartedForSalestaxCalculation: false});\nSet(\n    IsreceiptALreadyCreated,\n    false\n);\nSet(\n    isProjIdCalledFromAttach,\n    false\n);\nSet(\n    gblParams,\n    {\n        dropDownHeight: 60,\n        dorpDownBorderThickness: 2,\n        dropDownBorderColor: RGBA(\n            34,\n            102,\n            227,\n            1\n        ),\n        dropDownLabelColor: Color.Black,\n        dropDownHoverFill: RGBA(\n            204,\n            222,\n            255,\n            1\n        ),\n        errorMessageSize: 18,\n        dropDownFontSize: 24,\n        expenseDataCardViewOnly: RGBA(\n            110,\n            110,\n            110,\n            1\n        ),\n        notificationTime: 4000\n    }\n);\n//varibale determines whether any fields were changed\nUpdateContext({isDirty: false});\n\nUpdateContext({categoryModified: false});\nUpdateContext({varDefaultItemSalesTaxError: \"\"});\nUpdateContext({varDefaultSalesTaxError: \"\"});\nUpdateContext({leModified: false});\nUpdateContext({varRatePerMile: \"\"});\nUpdateContext({varMileageTotal: \"\"});\nUpdateContext(\n    {\n        locPerdiemAmountCurr: If(\n            currExpenseType = 'TrvExpType (mserp)'.'Per diem',\n            Text(varSelectedExpenseDoc.'Transaction amount'),\n            Blank()\n        )\n    }\n);\nUpdateContext(\n    {\n        varCurrentSelectedDate: If(\n            varIsCreate,\n            If(\n                IsBlank(OCRresponse),\n                Today(),\n                OCRresponse.transDate\n            ),\n            varSelectedExpenseDoc.'Transaction date'\n        )\n    }\n);\nSet(\n    varDefaultSalesTaxGroupCode,\n    varSelectedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValueCode,\n    varSelectedExpenseDoc.'Item sales tax group'\n);\nUpdateContext(\n    {\n        varSalesTaxAmount: Coalesce(\n            varSalesTaxAmount,\n            varSelectedExpenseDoc.'Actual sales tax amount'\n        )\n    }\n);\nSet(\n    varCurMileage,\n    varSelectedExpenseDoc.Mileage\n);\n\nUpdateContext({varCurVehicleType: varSelectedExpenseDoc.'Vehicle type'});\nUpdateContext({varCurNoOfPass: varSelectedExpenseDoc.'Number of passengers'});\nUpdateContext({varDefaultProjLineStatus: varSelectedExpenseDoc.Billable});\nUpdateContext({varZipCodeChanged: false});\nUpdateContext({varCityChanged: false});\nUpdateContext({varStateChanged: false});\nUpdateContext({varCountryChanged: false});\nUpdateContext({varProjectChanged: false});\n"
     Children:
       - scr03_ico_Back_4:
           Control: Classic/Icon@2.5.0
@@ -759,7 +759,7 @@ Screens:
                               IsSearchable: =false
                               Items: =colExpenseCategories
                               NoSelectionText: "=GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' "
-                              OnChange: "=UpdateContext({varOnChangeTriggered : true});\n// Extract key values from custom record structure\nReset(VehicleTypeCombobox);\nUpdateContext({varDefaultVehicleType : Blank()});\nUpdateContext({msCallStartedForSalestaxCalculation : true});\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\nUpdateContext({ \n    varSelectedCategoryRecord: LookUp(colExpenseCategories, 'Expense category' = ComboBox1_8.Selected.'Expense category') \n});\nIf(\n    varOnShowFields && !IsBlank(ComboBox1_8.Selected),\n    UpdateContext(\n        {\n            locItemizeButtonVisibilityFlag : \n            'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', \n            {\n                CostType: varSelectedCategoryRecord.'Expense category',\n                SplitLineType:\"Default\",\n                LineType: If(!IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Itemization mandatory' = 'NoYes (mserp)'.Yes,\"ItemizedHeader\",\"Default\")\n            }\n            ).return\n        }\n    );\nIf(\n    IsBlank(Self.Selected),\n    Reset(DataCardValue16_1); //remove payment method\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES),  //remove project\n        Reset(ProjectCheckbox_Entity)\n    ); \n    Reset(DataCardValue9_1); //remove line status\n    Reset(ComboBox1_14); //remove activity\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    UpdateContext({varDefaultProjLineStatus: Blank()}); // Reset Billable\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax\n    //Clear(collectionActivities),\n    If(\n        !IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Use in Project' = 'NoYes (mserp)'.No,\n        If( \n            gblIsProjectValidationFlag,\n            Reset(ProjectICheckbox_ES),  //remove project\n            Reset(ProjectCheckbox_Entity)\n        );\n        Reset(DataCardValue9_1); //reset line status id\n        Reset(ComboBox1_14); //remove activity\n        //Clear(collectionActivities)\n    );\n    \n    \n);\nIf(\n    !IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense category' <> curCategory,\n    If( \n        gblIsProjectValidationFlag,\n        Clear(colGetProjectsBasedOnResourceCategory);\n        UpdateContext({\n            varGetProjectsBasedOnResourceCategory :\n            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n            {\n                employeeLegalEntity: varSelectedLegalEntity,\n                interCompanyLegalEntity: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity'),\n                categoryId:If(IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')),\n                    \"\",\n                    If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')\n                )\n            }\n            ).return\n        });\n        Clear(colGetProjectsBasedOnResourceCategory);\n        Collect(\n            colGetProjectsBasedOnResourceCategory ,\n            ForAll(\n                MatchAll(varGetProjectsBasedOnResourceCategory, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n                {\n                    projectId: ProjectListFromCol.projId,\n                    projectName: ProjectListFromCol.projName\n                }\n            )\n        );\n\n    );\n    \n    UpdateContext({categoryModified:true});\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES);  //remove project\n        UpdateContext({varProjectHierarchyId : Blank()}),\n        Reset(ProjectCheckbox_Entity)\n    );\n    Reset(DataCardValue9_1); //remove line status\n    Reset(ComboBox1_14); //remove activity\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax amount\n    Set(\n        varItemSalesTaxDefaultValue,\n        Blank()\n    );\n    If(!IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense type' = 'TrvExpType (mserp)'.Mileage,\n        Set(varCollectCacheV23,\n            'Expense mobile master data (mserp)'.mserp_calckm(\n                If(IsBlank(ExpenseInfo_1.RowId),\"\",ExpenseInfo_1.RowId),\n                {\n                    TransDate: If(IsBlank(DatePickerCanvas1_18.SelectedDate),\"\",Text(DateTimeValue(DatePickerCanvas1_18.SelectedDate),\"yyyy-mm-dd hh:mm:ssZ\")),\n                    CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category'),\n                    KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), \"0\", DataCardValue40.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                    VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),\"\",VehicleTypeCombobox.Selected.Value),\n                    NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)\n                }\n            )\n        );\n        Reset(VehicleTypeCombobox);\n        UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});\n    );\n\nSet(\n    varItemSalesTaxDefaultValue, \n    IfError(\n        'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_getdefaultitemsalestax(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                SubCategoryRecId : \"\",\n                IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n                BillIssuedTo : If(IsBlank(DataCardValue19_1.Selected.Value),\"\",DataCardValue19_1.Selected.Value),\n                LineType : \"Default\",\n                SplitLineType : \"\",\n                ParentRecId : \"\",\n                CostType : If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category')\n            }\n        ).return,\n        UpdateContext({\n            varDefaultItemSalesTaxError : \n                Substitute(\n                    Match(\n                        FirstError.Details.HttpResponse,\n                        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                    ).FullMatch,\n                    \"\"\"message\"\":\"\"\",\n                    \"\"\n                )      \n        })\n    )\n);\nIf(!IsBlank(varDefaultItemSalesTaxError),\n    Notify(\n        Left(varDefaultItemSalesTaxError,Len(varDefaultItemSalesTaxError)-1),\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\nUpdateContext({timerCostType : true});\nIf(\n    !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),\n    UpdateContext({\n        varSalesTaxAmount : \n        IfError(\n        Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), \"0\", DataCardValue4_1.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n            }\n        ).return,\"en-US\"),\n        UpdateContext({\n            varErrorActualTaxCal : \n            Substitute(\n                Match(\n                    FirstError.Details.HttpResponse,\n                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                ).FullMatch,\n                \"\"\"message\"\":\"\"\",\n                \"\"\n            )      \n        })\n        )\n    });\n);\nIf(!IsBlank(varErrorActualTaxCal),\nNotify(\n    Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n\n);\nUpdateContext({isDirty : true});\n\n);\nUpdateContext({curCategory : Self.Selected.'Expense category'});\nUpdateContext({currExpenseType : Self.Selected.'Expense type'});\nUpdateContext({msCallStartedForSalestaxCalculation : false});\nUpdateContext({taxModifiedByUser: false}); "
+                              OnChange: "=UpdateContext({varOnChangeTriggered : true});\n// Extract key values from custom record structure\nReset(VehicleTypeCombobox);\nUpdateContext({varDefaultVehicleType : \"\"});\nUpdateContext({msCallStartedForSalestaxCalculation : true});\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\nUpdateContext({ \n    varSelectedCategoryRecord: LookUp(colExpenseCategories, 'Expense category' = ComboBox1_8.Selected.'Expense category') \n});\nIf(\n    varOnShowFields && !IsBlank(ComboBox1_8.Selected),\n    UpdateContext(\n        {\n            locItemizeButtonVisibilityFlag : \n            'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', \n            {\n                CostType: varSelectedCategoryRecord.'Expense category',\n                SplitLineType:\"Default\",\n                LineType: If(!IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Itemization mandatory' = 'NoYes (mserp)'.Yes,\"ItemizedHeader\",\"Default\")\n            }\n            ).return\n        }\n    );\nIf(\n    IsBlank(Self.Selected),\n    Reset(DataCardValue16_1); //remove payment method\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES),  //remove project\n        Reset(ProjectCheckbox_Entity)\n    ); \n    Reset(DataCardValue9_1); //remove line status\n    Reset(ComboBox1_14); //remove activity\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    UpdateContext({varDefaultProjLineStatus: Blank()}); // Reset Billable\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax\n    //Clear(collectionActivities),\n    If(\n        !IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Use in Project' = 'NoYes (mserp)'.No,\n        If( \n            gblIsProjectValidationFlag,\n            Reset(ProjectICheckbox_ES),  //remove project\n            Reset(ProjectCheckbox_Entity)\n        );\n        Reset(DataCardValue9_1); //reset line status id\n        Reset(ComboBox1_14); //remove activity\n        //Clear(collectionActivities)\n    );\n    \n    \n);\n\nIf(\n    !IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense category' <> curCategory,\n    If( \n        gblIsProjectValidationFlag,\n        Clear(colGetProjectsBasedOnResourceCategory);\n        /*\n        UpdateContext({\n            varGetProjectsBasedOnResourceCategory :\n            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n            {\n                employeeLegalEntity: varSelectedLegalEntity,\n                interCompanyLegalEntity: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity'),\n                categoryId:If(IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')),\n                    \"\",\n                    If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')\n                )\n            }\n            ).return\n        });\n        Clear(colGetProjectsBasedOnResourceCategory);\n        Collect(\n            colGetProjectsBasedOnResourceCategory ,\n            ForAll(\n                MatchAll(varGetProjectsBasedOnResourceCategory, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n                {\n                    projectId: ProjectListFromCol.projId,\n                    projectName: ProjectListFromCol.projName\n                }\n            )\n        );\n        */\n\n    );\n    \n    \n    UpdateContext({categoryModified:true});\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES);  //remove project\n        UpdateContext({varProjectHierarchyId : Blank()}),\n        Reset(ProjectCheckbox_Entity)\n    );\n    Reset(DataCardValue9_1); //remove line status\n    Reset(ComboBox1_14); //remove activity\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax amount\n    Set(\n        varItemSalesTaxDefaultValue,\n        Blank()\n    );\n    /*\n    If(!IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense type' = 'TrvExpType (mserp)'.Mileage,\n        Set(varCollectCacheV23,\n            'Expense mobile master data (mserp)'.mserp_calckm(\n                If(IsBlank(ExpenseInfo_1.RowId),\"\",ExpenseInfo_1.RowId),\n                {\n                    TransDate: If(IsBlank(DatePickerCanvas1_18.SelectedDate),\"\",Text(DateTimeValue(DatePickerCanvas1_18.SelectedDate),\"yyyy-mm-dd hh:mm:ssZ\")),\n                    CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category'),\n                    KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), \"0\", DataCardValue40.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                    VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),\"\",VehicleTypeCombobox.Selected.Value),\n                    NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)\n                }\n            )\n        );\n        Reset(VehicleTypeCombobox);\n        UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});\n    );\n    */\n/*\nSet(\n    varItemSalesTaxDefaultValue, \n    IfError(\n        'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_getdefaultitemsalestax(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                SubCategoryRecId : \"\",\n                IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n                BillIssuedTo : If(IsBlank(DataCardValue19_1.Selected.Value),\"\",DataCardValue19_1.Selected.Value),\n                LineType : \"Default\",\n                SplitLineType : \"\",\n                ParentRecId : \"\",\n                CostType : If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category')\n            }\n        ).return,\n        UpdateContext({\n            varDefaultItemSalesTaxError : \n                Substitute(\n                    Match(\n                        FirstError.Details.HttpResponse,\n                        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                    ).FullMatch,\n                    \"\"\"message\"\":\"\"\",\n                    \"\"\n                )      \n        })\n    )\n);\n\nIf(!IsBlank(varDefaultItemSalesTaxError),\n    Notify(\n        Left(varDefaultItemSalesTaxError,Len(varDefaultItemSalesTaxError)-1),\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\n*/\nUpdateContext({timerCostType : true});\n/*\nIf(\n    !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),\n    UpdateContext({\n        varSalesTaxAmount : \n        IfError(\n        Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), \"0\", DataCardValue4_1.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n            }\n        ).return,\"en-US\"),\n        UpdateContext({\n            varErrorActualTaxCal : \n            Substitute(\n                Match(\n                    FirstError.Details.HttpResponse,\n                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                ).FullMatch,\n                \"\"\"message\"\":\"\"\",\n                \"\"\n            )      \n        })\n        )\n    });\n);\n*/\nIf(!IsBlank(varErrorActualTaxCal),\nNotify(\n    Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n\n);\nUpdateContext({isDirty : true});\n\n);\nUpdateContext({curCategory : Self.Selected.'Expense category'});\nUpdateContext({currExpenseType : Self.Selected.'Expense type'});\nUpdateContext({msCallStartedForSalestaxCalculation : false});\nUpdateContext({taxModifiedByUser: false}); "
                               OnSelect: |-
                                 =UpdateContext({varOnSelectTriggered: true});
                               PressedColor: =RGBA(255, 255, 255, 1)
@@ -1246,6 +1246,7 @@ Screens:
                                 );
                                 If(
                                     varOnShowFields,
+                                /*
                                 If(
                                     !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                                     UpdateContext({
@@ -1277,6 +1278,7 @@ Screens:
                                         )
                                     });
                                 );
+                                */
                                 If(!IsBlank(varErrorActualTaxCal),
                                 Notify(
                                     Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -1289,6 +1291,7 @@ Screens:
                                 UpdateContext({varCurrentSelectedDate : DatePickerCanvas1_25.SelectedDate}); 
                                 );
                                 UpdateContext({msCallStartedForSalestaxCalculation : false});
+                                /*
                                 If(currExpenseType = 'TrvExpType (mserp)'.Mileage,
                                         Set(varCollectCacheV23,
                                         'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
@@ -1304,6 +1307,7 @@ Screens:
                                 Reset(VehicleTypeCombobox);
                                 UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});
                                 );
+                                */
                               Placeholder: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
                               SelectedDate: |-
                                 =If(
@@ -1533,6 +1537,7 @@ Screens:
                                 );
                                 If(
                                     varOnShowFields,
+                                /*
                                 If(
                                     !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                                     UpdateContext({
@@ -1564,6 +1569,7 @@ Screens:
                                         )
                                     });
                                 );
+                                */
                                 If(!IsBlank(varErrorActualTaxCal),
                                 Notify(
                                     Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -1576,6 +1582,7 @@ Screens:
                                 UpdateContext({varCurrentSelectedDate : DatePickerCanvas1_24.SelectedDate}); 
                                 );
                                 UpdateContext({msCallStartedForSalestaxCalculation : false});
+                                /*
                                 If(currExpenseType = 'TrvExpType (mserp)'.Mileage,
                                         Set(varCollectCacheV23,
                                         'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
@@ -1589,8 +1596,9 @@ Screens:
                                         )
                                 );
                                 Reset(VehicleTypeCombobox);
-                                UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});
+                                //UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});
                                 );
+                                */
                               Placeholder: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
                               SelectedDate: |-
                                 =If(
@@ -2209,7 +2217,31 @@ Screens:
                           )
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Transaction amount')
                         Required: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
-                        Update: "=/*\nValue(If(\n    currExpenseType = 'TrvExpType (mserp)'.Mileage,\n    If(\n        IsBlank(varMileageTotal),\n        varSelectedExpenseDoc.'Transaction amount',\n        Value(varMileageTotal,\"en-US\")\n    ),\n    If(Value(DataCardValue4_1.Text) = 0,\n        Blank(),\n        Value(DataCardValue4_1.Text)\n    )\n),varDefaultLanguage)\n*/\n// 천단위 구분 기호 해제 로직 포함\nValue(\n    If(\n        currExpenseType = 'TrvExpType (mserp)'.Mileage,\n        // 마일리지인 경우 계산된 합계 사용\n        If(IsBlank(varMileageTotal), varSelectedExpenseDoc.'Transaction amount', Value(varMileageTotal, \"en-US\")),\n        \n        // 일반 경비인 경우 입력된 텍스트 사용\n        If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,\n            Blank(),\n            // [중요] 텍스트 입력값(\"1,000\")을 숫자(1000)로 변환\n            Substitute(DataCardValue4_1.Text, \",\", \"\") // 입력된 텍스트에서 쉼표(,)를 모두 빈값으로 치환\n        )\n    ),\n    varDefaultLanguage\n)"
+                        Update: |-
+                          =/*
+                          Value(If(
+                              currExpenseType = 'TrvExpType (mserp)'.Mileage,
+                              If(
+                                  IsBlank(varMileageTotal),
+                                  varSelectedExpenseDoc.'Transaction amount',
+                                  Value(varMileageTotal,"en-US")
+                              ),
+                              If(Value(DataCardValue4_1.Text) = 0,
+                                  Blank(),
+                                  Value(DataCardValue4_1.Text)
+                              )
+                          ),varDefaultLanguage)
+                          */
+                          // 천단위 구분 기호 해제 로직 포함
+                          Value(
+                              // 일반 경비인 경우 입력된 텍스트 사용
+                              If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,
+                                  Blank(),
+                                  // [중요] 텍스트 입력값("1,000")을 숫자(1000)로 변환
+                                  Substitute(DataCardValue4_1.Text, ",", "") // 입력된 텍스트에서 쉼표(,)를 모두 빈값으로 치환
+                              ),
+                              varDefaultLanguage
+                          )
                         Visible: =true && currExpenseType <> 'TrvExpType (mserp)'.Mileage && !(Breakfast_DataCard1.Visible)
                         Width: =Parent.Width/2 - 10
                         X: =0
@@ -2267,16 +2299,15 @@ Screens:
                                 // 천단위 구분 기호 로직 수정
                                 If(
                                     locIsEditingAmount, 
-                                    // 1. 편집 중일 때: 콤마 없는 순수 숫자 표시
+                                    // 1. 편집 중: 콤마 없이 표시
                                     Text(
-                                         /* 기존 값 가져오는 로직 (dirtyTransAmount 등) */
-                                         Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'),
-                                         "#" // 포맷 없이 숫자만 표시
+                                         Value(Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount')), 
+                                         "#"
                                     ),
 
-                                    // 2. 평상시: 천 단위 콤마 포맷 표시
+                                    // 2. 평상시: 천 단위 콤마 포함 표시
                                     Text(
-                                         Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'),
+                                         Value(Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount')), 
                                          "#,##0.00", 
                                          varDefaultLanguage
                                     )
@@ -2293,7 +2324,15 @@ Screens:
                               HoverBorderColor: =
                               HoverFill: =gblParams.dropDownHoverFill
                               OnChange: |-
-                                =UpdateContext({isDirty : true});
+                                =// 1. 입력값에서 콤마를 제거하여 순수 숫자로 변환해 변수에 저장
+                                UpdateContext({ dirtyTransAmount: Substitute(Self.Text, ",", "") });
+
+                                // 2. 편집 모드 종료
+                                UpdateContext({ locIsEditingAmount: false });
+
+                                // 3. [핵심] 컨트롤을 리셋하여 Default 속성(콤마 포맷)을 다시 불러옴
+                                Reset(Self);
+                                UpdateContext({isDirty : true});
                                 UpdateContext({varOnChangeTriggered : true});
                                 UpdateContext({dirtyTransAmount : Self.Text});
                                 UpdateContext({taxModifiedByUser:false});
@@ -2302,6 +2341,7 @@ Screens:
                                     varOnChangeTriggered && varOnSelectTriggered,
                                     UpdateContext({varOnShowFields : true})
                                 );
+                                /*
                                 If(
                                     varOnShowFields,
                                     If(
@@ -2343,13 +2383,13 @@ Screens:
                                         )
                                     );
                                 );
+                                */
 
                                 Reset(DataCardValue25_1);
-                                UpdateContext({msCallStartedForSalestaxCalculation : false});
-                                UpdateContext({ locIsEditingAmount: false }) // 편집 모드 종료 (값 변경 후 포커스 아웃 시)
+                                UpdateContext({msCallStartedForSalestaxCalculation : false})
                               OnSelect: |-
-                                =UpdateContext({varOnSelectTriggered: true});
-                                UpdateContext({ locIsEditingAmount: true }) // 편집 모드 시작
+                                =UpdateContext({ locIsEditingAmount: true }); // 편집 모드 시작
+                                UpdateContext({varOnSelectTriggered: true})
                               PaddingLeft: =5
                               RadiusBottomLeft: =0
                               RadiusBottomRight: =0
@@ -2581,6 +2621,7 @@ Screens:
                                     varOnChangeTriggered && varOnSelectTriggered,
                                     UpdateContext({varOnShowFields : true})
                                 );
+                                /*
                                 If(
                                     varOnShowFields,
                                     If(
@@ -2626,6 +2667,7 @@ Screens:
                                 UpdateContext({isDirty : true});
                                 );
                                 UpdateContext({msCallStartedForSalestaxCalculation : false})
+                                */
                               OnSelect: |-
                                 =UpdateContext({varOnSelectTriggered: true});
                               PressedColor: =RGBA(255, 255, 255, 1)
@@ -2860,6 +2902,7 @@ Screens:
                                     varOnChangeTriggered && varOnSelectTriggered,
                                     UpdateContext({varOnShowFields : true})
                                 );
+                                /*
                                 If(
                                     varOnShowFields,
                                 If(
@@ -2904,6 +2947,7 @@ Screens:
                                 Reset(DataCardValue25_1);
                                 UpdateContext({varCurrentSelectedDate : DatePickerCanvas1_18.SelectedDate}); 
                                 );
+
                                 UpdateContext({msCallStartedForSalestaxCalculation : false});
                                 If(currExpenseType = 'TrvExpType (mserp)'.Mileage,
                                         Set(varCollectCacheV23,
@@ -2920,6 +2964,7 @@ Screens:
                                 Reset(VehicleTypeCombobox);
                                 UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});
                                 );
+                                */
                               Placeholder: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
                               SelectedDate: |-
                                 =If(
@@ -3330,7 +3375,7 @@ Screens:
                                             'Expense category (mserp)',
                                             'Expense category' = ComboBox1_8.Selected.'Expense category' &&
                                             'Company Code' = varSelectedLegalEntity
-                                        ).DefaultPaymentMethod,
+                                        ).'Default payment method',
                                         'Payment method'
                                     ),
                                     Blank()
@@ -3416,7 +3461,7 @@ Screens:
                                                 'Expense category (mserp)',
                                                 'Expense category' = ComboBox1_8.Selected.'Expense category' &&
                                                 'Company Code' = varSelectedLegalEntity
-                                            ).DefaultPaymentMethod,
+                                            ).'Default payment method',
                                             Blank()
                                         )
                                         ),
@@ -3862,7 +3907,7 @@ Screens:
                               HoverFill: =gblParams.dropDownHoverFill
                               Items: =collectionICLE
                               Items.Value: =Value
-                              OnChange: "=UpdateContext({isDirty : true});\nIf(\n    Self.Selected.Value <> curIntercompanyLE,\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES);  //remove project\n        UpdateContext({varProjectHierarchyId : Blank()}),\n        Reset(ProjectCheckbox_Entity)\n    );\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    Reset(ComboBox1_14); // activity\n    UpdateContext({varDefaultProjLineStatus: Blank()}); // Biilable\n    //Clear(collectionActivities); // clearing activity number collection\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax\n    Reset(DataCardValue9_1); //line status\n    Reset(DataCardValue19_1); //hotel bill issued to \n    Reset(ComboBox1_21); //intercompany category\n    UpdateContext({curIntercompanyLE:Self.Selected.Value});\n    UpdateContext({leModified : true});\n    UpdateContext({msCallStartedForSalestaxCalculation : true});\n    \n    If(\n        gblIsProjectValidationFlag,\n        Clear(colGetProjectsBasedOnResourceCategory);\n        UpdateContext({\n        varGetProjectsBasedOnResourceCategory :\n        'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n            {\n                employeeLegalEntity: varSelectedLegalEntity,\n                interCompanyLegalEntity: DataCardValue39_1.Selected.Value,\n                categoryId: If(\n                    IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')),\n                    \"\",\n                    If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')\n                )\n            }\n        ).return\n    }\n    );\n    Collect(\n        colGetProjectsBasedOnResourceCategory ,\n        ForAll(\n            MatchAll(varGetProjectsBasedOnResourceCategory, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n            {\n                projectId: ProjectListFromCol.projId,\n                projectName: ProjectListFromCol.projName\n            }\n        )\n    );\n);\nSet(\n    varDefaultSalesTaxGroup,\n    Blank()\n);\n\nSet(\n    varDefaultSalesTaxGroup, \n    IfError(\n    'Expense mobile master data (mserp)'.mserp_getdefaultsalestaxvalue(\n    LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n    {\n        IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n        CountryRegion : If(IsBlank(ComboBox1_17.Selected.Code),\"\",ComboBox1_17.Selected.Code),\n        AddressState : If(IsBlank(ComboBox1_18.Selected.State),\"\",ComboBox1_18.Selected.State),\n        ProjId : If(IsBlank(If(gblIsProjectValidationFlag,ProjectICheckbox_ES.Selected.projectId,ProjectCheckbox_Entity.Selected.'Project ID')),\"\",If(gblIsProjectValidationFlag,ProjectICheckbox_ES.Selected.projectId,ProjectCheckbox_Entity.Selected.'Project ID')),\n        TrvExpTableRecId :  \"\"\n    }\n).return,\n    UpdateContext({\n        varDefaultSalesTaxError : \n        Substitute(\n    Match(\n        FirstError.Details.HttpResponse,\n        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n    ).FullMatch,\n    \"\"\"message\"\":\"\"\",\n    \"\"\n)      \n    })\n    )\n);\nIf(!IsBlank(varDefaultSalesTaxError),\nNotify(\n    Left(varDefaultSalesTaxError,Len(varDefaultSalesTaxError)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n\nSet(\n    varItemSalesTaxDefaultValue, \n    IfError(\n    'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_mserp_getdefaultitemsalestax(\n    LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n    {\n        SubCategoryRecId : \"\",\n        IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n        BillIssuedTo : If(IsBlank(DataCardValue19_1.Selected.Value),\"\",DataCardValue19_1.Selected.Value),\n        LineType : \"Default\",\n        SplitLineType : \"\",\n        ParentRecId : \"\",\n        CostType : If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category')\n    }\n).return,\n    UpdateContext({\n        varDefaultItemSalesTaxError : \n        Substitute(\n    Match(\n        FirstError.Details.HttpResponse,\n        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n    ).FullMatch,\n    \"\"\"message\"\":\"\"\",\n    \"\"\n)      \n    })\n    )\n);\nIf(!IsBlank(varDefaultItemSalesTaxError),\nNotify(\n    Left(varDefaultItemSalesTaxError,Len(varDefaultItemSalesTaxError)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n\nIf(\n    !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),\n    UpdateContext({\n        varSalesTaxAmount : \n        IfError(\n        Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), \"0\", DataCardValue4_1.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n            }\n        ).return,\"en-US\"),\n        UpdateContext({\n            varErrorActualTaxCal : \n            Substitute(\n                Match(\n                    FirstError.Details.HttpResponse,\n                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                ).FullMatch,\n                \"\"\"message\"\":\"\"\",\n                \"\"\n            )      \n        })\n        )\n    });\n);\nIf(!IsBlank(varErrorActualTaxCal),\nNotify(\n    Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n\nReset(DataCardValue25_1);\nUpdateContext({msCallStartedForSalestaxCalculation : false})\n);"
+                              OnChange: "=UpdateContext({isDirty : true});\nIf(\n    Self.Selected.Value <> curIntercompanyLE,\n    If( \n        gblIsProjectValidationFlag,\n        Reset(ProjectICheckbox_ES);  //remove project\n        UpdateContext({varProjectHierarchyId : Blank()}),\n        Reset(ProjectCheckbox_Entity)\n    );\n    Reset(ComboBox1_15); //sales tax\n    Reset(ComboBox1_16); //item sales tax\n    Reset(ComboBox1_14); // activity\n    UpdateContext({varDefaultProjLineStatus: Blank()}); // Biilable\n    //Clear(collectionActivities); // clearing activity number collection\n    UpdateContext({varSalesTaxAmount:0});\n    Reset(DataCardValue25_1); //actual sales tax\n    Reset(DataCardValue9_1); //line status\n    Reset(DataCardValue19_1); //hotel bill issued to \n    Reset(ComboBox1_21); //intercompany category\n    UpdateContext({curIntercompanyLE:Self.Selected.Value});\n    UpdateContext({leModified : true});\n    UpdateContext({msCallStartedForSalestaxCalculation : true});\n    \n    If(\n        gblIsProjectValidationFlag,\n        Clear(colGetProjectsBasedOnResourceCategory);\n        UpdateContext({\n        varGetProjectsBasedOnResourceCategory :\n        'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n            {\n                employeeLegalEntity: varSelectedLegalEntity,\n                interCompanyLegalEntity: DataCardValue39_1.Selected.Value,\n                categoryId: If(\n                    IsBlank(If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')),\n                    \"\",\n                    If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')\n                )\n            }\n        ).return\n    }\n    );\n    Collect(\n        colGetProjectsBasedOnResourceCategory ,\n        ForAll(\n            MatchAll(varGetProjectsBasedOnResourceCategory, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n            {\n                projectId: ProjectListFromCol.projId,\n                projectName: ProjectListFromCol.projName\n            }\n        )\n    );\n);\nSet(\n    varDefaultSalesTaxGroup,\n    Blank()\n);\n/*\nSet(\n    varDefaultSalesTaxGroup, \n    IfError(\n    'Expense mobile master data (mserp)'.mserp_getdefaultsalestaxvalue(\n    LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n    {\n        IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n        CountryRegion : If(IsBlank(ComboBox1_17.Selected.Code),\"\",ComboBox1_17.Selected.Code),\n        AddressState : If(IsBlank(ComboBox1_18.Selected.State),\"\",ComboBox1_18.Selected.State),\n        ProjId : If(IsBlank(If(gblIsProjectValidationFlag,ProjectICheckbox_ES.Selected.projectId,ProjectCheckbox_Entity.Selected.'Project ID')),\"\",If(gblIsProjectValidationFlag,ProjectICheckbox_ES.Selected.projectId,ProjectCheckbox_Entity.Selected.'Project ID')),\n        TrvExpTableRecId :  \"\"\n    }\n).return,\n    UpdateContext({\n        varDefaultSalesTaxError : \n        Substitute(\n    Match(\n        FirstError.Details.HttpResponse,\n        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n    ).FullMatch,\n    \"\"\"message\"\":\"\"\",\n    \"\"\n)      \n    })\n    )\n);\n\nIf(!IsBlank(varDefaultSalesTaxError),\nNotify(\n    Left(varDefaultSalesTaxError,Len(varDefaultSalesTaxError)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n*/\n/*\nSet(\n    varItemSalesTaxDefaultValue, \n    IfError(\n    'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_mserp_getdefaultitemsalestax(\n    LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n    {\n        SubCategoryRecId : \"\",\n        IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n        BillIssuedTo : If(IsBlank(DataCardValue19_1.Selected.Value),\"\",DataCardValue19_1.Selected.Value),\n        LineType : \"Default\",\n        SplitLineType : \"\",\n        ParentRecId : \"\",\n        CostType : If(IsBlank(ComboBox1_8.Selected.'Expense category'),\"\",ComboBox1_8.Selected.'Expense category')\n    }\n).return,\n    UpdateContext({\n        varDefaultItemSalesTaxError : \n        Substitute(\n    Match(\n        FirstError.Details.HttpResponse,\n        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n    ).FullMatch,\n    \"\"\"message\"\":\"\"\",\n    \"\"\n)      \n    })\n    )\n);\n*/\n/*\nIf(!IsBlank(varDefaultItemSalesTaxError),\nNotify(\n    Left(varDefaultItemSalesTaxError,Len(varDefaultItemSalesTaxError)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n*/\n/*\nIf(\n    !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),\n    UpdateContext({\n        varSalesTaxAmount : \n        IfError(\n        Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\n            LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n            {\n                TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), \"0\", DataCardValue4_1.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n            }\n        ).return,\"en-US\"),\n        UpdateContext({\n            varErrorActualTaxCal : \n            Substitute(\n                Match(\n                    FirstError.Details.HttpResponse,\n                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                ).FullMatch,\n                \"\"\"message\"\":\"\"\",\n                \"\"\n            )      \n        })\n        )\n    });\n);\n*/\nIf(!IsBlank(varErrorActualTaxCal),\nNotify(\n    Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n    NotificationType.Error,\n    gblParams.notificationTime\n)\n);\n\nReset(DataCardValue25_1);\nUpdateContext({msCallStartedForSalestaxCalculation : false})\n);"
                               PressedColor: =RGBA(255, 255, 255, 1)
                               PressedFill: =RGBA(0, 18, 107, 1)
                               SelectionColor: =RGBA(255, 255, 255, 1)
@@ -4025,7 +4070,7 @@ Screens:
                                     'Company Code' = DataCardValue39_1.Selected.Value && Inactive = 'NoYes (mserp)'.No && 'Use in Project' = 'NoYes (mserp)'.Yes
                                 )
                               NoSelectionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterIntercompanyProjectCategoryLabel'
-                              OnChange: "=UpdateContext({isDirty : true});\nUpdateContext({varOnChangeTriggered : true});\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\nIf(ComboBox1_21.Selected.'Expense category' <> curInterCompanyProjectCategory,\n    UpdateContext({curInterCompanyProjectCategory : ComboBox1_21.Selected.'Expense category'});\n\n    If(\n        varOnShowFields && !IsBlank(ComboBox1_21.Selected.'Expense category'),\n        If( \n            gblIsProjectValidationFlag,\n            Reset(ProjectICheckbox_ES);  //remove project\n            UpdateContext({varProjectHierarchyId : Blank()}),\n            Reset(ProjectCheckbox_Entity)\n        );\n        Reset(ComboBox1_14); //remove activity\n        UpdateContext({varDefaultProjLineStatus: Blank()}); //Billable\n        If(\n            gblIsProjectValidationFlag,\n            Clear(colGetProjectsBasedOnResourceCategory);\n            UpdateContext({\n                varGetProjectsBasedOnResourceCategory :\n                'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategoryv2(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n                    {\n                        employeeLegalEntity: varSelectedLegalEntity,\n                        interCompanyLegalEntity: If(IsBlank(DataCardValue39_1.Selected.Value), \"\",DataCardValue39_1.Selected.Value),\n                        categoryId: If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')\n                    }\n                ).return\n            });\n            Collect(\n                colGetProjectsBasedOnResourceCategory ,\n                ForAll(\n                    MatchAll(varGetProjectsBasedOnResourceCategory, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n                    {\n                        projectId: ProjectListFromCol.projId,\n                        projectName: ProjectListFromCol.projName\n                    }\n                )\n            );\n        );\n        \n    )\n)\n\n    "
+                              OnChange: "=UpdateContext({isDirty : true});\nUpdateContext({varOnChangeTriggered : true});\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\nIf(ComboBox1_21.Selected.'Expense category' <> curInterCompanyProjectCategory,\n    UpdateContext({curInterCompanyProjectCategory : ComboBox1_21.Selected.'Expense category'});\n\n    If(\n        varOnShowFields && !IsBlank(ComboBox1_21.Selected.'Expense category'),\n        If( \n            gblIsProjectValidationFlag,\n            Reset(ProjectICheckbox_ES);  //remove project\n            UpdateContext({varProjectHierarchyId : Blank()}),\n            Reset(ProjectCheckbox_Entity)\n        );\n        Reset(ComboBox1_14); //remove activity\n        UpdateContext({varDefaultProjLineStatus: Blank()}); //Billable\n        /*\n        If(\n            gblIsProjectValidationFlag,\n            Clear(colGetProjectsBasedOnResourceCategory);\n            UpdateContext({\n                varGetProjectsBasedOnResourceCategory :\n                'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategoryv2(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',\n                    {\n                        employeeLegalEntity: varSelectedLegalEntity,\n                        interCompanyLegalEntity: If(IsBlank(DataCardValue39_1.Selected.Value), \"\",DataCardValue39_1.Selected.Value),\n                        categoryId: If(Upper(varSelectedLegalEntity) <> Upper(Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')),ComboBox1_21.Selected.'Expense category',ComboBox1_8.Selected.'Expense category')\n                    }\n                ).return\n            });\n            Collect(\n                colGetProjectsBasedOnResourceCategory ,\n                ForAll(\n                    MatchAll(varGetProjectsBasedOnResourceCategory, \"\\{\"\"projId\"\":\"\"(?<projId>[^\"\"]*)\"\",\"\"projName\"\":\"\"(?<projName>[^\"\"]*)\"\"\\}\") As ProjectListFromCol,\n                    {\n                        projectId: ProjectListFromCol.projId,\n                        projectName: ProjectListFromCol.projName\n                    }\n                )\n            );\n        );\n        */\n        \n    )\n)\n\n    "
                               OnSelect: |-
                                 =UpdateContext({varOnSelectTriggered: true});
                               PressedColor: =RGBA(255, 255, 255, 1)
@@ -4178,7 +4223,7 @@ Screens:
                               InputTextPlaceholder: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
                               Items: =colGetProjectsBasedOnResourceCategory
                               NoSelectionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterProjectIDLabel'
-                              OnChange: "=UpdateContext({varOnChangeTriggered : true});\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\nUpdateContext({msCallStartedForSalestaxCalculation : true});\nIf(varOnShowFields,\n    If(\n        IsBlank(Self.Selected.projectId),\n        Reset(DataCardValue9_1); //billable\n        Reset(ComboBox1_14); //activity\n    );\n    If(Self.Selected.projectId <> curProjIdSelected,\n        UpdateContext({varProjectChanged: true});\n        Reset(ComboBox1_15);\n        Reset(ComboBox1_14); // Reset Activity\n        UpdateContext({curProjIdSelected:Self.Selected.projectId});\n        \n        //O-data call to an entity to bring in the projstatusid and hierarchyid\n        Concurrent(\n        UpdateContext({\n            varDefaultProjLineStatus:\n            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojstatusid(LookUp('Projects (mserp)', 'Project ID' = Self.Selected.projectId).'Project Expense Mobile (mserp)',\n            {\n                CategoryId: ComboBox1_8.Selected.'Expense category',\n                LegalEntity: DataCardValue39_1.Selected.Value\n            }).return\n        }),\n        If(\n            !IsBlank(Self.Selected.projectId),\n        UpdateContext({\n            varProjectHierarchyId:\n                LookUp(\n                    'Projects (mserp)',\n                    'Project ID' = curProjIdSelected,\n                    HierarchyId\n                )\n        })\n        )\n        );\n        \n        Set(\n            varDefaultSalesTaxGroup,\n            Blank()\n        );\n\n        Set(\n            varDefaultSalesTaxGroup, \n            IfError(\n                'Expense mobile master data (mserp)'.mserp_getdefaultsalestaxvalue(\n                    LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n                    {\n                        IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n                        CountryRegion : If(IsBlank(ComboBox1_17.Selected.Code),\"\",ComboBox1_17.Selected.Code),\n                        AddressState : If(IsBlank(ComboBox1_18.Selected.State),\"\",ComboBox1_18.Selected.State),\n                        ProjId : If(IsBlank(If(gblIsProjectValidationFlag,ProjectICheckbox_ES.Selected.projectId,ProjectCheckbox_Entity.Selected.'Project ID')),\"\",If(gblIsProjectValidationFlag,ProjectICheckbox_ES.Selected.projectId,ProjectCheckbox_Entity.Selected.'Project ID')),\n                        TrvExpTableRecId :  \"\"\n                    }\n                ).return,\n                UpdateContext({\n                    varDefaultSalesTaxError : Substitute(\n                        Match(\n                            FirstError.Details.HttpResponse,\n                            \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                        ).FullMatch,\n                        \"\"\"message\"\":\"\"\",\n                        \"\"\n                    )      \n                })\n            )\n        );\n        If(!IsBlank(varDefaultSalesTaxError),\n            Notify(\n                Left(varDefaultSalesTaxError,Len(varDefaultSalesTaxError)-1),\n                NotificationType.Error,\n                gblParams.notificationTime\n            )\n        );\n        UpdateContext({timerProj : true});\n        If(\n            !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),\n            UpdateContext({\n                varSalesTaxAmount : \n                IfError(\n                    Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\n                        LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n                        {\n                            TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                            TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                            ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                            TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                            AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), \"0\", DataCardValue4_1.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                            LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                            TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n                        }\n                    ).return,\"en-US\"),\n                    UpdateContext({\n                        varErrorActualTaxCal : \n                        Substitute(\n                            Match(\n                                FirstError.Details.HttpResponse,\n                                \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                            ).FullMatch,\n                            \"\"\"message\"\":\"\"\",\n                            \"\"\n                        )      \n                    })\n                )\n            });\n        );\n        If(!IsBlank(varErrorActualTaxCal),\n            Notify(\n                Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n                NotificationType.Error,\n                gblParams.notificationTime\n            )\n        );\n\n        Reset(DataCardValue25_1);\n    );\n    UpdateContext({isDirty : true});\n);\nUpdateContext({msCallStartedForSalestaxCalculation : false});\n\n"
+                              OnChange: "=UpdateContext({varOnChangeTriggered : true});\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\nUpdateContext({msCallStartedForSalestaxCalculation : true});\n/*\nIf(varOnShowFields,\n    If(\n        IsBlank(Self.Selected.projectId),\n        Reset(DataCardValue9_1); //billable\n        Reset(ComboBox1_14); //activity\n    );\n    If(Self.Selected.projectId <> curProjIdSelected,\n        UpdateContext({varProjectChanged: true});\n        Reset(ComboBox1_15);\n        Reset(ComboBox1_14); // Reset Activity\n        UpdateContext({curProjIdSelected:Self.Selected.projectId});\n        \n        //O-data call to an entity to bring in the projstatusid and hierarchyid\n        Concurrent(\n        UpdateContext({\n            varDefaultProjLineStatus:\n            'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojstatusid(LookUp('Projects (mserp)', 'Project ID' = Self.Selected.projectId).'Project Expense Mobile (mserp)',\n            {\n                CategoryId: ComboBox1_8.Selected.'Expense category',\n                LegalEntity: DataCardValue39_1.Selected.Value\n            }).return\n        }),\n        If(\n            !IsBlank(Self.Selected.projectId),\n        UpdateContext({\n            varProjectHierarchyId:\n                LookUp(\n                    'Projects (mserp)',\n                    'Project ID' = curProjIdSelected,\n                    HierarchyId\n                )\n        })\n        )\n        );\n        \n        Set(\n            varDefaultSalesTaxGroup,\n            Blank()\n        );\n\n        Set(\n            varDefaultSalesTaxGroup, \n            IfError(\n                'Expense mobile master data (mserp)'.mserp_getdefaultsalestaxvalue(\n                    LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n                    {\n                        IntercompanyLE : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",DataCardValue39_1.Selected.Value),\n                        CountryRegion : If(IsBlank(ComboBox1_17.Selected.Code),\"\",ComboBox1_17.Selected.Code),\n                        AddressState : If(IsBlank(ComboBox1_18.Selected.State),\"\",ComboBox1_18.Selected.State),\n                        ProjId : If(IsBlank(If(gblIsProjectValidationFlag,ProjectICheckbox_ES.Selected.projectId,ProjectCheckbox_Entity.Selected.'Project ID')),\"\",If(gblIsProjectValidationFlag,ProjectICheckbox_ES.Selected.projectId,ProjectCheckbox_Entity.Selected.'Project ID')),\n                        TrvExpTableRecId :  \"\"\n                    }\n                ).return,\n                UpdateContext({\n                    varDefaultSalesTaxError : Substitute(\n                        Match(\n                            FirstError.Details.HttpResponse,\n                            \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                        ).FullMatch,\n                        \"\"\"message\"\":\"\"\",\n                        \"\"\n                    )      \n                })\n            )\n        );\n        If(!IsBlank(varDefaultSalesTaxError),\n            Notify(\n                Left(varDefaultSalesTaxError,Len(varDefaultSalesTaxError)-1),\n                NotificationType.Error,\n                gblParams.notificationTime\n            )\n        );\n        UpdateContext({timerProj : true});\n        If(\n            !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),\n            UpdateContext({\n                varSalesTaxAmount : \n                IfError(\n                    Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(\n                        LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n                        {\n                            TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                            TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                            ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                            TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                            AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), \"0\", DataCardValue4_1.Text),varDefaultLanguage), \"#,#0.00\",\"en-US\"),\n                            LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                            TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n                        }\n                    ).return,\"en-US\"),\n                    UpdateContext({\n                        varErrorActualTaxCal : \n                        Substitute(\n                            Match(\n                                FirstError.Details.HttpResponse,\n                                \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                            ).FullMatch,\n                            \"\"\"message\"\":\"\"\",\n                            \"\"\n                        )      \n                    })\n                )\n            });\n        );\n        If(!IsBlank(varErrorActualTaxCal),\n            Notify(\n                Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n                NotificationType.Error,\n                gblParams.notificationTime\n            )\n        );\n\n        Reset(DataCardValue25_1);\n    );\n    UpdateContext({isDirty : true});\n);\n*/\nUpdateContext({msCallStartedForSalestaxCalculation : false});\n\n"
                               OnSelect: |-
                                 =UpdateContext({varOnSelectTriggered: true});
                               PressedColor: =RGBA(255, 255, 255, 1)
@@ -4257,7 +4302,7 @@ Screens:
                                     varDefaultSalesTaxGroup,
                                     Blank()
                                 );
-
+                                /*
                                 Set(
                                     varDefaultSalesTaxGroup, 
                                     IfError(
@@ -4284,6 +4329,7 @@ Screens:
                                     })
                                     )
                                 );
+
                                 If(!IsBlank(varDefaultSalesTaxError),
                                 Notify(
                                     Left(varDefaultSalesTaxError,Len(varDefaultSalesTaxError)-1),
@@ -4291,7 +4337,9 @@ Screens:
                                     gblParams.notificationTime
                                 )
                                 );
+                                */
                                 UpdateContext({timerProj : true});
+                                /*
                                 If(
                                     !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                                     UpdateContext({
@@ -4323,6 +4371,7 @@ Screens:
                                         )
                                     });
                                 );
+                                */
                                 If(!IsBlank(varErrorActualTaxCal),
                                 Notify(
                                     Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -4366,7 +4415,8 @@ Screens:
                               HoverColor: =RGBA(255, 255, 255, 1)
                               HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               OnTimerEnd: |-
-                                =If(
+                                =/*
+                                If(
                                     !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                                     UpdateContext({
                                         varSalesTaxAmount : 
@@ -4397,6 +4447,7 @@ Screens:
                                         )
                                     });
                                 );
+                                */
                                 If(
                                     !IsBlank(varErrorActualTaxCal),
                                     Notify(
@@ -4833,7 +4884,7 @@ Screens:
                                     varDefaultSalesTaxGroup,
                                     Blank()
                                 );
-
+                                /*
                                 Set(
                                     varDefaultSalesTaxGroup, 
                                     IfError(
@@ -4860,6 +4911,7 @@ Screens:
                                     })
                                     )
                                 );
+
                                 If(!IsBlank(varDefaultSalesTaxError),
                                 Notify(
                                     Left(varDefaultSalesTaxError,Len(varDefaultSalesTaxError)-1),
@@ -4867,7 +4919,9 @@ Screens:
                                     gblParams.notificationTime
                                 )
                                 );
+                                */
                                 UpdateContext({timerCountry : true});
+                                /*
                                 If(
                                     !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                                     UpdateContext({
@@ -4899,6 +4953,7 @@ Screens:
                                         )
                                     });
                                 );
+                                */
                                 If(!IsBlank(varErrorActualTaxCal),
                                 Notify(
                                     Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -4944,7 +4999,8 @@ Screens:
                               HoverColor: =RGBA(255, 255, 255, 1)
                               HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               OnTimerEnd: |-
-                                =If(
+                                =/*
+                                If(
                                     !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                                     UpdateContext({
                                         varSalesTaxAmount : 
@@ -4975,6 +5031,7 @@ Screens:
                                         )
                                     });
                                 );
+                                */
                                 If(
                                     !IsBlank(varErrorActualTaxCal),
                                     Notify(
@@ -5122,6 +5179,7 @@ Screens:
                                     varOnChangeTriggered && varOnSelectTriggered,
                                     UpdateContext({varOnShowFields : true})
                                 );
+                                /*
                                 If(varOnShowFields,
                                 If(Self.Selected.State <> curStateSelected,
                                 Reset(ComboBox1_15);
@@ -5210,6 +5268,7 @@ Screens:
                                 UpdateContext({msCallStartedForSalestaxCalculation : false});
                                 UpdateContext({isDirty : true});
                                 ));
+                                */
                                 If(
                                     varOnChangeTriggered && varOnSelectTriggered,
                                     UpdateContext({varOnShowFields : true})
@@ -5243,7 +5302,8 @@ Screens:
                               HoverColor: =RGBA(255, 255, 255, 1)
                               HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               OnTimerEnd: |-
-                                =If(
+                                =/*
+                                If(
                                     !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                                     UpdateContext({
                                         varSalesTaxAmount : 
@@ -5274,6 +5334,7 @@ Screens:
                                         )
                                     });
                                 );
+                                */
                                 If(
                                     !IsBlank(varErrorActualTaxCal),
                                     Notify(
@@ -5714,11 +5775,14 @@ Screens:
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
                               DefaultSelectedItems: |-
-                                =If(
+                                =/*
+                                If(
                                     !varOnShowFields,
                                     LookUp('Sales tax group description (mserp)','Sales tax group'= varSelectedExpenseDoc.'Sales tax group'),
                                     LookUp('Sales tax group description (mserp)','Sales tax group'= Coalesce(varDefaultSalesTaxGroup,varDefaultSalesTaxGroupUserContext))
                                 )
+                                */
+                                LookUp('Sales tax group description (mserp)','Sales tax group'= varSelectedExpenseDoc.'Sales tax group')
                               DisplayFields: =["mserp_salestaxgroup","mserp_description"]
                               FocusedBorderThickness: =2
                               Font: =Font.'Open Sans'
@@ -5740,6 +5804,7 @@ Screens:
                                     varOnChangeTriggered && varOnSelectTriggered,
                                     UpdateContext({varOnShowFields : true})
                                 );
+                                /*
                                 If(
                                     varOnShowFields,
                                 UpdateContext({msCallStartedForSalestaxCalculation : true});
@@ -5787,6 +5852,7 @@ Screens:
                                 UpdateContext({msCallStartedForSalestaxCalculation : false});
                                 UpdateContext({isDirty : true});
                                 );
+                                */
                               OnSelect: |-
                                 =UpdateContext({varOnSelectTriggered: true});
                               PressedColor: =RGBA(255, 255, 255, 1)
@@ -5908,8 +5974,9 @@ Screens:
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: |+
-                                =/*If(
+                              DefaultSelectedItems: |
+                                =/*
+                                If(
                                     !varOnShowFields,
                                     LookUp(
                                     'Item sales tax group (mserp)',
@@ -5918,12 +5985,18 @@ Screens:
                                     'Item sales tax group (mserp)',
                                     'Item sales tax group' = varItemSalesTaxDefaultValue
                                 )
-                                )*/
+                                )
+                                */
+                                /*
                                 LookUp(
                                     'Item sales tax group (mserp)',
                                     'Item sales tax group' = varItemSalesTaxDefaultValue
                                 )
-
+                                */
+                                LookUp(
+                                    'Item sales tax group (mserp)',
+                                    'Item sales tax group' = varSelectedExpenseDoc.'Item sales tax group'
+                                )
                               DisplayFields: =["mserp_itemsalestaxgroup","mserp_description"]
                               FocusedBorderThickness: =2
                               Font: =Font.'Open Sans'
@@ -5944,6 +6017,7 @@ Screens:
                                     varOnChangeTriggered && varOnSelectTriggered,
                                     UpdateContext({varOnShowFields : true})
                                 );
+                                /*
                                 If(varOnShowFields,
                                 UpdateContext({msCallStartedForSalestaxCalculation : true});
 
@@ -5990,6 +6064,7 @@ Screens:
                                 UpdateContext({msCallStartedForSalestaxCalculation : false});
                                 UpdateContext({isDirty : true});
                                 );
+                                */
                               OnSelect: |-
                                 =UpdateContext({varOnSelectTriggered: true});
                               PressedColor: =RGBA(255, 255, 255, 1)
@@ -6141,6 +6216,7 @@ Screens:
                                     UpdateContext({varOnShowFields : true})
                                 );
 
+                                /*
                                 If(
                                     varOnShowFields,
                                 If(
@@ -6185,6 +6261,7 @@ Screens:
                                 Reset(DataCardValue25_1);
                                 );
                                 UpdateContext({msCallStartedForSalestaxCalculation : false});
+                                */
                               OnSelect: |-
                                 =
                                 UpdateContext({varOnSelectTriggered : true});
@@ -6195,6 +6272,7 @@ Screens:
                                     UpdateContext({varOnShowFields : true})
                                 );
 
+                                /*
                                 If(
                                     varOnShowFields,
                                 If(
@@ -6239,6 +6317,7 @@ Screens:
                                 Reset(DataCardValue25_1);
                                 );
                                 UpdateContext({msCallStartedForSalestaxCalculation : false});
+                                */
                               ShowLabel: =false
                               Size: =24
                               TrueFill: =RGBA(56, 96, 178, 1)
@@ -6562,6 +6641,7 @@ Screens:
                                     varOnChangeTriggered && varOnSelectTriggered,
                                     UpdateContext({varOnShowFields : true})
                                 );
+                                /*
                                 If(
                                     varOnShowFields,
                                 If(
@@ -6652,6 +6732,7 @@ Screens:
                                 );
                                 UpdateContext({msCallStartedForSalestaxCalculation : false})
                                 )
+                                */
                               OnSelect: |-
                                 =UpdateContext({varOnTriggerTriggered: true});
                               PaddingBottom: =5
@@ -6719,7 +6800,8 @@ Screens:
                               HoverColor: =RGBA(255, 255, 255, 1)
                               HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               OnTimerEnd: |-
-                                =If(
+                                =/*
+                                If(
                                     !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                                     UpdateContext({
                                         varSalesTaxAmount : 
@@ -6750,6 +6832,7 @@ Screens:
                                         )
                                     });
                                 );
+                                */
                                 If(
                                     !IsBlank(varErrorActualTaxCal),
                                     Notify(
@@ -9509,71 +9592,7 @@ Screens:
             IconVisibleFlag: =ComboBox1_8.Selected.'Expense type' = 'TrvExpType (mserp)'.Mileage && !IsBlank(DataCardValue40.Text)
             Mileage: =varCurMileage
             NoOfPassengers: =varCurNoOfPass
-            OnReload: |-
-              =UpdateContext({onReloadButtonClick : true});
-              UpdateContext({msCallStartedForSalestaxCalculation : true});
-              Set(varCollectCacheV2,
-              'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
-                      {
-                          TransDate: If(IsBlank(DatePickerCanvas1_18.SelectedDate),"",Text(DateTimeValue(DatePickerCanvas1_18.SelectedDate),"yyyy-mm-dd hh:mm:ssZ")),
-                          CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category'),
-                          KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), "0", DataCardValue40.Text),varDefaultLanguage), "#,#0.00","en-US"),
-                          VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),"",VehicleTypeCombobox.Selected.Value),
-                          NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)
-                      }
-                      )
-              );
-
-              UpdateContext({varRatePerMile : Text(ParseJSON(varCollectCacheV2.result).KMPrice)});
-              UpdateContext({varMileageTotal : Text(ParseJSON(varCollectCacheV2.result).AmountMST)});
-              If(
-                  !IsBlank(Text(ParseJSON(varCollectCacheV2.result).Warnings)),
-                  Notify(
-                      Text(ParseJSON(varCollectCacheV2.result).Warnings),
-                      NotificationType.Warning,
-                      gblParams.notificationTime
-                  )
-              );
-              If(!IsBlank(ComboBox1_15.Selected) && !IsBlank(ComboBox1_16.Selected),
-              UpdateContext({taxModifiedByUser:false});
-
-              UpdateContext({
-                  varSalesTaxAmount : 
-                  IfError(
-                  Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(
-                      LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),
-                      {
-                          TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), "", ComboBox1_15.Selected.'Sales tax group'),
-                          TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), "", ComboBox1_16.Selected.'Item sales tax group'),
-                          ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), "", ComboBox1_12.Selected.mserp_currencycode),
-                          TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")), "", Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")),
-                          AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), "0", DataCardValue4_1.Text),varDefaultLanguage), "#,#0.00","en-US"),
-                          LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),"",Text(DataCardValue39_1.Selected.Value)),
-                          TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, "Yes", "No"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,"Yes", "No"))
-                      }
-                  ).return,"en-US"),
-                  UpdateContext({
-                      varErrorActualTaxCal : 
-                      Substitute(
-                  Match(
-                      FirstError.Details.HttpResponse,
-                      """message"":""([^""]*)"""
-                  ).FullMatch,
-                  """message"":""",
-                  ""
-              )      
-                  })
-                  )
-              });
-              If(!IsBlank(varErrorActualTaxCal),
-              Notify(
-                  Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
-                  NotificationType.Error,
-                  gblParams.notificationTime
-              )
-              )
-              );
-              UpdateContext({msCallStartedForSalestaxCalculation : false})
+            OnReload: =true
             RowId: =LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)')
             TransactionDate: =varCurrentSelectedDate
             VehicleType: =varCurVehicleType
@@ -9633,7 +9652,7 @@ Screens:
                         Icon: =Icon.Sync
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
-                        OnSelect: "=// if it is of meal type per trip, then invoke odata action to get amountCurr values\nUpdateContext({msCallStartedForSalestaxCalculation : true});\nIf(\n    userRecord.IsReImaginedPerDiemEnabled  = 'NoYes (mserp)'.Yes,\n    Clear(dsPerdiemActionResponse);\n    UpdateContext({onReloadButtonClick : true});\n    \n    UpdateContext(\n    {\n        locPerdiemActionResponse : 'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_calcmealpertripreduction(LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n        {\n            DateFrom: Text('Per diem from date_DataCard1'.Update, \"yyyy-mm-dd HH:mm:ss\"),\n            DateTo: Text('Per diem to date_DataCard1'.Update, \"yyyy-mm-dd HH:mm:ss\"),\n            CostType: \"Perdiem\",\n            Location: cmbPerdiemLocation.Selected.EntRecId,\n            DedBreakfast: DataCardValue1.Text,\n            DedLunch: DataCardValue2.Text,\n            DedDinner: DataCardValue3.Text\n        }).return\n    }\n    );\n    UpdateContext({locPerdiemActionResponse : Concatenate(\"[\", locPerdiemActionResponse, \"]\")});\n    ForAll(\n    Table(\n        ParseJSON(\n            locPerdiemActionResponse\n        )\n    ),\n    Collect(\n        dsPerdiemActionResponse,\n        {\n            amountCurr: Text(ThisRecord.Value.AmountCurr),       \n            amountMST : Text(ThisRecord.Value.AmountMST),\n            exchangeCode : Text(ThisRecord.Value.ExchangeCode),\n            warnings : Text(ThisRecord.Value.Warnings)\n        }\n    )\n    );\n    If(\n    !IsBlank(First(dsPerdiemActionResponse).warnings),\n    // there are errors in odata action show them\n    Notify(\n        Text(First(dsPerdiemActionResponse).warnings),\n        NotificationType.Warning,\n        gblParams.notificationTime\n    ),\n    // no errors, proceed to calculate tax based on the latest fetched transaction amount from odata action\n    UpdateContext({locPerdiemAmountCurr : First(dsPerdiemActionResponse).amountCurr});\n    If(\n        !IsBlank(ComboBox1_15.Selected) && !IsBlank(ComboBox1_16.Selected),\n        //if sales tax group and item sales tax group are not blank issue a call to get the sales tax amount \n        UpdateContext({taxModifiedByUser:false});\n        UpdateContext\n        (\n            {\n                varSalesTaxAmount : \n                IfError(\n                    Value(\n                        'Expense mobile master data (mserp)'.getactualsalestaxamount(\n                        LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n                        {\n                            TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                            TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                            ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                            TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                            AmountCurr : If(IsBlank(First(dsPerdiemActionResponse).amountCurr), \"0\", First(dsPerdiemActionResponse).amountCurr),\n                            LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                            TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n                        }).return,\"en-US\"\n                    ),\n                    UpdateContext(\n                        {\n                            varErrorActualTaxCal : \n                            Substitute(\n                                Match(\n                                    FirstError.Details.HttpResponse,\n                                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                                ).FullMatch,\n                                \"\"\"message\"\":\"\"\",\n                                \"\"\n                            )      \n                        }\n                    )\n                )\n            }\n        );\n        // show errors if any\n        If(\n            !IsBlank(varErrorActualTaxCal),\n            Notify(\n                Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n                NotificationType.Error,\n                gblParams.notificationTime\n            )\n        )\n    );\n    );\n    \n    ,\n    Notify(\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarningOnCreate',\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\nUpdateContext({msCallStartedForSalestaxCalculation : false})"
+                        OnSelect: "=// if it is of meal type per trip, then invoke odata action to get amountCurr values\nUpdateContext({msCallStartedForSalestaxCalculation : true});\nIf(\n    userRecord.IsReImaginedPerDiemEnabled  = 'NoYes (mserp)'.Yes,\n    Clear(dsPerdiemActionResponse);\n    UpdateContext({onReloadButtonClick : true});\n    \n    UpdateContext(\n    {\n        locPerdiemActionResponse : 'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_calcmealpertripreduction(LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n        {\n            DateFrom: Text('Per diem from date_DataCard1'.Update, \"yyyy-mm-dd HH:mm:ss\"),\n            DateTo: Text('Per diem to date_DataCard1'.Update, \"yyyy-mm-dd HH:mm:ss\"),\n            CostType: \"Perdiem\",\n            Location: cmbPerdiemLocation.Selected.EntRecId,\n            DedBreakfast: DataCardValue1.Text,\n            DedLunch: DataCardValue2.Text,\n            DedDinner: DataCardValue3.Text\n        }).return\n    }\n    );\n    UpdateContext({locPerdiemActionResponse : Concatenate(\"[\", locPerdiemActionResponse, \"]\")});\n    ForAll(\n    Table(\n        ParseJSON(\n            locPerdiemActionResponse\n        )\n    ),\n    Collect(\n        dsPerdiemActionResponse,\n        {\n            amountCurr: Text(ThisRecord.Value.AmountCurr),       \n            amountMST : Text(ThisRecord.Value.AmountMST),\n            exchangeCode : Text(ThisRecord.Value.ExchangeCode),\n            warnings : Text(ThisRecord.Value.Warnings)\n        }\n    )\n    );\n    If(\n    !IsBlank(First(dsPerdiemActionResponse).warnings),\n    // there are errors in odata action show them\n    Notify(\n        Text(First(dsPerdiemActionResponse).warnings),\n        NotificationType.Warning,\n        gblParams.notificationTime\n    ),\n    // no errors, proceed to calculate tax based on the latest fetched transaction amount from odata action\n    UpdateContext({locPerdiemAmountCurr : First(dsPerdiemActionResponse).amountCurr});\n    If(\n        !IsBlank(ComboBox1_15.Selected) && !IsBlank(ComboBox1_16.Selected),\n        //if sales tax group and item sales tax group are not blank issue a call to get the sales tax amount \n        UpdateContext({taxModifiedByUser:false});\n        /*\n        UpdateContext\n        (\n            {\n                varSalesTaxAmount : \n                IfError(\n                    Value(\n                        'Expense mobile master data (mserp)'.getactualsalestaxamount(\n                        LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),\n                        {\n                            TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), \"\", ComboBox1_15.Selected.'Sales tax group'),\n                            TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), \"\", ComboBox1_16.Selected.'Item sales tax group'),\n                            ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), \"\", ComboBox1_12.Selected.mserp_currencycode),\n                            TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")), \"\", Text(DateValue1_18.SelectedDate, \"yyyy-mm-dd HH:mm:ssZ\")),\n                            AmountCurr : If(IsBlank(First(dsPerdiemActionResponse).amountCurr), \"0\", First(dsPerdiemActionResponse).amountCurr),\n                            LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),\"\",Text(DataCardValue39_1.Selected.Value)),\n                            TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, \"Yes\", \"No\"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,\"Yes\", \"No\"))\n                        }).return,\"en-US\"\n                    ),\n                    UpdateContext(\n                        {\n                            varErrorActualTaxCal : \n                            Substitute(\n                                Match(\n                                    FirstError.Details.HttpResponse,\n                                    \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\n                                ).FullMatch,\n                                \"\"\"message\"\":\"\"\",\n                                \"\"\n                            )      \n                        }\n                    )\n                )\n            }\n        );\n        */\n        // show errors if any\n        If(\n            !IsBlank(varErrorActualTaxCal),\n            Notify(\n                Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),\n                NotificationType.Error,\n                gblParams.notificationTime\n            )\n        )\n    );\n    );\n    \n    ,\n    Notify(\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarningOnCreate',\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\nUpdateContext({msCallStartedForSalestaxCalculation : false})"
                         PaddingBottom: =15
                         PaddingLeft: =10
                         PaddingRight: =10
@@ -9882,25 +9901,8 @@ Screens:
           Properties:
             Height: =App.Height
             LegalEntity: ="Text"
-            OnLeftButtonClick: |-
-              =UpdateContext({ locCategoryChange : false})
-            OnRightButtonClick: |-
-              ='Expense lines (mserp)'.mserp_trvexpmobileexpenseentity_changecategorypremodified(
-                 LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = SelectedExpense).'Expense Line Expense Mobile Entity (mserp)',
-                 {
-                     NewCategory : ComboBox1_8.Selected.'Expense category'
-                 }
-              );
-
-              UpdateContext(
-                  {
-                      locItemizationCheck : locItemizeButtonVisibilityFlag,
-                      locCategoryChange : false,
-                      locAllowNavigationBack : true
-                  }
-              );
-              Set(isDirtyItemization , false);
-              SubmitForm(EditExpenseForm)
+            OnLeftButtonClick: =true
+            OnRightButtonClick: ="텍스트"
             SelectedExpense: =varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
             SelectedList: ="Text"
             SelectedReceiptNumber: =
@@ -9922,11 +9924,9 @@ Screens:
             LegalEntity: ="Text"
             OnLeftButtonClick: |-
               =UpdateContext({ctVarExpenseDetailsBack: false});
-            OnRightButtonClick: |+
+            OnRightButtonClick: |-
               =UpdateContext({ctVarExpenseDetailsBack: false});
               Select(scr03_ico_Back_4)
-
-
             SelectedExpense: =
             SelectedList: ="Text"
             SelectedReceiptNumber: =

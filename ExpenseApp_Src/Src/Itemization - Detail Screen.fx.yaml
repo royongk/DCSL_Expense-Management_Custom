@@ -472,38 +472,8 @@
 
     cmp02_ConfirmationDialog_5 As cmp02_ConfirmationDialog:
         controlName: ="cmp02_ConfirmationDialog_5"
-        OnLeftButtonClick: |-
-            =// To get the refreshed values from the entity
-            Set(
-                varSelectedExpenseDoc,
-                LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')
-            );
-            
-            // populating base64 to show image on selection of expense
-            Set(
-                varReceiptImage,
-                LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument) 
-            );
-            
-            // collect policy violations
-            If(
-                varSelectedExpenseDoc.PolicyViolationCount,
-                ClearCollect(
-                    colPolViolations,
-                    Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
-                );
-                UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
-                UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
-                Clear(colPolViolations);
-                UpdateContext({varMaxViolationLevel : 0});
-                UpdateContext({varNumViolation : 0})
-            );
-            
-            Set(isDirtyItemization, false);
-            
-            Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : Blank(), varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation})
-        OnRightButtonClick: |-
-            =UpdateContext({locOpenItemizationChangesDialogBox : false});
+        OnLeftButtonClick: =true
+        OnRightButtonClick: ="텍스트"
         parmInDescriptionText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ThereAreUnsavedChangesLabel'
         parmInHeaderText: |-

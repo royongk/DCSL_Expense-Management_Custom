@@ -699,42 +699,8 @@ Screens:
           Properties:
             Height: =App.Height
             LegalEntity: ="Text"
-            OnLeftButtonClick: |-
-              = UpdateContext({varCntDelete: false});
-            OnRightButtonClick: |
-              =
-              Set(varDeletionStarted,true);
-              RemoveIf('Expense Mobile Unattached Document Entity (mserp)',EntRecId in collSelectedReceiptIds); 
-              If(
-                  !IsEmpty(Errors('Expense Mobile Unattached Document Entity (mserp)')),
-                  Notify(
-                      Concat(Errors('Expense Mobile Unattached Document Entity (mserp)'), Column&": "&Message),
-                      NotificationType.Error, 
-                      gblParams.notificationTime
-                      ),
-                  Notify(
-                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsDeletedSuccessfullyLabel',
-                      NotificationType.Success , 
-                      gblParams.notificationTime
-                  );
-              );
-
-              UpdateContext({varCntDelete: false});
-              UpdateContext({varCntSelect: false});
-              UpdateContext({varCntReceiptListView: true});
-              UpdateContext({varCntReceiptGridView: false});
-              Clear(collSelectedReceiptIds);
-
-              Concurrent(
-                  Set(
-                      varFileFormat,
-                      Blank()
-                  ),
-                  Set(
-                      varSelectedReceiptNumber,
-                      Blank()
-                  )
-              )
+            OnLeftButtonClick: =true
+            OnRightButtonClick: ="텍스트"
             SelectedExpense: =
             SelectedList: ="Text"
             SelectedReceiptNumber: =

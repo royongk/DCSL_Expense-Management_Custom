@@ -779,40 +779,8 @@
 
     scrCashAdvance_cmp_DeleteConfirmationDialog As cmp02_ConfirmationDialog:
         controlName: ="scrCashAdvance_cmp_DeleteConfirmationDialog"
-        OnLeftButtonClick: |-
-            =UpdateContext({varCntDelete: false})
-        OnRightButtonClick: |-
-            =ClearCollect(deleteErrorsList, []);
-            ForAll(
-                colSelectedCashAdvanceIds,
-                IfError(
-                    Remove(
-                        'Cash advances (mserp)',
-                        LookUp(
-                            'Cash advances (mserp)',
-                            'Cash advance number' = colSelectedCashAdvanceIds[@cashAdvanceNumber] &&
-                            'Cash advance status' = 'Cash advance status (mserp)'.Draft
-                        )
-                    ),
-                    Collect(
-                        deleteErrorsList,
-                        {
-                            message: Last(Split(FirstError.Message, ":")).Value
-                        }
-                    )
-                )
-            );
-            If(
-                CountRows(deleteErrorsList) = 0,
-                Notify("Cash advances deleted successfully", NotificationType.Success, gblParams.notificationTime),
-                ForAll(
-                    Distinct(deleteErrorsList, message),
-                    Notify(ThisRecord.Value, NotificationType.Error, gblParams.notificationTime)
-                )
-            );
-            UpdateContext({varCntDelete: false});
-            UpdateContext({varCntSelect: false});
-            Clear(colSelectedCashAdvanceIds)
+        OnLeftButtonClick: =true
+        OnRightButtonClick: ="텍스트"
         parmInDescriptionText: ="Are you sure you want to delete the selected cash advances?"
         parmInHeaderText: ="Delete Cash Advances"
         parmInLeftButtonColor: =RGBA(34, 102, 227, 1)

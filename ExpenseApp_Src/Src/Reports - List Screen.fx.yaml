@@ -1007,47 +1007,8 @@
 
     scr16_cmp_DeleteConfirmationDialog As cmp02_ConfirmationDialog:
         controlName: ="scr16_cmp_DeleteConfirmationDialog"
-        OnLeftButtonClick: |
-            =UpdateContext({varCntDelete: false});
-        OnRightButtonClick: |-
-            =ClearCollect(deleteErrorsList, []);
-            ForAll(
-                colSelectedReportIds,
-                IfError(
-                    Remove(
-                        'Expense reports (mserp)_1',
-                        LookUp(
-                            'Expense reports (mserp)_1',
-                            'Expense report number' = colSelectedReportIds[@reportNumber]
-                        )
-                    ),
-                    Collect(
-                        deleteErrorsList,
-                        {
-                            message : Last(Split(FirstError.Message, ":")).Value
-                        }
-                    )
-                )
-            );
-            If(
-                CountRows(deleteErrorsList) = 0,
-                Notify(
-                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportsDeletedSuccessfullyLabel',
-                    NotificationType.Success, 
-                    gblParams.notificationTime
-                ),
-                ForAll(
-                    Distinct(deleteErrorsList,message),
-                    Notify(
-                        ThisRecord.Value,
-                        NotificationType.Error, 
-                        gblParams.notificationTime
-                    )
-                )
-            );
-            UpdateContext({varCntDelete: false});
-            UpdateContext({varCntSelect: false});
-            Clear(colSelectedReportIds);
+        OnLeftButtonClick: =true
+        OnRightButtonClick: ="텍스트"
         parmInDescriptionText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DeleteSelectedReportsConfirmationTextLabel'
         parmInHeaderText: |-

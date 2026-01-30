@@ -21,14 +21,14 @@ ComponentDefinitions:
         PropertyKind: Event
         DisplayName: OnLeftButtonClick
         Description: A custom property
-        ReturnType: Text
-        Default: ="Text"
+        ReturnType: Boolean
+        Default: =true
       OnRightButtonClick:
         PropertyKind: Event
         DisplayName: OnRightButtonClick
         Description: A custom property
         ReturnType: Text
-        Default: ="Text"
+        Default: ="텍스트"
         Parameters:
           - SelectedExpense:
               Description: A parameter
@@ -248,7 +248,9 @@ ComponentDefinitions:
                         HoverFill: =Self.Fill
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
-                        OnSelect: =cmp02_ConfirmationDialog.OnRightButtonClick(cmp02_ConfirmationDialog.SelectedExpense, cmp02_ConfirmationDialog.SelectedReceiptNumber, cmp02_ConfirmationDialog.LegalEntity, cmp02_ConfirmationDialog.SelectedList)
+                        OnSelect: |-
+                          =//cmp02_ConfirmationDialog.OnRightButtonClick(cmp02_ConfirmationDialog.SelectedExpense, cmp02_ConfirmationDialog.SelectedReceiptNumber, cmp02_ConfirmationDialog.LegalEntity, cmp02_ConfirmationDialog.SelectedList)
+                          cmp02_ConfirmationDialog.OnRightButtonClick(cmp02_ConfirmationDialog.SelectedExpense, cmp02_ConfirmationDialog.SelectedReceiptNumber, cmp02_ConfirmationDialog.LegalEntity, Blank())
                         PressedBorderColor: =Self.Color
                         PressedFill: =Self.Fill
                         RadiusBottomLeft: =8

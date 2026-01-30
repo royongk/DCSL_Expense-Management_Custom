@@ -239,76 +239,8 @@ Screens:
           Properties:
             Height: =App.Height
             LegalEntity: ="Text"
-            OnLeftButtonClick: |-
-              =UpdateContext({varCntSelect : false})
-            OnRightButtonClick: |-
-              =            ForAll(
-                  collSelectedExpenseIds,
-                  Collect(
-                      colToAttach,
-                      {expenseTransactionNumber : ThisRecord.transactionId}
-                  )
-              );
-              ForAll(
-                  Filter(
-                      'Expense lines (mserp)',
-                      'Expense report number (mserp_expnumber)' = scr07_DraftReports.Selected.'Expense report number'
-                  ),
-                  If(
-                      !IsBlank(ThisRecord.'Expense transaction number (mserp_exptransnumber)'),
-                      Collect(
-                          colToAttach,
-                          {
-                              expenseTransactionNumber : ThisRecord.'Expense transaction number (mserp_exptransnumber)'
-                          }
-                      )
-                  )
-              );
-              UpdateContext({varExpenseReportNumber : scr07_DraftReports.Selected.'Expense report number'});
-              IfError(
-                  Set(
-                      varSelectedReport,
-                      Patch(
-                          'Expense reports (mserp)',
-                          LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber),
-                          {
-                              ExpTransNumber: Concat(colToAttach, expenseTransactionNumber, ",")
-                          }
-                      )
-                  ),
-                  First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
-              );
-              If(
-                  IsBlank(First(varError).Value) || First(varError).Value <> "",
-                  Clear(colAttachedExpensesForReport);
-                  ForAll(
-                      Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
-                      Collect(
-                          colAttachedExpensesForReport,
-                          LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
-                      )
-                  );
-                  ClearCollect(
-                      colAttachedExpenses,
-                      colAttachedExpensesForReport
-                  );
-                  Set(
-                      varIsCreateReport, false
-                  );
-                  Set(
-                      varSelectedReportStatusItem,
-                      varSelectedReport.'Document Status'
-                  );
-                  Refresh('Expense lines (mserp)');
-                  Navigate('Reports - Edit Screen'),
-                  Notify(
-                      Substitute(First(varError).Value, """", ""),
-                      NotificationType.Error,
-                      gblParams.notificationTime
-                  )
-              );
-              Clear(varError);
-              Clear(colToAttach);
+            OnLeftButtonClick: =true
+            OnRightButtonClick: ="텍스트"
             SelectedExpense: =
             SelectedList: ="Text"
             SelectedReceiptNumber: =

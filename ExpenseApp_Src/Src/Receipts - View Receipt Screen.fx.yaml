@@ -146,54 +146,8 @@
 
     cmp02_ConfirmationDialog_2 As cmp02_ConfirmationDialog:
         controlName: ="cmp02_ConfirmationDialog_2"
-        OnLeftButtonClick: |-
-            =//UpdateContext({varCntShowConfirmationDialog:false});
-            Set(varCntShowConfirmationDialog,false)
-        OnRightButtonClick: |-
-            =Set(varCntShowConfirmationDialog,false);
-            
-            
-            IfError(
-                Remove(
-                    'Expense Mobile Unattached Document Entity (mserp)',
-                    LookUp(
-                        'Expense Mobile Unattached Document Entity (mserp)',
-                        EntRecId = Value(varSelectedReceiptNumber)
-                                    )
-                ),
-                Collect(
-                    deleteReceiptError,
-                    {
-                        message : Last(Split(FirstError.Message, ":")).Value
-                    }
-                )   
-            );       
-            
-            If(
-                CountRows(deleteReceiptError) = 0,
-                Notify(
-                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDiscardedSuccessfullyLabel',
-                    NotificationType.Success, 
-                    gblParams.notificationTime
-                ),
-                ForAll(
-                    Distinct(deleteReceiptError,message),
-                    Notify(
-                        ThisRecord.Value,
-                        NotificationType.Error , 
-                        gblParams.notificationTime
-                    )
-                )
-            );
-            
-            Concurrent(
-                Set(
-                    varSelectedReceiptNumber, 
-                    Blank()
-                    ),
-                Set(varFileFormat, Blank())
-            );
-            Navigate('Receipts - List Screen')
+        OnLeftButtonClick: =true
+        OnRightButtonClick: ="텍스트"
         parmInDescriptionText: ="Are you sure you want to parmanently delete this receipt?"
         parmInHeaderText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DeleteSelectedReceiptsHeaderLabel'

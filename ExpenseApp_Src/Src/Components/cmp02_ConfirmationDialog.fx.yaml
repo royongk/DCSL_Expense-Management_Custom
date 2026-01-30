@@ -1,4 +1,7 @@
 cmp02_ConfirmationDialog As CanvasComponent:
+    OnLeftButtonClick():
+        ThisProperty:
+            Default: =true
     OnRightButtonClick(SelectedExpense As String, SelectedReceiptNumber As String, LegalEntity As String, SelectedList As Table):
         SelectedExpense:
             Default: ="Text"
@@ -9,13 +12,12 @@ cmp02_ConfirmationDialog As CanvasComponent:
         SelectedList:
             Default: =
         ThisProperty:
-            Default: ="Text"
+            Default: ="텍스트"
     ChildTabPriority: =true
     controlName: ="Text"
     Fill: =RGBA(0, 0, 0, 0)
     Height: =App.Height
     LegalEntity: ="Text"
-    OnLeftButtonClick: ="Text"
     parmInDescriptionText: ="Text"
     parmInHeaderText: ="Text"
     parmInLeftButtonColor: =RGBA(0, 0, 0, 1)
@@ -161,7 +163,9 @@ cmp02_ConfirmationDialog As CanvasComponent:
                 LayoutMaxWidth: =
                 LayoutMinHeight: =70
                 LayoutMinWidth: =280
-                OnSelect: =cmp02_ConfirmationDialog.OnRightButtonClick(cmp02_ConfirmationDialog.SelectedExpense, cmp02_ConfirmationDialog.SelectedReceiptNumber, cmp02_ConfirmationDialog.LegalEntity, cmp02_ConfirmationDialog.SelectedList)
+                OnSelect: |-
+                    =//cmp02_ConfirmationDialog.OnRightButtonClick(cmp02_ConfirmationDialog.SelectedExpense, cmp02_ConfirmationDialog.SelectedReceiptNumber, cmp02_ConfirmationDialog.LegalEntity, cmp02_ConfirmationDialog.SelectedList)
+                    cmp02_ConfirmationDialog.OnRightButtonClick(cmp02_ConfirmationDialog.SelectedExpense, cmp02_ConfirmationDialog.SelectedReceiptNumber, cmp02_ConfirmationDialog.LegalEntity, Blank())
                 PressedBorderColor: =Self.Color
                 PressedColor: =Self.Color
                 PressedFill: =Self.Fill

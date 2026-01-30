@@ -362,11 +362,11 @@
         UpdateContext({isDirty: false});
         
         UpdateContext({categoryModified: false});
-        UpdateContext({varDefaultItemSalesTaxError: Blank()});
-        UpdateContext({varDefaultSalesTaxError: Blank()});
+        UpdateContext({varDefaultItemSalesTaxError: ""});
+        UpdateContext({varDefaultSalesTaxError: ""});
         UpdateContext({leModified: false});
-        UpdateContext({varRatePerMile: Blank()});
-        UpdateContext({varMileageTotal: Blank()});
+        UpdateContext({varRatePerMile: ""});
+        UpdateContext({varMileageTotal: ""});
         UpdateContext(
             {
                 locPerdiemAmountCurr: If(
@@ -1353,7 +1353,7 @@
                         =UpdateContext({varOnChangeTriggered : true});
                         // Extract key values from custom record structure
                         Reset(VehicleTypeCombobox);
-                        UpdateContext({varDefaultVehicleType : Blank()});
+                        UpdateContext({varDefaultVehicleType : ""});
                         UpdateContext({msCallStartedForSalestaxCalculation : true});
                         If(
                             varOnChangeTriggered && varOnSelectTriggered,
@@ -1406,11 +1406,13 @@
                             
                             
                         );
+                        
                         If(
                             !IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense category' <> curCategory,
                             If( 
                                 gblIsProjectValidationFlag,
                                 Clear(colGetProjectsBasedOnResourceCategory);
+                                /*
                                 UpdateContext({
                                     varGetProjectsBasedOnResourceCategory :
                                     'Projects (mserp)'.mserp_trvexpmobileprojentity_getprojectsbasedonresourcecategory(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)',
@@ -1435,8 +1437,10 @@
                                         }
                                     )
                                 );
+                                */
                         
                             );
+                            
                             
                             UpdateContext({categoryModified:true});
                             If( 
@@ -1455,6 +1459,7 @@
                                 varItemSalesTaxDefaultValue,
                                 Blank()
                             );
+                            /*
                             If(!IsBlank(ComboBox1_8.Selected) && ComboBox1_8.Selected.'Expense type' = 'TrvExpType (mserp)'.Mileage,
                                 Set(varCollectCacheV23,
                                     'Expense mobile master data (mserp)'.mserp_calckm(
@@ -1471,7 +1476,8 @@
                                 Reset(VehicleTypeCombobox);
                                 UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});
                             );
-                        
+                            */
+                        /*
                         Set(
                             varItemSalesTaxDefaultValue, 
                             IfError(
@@ -1500,6 +1506,7 @@
                                 })
                             )
                         );
+                        
                         If(!IsBlank(varDefaultItemSalesTaxError),
                             Notify(
                                 Left(varDefaultItemSalesTaxError,Len(varDefaultItemSalesTaxError)-1),
@@ -1507,7 +1514,9 @@
                                 gblParams.notificationTime
                             )
                         );
+                        */
                         UpdateContext({timerCostType : true});
+                        /*
                         If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
@@ -1539,6 +1548,7 @@
                                 )
                             });
                         );
+                        */
                         If(!IsBlank(varErrorActualTaxCal),
                         Notify(
                             Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -2035,6 +2045,7 @@
                         );
                         If(
                             varOnShowFields,
+                        /*
                         If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
@@ -2066,6 +2077,7 @@
                                 )
                             });
                         );
+                        */
                         If(!IsBlank(varErrorActualTaxCal),
                         Notify(
                             Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -2078,6 +2090,7 @@
                         UpdateContext({varCurrentSelectedDate : DatePickerCanvas1_25.SelectedDate}); 
                         );
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
+                        /*
                         If(currExpenseType = 'TrvExpType (mserp)'.Mileage,
                                 Set(varCollectCacheV23,
                                 'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
@@ -2093,6 +2106,7 @@
                         Reset(VehicleTypeCombobox);
                         UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});
                         );
+                        */
                     Placeholder: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
                     Required: =false
@@ -2353,6 +2367,7 @@
                         );
                         If(
                             varOnShowFields,
+                        /*
                         If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
@@ -2384,6 +2399,7 @@
                                 )
                             });
                         );
+                        */
                         If(!IsBlank(varErrorActualTaxCal),
                         Notify(
                             Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -2396,6 +2412,7 @@
                         UpdateContext({varCurrentSelectedDate : DatePickerCanvas1_24.SelectedDate}); 
                         );
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
+                        /*
                         If(currExpenseType = 'TrvExpType (mserp)'.Mileage,
                                 Set(varCollectCacheV23,
                                 'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
@@ -2409,8 +2426,9 @@
                                 )
                         );
                         Reset(VehicleTypeCombobox);
-                        UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});
+                        //UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});
                         );
+                        */
                     Placeholder: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
                     Required: =false
@@ -3046,17 +3064,11 @@
                     */
                     // 천단위 구분 기호 해제 로직 포함
                     Value(
-                        If(
-                            currExpenseType = 'TrvExpType (mserp)'.Mileage,
-                            // 마일리지인 경우 계산된 합계 사용
-                            If(IsBlank(varMileageTotal), varSelectedExpenseDoc.'Transaction amount', Value(varMileageTotal, "en-US")),
-                            
-                            // 일반 경비인 경우 입력된 텍스트 사용
-                            If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,
-                                Blank(),
-                                // [중요] 텍스트 입력값("1,000")을 숫자(1000)로 변환
-                                Substitute(DataCardValue4_1.Text, ",", "") // 입력된 텍스트에서 쉼표(,)를 모두 빈값으로 치환
-                            )
+                        // 일반 경비인 경우 입력된 텍스트 사용
+                        If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,
+                            Blank(),
+                            // [중요] 텍스트 입력값("1,000")을 숫자(1000)로 변환
+                            Substitute(DataCardValue4_1.Text, ",", "") // 입력된 텍스트에서 쉼표(,)를 모두 빈값으로 치환
                         ),
                         varDefaultLanguage
                     )
@@ -3115,16 +3127,15 @@
                         // 천단위 구분 기호 로직 수정
                         If(
                             locIsEditingAmount, 
-                            // 1. 편집 중일 때: 콤마 없는 순수 숫자 표시
+                            // 1. 편집 중: 콤마 없이 표시
                             Text(
-                                 /* 기존 값 가져오는 로직 (dirtyTransAmount 등) */
-                                 Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'),
-                                 "#" // 포맷 없이 숫자만 표시
+                                 Value(Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount')), 
+                                 "#"
                             ),
                         
-                            // 2. 평상시: 천 단위 콤마 포맷 표시
+                            // 2. 평상시: 천 단위 콤마 포함 표시
                             Text(
-                                 Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'),
+                                 Value(Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount')), 
                                  "#,##0.00", 
                                  varDefaultLanguage
                             )
@@ -3141,7 +3152,15 @@
                     HoverBorderColor: =
                     HoverFill: =gblParams.dropDownHoverFill
                     OnChange: |-
-                        =UpdateContext({isDirty : true});
+                        =// 1. 입력값에서 콤마를 제거하여 순수 숫자로 변환해 변수에 저장
+                        UpdateContext({ dirtyTransAmount: Substitute(Self.Text, ",", "") });
+                        
+                        // 2. 편집 모드 종료
+                        UpdateContext({ locIsEditingAmount: false });
+                        
+                        // 3. [핵심] 컨트롤을 리셋하여 Default 속성(콤마 포맷)을 다시 불러옴
+                        Reset(Self);
+                        UpdateContext({isDirty : true});
                         UpdateContext({varOnChangeTriggered : true});
                         UpdateContext({dirtyTransAmount : Self.Text});
                         UpdateContext({taxModifiedByUser:false});
@@ -3150,6 +3169,7 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
+                        /*
                         If(
                             varOnShowFields,
                             If(
@@ -3191,13 +3211,13 @@
                                 )
                             );
                         );
+                        */
                         
                         Reset(DataCardValue25_1);
-                        UpdateContext({msCallStartedForSalestaxCalculation : false});
-                        UpdateContext({ locIsEditingAmount: false }) // 편집 모드 종료 (값 변경 후 포커스 아웃 시)
+                        UpdateContext({msCallStartedForSalestaxCalculation : false})
                     OnSelect: |-
-                        =UpdateContext({varOnSelectTriggered: true});
-                        UpdateContext({ locIsEditingAmount: true }) // 편집 모드 시작
+                        =UpdateContext({ locIsEditingAmount: true }); // 편집 모드 시작
+                        UpdateContext({varOnSelectTriggered: true})
                     PaddingLeft: =5
                     RadiusBottomLeft: =0
                     RadiusBottomRight: =0
@@ -3411,6 +3431,7 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
+                        /*
                         If(
                             varOnShowFields,
                             If(
@@ -3456,6 +3477,7 @@
                         UpdateContext({isDirty : true});
                         );
                         UpdateContext({msCallStartedForSalestaxCalculation : false})
+                        */
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_currencycode"]
@@ -3691,6 +3713,7 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
+                        /*
                         If(
                             varOnShowFields,
                         If(
@@ -3735,6 +3758,7 @@
                         Reset(DataCardValue25_1);
                         UpdateContext({varCurrentSelectedDate : DatePickerCanvas1_18.SelectedDate}); 
                         );
+                        
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
                         If(currExpenseType = 'TrvExpType (mserp)'.Mileage,
                                 Set(varCollectCacheV23,
@@ -3751,6 +3775,7 @@
                         Reset(VehicleTypeCombobox);
                         UpdateContext({varDefaultVehicleType : Text(ParseJSON(varCollectCacheV23.return).VehicleType)});
                         );
+                        */
                     Placeholder: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
                     Required: =false
@@ -4128,7 +4153,7 @@
                                     'Expense category (mserp)',
                                     'Expense category' = ComboBox1_8.Selected.'Expense category' &&
                                     'Company Code' = varSelectedLegalEntity
-                                ).DefaultPaymentMethod,
+                                ).'Default payment method',
                                 'Payment method'
                             ),
                             Blank()
@@ -4205,7 +4230,7 @@
                                         'Expense category (mserp)',
                                         'Expense category' = ComboBox1_8.Selected.'Expense category' &&
                                         'Company Code' = varSelectedLegalEntity
-                                    ).DefaultPaymentMethod,
+                                    ).'Default payment method',
                                     Blank()
                                 )
                                 ),
@@ -4685,7 +4710,7 @@
                             varDefaultSalesTaxGroup,
                             Blank()
                         );
-                        
+                        /*
                         Set(
                             varDefaultSalesTaxGroup, 
                             IfError(
@@ -4712,6 +4737,7 @@
                             })
                             )
                         );
+                        
                         If(!IsBlank(varDefaultSalesTaxError),
                         Notify(
                             Left(varDefaultSalesTaxError,Len(varDefaultSalesTaxError)-1),
@@ -4719,7 +4745,8 @@
                             gblParams.notificationTime
                         )
                         );
-                        
+                        */
+                        /*
                         Set(
                             varItemSalesTaxDefaultValue, 
                             IfError(
@@ -4748,6 +4775,8 @@
                             })
                             )
                         );
+                        */
+                        /*
                         If(!IsBlank(varDefaultItemSalesTaxError),
                         Notify(
                             Left(varDefaultItemSalesTaxError,Len(varDefaultItemSalesTaxError)-1),
@@ -4755,7 +4784,8 @@
                             gblParams.notificationTime
                         )
                         );
-                        
+                        */
+                        /*
                         If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
@@ -4787,6 +4817,7 @@
                                 )
                             });
                         );
+                        */
                         If(!IsBlank(varErrorActualTaxCal),
                         Notify(
                             Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -4965,6 +4996,7 @@
                                 );
                                 Reset(ComboBox1_14); //remove activity
                                 UpdateContext({varDefaultProjLineStatus: Blank()}); //Billable
+                                /*
                                 If(
                                     gblIsProjectValidationFlag,
                                     Clear(colGetProjectsBasedOnResourceCategory);
@@ -4989,6 +5021,7 @@
                                         )
                                     );
                                 );
+                                */
                                 
                             )
                         )
@@ -5136,6 +5169,7 @@
                             UpdateContext({varOnShowFields : true})
                         );
                         UpdateContext({msCallStartedForSalestaxCalculation : true});
+                        /*
                         If(varOnShowFields,
                             If(
                                 IsBlank(Self.Selected.projectId),
@@ -5252,6 +5286,7 @@
                             );
                             UpdateContext({isDirty : true});
                         );
+                        */
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
                         
                     OnSelect: |-
@@ -5328,7 +5363,7 @@
                             varDefaultSalesTaxGroup,
                             Blank()
                         );
-                        
+                        /*
                         Set(
                             varDefaultSalesTaxGroup, 
                             IfError(
@@ -5355,6 +5390,7 @@
                             })
                             )
                         );
+                        
                         If(!IsBlank(varDefaultSalesTaxError),
                         Notify(
                             Left(varDefaultSalesTaxError,Len(varDefaultSalesTaxError)-1),
@@ -5362,7 +5398,9 @@
                             gblParams.notificationTime
                         )
                         );
+                        */
                         UpdateContext({timerProj : true});
+                        /*
                         If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
@@ -5394,6 +5432,7 @@
                                 )
                             });
                         );
+                        */
                         If(!IsBlank(varErrorActualTaxCal),
                         Notify(
                             Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -5428,7 +5467,8 @@
                     Duration: =2000
                     Height: =70
                     OnTimerEnd: |-
-                        =If(
+                        =/*
+                        If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
                                 varSalesTaxAmount : 
@@ -5459,6 +5499,7 @@
                                 )
                             });
                         );
+                        */
                         If(
                             !IsBlank(varErrorActualTaxCal),
                             Notify(
@@ -5851,7 +5892,7 @@
                             varDefaultSalesTaxGroup,
                             Blank()
                         );
-                        
+                        /*
                         Set(
                             varDefaultSalesTaxGroup, 
                             IfError(
@@ -5878,6 +5919,7 @@
                             })
                             )
                         );
+                        
                         If(!IsBlank(varDefaultSalesTaxError),
                         Notify(
                             Left(varDefaultSalesTaxError,Len(varDefaultSalesTaxError)-1),
@@ -5885,7 +5927,9 @@
                             gblParams.notificationTime
                         )
                         );
+                        */
                         UpdateContext({timerCountry : true});
+                        /*
                         If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
@@ -5917,6 +5961,7 @@
                                 )
                             });
                         );
+                        */
                         If(!IsBlank(varErrorActualTaxCal),
                         Notify(
                             Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
@@ -5953,7 +5998,8 @@
                     Duration: =2000
                     Height: =70
                     OnTimerEnd: |-
-                        =If(
+                        =/*
+                        If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
                                 varSalesTaxAmount : 
@@ -5984,6 +6030,7 @@
                                 )
                             });
                         );
+                        */
                         If(
                             !IsBlank(varErrorActualTaxCal),
                             Notify(
@@ -6115,6 +6162,7 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
+                        /*
                         If(varOnShowFields,
                         If(Self.Selected.State <> curStateSelected,
                         Reset(ComboBox1_15);
@@ -6203,6 +6251,7 @@
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
                         UpdateContext({isDirty : true});
                         ));
+                        */
                         If(
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
@@ -6227,7 +6276,8 @@
                     Duration: =2000
                     Height: =70
                     OnTimerEnd: |-
-                        =If(
+                        =/*
+                        If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
                                 varSalesTaxAmount : 
@@ -6258,6 +6308,7 @@
                                 )
                             });
                         );
+                        */
                         If(
                             !IsBlank(varErrorActualTaxCal),
                             Notify(
@@ -6649,11 +6700,14 @@
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
-                        =If(
+                        =/*
+                        If(
                             !varOnShowFields,
                             LookUp('Sales tax group description (mserp)','Sales tax group'= varSelectedExpenseDoc.'Sales tax group'),
                             LookUp('Sales tax group description (mserp)','Sales tax group'= Coalesce(varDefaultSalesTaxGroup,varDefaultSalesTaxGroupUserContext))
                         )
+                        */
+                        LookUp('Sales tax group description (mserp)','Sales tax group'= varSelectedExpenseDoc.'Sales tax group')
                     DisplayFields: =["mserp_salestaxgroup","mserp_description"]
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -6676,6 +6730,7 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
+                        /*
                         If(
                             varOnShowFields,
                         UpdateContext({msCallStartedForSalestaxCalculation : true});
@@ -6723,6 +6778,7 @@
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
                         UpdateContext({isDirty : true});
                         );
+                        */
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_salestaxgroup","mserp_description"]
@@ -6829,8 +6885,9 @@
                     AccessibleLabel: =Concatenate("Select ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                    DefaultSelectedItems: |+
-                        =/*If(
+                    DefaultSelectedItems: |
+                        =/*
+                        If(
                             !varOnShowFields,
                             LookUp(
                             'Item sales tax group (mserp)',
@@ -6839,12 +6896,18 @@
                             'Item sales tax group (mserp)',
                             'Item sales tax group' = varItemSalesTaxDefaultValue
                         )
-                        )*/
+                        )
+                        */
+                        /*
                         LookUp(
                             'Item sales tax group (mserp)',
                             'Item sales tax group' = varItemSalesTaxDefaultValue
                         )
-                        
+                        */
+                        LookUp(
+                            'Item sales tax group (mserp)',
+                            'Item sales tax group' = varSelectedExpenseDoc.'Item sales tax group'
+                        )
                     DisplayFields: =["mserp_itemsalestaxgroup","mserp_description"]
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -6866,6 +6929,7 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
+                        /*
                         If(varOnShowFields,
                         UpdateContext({msCallStartedForSalestaxCalculation : true});
                         
@@ -6912,6 +6976,7 @@
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
                         UpdateContext({isDirty : true});
                         );
+                        */
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_itemsalestaxgroup"]
@@ -7046,6 +7111,7 @@
                             UpdateContext({varOnShowFields : true})
                         );
                         
+                        /*
                         If(
                             varOnShowFields,
                         If(
@@ -7090,6 +7156,7 @@
                         Reset(DataCardValue25_1);
                         );
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
+                        */
                     OnSelect: |-
                         =
                         UpdateContext({varOnSelectTriggered : true});
@@ -7100,6 +7167,7 @@
                             UpdateContext({varOnShowFields : true})
                         );
                         
+                        /*
                         If(
                             varOnShowFields,
                         If(
@@ -7144,6 +7212,7 @@
                         Reset(DataCardValue25_1);
                         );
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
+                        */
                     ShowLabel: =false
                     Size: =24
                     TrueText: |-
@@ -7472,6 +7541,7 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
+                        /*
                         If(
                             varOnShowFields,
                         If(
@@ -7562,6 +7632,7 @@
                         );
                         UpdateContext({msCallStartedForSalestaxCalculation : false})
                         )
+                        */
                     OnSelect: |-
                         =UpdateContext({varOnTriggerTriggered: true});
                     PaddingLeft: =If(Self.DisplayMode = DisplayMode.Edit, 5, 0)
@@ -7611,7 +7682,8 @@
                     Duration: =2000
                     Height: =70
                     OnTimerEnd: |-
-                        =If(
+                        =/*
+                        If(
                             !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
                             UpdateContext({
                                 varSalesTaxAmount : 
@@ -7642,6 +7714,7 @@
                                 )
                             });
                         );
+                        */
                         If(
                             !IsBlank(varErrorActualTaxCal),
                             Notify(
@@ -10376,71 +10449,7 @@
         IconVisibleFlag: =ComboBox1_8.Selected.'Expense type' = 'TrvExpType (mserp)'.Mileage && !IsBlank(DataCardValue40.Text)
         Mileage: =varCurMileage
         NoOfPassengers: =varCurNoOfPass
-        OnReload: |-
-            =UpdateContext({onReloadButtonClick : true});
-            UpdateContext({msCallStartedForSalestaxCalculation : true});
-            Set(varCollectCacheV2,
-            'Expense mobile master data (mserp)'.mserp_calckm(If(IsBlank(ExpenseInfo_1.RowId),"",ExpenseInfo_1.RowId),
-                    {
-                        TransDate: If(IsBlank(DatePickerCanvas1_18.SelectedDate),"",Text(DateTimeValue(DatePickerCanvas1_18.SelectedDate),"yyyy-mm-dd hh:mm:ssZ")),
-                        CostType: If(IsBlank(ComboBox1_8.Selected.'Expense category'),"",ComboBox1_8.Selected.'Expense category'),
-                        KmOwnCar: Text(Value(If(IsBlank(DataCardValue40.Text), "0", DataCardValue40.Text),varDefaultLanguage), "#,#0.00","en-US"),
-                        VehicleType: If(IsBlank(VehicleTypeCombobox.Selected.Value),"",VehicleTypeCombobox.Selected.Value),
-                        NumberOfPassengers: If(IsBlank(DataCardValue63.Text),0,DataCardValue63.Text)
-                    }
-                    )
-            );
-            
-            UpdateContext({varRatePerMile : Text(ParseJSON(varCollectCacheV2.result).KMPrice)});
-            UpdateContext({varMileageTotal : Text(ParseJSON(varCollectCacheV2.result).AmountMST)});
-            If(
-                !IsBlank(Text(ParseJSON(varCollectCacheV2.result).Warnings)),
-                Notify(
-                    Text(ParseJSON(varCollectCacheV2.result).Warnings),
-                    NotificationType.Warning,
-                    gblParams.notificationTime
-                )
-            );
-            If(!IsBlank(ComboBox1_15.Selected) && !IsBlank(ComboBox1_16.Selected),
-            UpdateContext({taxModifiedByUser:false});
-            
-            UpdateContext({
-                varSalesTaxAmount : 
-                IfError(
-                Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(
-                    LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),
-                    {
-                        TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), "", ComboBox1_15.Selected.'Sales tax group'),
-                        TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), "", ComboBox1_16.Selected.'Item sales tax group'),
-                        ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), "", ComboBox1_12.Selected.mserp_currencycode),
-                        TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")), "", Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")),
-                        AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), "0", DataCardValue4_1.Text),varDefaultLanguage), "#,#0.00","en-US"),
-                        LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),"",Text(DataCardValue39_1.Selected.Value)),
-                        TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, "Yes", "No"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,"Yes", "No"))
-                    }
-                ).return,"en-US"),
-                UpdateContext({
-                    varErrorActualTaxCal : 
-                    Substitute(
-                Match(
-                    FirstError.Details.HttpResponse,
-                    """message"":""([^""]*)"""
-                ).FullMatch,
-                """message"":""",
-                ""
-            )      
-                })
-                )
-            });
-            If(!IsBlank(varErrorActualTaxCal),
-            Notify(
-                Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
-                NotificationType.Error,
-                gblParams.notificationTime
-            )
-            )
-            );
-            UpdateContext({msCallStartedForSalestaxCalculation : false})
+        OnReload: =true
         RowId: =LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)')
         TransactionDate: =varCurrentSelectedDate
         VehicleType: =varCurVehicleType
@@ -10544,6 +10553,7 @@
                             !IsBlank(ComboBox1_15.Selected) && !IsBlank(ComboBox1_16.Selected),
                             //if sales tax group and item sales tax group are not blank issue a call to get the sales tax amount 
                             UpdateContext({taxModifiedByUser:false});
+                            /*
                             UpdateContext
                             (
                                 {
@@ -10578,6 +10588,7 @@
                                     )
                                 }
                             );
+                            */
                             // show errors if any
                             If(
                                 !IsBlank(varErrorActualTaxCal),
@@ -11047,25 +11058,8 @@
         ZIndex: =18
 
     cmpItemizationCancelDialog As cmp02_ConfirmationDialog:
-        OnLeftButtonClick: |-
-            =UpdateContext({ locCategoryChange : false})
-        OnRightButtonClick: |-
-            ='Expense lines (mserp)'.mserp_trvexpmobileexpenseentity_changecategorypremodified(
-               LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = SelectedExpense).'Expense Line Expense Mobile Entity (mserp)',
-               {
-                   NewCategory : ComboBox1_8.Selected.'Expense category'
-               }
-            );
-            
-            UpdateContext(
-                {
-                    locItemizationCheck : locItemizeButtonVisibilityFlag,
-                    locCategoryChange : false,
-                    locAllowNavigationBack : true
-                }
-            );
-            Set(isDirtyItemization , false);
-            SubmitForm(EditExpenseForm)
+        OnLeftButtonClick: =true
+        OnRightButtonClick: ="텍스트"
         parmInDescriptionText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ChangeCategoryWarningDescription'
         parmInHeaderText: |-
@@ -11086,11 +11080,9 @@
         controlName: ="scr03_cmp02_CancelDialog_1"
         OnLeftButtonClick: |-
             =UpdateContext({ctVarExpenseDetailsBack: false});
-        OnRightButtonClick: |+
+        OnRightButtonClick: |-
             =UpdateContext({ctVarExpenseDetailsBack: false});
             Select(scr03_ico_Back_4)
-            
-            
         parmInDescriptionText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_LeaveScreenConsequenceLabel'
         parmInHeaderText: |-
