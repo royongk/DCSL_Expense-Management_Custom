@@ -350,6 +350,13 @@
         Y: =scr03_hdr_TopHeader_4.Height
         ZIndex: =6
 
+    scr03_hdr_TopHeader_4 As hdr02_Header:
+        Fill: =scr03_hdr_TopHeader_4.paramFill
+        paramFill: =RGBA(255, 255, 255, 1)
+        paramTitle: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewExpenseLabel'
+        ZIndex: =7
+
     "scr03_glr_ReceiptsList_ViewOnly As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
         '#CopilotOverlayLabel': ="List of attached receipts"
         AccessibleLabel: ="List of attached receipts"
@@ -360,8 +367,7 @@
                 200,
                 Self.TemplateHeight * CountRows(Self.AllItems)
             )
-        Items: |-
-            =colAttachedReceipts
+        Items: =colAttachedReceipts
         Layout: =Layout.Vertical
         LoadingSpinner: =LoadingSpinner.Data
         OnSelect: |-
@@ -423,7 +429,8 @@
                         IconTxt,
                         IconMail
                     )
-                ImagePosition: =ImagePosition.Fit
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
                 Width: =40
                 ZIndex: =1
 
@@ -433,6 +440,8 @@
                 FillPortions: =1
                 Font: =Font.'Segoe UI'
                 Height: =Parent.Height
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
                 Size: =16
                 Text: |-
                     =If(
@@ -444,13 +453,6 @@
                 Width: =Parent.Width - scr03_img_ReceiptIcon_ViewOnly.Width - 15
                 X: =scr03_img_ReceiptIcon_ViewOnly.X + scr03_img_ReceiptIcon_ViewOnly.Width + 15
                 ZIndex: =2
-
-    scr03_hdr_TopHeader_4 As hdr02_Header:
-        Fill: =scr03_hdr_TopHeader_4.paramFill
-        paramFill: =RGBA(255, 255, 255, 1)
-        paramTitle: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewExpenseLabel'
-        ZIndex: =7
 
     scr03_ico_Back_7 As icon.ChevronLeft:
         AccessibleLabel: ="Press to go back"

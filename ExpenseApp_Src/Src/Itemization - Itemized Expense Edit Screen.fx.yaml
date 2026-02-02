@@ -429,6 +429,26 @@
         Y: =scr03_lbl_ChangeReceipt_2.Y + (scr03_lbl_ChangeReceipt_2.Height-scr03_ico_ViewReceipt_2.Height)/2
         ZIndex: =9
 
+    scr03_lbl_ValidationWarning_2 As label:
+        Align: =Align.Center
+        Color: =RGBA(165, 33, 33, 1)
+        Fill: =RGBA(249, 217, 217, 1)
+        Font: =Font.'Segoe UI'
+        Height: |-
+            =If(
+                Self.Visible,
+                88,
+                0
+            )
+        Size: =15
+        Text: |-
+            =//If(ctVarIsRequiredFieldEmpty,GlobalLabels.Labels.ValidationMsgExpenseNeedMoreDetails)
+            //not having receipt in expense is part of policy violation
+        Visible: =//ctVarIsRequiredFieldEmpty //Or ((varSelectedItemizedExpenseDoc.receiptsAttached = "No" Or IsBlank(varSelectedItemizedExpenseDoc)) And IsBlank(varReceiptImage))
+        Width: =Parent.Width
+        Y: =scr03_hdr_TopHeader_2.Height
+        ZIndex: =10
+
     "Itemization_scr03_glr_ReceiptsList As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
         '#CopilotOverlayLabel': ="List of attached receipts"
         AccessibleLabel: ="List of attached receipts"
@@ -439,8 +459,7 @@
                 200,
                 Self.TemplateHeight * CountRows(Self.AllItems)
             )
-        Items: |-
-            =colAttachedReceipts
+        Items: =colAttachedReceipts
         Layout: =Layout.Vertical
         LoadingSpinner: =LoadingSpinner.Data
         OnSelect: |-
@@ -502,7 +521,8 @@
                         IconTxt,
                         IconMail
                     )
-                ImagePosition: =ImagePosition.Fit
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
                 Width: =40
                 ZIndex: =1
 
@@ -512,6 +532,8 @@
                 FillPortions: =1
                 Font: =Font.'Segoe UI'
                 Height: =Parent.Height
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
                 Size: =16
                 Text: |-
                     =If(
@@ -528,6 +550,8 @@
                 AccessibleLabel: ="Delete receipt"
                 Color: =RGBA(195, 39, 39, 1)
                 Height: =24
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
                 OnSelect: |-
                     =UpdateContext({Itemization_varDeleteReceiptId: ThisItem.EntRecId});
                     UpdateContext({Itemization_varShowDeleteReceiptDialog: true})
@@ -536,9 +560,15 @@
                 X: =Parent.Width - Self.Width - 15
                 ZIndex: =3
 
+    scr03_hdr_TopHeader_2 As hdr02_Header_5:
+        Fill: =scr03_hdr_TopHeader_2.paramFill
+        paramFill: =RGBA(255, 255, 255, 1)
+        paramTitle: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EditItemizedExpenseLabel'
+        ZIndex: =11
+
     Itemization_scr03_btn_AddReceipt_Always As button:
         BorderColor: =RGBA(34, 102, 227, 1)
-        BorderThickness: =2
         Color: =RGBA(34, 102, 227, 1)
         Fill: =Color.White
         Height: =50
@@ -564,9 +594,28 @@
         Visible: =!IsEmpty(colAttachedReceipts)
         Width: =Parent.Width - 48
         X: =24
-        Y: |-
-            =Itemization_scr03_glr_ReceiptsList.Y + Itemization_scr03_glr_ReceiptsList.Height + 15
+        Y: =Itemization_scr03_glr_ReceiptsList.Y + Itemization_scr03_glr_ReceiptsList.Height + 15
         ZIndex: =11
+
+    scr03_ico_Back_2 As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =icongconfig_backbutton.Color
+        Fill: =icongconfig_backbutton.Fill
+        Height: =27
+        Icon: =Icon.ChevronLeft
+        OnSelect: |-
+            =Set(varSelectedReceiptNumber, Blank());
+            Set(varReceiptImage,Blank());
+            Set(
+                    varChangeReceiptItemizedExpense,
+                    false
+                );
+            Navigate('Itemization - View All Itemize Expense Screen')
+        TabIndex: =0
+        Width: =19
+        X: =24
+        Y: =31
+        ZIndex: =12
 
     Itemization_cmp_DeleteReceiptDialog As cmp02_ConfirmationDialog:
         controlName: ="Itemization_cmp02_ConfirmationDialog_DeleteReceipt"
@@ -648,53 +697,6 @@
         returnFocus: ="Itemization_scr03_ico_DeleteReceipt"
         Visible: =Itemization_varShowDeleteReceiptDialog
         Y: =0
-        ZIndex: =12
-
-    scr03_lbl_ValidationWarning_2 As label:
-        Align: =Align.Center
-        Color: =RGBA(165, 33, 33, 1)
-        Fill: =RGBA(249, 217, 217, 1)
-        Font: =Font.'Segoe UI'
-        Height: |-
-            =If(
-                Self.Visible,
-                88,
-                0
-            )
-        Size: =15
-        Text: |-
-            =//If(ctVarIsRequiredFieldEmpty,GlobalLabels.Labels.ValidationMsgExpenseNeedMoreDetails)
-            //not having receipt in expense is part of policy violation
-        Visible: =//ctVarIsRequiredFieldEmpty //Or ((varSelectedItemizedExpenseDoc.receiptsAttached = "No" Or IsBlank(varSelectedItemizedExpenseDoc)) And IsBlank(varReceiptImage))
-        Width: =Parent.Width
-        Y: =scr03_hdr_TopHeader_2.Height
-        ZIndex: =10
-
-    scr03_hdr_TopHeader_2 As hdr02_Header_5:
-        Fill: =scr03_hdr_TopHeader_2.paramFill
-        paramFill: =RGBA(255, 255, 255, 1)
-        paramTitle: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EditItemizedExpenseLabel'
-        ZIndex: =11
-
-    scr03_ico_Back_2 As icon.ChevronLeft:
-        AccessibleLabel: ="Press to go back"
-        Color: =icongconfig_backbutton.Color
-        Fill: =icongconfig_backbutton.Fill
-        Height: =27
-        Icon: =Icon.ChevronLeft
-        OnSelect: |-
-            =Set(varSelectedReceiptNumber, Blank());
-            Set(varReceiptImage,Blank());
-            Set(
-                    varChangeReceiptItemizedExpense,
-                    false
-                );
-            Navigate('Itemization - View All Itemize Expense Screen')
-        TabIndex: =0
-        Width: =19
-        X: =24
-        Y: =31
         ZIndex: =12
 
     scr03_lbl_PolicyViolationWarning_2 As label:

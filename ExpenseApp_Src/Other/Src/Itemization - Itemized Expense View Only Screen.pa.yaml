@@ -11,7 +11,7 @@ Screens:
     Properties:
       Fill: =RGBA(244, 244, 244, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
-      OnVisible: "=UpdateContext(\n    {\n        featureEnabled :\n        If(userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes, \"True\", \"False\")\n    }\n); \n//if labelTableLookUp not empty\nIf(\n    CountRows(labelTableLookUp) <= 0,\n    Collect(\n        labelTableLookUp,\n        {\n            fieldName : \"CostType\",\n            labelName : \"Expense category\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"TransDate\",\n            labelName : \"Transaction date\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"AmountCurr\",\n            labelName : \"Transaction amount\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"ExchangeCode\",\n            labelName : \"Currency\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"PayMethod\",\n            labelName : \"Payment method\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"SubmitterJustification\",\n            labelName : \"Employee justification\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\n            visible : false,\n            required : false\n        }\n    );\n    ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Collect(\n                labelTableLookUp,\n                {\n                    fieldName : VisibilityTable.FieldName,\n                    labelName : VisibilityTable.Labels,\n                    localisedLabelName : VisibilityTable.LocalisedLabelName\n                }\n            )\n        );\n    If(\n        featureEnabled = \"True\",\n        ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\n                    required : VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\n                }\n            )\n        ),\n        ForAll(\n            Filter('Display fields (mserp)', 'Company Code' = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\n                    required : false\n                }\n            )\n        )\n   \n    )\n);"
+      OnVisible: "=UpdateContext(\n    {\n        featureEnabled :\n        If(userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes, \"True\", \"False\")\n    }\n); \n// Load all attached receipts for this itemized expense line (sorted by creation date, newest first)\nIf(\n    !IsBlank(varSelectedItemizedExpenseDoc) && !IsBlank(varSelectedItemizedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    ClearCollect(\n        colAttachedReceipts,\n        SortByColumns(\n            Filter(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                ExpTransNumber = varSelectedItemizedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'\n            ),\n            \"CreatingDateTime\",\n            SortOrder.Descending\n        )\n    ),\n    Clear(colAttachedReceipts)\n);\n// Set varReceiptImage for backward compatibility (first receipt or blank)\nSet(\n    varReceiptImage,\n    If(\n        !IsEmpty(colAttachedReceipts),\n        First(colAttachedReceipts).CapturedDocument,\n        Blank()\n    )\n);\nSet(\n    varFileFormat,\n    If(\n        !IsEmpty(colAttachedReceipts),\n        First(colAttachedReceipts).FileExtension,\n        Blank()\n    )\n);\n//if labelTableLookUp not empty\nIf(\n    CountRows(labelTableLookUp) <= 0,\n    Collect(\n        labelTableLookUp,\n        {\n            fieldName : \"CostType\",\n            labelName : \"Expense category\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"TransDate\",\n            labelName : \"Transaction date\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"AmountCurr\",\n            labelName : \"Transaction amount\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"ExchangeCode\",\n            labelName : \"Currency\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"PayMethod\",\n            labelName : \"Payment method\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"SubmitterJustification\",\n            labelName : \"Employee justification\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\n            visible : false,\n            required : false\n        }\n    );\n    ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Collect(\n                labelTableLookUp,\n                {\n                    fieldName : VisibilityTable.FieldName,\n                    labelName : VisibilityTable.Labels,\n                    localisedLabelName : VisibilityTable.LocalisedLabelName\n                }\n            )\n        );\n    If(\n        featureEnabled = \"True\",\n        ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\n                    required : VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\n                }\n            )\n        ),\n        ForAll(\n            Filter('Display fields (mserp)', 'Company Code' = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\n                    required : false\n                }\n            )\n        )\n   \n    )\n);"
     Children:
       - ItemizedExpenseBackground_1:
           Control: Rectangle@2.3.0
@@ -106,7 +106,7 @@ Screens:
             RadiusBottomRight: =18
             RadiusTopLeft: =18
             RadiusTopRight: =18
-            Visible: =!IsBlank(varReceiptImage)
+            Visible: =IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage)
             Width: |
               =Parent.Width -  Self.X*2
             X: =24
@@ -131,7 +131,7 @@ Screens:
             RadiusBottomRight: =8
             RadiusTopLeft: =8
             RadiusTopRight: =8
-            Visible: '=IsBlank(varReceiptImage) '
+            Visible: '=IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) '
             Width: |
               =Parent.Width -  Self.X*2
             X: =44
@@ -162,7 +162,7 @@ Screens:
                   GlobalLabels.Labels.'15062:LocalizedName,msdyn_NoReceiptAttachedLabel',
                   GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
               )
-            Visible: '=IsBlank(varReceiptImage) '
+            Visible: '=IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) '
             Width: |
               =Parent.Width -  Self.X*2
             X: =26
@@ -187,7 +187,7 @@ Screens:
             Size: =17
             TabIndex: =0
             Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
-            Visible: =!(IsBlank(varReceiptImage))
+            Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
             Width: =scr03_img_NoReceiptOuter_4.Width+1
             X: =scr03_img_NoReceiptOuter_4.X
             Y: =scr03_img_NoReceiptOuter_4.Y + (scr03_img_NoReceiptOuter_4.Height -Self.Height)+1
@@ -208,10 +208,112 @@ Screens:
                   }
               )
             TabIndex: =0
-            Visible: =!(IsBlank(varReceiptImage))
+            Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
             Width: =18
             X: =scr03_lbl_ChangeReceipt_3.X + 25
             Y: =scr03_lbl_ChangeReceipt_3.Y + (scr03_lbl_ChangeReceipt_3.Height-scr03_ico_ViewReceipt_3.Height)/2
+      - Itemization_scr03_glr_ReceiptsList_ViewOnly:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="List of attached receipts"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: ={}
+            Height: |-
+              =Min(
+                  200,
+                  Self.TemplateHeight * CountRows(Self.AllItems)
+              )
+            Items: =colAttachedReceipts
+            OnSelect: |-
+              =Set(
+                  varSelectedReceiptForView,
+                  ThisItem.EntRecId
+              );
+              Set(
+                  varReceiptImage,
+                  ThisItem.CapturedDocument
+              );
+              Set(
+                  varFileFormat,
+                  ThisItem.FileExtension
+              );
+              Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly : true, varItemizedViewOnly: true})
+            TemplateSize: =70
+            Visible: =!IsEmpty(colAttachedReceipts)
+            Width: =Parent.Width - 48
+            X: =24
+            Y: |-
+              =If(
+                  scr03_lbl_PolicyViolationWarning_3.Visible,
+                  scr03_lbl_PolicyViolationWarning_3.Y + scr03_lbl_PolicyViolationWarning_3.Height + 27 + ItemizedExpenseBackground_1.Height ,
+                  scr03_lbl_ValidationWarning_3.Y + scr03_lbl_ValidationWarning_3.Height + 27 + ItemizedExpenseBackground_1.Height
+              )
+          Children:
+            - Itemization_Container_ReceiptItem_ViewOnly:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =Color.White
+                  Height: =70
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  PaddingLeft: =15
+                  PaddingRight: =15
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Itemization_scr03_img_ReceiptIcon_ViewOnly:
+                      Control: Image@2.2.3
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =40
+                        Image: |-
+                          =If(
+                              ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                              If(
+                                  !IsBlank(ThisItem.CapturedDocument),
+                                  ThisItem.CapturedDocument,
+                                  IconMail
+                              ),
+                              ThisItem.FileExtension in ["xlsx", "xls"],
+                              IconExcel,
+                              ThisItem.FileExtension in ["docx", "doc"],
+                              IconWord,
+                              ThisItem.FileExtension = "pdf",
+                              IconPDF,
+                              ThisItem.FileExtension = "txt",
+                              IconTxt,
+                              IconMail
+                          )
+                        LayoutMinHeight: =100
+                        LayoutMinWidth: =100
+                        Width: =40
+                  - Itemization_scr03_lbl_ReceiptFileName_ViewOnly:
+                      Control: Label@2.5.1
+                      Properties:
+                        AutoHeight: =true
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =Color.Black
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        Height: =Parent.Height
+                        LayoutMinHeight: =40
+                        LayoutMinWidth: =150
+                        Size: =16
+                        Text: |-
+                          =If(
+                              !IsBlank(ThisItem.DocumentName),
+                              ThisItem.DocumentName,
+                              Concatenate("Receipt-", Text(ThisItem.EntRecId))
+                          )
+                        VerticalAlign: =VerticalAlign.Center
+                        Width: =Parent.Width - Itemization_scr03_img_ReceiptIcon_ViewOnly.Width - 15
+                        X: =Itemization_scr03_img_ReceiptIcon_ViewOnly.X + Itemization_scr03_img_ReceiptIcon_ViewOnly.Width + 15
       - scr03_lbl_ValidationWarning_3:
           Control: Label@2.5.1
           Properties:

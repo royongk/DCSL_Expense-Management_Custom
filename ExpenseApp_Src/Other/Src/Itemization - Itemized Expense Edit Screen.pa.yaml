@@ -11,7 +11,7 @@ Screens:
     Properties:
       Fill: =RGBA(244, 244, 244, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
-      OnVisible: "=UpdateContext({varStateSelected : Blank()});\nUpdateContext({varZipCodeSelectedRecId : -1 });\nUpdateContext({varProjectHierarchyId: Blank()});\nSet(varNavigateFromExpense , Blank());\nUpdateContext({onReloadButtonClick : false});\n// 3-level category selection variables\nUpdateContext({varSelectedDepartment: Blank()});\nUpdateContext({varSelectedBenefitType: Blank()});\nUpdateContext({curCategory : ComboBox1_9.Selected.'Expense category'});\n// Cost Center context\nUpdateContext({varSelectedCostCenter: Blank()});\nIf(\n    !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.CostCenter),\n    UpdateContext({\n        varSelectedCostCenter: LookUp(\n            'DCSL Financial Dimension CostCenter (mserp)',\n            'Combination display' = varSelectedItemizedExpenseDoc.CostCenter\n        )\n    })\n);\n// Load existing Department and Benefit Type from Expense Category (reverse lookup)\nIf(\n    !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'),\n    With(\n        {\n            mappingRecord: LookUp(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                'Expense category' = varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'\n            )\n        },\n        If(\n            !IsBlank(mappingRecord),\n            UpdateContext({\n                varSelectedDepartment: mappingRecord.Department\n            });\n            UpdateContext({\n                varSelectedBenefitType: mappingRecord.'Benefit Type'\n            })\n        )\n    )\n);\nUpdateContext({curInterCompanyProjectCategoryItemization : ComboBox1_51.Selected.'Expense category'});\nUpdateContext({curIntercompanyLE:varSelectedItemizedExpenseDoc.'Legal entity'});\nUpdateContext({curProjIdSelected : varSelectedItemizedExpenseDoc.'Project ID'});\nUpdateContext({curCountrySelected : varSelectedItemizedExpenseDoc.'Country/region (mserp_countryregion)'});\nUpdateContext({curStateSelected : varSelectedItemizedExpenseDoc.'State/province'});\nUpdateContext({curBillIssuedToSelected : varSelectedItemizedExpenseDoc.'Hotel bill issued to'});\nUpdateContext({taxModifiedByUser : false});\n\n// populate the current expense type of the selected document\nUpdateContext({currExpenseType:Coalesce(varSelectedItemizedExpenseDoc.'Expense type',LookUp('Expense category (mserp)','Expense category' = ComboBox1_9.Selected.'Expense category', 'Expense type'))});\nIf(\n    !varIsCreate,\n    UpdateContext({msCallStartedForSalestaxCalculation : true});\n    UpdateContext({varOnShowFields : false});\n    UpdateContext({varOnSelectTriggered : false});\n    UpdateContext({varOnChangeTriggered : false}); \n);\nUpdateContext(\n    {\n        featureEnabled :\n        If(userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes, \"True\", \"False\")\n    }\n); \n//if labelTableLookUp not empty\nIf(\n    CountRows(labelTableLookUp) <= 0,\n    Collect(\n        labelTableLookUp,\n        {\n            fieldName : \"CostType\",\n            labelName : \"Expense category\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"TransDate\",\n            labelName : \"Transaction date\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"AmountCurr\",\n            labelName : \"Transaction amount\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"ExchangeCode\",\n            labelName : \"Currency\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"PayMethod\",\n            labelName : \"Payment method\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"SubmitterJustification\",\n            labelName : \"Employee justification\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\n            visible : false,\n            required : false\n        }\n    );\n    ForAll(\n        Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n        Collect(\n            labelTableLookUp,\n            {\n                fieldName : VisibilityTable.FieldName,\n                labelName : VisibilityTable.Labels,\n                localisedLabelName : VisibilityTable.LocalisedLabelName\n            }\n        )\n    );\n    If(\n        featureEnabled = \"True\",\n        ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\n                    required : VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\n                }\n            )\n        ),\n        ForAll(\n            Filter('Display fields (mserp)', 'Company Code' = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\n                    required : false\n                }\n            )\n        )\n   \n    )\n);\nIf(\n    !IsBlank(curProjIdSelected),\n    UpdateContext({\n    varProjectHierarchyId:\n        LookUp(\n            'Projects (mserp)',\n            'Project ID' = curProjIdSelected,\n            HierarchyId\n        )\n})\n);\nSet(\n    varDefaultSalesTaxGroup,\n    varSelectedItemizedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValue,\n    varSelectedItemizedExpenseDoc.'Item sales tax group'\n);\nUpdateContext({\n    varSalesTaxAmount : \n    Coalesce(varSalesTaxAmount, varSelectedItemizedExpenseDoc.'Actual sales tax amount')\n});\nUpdateContext({msCallStartedForSalestaxCalculation : false});\nSet(\n    IsreceiptALreadyCreated, \n    false\n);\nSet(\n    isProjIdCalledFromAttach, \n    false\n);\nSet(\n    gblParams,\n    {\n        dropDownHeight : 60,\n        dorpDownBorderThickness : 2,\n        dropDownBorderColor : RGBA(34, 102, 227, 1),\n        dropDownLabelColor : Color.Black,\n        dropDownHoverFill : RGBA(204, 222, 255, 1),\n        errorMessageSize : 18,\n        dropDownFontSize : 24,\n        expenseDataCardViewOnly: RGBA(110, 110, 110, 1),\n        notificationTime : 4000\n    }\n);\n//varibale determines whether any fields were changed\nUpdateContext({isDirty : false});\n\n//UpdateContext({curIntercompanyLE : \"\"});\nUpdateContext({categoryModified : false});\nUpdateContext({varDefaultItemSalesTaxError : Blank()});\nUpdateContext({varDefaultSalesTaxError : Blank()});\nUpdateContext({leModified : false});\nUpdateContext({varRatePerMile : Blank()});\nUpdateContext({varMileageTotal : Blank()});\nUpdateContext({varCurrentSelectedDate : \nIf(\n    varIsCreate,\n    If(\n        IsBlank(OCRresponse),\n        Today(),\n        OCRresponse.transDate\n    ),\n    varSelectedItemizedExpenseDoc.'Transaction date'\n)\n});\nSet(\n    varDefaultSalesTaxGroup,\n    varSelectedItemizedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValue,\n    varSelectedItemizedExpenseDoc.'Item sales tax group'\n);\nUpdateContext({\n    varSalesTaxAmount : \n    Coalesce(varSalesTaxAmount, varSelectedItemizedExpenseDoc.'Actual sales tax amount')\n});\nSet(varCurMileage , varSelectedItemizedExpenseDoc.Mileage);\nUpdateContext({varCurVehicleType : varSelectedItemizedExpenseDoc.'Vehicle type'});\nUpdateContext({varCurNoOfPass : varSelectedItemizedExpenseDoc.'Number of passengers'});\nUpdateContext({varDefaultProjLineStatus : varSelectedItemizedExpenseDoc.Billable});\nUpdateContext({varZipCodeChanged : false});\nUpdateContext({varCityChanged : false});\nUpdateContext({varStateChanged : false});\nUpdateContext({varCountryChanged : false});\nUpdateContext({varProjectChanged : false});"
+      OnVisible: "=UpdateContext({varStateSelected : Blank()});\nUpdateContext({varZipCodeSelectedRecId : -1 });\nUpdateContext({varProjectHierarchyId: Blank()});\nSet(varNavigateFromExpense , Blank());\n// Load all attached receipts for this itemized expense line (sorted by creation date, newest first)\nIf(\n    !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    ClearCollect(\n        colAttachedReceipts,\n        SortByColumns(\n            Filter(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                ExpTransNumber = varSelectedItemizedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'\n            ),\n            \"CreatingDateTime\",\n            SortOrder.Descending\n        )\n    ),\n    Clear(colAttachedReceipts)\n);\n// Set varReceiptImage for backward compatibility (first receipt or blank)\nSet(\n    varReceiptImage,\n    If(\n        !IsEmpty(colAttachedReceipts),\n        First(colAttachedReceipts).CapturedDocument,\n        Blank()\n    )\n);\nSet(\n    varFileFormat,\n    If(\n        !IsEmpty(colAttachedReceipts),\n        First(colAttachedReceipts).FileExtension,\n        Blank()\n    )\n);\nUpdateContext({onReloadButtonClick : false});\n// 3-level category selection variables\nUpdateContext({varSelectedDepartment: Blank()});\nUpdateContext({varSelectedBenefitType: Blank()});\nUpdateContext({curCategory : ComboBox1_9.Selected.'Expense category'});\n// Cost Center context\nUpdateContext({varSelectedCostCenter: Blank()});\nIf(\n    !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.CostCenter),\n    UpdateContext({\n        varSelectedCostCenter: LookUp(\n            'DCSL Financial Dimension CostCenter (mserp)',\n            'Combination display' = varSelectedItemizedExpenseDoc.CostCenter\n        )\n    })\n);\n// Load existing Department and Benefit Type from Expense Category (reverse lookup)\nIf(\n    !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'),\n    With(\n        {\n            mappingRecord: LookUp(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                'Expense category' = varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'\n            )\n        },\n        If(\n            !IsBlank(mappingRecord),\n            UpdateContext({\n                varSelectedDepartment: mappingRecord.Department\n            });\n            UpdateContext({\n                varSelectedBenefitType: mappingRecord.'Benefit Type'\n            })\n        )\n    )\n);\nUpdateContext({curInterCompanyProjectCategoryItemization : ComboBox1_51.Selected.'Expense category'});\nUpdateContext({curIntercompanyLE:varSelectedItemizedExpenseDoc.'Legal entity'});\nUpdateContext({curProjIdSelected : varSelectedItemizedExpenseDoc.'Project ID'});\nUpdateContext({curCountrySelected : varSelectedItemizedExpenseDoc.'Country/region (mserp_countryregion)'});\nUpdateContext({curStateSelected : varSelectedItemizedExpenseDoc.'State/province'});\nUpdateContext({curBillIssuedToSelected : varSelectedItemizedExpenseDoc.'Hotel bill issued to'});\nUpdateContext({taxModifiedByUser : false});\n\n// populate the current expense type of the selected document\nUpdateContext({currExpenseType:Coalesce(varSelectedItemizedExpenseDoc.'Expense type',LookUp('Expense category (mserp)','Expense category' = ComboBox1_9.Selected.'Expense category', 'Expense type'))});\nIf(\n    !varIsCreate,\n    UpdateContext({msCallStartedForSalestaxCalculation : true});\n    UpdateContext({varOnShowFields : false});\n    UpdateContext({varOnSelectTriggered : false});\n    UpdateContext({varOnChangeTriggered : false}); \n);\nUpdateContext(\n    {\n        featureEnabled :\n        If(userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes, \"True\", \"False\")\n    }\n); \n//if labelTableLookUp not empty\nIf(\n    CountRows(labelTableLookUp) <= 0,\n    Collect(\n        labelTableLookUp,\n        {\n            fieldName : \"CostType\",\n            labelName : \"Expense category\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"TransDate\",\n            labelName : \"Transaction date\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"AmountCurr\",\n            labelName : \"Transaction amount\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"ExchangeCode\",\n            labelName : \"Currency\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"PayMethod\",\n            labelName : \"Payment method\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',\n            visible : true,\n            required : true\n        },\n        {\n            fieldName : \"SubmitterJustification\",\n            labelName : \"Employee justification\",\n            localisedLabelName : GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',\n            visible : false,\n            required : false\n        }\n    );\n    ForAll(\n        Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n        Collect(\n            labelTableLookUp,\n            {\n                fieldName : VisibilityTable.FieldName,\n                labelName : VisibilityTable.Labels,\n                localisedLabelName : VisibilityTable.LocalisedLabelName\n            }\n        )\n    );\n    If(\n        featureEnabled = \"True\",\n        ForAll(\n            Filter('@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',LegalEntityId = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display',\n                    required : VisibilityTable.VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required\n                }\n            )\n        ),\n        ForAll(\n            Filter('Display fields (mserp)', 'Company Code' = varSelectedLegalEntity) As VisibilityTable,\n            Patch(\n                labelTableLookUp,\n                LookUp(labelTableLookUp,fieldName = VisibilityTable.FieldName),\n                {\n                    visible : VisibilityTable.Visibility <> 'Visibility (mserp)'.'Do not display',\n                    required : false\n                }\n            )\n        )\n   \n    )\n);\nIf(\n    !IsBlank(curProjIdSelected),\n    UpdateContext({\n    varProjectHierarchyId:\n        LookUp(\n            'Projects (mserp)',\n            'Project ID' = curProjIdSelected,\n            HierarchyId\n        )\n})\n);\nSet(\n    varDefaultSalesTaxGroup,\n    varSelectedItemizedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValue,\n    varSelectedItemizedExpenseDoc.'Item sales tax group'\n);\nUpdateContext({\n    varSalesTaxAmount : \n    Coalesce(varSalesTaxAmount, varSelectedItemizedExpenseDoc.'Actual sales tax amount')\n});\nUpdateContext({msCallStartedForSalestaxCalculation : false});\nSet(\n    IsreceiptALreadyCreated, \n    false\n);\nSet(\n    isProjIdCalledFromAttach, \n    false\n);\nSet(\n    gblParams,\n    {\n        dropDownHeight : 60,\n        dorpDownBorderThickness : 2,\n        dropDownBorderColor : RGBA(34, 102, 227, 1),\n        dropDownLabelColor : Color.Black,\n        dropDownHoverFill : RGBA(204, 222, 255, 1),\n        errorMessageSize : 18,\n        dropDownFontSize : 24,\n        expenseDataCardViewOnly: RGBA(110, 110, 110, 1),\n        notificationTime : 4000\n    }\n);\n//varibale determines whether any fields were changed\nUpdateContext({isDirty : false});\n\n//UpdateContext({curIntercompanyLE : \"\"});\nUpdateContext({categoryModified : false});\nUpdateContext({varDefaultItemSalesTaxError : Blank()});\nUpdateContext({varDefaultSalesTaxError : Blank()});\nUpdateContext({leModified : false});\nUpdateContext({varRatePerMile : Blank()});\nUpdateContext({varMileageTotal : Blank()});\nUpdateContext({varCurrentSelectedDate : \nIf(\n    varIsCreate,\n    If(\n        IsBlank(OCRresponse),\n        Today(),\n        OCRresponse.transDate\n    ),\n    varSelectedItemizedExpenseDoc.'Transaction date'\n)\n});\nSet(\n    varDefaultSalesTaxGroup,\n    varSelectedItemizedExpenseDoc.'Sales tax group'\n);\nSet(\n    varItemSalesTaxDefaultValue,\n    varSelectedItemizedExpenseDoc.'Item sales tax group'\n);\nUpdateContext({\n    varSalesTaxAmount : \n    Coalesce(varSalesTaxAmount, varSelectedItemizedExpenseDoc.'Actual sales tax amount')\n});\nSet(varCurMileage , varSelectedItemizedExpenseDoc.Mileage);\nUpdateContext({varCurVehicleType : varSelectedItemizedExpenseDoc.'Vehicle type'});\nUpdateContext({varCurNoOfPass : varSelectedItemizedExpenseDoc.'Number of passengers'});\nUpdateContext({varDefaultProjLineStatus : varSelectedItemizedExpenseDoc.Billable});\nUpdateContext({varZipCodeChanged : false});\nUpdateContext({varCityChanged : false});\nUpdateContext({varStateChanged : false});\nUpdateContext({varCountryChanged : false});\nUpdateContext({varProjectChanged : false});"
     Children:
       - ItemizedExpenseBackground:
           Control: Rectangle@2.3.0
@@ -101,7 +101,7 @@ Screens:
             RadiusBottomRight: =18
             RadiusTopLeft: =18
             RadiusTopRight: =18
-            Visible: =!IsBlank(varReceiptImage)
+            Visible: =IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage)
             Width: |
               =Parent.Width -  Self.X*2
             X: =24
@@ -125,7 +125,7 @@ Screens:
             RadiusBottomRight: =8
             RadiusTopLeft: =8
             RadiusTopRight: =8
-            Visible: '=IsBlank(varReceiptImage) '
+            Visible: '=IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) '
             Width: |
               =Parent.Width -  Self.X*2
             X: =44
@@ -151,7 +151,7 @@ Screens:
               Set(varNavigateFromExpense , "NavigatedFromItemizedEditExpense");
             TabIndex: =0
             Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-            Visible: '=IsBlank(varReceiptImage) '
+            Visible: '=IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) '
             Width: |
               =Parent.Width -  Self.X*2
             X: =26
@@ -177,7 +177,7 @@ Screens:
             Size: =17
             TabIndex: =0
             Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
-            Visible: =!(IsBlank(varReceiptImage))
+            Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
             Width: =scr03_img_NoReceiptOuter_2.Width+1
             X: =scr03_img_NoReceiptOuter_2.X
             Y: =scr03_img_NoReceiptOuter_2.Y + (scr03_img_NoReceiptOuter_2.Height -Self.Height)+1
@@ -199,10 +199,126 @@ Screens:
               );
               Set(varNavigateFromExpense , "NavigatedFromItemizedEditExpense");
             TabIndex: =0
-            Visible: =!(IsBlank(varReceiptImage))
+            Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
             Width: =18
             X: =scr03_lbl_ChangeReceipt_2.X + 25
             Y: =scr03_lbl_ChangeReceipt_2.Y + (scr03_lbl_ChangeReceipt_2.Height-scr03_ico_ViewReceipt_2.Height)/2
+      - Itemization_scr03_glr_ReceiptsList:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="List of attached receipts"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: ={}
+            Height: |-
+              =Min(
+                  200,
+                  Self.TemplateHeight * CountRows(Self.AllItems)
+              )
+            Items: =colAttachedReceipts
+            OnSelect: |-
+              =Set(
+                  varSelectedReceiptForView,
+                  ThisItem.EntRecId
+              );
+              Set(
+                  varReceiptImage,
+                  ThisItem.CapturedDocument
+              );
+              Set(
+                  varFileFormat,
+                  ThisItem.FileExtension
+              );
+              Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly : false})
+            TemplateSize: =70
+            Visible: =!IsEmpty(colAttachedReceipts)
+            Width: =Parent.Width - 48
+            X: =24
+            Y: |-
+              =If(
+                  scr03_lbl_PolicyViolationWarning_2.Visible,
+                  scr03_lbl_PolicyViolationWarning_2.Y + scr03_lbl_PolicyViolationWarning_2.Height + 27 + ItemizedExpenseBackground.Height ,
+                  scr03_lbl_ValidationWarning_2.Y + scr03_lbl_ValidationWarning_2.Height + 27 + ItemizedExpenseBackground.Height
+              )
+          Children:
+            - Itemization_Container_ReceiptItem:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =Color.White
+                  Height: =70
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  PaddingLeft: =15
+                  PaddingRight: =15
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - Itemization_scr03_img_ReceiptIcon:
+                      Control: Image@2.2.3
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Height: =40
+                        Image: |-
+                          =If(
+                              ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                              If(
+                                  !IsBlank(ThisItem.CapturedDocument),
+                                  ThisItem.CapturedDocument,
+                                  IconMail
+                              ),
+                              ThisItem.FileExtension in ["xlsx", "xls"],
+                              IconExcel,
+                              ThisItem.FileExtension in ["docx", "doc"],
+                              IconWord,
+                              ThisItem.FileExtension = "pdf",
+                              IconPDF,
+                              ThisItem.FileExtension = "txt",
+                              IconTxt,
+                              IconMail
+                          )
+                        LayoutMinHeight: =100
+                        LayoutMinWidth: =100
+                        Width: =40
+                  - Itemization_scr03_lbl_ReceiptFileName:
+                      Control: Label@2.5.1
+                      Properties:
+                        AutoHeight: =true
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =Color.Black
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        Height: =Parent.Height
+                        LayoutMinHeight: =40
+                        LayoutMinWidth: =150
+                        Size: =16
+                        Text: |-
+                          =If(
+                              !IsBlank(ThisItem.DocumentName),
+                              ThisItem.DocumentName,
+                              Concatenate("Receipt-", Text(ThisItem.EntRecId))
+                          )
+                        VerticalAlign: =VerticalAlign.Center
+                        Width: =Parent.Width - Itemization_scr03_img_ReceiptIcon.Width - Itemization_scr03_ico_DeleteReceipt.Width - 30
+                        X: =Itemization_scr03_img_ReceiptIcon.X + Itemization_scr03_img_ReceiptIcon.Width + 15
+                  - Itemization_scr03_ico_DeleteReceipt:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        AccessibleLabel: ="Delete receipt"
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(195, 39, 39, 1)
+                        Height: =24
+                        Icon: =Icon.ArrowDown
+                        OnSelect: |-
+                          =UpdateContext({Itemization_varDeleteReceiptId: ThisItem.EntRecId});
+                          UpdateContext({Itemization_varShowDeleteReceiptDialog: true})
+                        TabIndex: =0
+                        Width: =24
+                        X: =Parent.Width - Self.Width - 15
       - scr03_lbl_ValidationWarning_2:
           Control: Label@2.5.1
           Properties:
@@ -224,6 +340,41 @@ Screens:
             Visible: =//ctVarIsRequiredFieldEmpty //Or ((varSelectedItemizedExpenseDoc.receiptsAttached = "No" Or IsBlank(varSelectedItemizedExpenseDoc)) And IsBlank(varReceiptImage))
             Width: =Parent.Width
             Y: =scr03_hdr_TopHeader_2.Height
+      - Itemization_scr03_btn_AddReceipt_Always:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(34, 102, 227, 1)
+            Color: =RGBA(34, 102, 227, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =Color.White
+            Font: =Font.'Open Sans'
+            Height: =50
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(204, 222, 255, 1)
+            OnSelect: |-
+              =Set(varNavigateFromExpense , "NavigatedFromItemizedEditExpense");
+              Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
+              UpdateContext(
+                  {
+                      varOnSelectTriggered: false,
+                      varOnShowFields:false,
+                      varOnChangeTriggered:false
+                  }
+              )
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =RGBA(204, 222, 255, 1)
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Size: =18
+            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
+            Visible: =!IsEmpty(colAttachedReceipts)
+            Width: =Parent.Width - 48
+            X: =24
+            Y: =Itemization_scr03_glr_ReceiptsList.Y + Itemization_scr03_glr_ReceiptsList.Height + 15
       - scr03_hdr_TopHeader_2:
           Control: CanvasComponent
           ComponentName: hdr02_Header_5
@@ -234,6 +385,89 @@ Screens:
             paramColor: =RGBA(0, 0, 0, 1)
             paramFill: =RGBA(255, 255, 255, 1)
             paramTitle: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EditItemizedExpenseLabel'
+      - Itemization_cmp_DeleteReceiptDialog:
+          Control: CanvasComponent
+          ComponentName: cmp02_ConfirmationDialog
+          Properties:
+            Height: =App.Height
+            LegalEntity: =Text(varSelectedLegalEntity)
+            OnLeftButtonClick: |-
+              =UpdateContext({Itemization_varShowDeleteReceiptDialog: false});
+              UpdateContext({Itemization_varDeleteReceiptId: Blank()})
+            OnRightButtonClick: |-
+              =UpdateContext({Itemization_varShowDeleteReceiptDialog: false});
+              If(
+                  !IsBlank(Itemization_varDeleteReceiptId),
+                  IfError(
+                      Patch(
+                          'Expense Mobile Unattached Document Entity (mserp)',
+                          LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Itemization_varDeleteReceiptId),
+                          {
+                              ExpTransNumber: Blank()
+                          }
+                      ),
+                      Notify(
+                          Substitute(
+                              Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
+                              """message"":",
+                              ""
+                          ),
+                          NotificationType.Error,
+                          gblParams.notificationTime
+                      )
+                  );
+                  ClearCollect(
+                      colAttachedReceipts,
+                      SortByColumns(
+                          Filter(
+                              'Expense Mobile Unattached Document Entity (mserp)',
+                              ExpTransNumber = varSelectedItemizedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                          ),
+                          "CreatingDateTime",
+                          SortOrder.Descending
+                      )
+                  );
+                  If(
+                      !IsEmpty(colAttachedReceipts),
+                      Patch(
+                          'Expense lines (mserp)',
+                          varSelectedItemizedExpenseDoc,
+                          {AttachedReceiptId: First(colAttachedReceipts).EntRecId}
+                      ),
+                      Patch(
+                          'Expense lines (mserp)',
+                          varSelectedItemizedExpenseDoc,
+                          {AttachedReceiptId: Blank()}
+                      )
+                  );
+                  Set(
+                      varReceiptImage,
+                      If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).CapturedDocument, Blank())
+                  );
+                  Set(
+                      varFileFormat,
+                      If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).FileExtension, Blank())
+                  );
+                  Notify(
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
+                      NotificationType.Success,
+                      gblParams.notificationTime
+                  );
+                  UpdateContext({Itemization_varDeleteReceiptId: Blank()})
+              )
+            SelectedExpense: =
+            SelectedList: ="Text"
+            SelectedReceiptNumber: =
+            Visible: =Itemization_varShowDeleteReceiptDialog
+            Width: =Max(App.Width, App.MinScreenWidth)
+            controlName: ="Itemization_cmp02_ConfirmationDialog_DeleteReceipt"
+            parmInDescriptionText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachReceiptConfirmationTextLabel'
+            parmInHeaderText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachSelectedReceiptHeaderLabel'
+            parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+            parmInLeftButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+            parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+            parmInRightButtonText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachLabel'
+            returnFocus: ="Itemization_scr03_ico_DeleteReceipt"
       - scr03_ico_Back_2:
           Control: Classic/Icon@2.5.0
           Properties:

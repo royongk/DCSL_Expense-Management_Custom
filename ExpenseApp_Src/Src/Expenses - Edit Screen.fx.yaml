@@ -432,7 +432,7 @@
                         'Expense Mobile Unattached Document Entity (mserp)',
                         ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                     ),
-                    "CreatingDateTime",
+                    "mserp_creatingdatetime",
                     SortOrder.Descending
                 )
             );
@@ -473,7 +473,7 @@
                                             'Expense Mobile Unattached Document Entity (mserp)',
                                             ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                                         ),
-                                        "CreatingDateTime",
+                                        "mserp_creatingdatetime",
                                         SortOrder.Descending
                                     )
                                 )
@@ -689,6 +689,26 @@
         Y: =scr03_lbl_ChangeReceipt_1.Y + (scr03_lbl_ChangeReceipt_1.Height-scr03_ico_ViewReceipt_1.Height)/2
         ZIndex: =6
 
+    scr03_lbl_ValidationWarning_1 As label:
+        Align: =Align.Center
+        Color: =RGBA(165, 33, 33, 1)
+        Fill: =RGBA(249, 217, 217, 1)
+        Font: =Font.'Segoe UI'
+        Height: |-
+            =If(
+                Self.Visible,
+                88,
+                0
+            )
+        Size: =15
+        Text: |-
+            =//If(ctVarIsRequiredFieldEmpty,GlobalLabels.Labels.ValidationMsgExpenseNeedMoreDetails)
+            //not having receipt in expense is part of policy violation
+        Visible: =//ctVarIsRequiredFieldEmpty //Or ((varSelectedExpenseDoc.receiptsAttached = "No" Or IsBlank(varSelectedExpenseDoc)) And IsBlank(varReceiptImage))
+        Width: =Parent.Width
+        Y: =scr03_hdr_TopHeader_1.Height
+        ZIndex: =7
+
     "scr03_glr_ReceiptsList As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
         '#CopilotOverlayLabel': ="List of attached receipts"
         AccessibleLabel: ="List of attached receipts"
@@ -699,8 +719,7 @@
                 200,
                 Self.TemplateHeight * CountRows(Self.AllItems)
             )
-        Items: |-
-            =colAttachedReceipts
+        Items: =colAttachedReceipts
         Layout: =Layout.Vertical
         LoadingSpinner: =LoadingSpinner.Data
         OnSelect: |-
@@ -762,7 +781,8 @@
                         IconTxt,
                         IconMail
                     )
-                ImagePosition: =ImagePosition.Fit
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
                 Width: =40
                 ZIndex: =1
 
@@ -772,6 +792,8 @@
                 FillPortions: =1
                 Font: =Font.'Segoe UI'
                 Height: =Parent.Height
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
                 Size: =16
                 Text: |-
                     =If(
@@ -788,6 +810,8 @@
                 AccessibleLabel: ="Delete receipt"
                 Color: =RGBA(195, 39, 39, 1)
                 Height: =24
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
                 OnSelect: |-
                     =UpdateContext({varDeleteReceiptId: ThisItem.EntRecId});
                     UpdateContext({varShowDeleteReceiptDialog: true})
@@ -797,9 +821,19 @@
                 X: =Parent.Width - Self.Width - 15
                 ZIndex: =3
 
+    scr03_hdr_TopHeader_1 As hdr02_Header:
+        Fill: =scr03_hdr_TopHeader_1.paramFill
+        paramFill: =RGBA(255, 255, 255, 1)
+        paramTitle: |-
+            =If(
+                varIsCreate,
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_NewExpenseLabel',
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_EditExpenseLabel'
+            )
+        ZIndex: =8
+
     scr03_btn_AddReceipt_Always As button:
         BorderColor: =RGBA(34, 102, 227, 1)
-        BorderThickness: =2
         Color: =RGBA(34, 102, 227, 1)
         Fill: =Color.White
         Height: =50
@@ -824,9 +858,38 @@
         Visible: =!IsEmpty(colAttachedReceipts)
         Width: =Parent.Width - 48
         X: =24
-        Y: |-
-            =scr03_glr_ReceiptsList.Y + scr03_glr_ReceiptsList.Height + 15
+        Y: =scr03_glr_ReceiptsList.Y + scr03_glr_ReceiptsList.Height + 15
         ZIndex: =8
+
+    scr03_ico_Back_1 As icon.ChevronLeft:
+        AccessibleLabel: ="Press to go back"
+        Color: =icongconfig_backbutton.Color
+        Fill: =icongconfig_backbutton.Fill
+        Height: =icongconfig_backbutton.Height
+        Icon: =Icon.ChevronLeft
+        OnSelect: |-
+            =If(
+                varExpenseButtonClicked,
+                UpdateContext({varCntSelect: false});
+                Navigate('Expenses - List Screen'),
+                If(
+                    varIsCreate || isDirty,
+                    UpdateContext({ctVarExpenseDetailsBack: true}),
+                    Select(scr03_ico_Back_4)
+                );
+                
+            );
+            UpdateContext({dirtyTransAmount: Blank()});
+            UpdateContext({varSalesTaxAmount: Blank()});
+            Set(
+                gblNavigationDrawerVisibility,
+                false
+            );
+        TabIndex: =0
+        Width: =icongconfig_backbutton.Width
+        X: =22.5
+        Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
+        ZIndex: =9
 
     cmp_DeleteReceiptDialog As cmp02_ConfirmationDialog:
         controlName: ="cmp02_ConfirmationDialog_DeleteReceipt"
@@ -864,7 +927,7 @@
                             'Expense Mobile Unattached Document Entity (mserp)',
                             ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                         ),
-                        "CreatingDateTime",
+                        "mserp_creatingdatetime",
                         SortOrder.Descending
                     )
                 );
@@ -923,67 +986,6 @@
         returnFocus: ="scr03_ico_DeleteReceipt"
         Visible: =varShowDeleteReceiptDialog
         Y: =0
-        ZIndex: =9
-
-    scr03_lbl_ValidationWarning_1 As label:
-        Align: =Align.Center
-        Color: =RGBA(165, 33, 33, 1)
-        Fill: =RGBA(249, 217, 217, 1)
-        Font: =Font.'Segoe UI'
-        Height: |-
-            =If(
-                Self.Visible,
-                88,
-                0
-            )
-        Size: =15
-        Text: |-
-            =//If(ctVarIsRequiredFieldEmpty,GlobalLabels.Labels.ValidationMsgExpenseNeedMoreDetails)
-            //not having receipt in expense is part of policy violation
-        Visible: =//ctVarIsRequiredFieldEmpty //Or ((varSelectedExpenseDoc.receiptsAttached = "No" Or IsBlank(varSelectedExpenseDoc)) And IsBlank(varReceiptImage))
-        Width: =Parent.Width
-        Y: =scr03_hdr_TopHeader_1.Height
-        ZIndex: =7
-
-    scr03_hdr_TopHeader_1 As hdr02_Header:
-        Fill: =scr03_hdr_TopHeader_1.paramFill
-        paramFill: =RGBA(255, 255, 255, 1)
-        paramTitle: |-
-            =If(
-                varIsCreate,
-                GlobalLabels.Labels.'15062:LocalizedName,msdyn_NewExpenseLabel',
-                GlobalLabels.Labels.'15062:LocalizedName,msdyn_EditExpenseLabel'
-            )
-        ZIndex: =8
-
-    scr03_ico_Back_1 As icon.ChevronLeft:
-        AccessibleLabel: ="Press to go back"
-        Color: =icongconfig_backbutton.Color
-        Fill: =icongconfig_backbutton.Fill
-        Height: =icongconfig_backbutton.Height
-        Icon: =Icon.ChevronLeft
-        OnSelect: |-
-            =If(
-                varExpenseButtonClicked,
-                UpdateContext({varCntSelect: false});
-                Navigate('Expenses - List Screen'),
-                If(
-                    varIsCreate || isDirty,
-                    UpdateContext({ctVarExpenseDetailsBack: true}),
-                    Select(scr03_ico_Back_4)
-                );
-                
-            );
-            UpdateContext({dirtyTransAmount: Blank()});
-            UpdateContext({varSalesTaxAmount: Blank()});
-            Set(
-                gblNavigationDrawerVisibility,
-                false
-            );
-        TabIndex: =0
-        Width: =icongconfig_backbutton.Width
-        X: =22.5
-        Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
         ZIndex: =9
 
     scr03_lbl_PolicyViolationWarning_1 As label:
@@ -1173,7 +1175,7 @@
                                 'Expense Mobile Unattached Document Entity (mserp)',
                                 ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                             ),
-                            "CreatingDateTime",
+                            "mserp_creatingdatetime",
                             SortOrder.Descending
                         )
                     );
@@ -1243,7 +1245,7 @@
                                 'Expense Mobile Unattached Document Entity (mserp)',
                                 ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                             ),
-                            "CreatingDateTime",
+                            "mserp_creatingdatetime",
                             SortOrder.Descending
                         )
                     );

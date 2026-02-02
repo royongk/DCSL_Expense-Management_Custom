@@ -278,94 +278,6 @@
             )
         ZIndex: =8
 
-    scr06_btn_PreviousReceipt As button:
-        BorderColor: =RGBA(255, 255, 255, 1)
-        BorderThickness: =2
-        Color: =Color.White
-        Fill: =RGBA(33, 33, 33, 1)
-        Height: =50
-        HoverFill: =RGBA(50, 50, 50, 1)
-        OnSelect: |-
-            =If(
-                varCurrentReceiptIndex > 1,
-                With(
-                    {
-                        newIndex: varCurrentReceiptIndex - 1,
-                        receiptRecord: Index(colAttachedReceipts, newIndex)
-                    },
-                    Set(
-                        varCurrentReceiptIndex,
-                        newIndex
-                    );
-                    Set(
-                        varSelectedReceiptForView,
-                        receiptRecord.EntRecId
-                    );
-                    Set(
-                        varReceiptImage,
-                        receiptRecord.CapturedDocument
-                    );
-                    Set(
-                        varFileFormat,
-                        receiptRecord.FileExtension
-                    );
-                    UpdateContext({varRotateImage: ImageRotation.None})
-                )
-            )
-        PressedFill: =RGBA(50, 50, 50, 1)
-        Size: =18
-        Text: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_PreviousLabel'
-        Visible: =!IsEmpty(colAttachedReceipts) && CountRows(colAttachedReceipts) > 1 && varCurrentReceiptIndex > 1
-        Width: =100
-        X: =40
-        Y: =imageView_footer_rectangle_1.Y - Self.Height - 15
-        ZIndex: =14
-
-    scr06_btn_NextReceipt As button:
-        BorderColor: =RGBA(255, 255, 255, 1)
-        BorderThickness: =2
-        Color: =Color.White
-        Fill: =RGBA(33, 33, 33, 1)
-        Height: =50
-        HoverFill: =RGBA(50, 50, 50, 1)
-        OnSelect: |-
-            =If(
-                varCurrentReceiptIndex < CountRows(colAttachedReceipts),
-                With(
-                    {
-                        newIndex: varCurrentReceiptIndex + 1,
-                        receiptRecord: Index(colAttachedReceipts, newIndex)
-                    },
-                    Set(
-                        varCurrentReceiptIndex,
-                        newIndex
-                    );
-                    Set(
-                        varSelectedReceiptForView,
-                        receiptRecord.EntRecId
-                    );
-                    Set(
-                        varReceiptImage,
-                        receiptRecord.CapturedDocument
-                    );
-                    Set(
-                        varFileFormat,
-                        receiptRecord.FileExtension
-                    );
-                    UpdateContext({varRotateImage: ImageRotation.None})
-                )
-            )
-        PressedFill: =RGBA(50, 50, 50, 1)
-        Size: =18
-        Text: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NextLabel'
-        Visible: =!IsEmpty(colAttachedReceipts) && CountRows(colAttachedReceipts) > 1 && varCurrentReceiptIndex < CountRows(colAttachedReceipts)
-        Width: =100
-        X: =Parent.Width - Self.Width - 40
-        Y: =imageView_footer_rectangle_1.Y - Self.Height - 15
-        ZIndex: =15
-
     scr06_lbl_Detach As label:
         Align: =Align.Center
         Color: =RGBA(255, 255, 255, 1)
@@ -678,4 +590,90 @@
         X: =40
         Y: =scr06_img_Receipt.Y + scr06_img_Receipt.Height * 5/6
         ZIndex: =13
+
+    scr06_btn_PreviousReceipt As button:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        Color: =Color.White
+        Fill: =RGBA(33, 33, 33, 1)
+        Height: =50
+        HoverFill: =RGBA(50, 50, 50, 1)
+        OnSelect: |-
+            =If(
+                varCurrentReceiptIndex > 1,
+                With(
+                    {
+                        newIndex: varCurrentReceiptIndex - 1,
+                        receiptRecord: Index(colAttachedReceipts, newIndex)
+                    },
+                    Set(
+                        varCurrentReceiptIndex,
+                        newIndex
+                    );
+                    Set(
+                        varSelectedReceiptForView,
+                        receiptRecord.EntRecId
+                    );
+                    Set(
+                        varReceiptImage,
+                        receiptRecord.CapturedDocument
+                    );
+                    Set(
+                        varFileFormat,
+                        receiptRecord.FileExtension
+                    );
+                    UpdateContext({varRotateImage: ImageRotation.None})
+                )
+            )
+        PressedFill: =RGBA(50, 50, 50, 1)
+        Size: =18
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_PreviousLabel'
+        Visible: =!IsEmpty(colAttachedReceipts) && CountRows(colAttachedReceipts) > 1 && varCurrentReceiptIndex > 1
+        Width: =100
+        X: =40
+        Y: =imageView_footer_rectangle_1.Y - Self.Height - 15
+        ZIndex: =14
+
+    scr06_btn_NextReceipt As button:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        Color: =Color.White
+        Fill: =RGBA(33, 33, 33, 1)
+        Height: =50
+        HoverFill: =RGBA(50, 50, 50, 1)
+        OnSelect: |-
+            =If(
+                varCurrentReceiptIndex < CountRows(colAttachedReceipts),
+                With(
+                    {
+                        newIndex: varCurrentReceiptIndex + 1,
+                        receiptRecord: Index(colAttachedReceipts, newIndex)
+                    },
+                    Set(
+                        varCurrentReceiptIndex,
+                        newIndex
+                    );
+                    Set(
+                        varSelectedReceiptForView,
+                        receiptRecord.EntRecId
+                    );
+                    Set(
+                        varReceiptImage,
+                        receiptRecord.CapturedDocument
+                    );
+                    Set(
+                        varFileFormat,
+                        receiptRecord.FileExtension
+                    );
+                    UpdateContext({varRotateImage: ImageRotation.None})
+                )
+            )
+        PressedFill: =RGBA(50, 50, 50, 1)
+        Size: =18
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NextLabel'
+        Visible: =!IsEmpty(colAttachedReceipts) && CountRows(colAttachedReceipts) > 1 && varCurrentReceiptIndex < CountRows(colAttachedReceipts)
+        Width: =100
+        X: =Parent.Width - Self.Width - 40
+        Y: =imageView_footer_rectangle_1.Y - Self.Height - 15
+        ZIndex: =15
 
