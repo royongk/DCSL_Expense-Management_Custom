@@ -424,7 +424,7 @@
         // Load all attached receipts for this expense line (sorted by creation date, newest first)
         If(
             !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-            // Load existing receipts
+            // === Existing expense: load from data source ===
             ClearCollect(
                 colAttachedReceipts,
                 SortByColumns(
@@ -496,26 +496,26 @@
                         }
                     )
                 )
+            );
+            // Set varReceiptImage / varFileFormat from first receipt
+            Set(
+                varReceiptImage,
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    First(colAttachedReceipts).CapturedDocument,
+                    Blank()
+                )
+            );
+            Set(
+                varFileFormat,
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    First(colAttachedReceipts).FileExtension,
+                    Blank()
+                )
             ),
-            // New expense - clear receipts collection
-            Clear(colAttachedReceipts)
-        );
-        // Set varReceiptImage for backward compatibility (first receipt or blank)
-        Set(
-            varReceiptImage,
-            If(
-                !IsEmpty(colAttachedReceipts),
-                First(colAttachedReceipts).CapturedDocument,
-                Blank()
-            )
-        );
-        Set(
-            varFileFormat,
-            If(
-                !IsEmpty(colAttachedReceipts),
-                First(colAttachedReceipts).FileExtension,
-                Blank()
-            )
+            // === New expense: keep current in-memory selection (do not clear) ===
+            Blank()
         );
 
     scr03_ico_Back_4 As icon.ChevronLeft:
@@ -1099,81 +1099,77 @@
                 =UpdateContext({varSubmittedExpTransNumber : EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'});
                 //attach receipt if any
                 UpdateContext({varAttachReceiptError : Blank()});
+                // Attach all receipts in local collection to this expense line
                 If(
-                    IsBlank(varSelectedExpenseDoc),
-                        If(
-                            !IsBlank(varSubmittedExpTransNumber) && !IsBlank(varSelectedReceiptNumber),
+                    IsBlank(varSelectedExpenseDoc) && !IsBlank(varSubmittedExpTransNumber),
+                    // New expense line: use varSubmittedExpTransNumber
+                    ForAll(
+                        colAttachedReceipts,
+                        IfError(
+                            Patch(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = ThisRecord.EntRecId),
+                                {
+                                    ExpTransNumber: varSubmittedExpTransNumber
+                                }
+                            ),
+                            UpdateContext({varAttachReceiptError : FirstError.Details})
+                        )
+                    ),
+                    // Existing expense line: use varSelectedExpenseDoc.ExpTransNumber
+                    If(
+                        !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                        ForAll(
+                            colAttachedReceipts,
                             IfError(
                                 Patch(
                                     'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varSelectedReceiptNumber),
-                                    {
-                                        ExpTransNumber:varSubmittedExpTransNumber
-                                    }
-                                ),
-                                UpdateContext({varAttachReceiptError : FirstError.Details})
-                            );
-                            If(
-                                !IsBlank(varAttachReceiptError) && !(Text(varAttachReceiptError.HttpStatusCode) = NotFoundStatusCode),
-                                Notify(
-                                    Substitute(
-                                        Substitute( Match(varAttachReceiptError.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                            """message"":", 
-                                            ""), """", ""),
-                                    NotificationType.Error,
-                                    gblParams.notificationTime
-                                ),
-                                Notify(
-                                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptAttachedSuccessfullyLabel',
-                                    NotificationType.Success,
-                                    gblParams.notificationTime
-                                )
-                            )       
-                        ),
-                
-                        If(
-                            !IsBlank(varSelectedReceiptNumber) && 
-                            (IsBlank(varSelectedExpenseDoc.AttachedReceiptId) || Value(varSelectedExpenseDoc.AttachedReceiptId) <> varSelectedReceiptNumber),
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varSelectedReceiptNumber),
+                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = ThisRecord.EntRecId),
                                     {
                                         ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                                     }
                                 ),
                                 UpdateContext({varAttachReceiptError : FirstError.Details})
-                            );
-                            If(
-                                !IsBlank(varAttachReceiptError) && !(Text(varAttachReceiptError.HttpStatusCode) = NotFoundStatusCode),
-                                Notify(
-                                    Substitute(
-                                        Substitute( 
-                                            Match(varAttachReceiptError.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                            """message"":", 
-                                            ""
-                                        ), """", ""
-                                    ),
-                                    NotificationType.Error,
-                                    gblParams.notificationTime
-                                ),
-                               Notify(
-                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptAttachedSuccessfullyLabel',
-                                NotificationType.Success,
-                                gblParams.notificationTime
                             )
                         )
                     )
                 );
+
+                // Notify on attach error or success (if any)
+                If(
+                    !IsBlank(varAttachReceiptError) && !(Text(varAttachReceiptError.HttpStatusCode) = NotFoundStatusCode),
+                    Notify(
+                        Substitute(
+                            Substitute(
+                                Match(varAttachReceiptError.HttpResponse, """message"":""([^""]*)""").FullMatch, 
+                                """message"":", 
+                                ""
+                            ),
+                            """",
+                            ""
+                        ),
+                        NotificationType.Error,
+                        gblParams.notificationTime
+                    ),
+                    If(
+                        CountRows(colAttachedReceipts) > 0,
+                        Notify(
+                            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptAttachedSuccessfullyLabel',
+                            NotificationType.Success,
+                            gblParams.notificationTime
+                        )
+                    )
+                );
+
                 // Refresh receipts collection after attaching
                 If(
-                    !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                    !IsBlank(EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'),
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
                                 'Expense Mobile Unattached Document Entity (mserp)',
-                                ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                ExpTransNumber = EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'
                             ),
                             "mserp_creatingdatetime",
                             SortOrder.Descending
@@ -1184,7 +1180,7 @@
                         !IsEmpty(colAttachedReceipts),
                         Patch(
                             'Expense lines (mserp)',
-                            varSelectedExpenseDoc,
+                            EditExpenseForm.LastSubmit,
                             {
                                 AttachedReceiptId: First(colAttachedReceipts).EntRecId
                             }

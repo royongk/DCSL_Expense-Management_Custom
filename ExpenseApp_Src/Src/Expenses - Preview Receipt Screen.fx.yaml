@@ -122,6 +122,30 @@
                     gblParams.notificationTime
                 )
             );
+
+            // Add or update selected receipt in local collection for UI (avoid duplicates)
+            With(
+                {
+                    selectedReceipt:
+                        LookUp(
+                            'Expense Mobile Unattached Document Entity (mserp)',
+                            EntRecId = varSelectedReceiptNumber
+                        )
+                },
+                If(
+                    !IsBlank(selectedReceipt),
+                    If(
+                        IsBlank(
+                            LookUp(
+                                colAttachedReceipts,
+                                EntRecId = selectedReceipt.EntRecId
+                            )
+                        ),
+                        Collect(colAttachedReceipts, selectedReceipt)
+                    )
+                )
+            );
+
             Clear(colFileSplit);
             Clear(colDeviceAttachedFile);
         Size: =24
