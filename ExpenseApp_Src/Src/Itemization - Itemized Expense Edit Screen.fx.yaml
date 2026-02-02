@@ -5,6 +5,39 @@
         UpdateContext({varZipCodeSelectedRecId : -1 });
         UpdateContext({varProjectHierarchyId: Blank()});
         Set(varNavigateFromExpense , Blank());
+        // Load all attached receipts for this itemized expense line (sorted by creation date, newest first)
+        If(
+            !varIsCreate && !IsBlank(varSelectedItemizedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+            ClearCollect(
+                colAttachedReceipts,
+                SortByColumns(
+                    Filter(
+                        'Expense Mobile Unattached Document Entity (mserp)',
+                        ExpTransNumber = varSelectedItemizedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                    ),
+                    "CreatingDateTime",
+                    SortOrder.Descending
+                )
+            ),
+            Clear(colAttachedReceipts)
+        );
+        // Set varReceiptImage for backward compatibility (first receipt or blank)
+        Set(
+            varReceiptImage,
+            If(
+                !IsEmpty(colAttachedReceipts),
+                First(colAttachedReceipts).CapturedDocument,
+                Blank()
+            )
+        );
+        Set(
+            varFileFormat,
+            If(
+                !IsEmpty(colAttachedReceipts),
+                First(colAttachedReceipts).FileExtension,
+                Blank()
+            )
+        );
         UpdateContext({onReloadButtonClick : false});
         // 3-level category selection variables
         UpdateContext({varSelectedDepartment: Blank()});
@@ -292,7 +325,7 @@
         RadiusBottomRight: =18
         RadiusTopLeft: =18
         RadiusTopRight: =18
-        Visible: =!IsBlank(varReceiptImage)
+        Visible: =IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage)
         Width: |
             =Parent.Width -  Self.X*2
         X: =24
@@ -316,7 +349,7 @@
         RadiusBottomRight: =8
         RadiusTopLeft: =8
         RadiusTopRight: =8
-        Visible: =IsBlank(varReceiptImage) 
+        Visible: =IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) 
         Width: |
             =Parent.Width -  Self.X*2
         X: =44
@@ -343,7 +376,7 @@
         TabIndex: =0
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-        Visible: =IsBlank(varReceiptImage) 
+        Visible: =IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) 
         Width: |
             =Parent.Width -  Self.X*2
         X: =26
@@ -369,7 +402,7 @@
         TabIndex: =0
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
-        Visible: =!(IsBlank(varReceiptImage))
+        Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
         Width: =scr03_img_NoReceiptOuter_2.Width+1
         X: =scr03_img_NoReceiptOuter_2.X
         Y: =scr03_img_NoReceiptOuter_2.Y + (scr03_img_NoReceiptOuter_2.Height -Self.Height)+1
@@ -390,11 +423,232 @@
             );
             Set(varNavigateFromExpense , "NavigatedFromItemizedEditExpense");
         TabIndex: =0
-        Visible: =!(IsBlank(varReceiptImage))
+        Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
         Width: =18
         X: =scr03_lbl_ChangeReceipt_2.X + 25
         Y: =scr03_lbl_ChangeReceipt_2.Y + (scr03_lbl_ChangeReceipt_2.Height-scr03_ico_ViewReceipt_2.Height)/2
         ZIndex: =9
+
+    "Itemization_scr03_glr_ReceiptsList As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+        '#CopilotOverlayLabel': ="List of attached receipts"
+        AccessibleLabel: ="List of attached receipts"
+        Default: ={}
+        DelayItemLoading: =true
+        Height: |-
+            =Min(
+                200,
+                Self.TemplateHeight * CountRows(Self.AllItems)
+            )
+        Items: |-
+            =colAttachedReceipts
+        Layout: =Layout.Vertical
+        LoadingSpinner: =LoadingSpinner.Data
+        OnSelect: |-
+            =Set(
+                varSelectedReceiptForView,
+                ThisItem.EntRecId
+            );
+            Set(
+                varReceiptImage,
+                ThisItem.CapturedDocument
+            );
+            Set(
+                varFileFormat,
+                ThisItem.FileExtension
+            );
+            Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly : false})
+        TemplatePadding: =0
+        TemplateSize: =70
+        Visible: =!IsEmpty(colAttachedReceipts)
+        Width: =Parent.Width - 48
+        X: =24
+        Y: |-
+            =If(
+                scr03_lbl_PolicyViolationWarning_2.Visible,
+                scr03_lbl_PolicyViolationWarning_2.Y + scr03_lbl_PolicyViolationWarning_2.Height + 27 + ItemizedExpenseBackground.Height ,
+                scr03_lbl_ValidationWarning_2.Y + scr03_lbl_ValidationWarning_2.Height + 27 + ItemizedExpenseBackground.Height
+            )
+        ZIndex: =10
+
+        Itemization_Container_ReceiptItem As groupContainer.horizontalAutoLayoutContainer:
+            Fill: =Color.White
+            Height: =70
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMode: =LayoutMode.Auto
+            PaddingLeft: =15
+            PaddingRight: =15
+            Width: =Parent.Width
+            ZIndex: =1
+
+            Itemization_scr03_img_ReceiptIcon As image:
+                Height: =40
+                Image: |-
+                    =If(
+                        ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                        If(
+                            !IsBlank(ThisItem.CapturedDocument),
+                            ThisItem.CapturedDocument,
+                            IconMail
+                        ),
+                        ThisItem.FileExtension in ["xlsx", "xls"],
+                        IconExcel,
+                        ThisItem.FileExtension in ["docx", "doc"],
+                        IconWord,
+                        ThisItem.FileExtension = "pdf",
+                        IconPDF,
+                        ThisItem.FileExtension = "txt",
+                        IconTxt,
+                        IconMail
+                    )
+                ImagePosition: =ImagePosition.Fit
+                Width: =40
+                ZIndex: =1
+
+            Itemization_scr03_lbl_ReceiptFileName As label:
+                AutoHeight: =true
+                Color: =Color.Black
+                FillPortions: =1
+                Font: =Font.'Segoe UI'
+                Height: =Parent.Height
+                Size: =16
+                Text: |-
+                    =If(
+                        !IsBlank(ThisItem.DocumentName),
+                        ThisItem.DocumentName,
+                        Concatenate("Receipt-", Text(ThisItem.EntRecId))
+                    )
+                VerticalAlign: =VerticalAlign.Center
+                Width: =Parent.Width - Itemization_scr03_img_ReceiptIcon.Width - Itemization_scr03_ico_DeleteReceipt.Width - 30
+                X: =Itemization_scr03_img_ReceiptIcon.X + Itemization_scr03_img_ReceiptIcon.Width + 15
+                ZIndex: =2
+
+            Itemization_scr03_ico_DeleteReceipt As icon.Trash:
+                AccessibleLabel: ="Delete receipt"
+                Color: =RGBA(195, 39, 39, 1)
+                Height: =24
+                OnSelect: |-
+                    =UpdateContext({Itemization_varDeleteReceiptId: ThisItem.EntRecId});
+                    UpdateContext({Itemization_varShowDeleteReceiptDialog: true})
+                TabIndex: =0
+                Width: =24
+                X: =Parent.Width - Self.Width - 15
+                ZIndex: =3
+
+    Itemization_scr03_btn_AddReceipt_Always As button:
+        BorderColor: =RGBA(34, 102, 227, 1)
+        BorderThickness: =2
+        Color: =RGBA(34, 102, 227, 1)
+        Fill: =Color.White
+        Height: =50
+        HoverFill: =RGBA(204, 222, 255, 1)
+        OnSelect: |-
+            =Set(varNavigateFromExpense , "NavigatedFromItemizedEditExpense");
+            Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
+            UpdateContext(
+                {
+                    varOnSelectTriggered: false,
+                    varOnShowFields:false,
+                    varOnChangeTriggered:false
+                }
+            )
+        PressedFill: =RGBA(204, 222, 255, 1)
+        RadiusBottomLeft: =8
+        RadiusBottomRight: =8
+        RadiusTopLeft: =8
+        RadiusTopRight: =8
+        Size: =18
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
+        Visible: =!IsEmpty(colAttachedReceipts)
+        Width: =Parent.Width - 48
+        X: =24
+        Y: |-
+            =Itemization_scr03_glr_ReceiptsList.Y + Itemization_scr03_glr_ReceiptsList.Height + 15
+        ZIndex: =11
+
+    Itemization_cmp_DeleteReceiptDialog As cmp02_ConfirmationDialog:
+        controlName: ="Itemization_cmp02_ConfirmationDialog_DeleteReceipt"
+        LegalEntity: =Text(varSelectedLegalEntity)
+        OnLeftButtonClick: |-
+            =UpdateContext({Itemization_varShowDeleteReceiptDialog: false});
+            UpdateContext({Itemization_varDeleteReceiptId: Blank()})
+        OnRightButtonClick: |-
+            =UpdateContext({Itemization_varShowDeleteReceiptDialog: false});
+            If(
+                !IsBlank(Itemization_varDeleteReceiptId),
+                IfError(
+                    Patch(
+                        'Expense Mobile Unattached Document Entity (mserp)',
+                        LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Itemization_varDeleteReceiptId),
+                        {
+                            ExpTransNumber: Blank()
+                        }
+                    ),
+                    Notify(
+                        Substitute(
+                            Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
+                            """message"":",
+                            ""
+                        ),
+                        NotificationType.Error,
+                        gblParams.notificationTime
+                    )
+                );
+                ClearCollect(
+                    colAttachedReceipts,
+                    SortByColumns(
+                        Filter(
+                            'Expense Mobile Unattached Document Entity (mserp)',
+                            ExpTransNumber = varSelectedItemizedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        ),
+                        "CreatingDateTime",
+                        SortOrder.Descending
+                    )
+                );
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    Patch(
+                        'Expense lines (mserp)',
+                        varSelectedItemizedExpenseDoc,
+                        {AttachedReceiptId: First(colAttachedReceipts).EntRecId}
+                    ),
+                    Patch(
+                        'Expense lines (mserp)',
+                        varSelectedItemizedExpenseDoc,
+                        {AttachedReceiptId: Blank()}
+                    )
+                );
+                Set(
+                    varReceiptImage,
+                    If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).CapturedDocument, Blank())
+                );
+                Set(
+                    varFileFormat,
+                    If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).FileExtension, Blank())
+                );
+                Notify(
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
+                    NotificationType.Success,
+                    gblParams.notificationTime
+                );
+                UpdateContext({Itemization_varDeleteReceiptId: Blank()})
+            )
+        parmInDescriptionText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachReceiptConfirmationTextLabel'
+        parmInHeaderText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachSelectedReceiptHeaderLabel'
+        parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+        parmInLeftButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+        parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+        parmInRightButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachLabel'
+        returnFocus: ="Itemization_scr03_ico_DeleteReceipt"
+        Visible: =Itemization_varShowDeleteReceiptDialog
+        Y: =0
+        ZIndex: =12
 
     scr03_lbl_ValidationWarning_2 As label:
         Align: =Align.Center

@@ -190,6 +190,56 @@
                 )
             }
         );
+        
+        // Load all attached receipts for this expense line (sorted by creation date, newest first)
+        With(
+            {
+                expenseDoc: Coalesce(
+                    varExpenseAgainstWorkItem,
+                    varSelectedExpenseDoc
+                )
+            },
+            If(
+                !IsBlank(expenseDoc) && !IsBlank(expenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                ClearCollect(
+                    colAttachedReceipts,
+                    SortByColumns(
+                        Filter(
+                            'Expense Mobile Unattached Document Entity (mserp)',
+                            ExpTransNumber = expenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        ),
+                        "CreatingDateTime",
+                        SortOrder.Descending
+                    )
+                );
+                // Set varReceiptImage for backward compatibility (first receipt or blank)
+                Set(
+                    varReceiptImage,
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        First(colAttachedReceipts).CapturedDocument,
+                        If(
+                            !IsBlank(expenseDoc.AttachedReceiptId),
+                            LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(expenseDoc.AttachedReceiptId), CapturedDocument),
+                            Blank()
+                        )
+                    )
+                );
+                Set(
+                    varFileFormat,
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        First(colAttachedReceipts).FileExtension,
+                        If(
+                            !IsBlank(expenseDoc.AttachedReceiptId),
+                            LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(expenseDoc.AttachedReceiptId), FileExtension),
+                            Blank()
+                        )
+                    )
+                ),
+                Clear(colAttachedReceipts)
+            )
+        );
 
     scr03_img_NoReceiptOuter_3 As image:
         BorderColor: =RGBA(255, 0, 37, 0.2)
@@ -221,7 +271,7 @@
         RadiusBottomRight: =18
         RadiusTopLeft: =18
         RadiusTopRight: =18
-        Visible: =!IsBlank(varReceiptImage)
+        Visible: =IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage)
         Width: =Parent.Width -  Self.X*2
         X: =26
         Y: |-
@@ -245,7 +295,7 @@
         RadiusBottomRight: =8
         RadiusTopLeft: =8
         RadiusTopRight: =8
-        Visible: =IsBlank(varReceiptImage) 
+        Visible: =IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) 
         Width: =Parent.Width - Self.X*2
         X: =44
         Y: =scr03_img_NoReceiptOuter_3.Y +(scr03_img_NoReceiptOuter_3.Height-scr03_img_NoReceiptInner_3.Height)/2
@@ -262,7 +312,7 @@
         TabIndex: =0
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
-        Visible: =!(IsBlank(varReceiptImage))
+        Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
         Width: =scr03_img_NoReceiptOuter_3.Width+1
         X: =scr03_img_NoReceiptOuter_3.X
         Y: =scr03_img_NoReceiptOuter_3.Y + (scr03_img_NoReceiptOuter_3.Height -Self.Height)+1
@@ -274,7 +324,7 @@
         Image: =imageicon
         OnSelect: |-
             =Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly : true})
-        Visible: =!(IsBlank(varReceiptImage))
+        Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
         Width: =18
         X: =scr03_lbl_ChangeReceipt_4.X + 25
         Y: =scr03_lbl_ChangeReceipt_4.Y + (scr03_lbl_ChangeReceipt_4.Height-scr03_ico_ViewReceipt_4.Height)/2
@@ -299,6 +349,101 @@
         Width: =Parent.Width
         Y: =scr03_hdr_TopHeader_4.Height
         ZIndex: =6
+
+    "scr03_glr_ReceiptsList_ViewOnly As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+        '#CopilotOverlayLabel': ="List of attached receipts"
+        AccessibleLabel: ="List of attached receipts"
+        Default: ={}
+        DelayItemLoading: =true
+        Height: |-
+            =Min(
+                200,
+                Self.TemplateHeight * CountRows(Self.AllItems)
+            )
+        Items: |-
+            =colAttachedReceipts
+        Layout: =Layout.Vertical
+        LoadingSpinner: =LoadingSpinner.Data
+        OnSelect: |-
+            =Set(
+                varSelectedReceiptForView,
+                ThisItem.EntRecId
+            );
+            Set(
+                varReceiptImage,
+                ThisItem.CapturedDocument
+            );
+            Set(
+                varFileFormat,
+                ThisItem.FileExtension
+            );
+            Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly : true})
+        TemplatePadding: =0
+        TemplateSize: =70
+        Visible: =!IsEmpty(colAttachedReceipts)
+        Width: =Parent.Width - 48
+        X: =24
+        Y: |-
+            =If(
+                scr03_lbl_PolicyViolationWarning_4.Visible,
+                scr03_lbl_PolicyViolationWarning_4.Y + scr03_lbl_PolicyViolationWarning_4.Height + 27,
+                scr03_lbl_ValidationWarning_4.Y + scr03_lbl_ValidationWarning_4.Height + 27
+            )
+        ZIndex: =7
+
+        Container_ReceiptItem_ViewOnly As groupContainer.horizontalAutoLayoutContainer:
+            Fill: =Color.White
+            Height: =70
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMode: =LayoutMode.Auto
+            PaddingLeft: =15
+            PaddingRight: =15
+            Width: =Parent.Width
+            ZIndex: =1
+
+            scr03_img_ReceiptIcon_ViewOnly As image:
+                Height: =40
+                Image: |-
+                    =If(
+                        ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                        If(
+                            !IsBlank(ThisItem.CapturedDocument),
+                            ThisItem.CapturedDocument,
+                            IconMail
+                        ),
+                        ThisItem.FileExtension in ["xlsx", "xls"],
+                        IconExcel,
+                        ThisItem.FileExtension in ["docx", "doc"],
+                        IconWord,
+                        ThisItem.FileExtension = "pdf",
+                        IconPDF,
+                        ThisItem.FileExtension = "txt",
+                        IconTxt,
+                        IconMail
+                    )
+                ImagePosition: =ImagePosition.Fit
+                Width: =40
+                ZIndex: =1
+
+            scr03_lbl_ReceiptFileName_ViewOnly As label:
+                AutoHeight: =true
+                Color: =Color.Black
+                FillPortions: =1
+                Font: =Font.'Segoe UI'
+                Height: =Parent.Height
+                Size: =16
+                Text: |-
+                    =If(
+                        !IsBlank(ThisItem.DocumentName),
+                        ThisItem.DocumentName,
+                        Concatenate("Receipt-", Text(ThisItem.EntRecId))
+                    )
+                VerticalAlign: =VerticalAlign.Center
+                Width: =Parent.Width - scr03_img_ReceiptIcon_ViewOnly.Width - 15
+                X: =scr03_img_ReceiptIcon_ViewOnly.X + scr03_img_ReceiptIcon_ViewOnly.Width + 15
+                ZIndex: =2
 
     scr03_hdr_TopHeader_4 As hdr02_Header:
         Fill: =scr03_hdr_TopHeader_4.paramFill

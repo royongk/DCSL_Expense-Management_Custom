@@ -418,6 +418,105 @@
         UpdateContext({varStateChanged: false});
         UpdateContext({varCountryChanged: false});
         UpdateContext({varProjectChanged: false});
+        UpdateContext({varShowDeleteReceiptDialog: false});
+        UpdateContext({varDeleteReceiptId: Blank()});
+        
+        // Load all attached receipts for this expense line (sorted by creation date, newest first)
+        If(
+            !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+            // Load existing receipts
+            ClearCollect(
+                colAttachedReceipts,
+                SortByColumns(
+                    Filter(
+                        'Expense Mobile Unattached Document Entity (mserp)',
+                        ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                    ),
+                    "CreatingDateTime",
+                    SortOrder.Descending
+                )
+            );
+            // Migrate existing AttachedReceiptId if ExpTransNumber is blank
+            If(
+                !IsBlank(varSelectedExpenseDoc.AttachedReceiptId),
+                With(
+                    {
+                        existingReceipt: LookUp(
+                            'Expense Mobile Attached Document Entity (mserp)',
+                            EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId)
+                        )
+                    },
+                    If(
+                        !IsBlank(existingReceipt),
+                        With(
+                            {
+                                unattachedReceipt: LookUp(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId)
+                                )
+                            },
+                            If(
+                                !IsBlank(unattachedReceipt) && IsBlank(unattachedReceipt.ExpTransNumber),
+                                // Update ExpTransNumber for existing receipt
+                                Patch(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    unattachedReceipt,
+                                    {
+                                        ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                    }
+                                );
+                                // Refresh collection
+                                ClearCollect(
+                                    colAttachedReceipts,
+                                    SortByColumns(
+                                        Filter(
+                                            'Expense Mobile Unattached Document Entity (mserp)',
+                                            ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                        ),
+                                        "CreatingDateTime",
+                                        SortOrder.Descending
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+            // Ensure first receipt is set as AttachedReceiptId (for backward compatibility)
+            If(
+                !IsEmpty(colAttachedReceipts),
+                If(
+                    IsBlank(varSelectedExpenseDoc.AttachedReceiptId) || 
+                    Value(varSelectedExpenseDoc.AttachedReceiptId) <> First(colAttachedReceipts).EntRecId,
+                    Patch(
+                        'Expense lines (mserp)',
+                        varSelectedExpenseDoc,
+                        {
+                            AttachedReceiptId: First(colAttachedReceipts).EntRecId
+                        }
+                    )
+                )
+            ),
+            // New expense - clear receipts collection
+            Clear(colAttachedReceipts)
+        );
+        // Set varReceiptImage for backward compatibility (first receipt or blank)
+        Set(
+            varReceiptImage,
+            If(
+                !IsEmpty(colAttachedReceipts),
+                First(colAttachedReceipts).CapturedDocument,
+                Blank()
+            )
+        );
+        Set(
+            varFileFormat,
+            If(
+                !IsEmpty(colAttachedReceipts),
+                First(colAttachedReceipts).FileExtension,
+                Blank()
+            )
+        );
 
     scr03_ico_Back_4 As icon.ChevronLeft:
         Color: =icongconfig_backbutton.Color
@@ -489,7 +588,7 @@
         RadiusBottomRight: =18
         RadiusTopLeft: =18
         RadiusTopRight: =18
-        Visible: =!IsBlank(varReceiptImage)
+        Visible: =IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage)
         Width: |
             =Parent.Width -  Self.X*2
         X: =24
@@ -513,7 +612,7 @@
         RadiusBottomRight: =8
         RadiusTopLeft: =8
         RadiusTopRight: =8
-        Visible: =IsBlank(varReceiptImage) 
+        Visible: =IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) 
         Width: |
             =Parent.Width -  Self.X*2
         X: =44
@@ -539,7 +638,7 @@
         TabIndex: =0
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-        Visible: =IsBlank(varReceiptImage) 
+        Visible: =IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) 
         Width: |
             =Parent.Width -  Self.X*2
         X: =26
@@ -564,7 +663,7 @@
         TabIndex: =0
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
-        Visible: =!(IsBlank(varReceiptImage))
+        Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
         Width: =scr03_img_NoReceiptOuter_1.Width+1
         X: =scr03_img_NoReceiptOuter_1.X
         Y: =scr03_img_NoReceiptOuter_1.Y + (scr03_img_NoReceiptOuter_1.Height -Self.Height)+1
@@ -584,11 +683,247 @@
                 }
             )
         TabIndex: =0
-        Visible: =!(IsBlank(varReceiptImage))
+        Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
         Width: =18
         X: =scr03_lbl_ChangeReceipt_1.X + 25
         Y: =scr03_lbl_ChangeReceipt_1.Y + (scr03_lbl_ChangeReceipt_1.Height-scr03_ico_ViewReceipt_1.Height)/2
         ZIndex: =6
+
+    "scr03_glr_ReceiptsList As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+        '#CopilotOverlayLabel': ="List of attached receipts"
+        AccessibleLabel: ="List of attached receipts"
+        Default: ={}
+        DelayItemLoading: =true
+        Height: |-
+            =Min(
+                200,
+                Self.TemplateHeight * CountRows(Self.AllItems)
+            )
+        Items: |-
+            =colAttachedReceipts
+        Layout: =Layout.Vertical
+        LoadingSpinner: =LoadingSpinner.Data
+        OnSelect: |-
+            =Set(
+                varSelectedReceiptForView,
+                ThisItem.EntRecId
+            );
+            Set(
+                varReceiptImage,
+                ThisItem.CapturedDocument
+            );
+            Set(
+                varFileFormat,
+                ThisItem.FileExtension
+            );
+            Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly : false})
+        TemplatePadding: =0
+        TemplateSize: =70
+        Visible: =!IsEmpty(colAttachedReceipts)
+        Width: =Parent.Width - 48
+        X: =24
+        Y: |-
+            =If(
+                scr03_lbl_PolicyViolationWarning_1.Visible,
+                scr03_lbl_PolicyViolationWarning_1.Y + scr03_lbl_PolicyViolationWarning_1.Height + 27,
+                scr03_lbl_ValidationWarning_1.Y + scr03_lbl_ValidationWarning_1.Height + 27
+            )
+        ZIndex: =7
+
+        Container_ReceiptItem As groupContainer.horizontalAutoLayoutContainer:
+            Fill: =Color.White
+            Height: =70
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMode: =LayoutMode.Auto
+            PaddingLeft: =15
+            PaddingRight: =15
+            Width: =Parent.Width
+            ZIndex: =1
+
+            scr03_img_ReceiptIcon As image:
+                Height: =40
+                Image: |-
+                    =If(
+                        ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                        If(
+                            !IsBlank(ThisItem.CapturedDocument),
+                            ThisItem.CapturedDocument,
+                            IconMail
+                        ),
+                        ThisItem.FileExtension in ["xlsx", "xls"],
+                        IconExcel,
+                        ThisItem.FileExtension in ["docx", "doc"],
+                        IconWord,
+                        ThisItem.FileExtension = "pdf",
+                        IconPDF,
+                        ThisItem.FileExtension = "txt",
+                        IconTxt,
+                        IconMail
+                    )
+                ImagePosition: =ImagePosition.Fit
+                Width: =40
+                ZIndex: =1
+
+            scr03_lbl_ReceiptFileName As label:
+                AutoHeight: =true
+                Color: =Color.Black
+                FillPortions: =1
+                Font: =Font.'Segoe UI'
+                Height: =Parent.Height
+                Size: =16
+                Text: |-
+                    =If(
+                        !IsBlank(ThisItem.DocumentName),
+                        ThisItem.DocumentName,
+                        Concatenate("Receipt-", Text(ThisItem.EntRecId))
+                    )
+                VerticalAlign: =VerticalAlign.Center
+                Width: =Parent.Width - scr03_img_ReceiptIcon.Width - scr03_ico_DeleteReceipt.Width - 30
+                X: =scr03_img_ReceiptIcon.X + scr03_img_ReceiptIcon.Width + 15
+                ZIndex: =2
+
+            scr03_ico_DeleteReceipt As icon.Trash:
+                AccessibleLabel: ="Delete receipt"
+                Color: =RGBA(195, 39, 39, 1)
+                Height: =24
+                OnSelect: |-
+                    =UpdateContext({varDeleteReceiptId: ThisItem.EntRecId});
+                    UpdateContext({varShowDeleteReceiptDialog: true})
+                TabIndex: =0
+                Visible: =!varViewOnly
+                Width: =24
+                X: =Parent.Width - Self.Width - 15
+                ZIndex: =3
+
+    scr03_btn_AddReceipt_Always As button:
+        BorderColor: =RGBA(34, 102, 227, 1)
+        BorderThickness: =2
+        Color: =RGBA(34, 102, 227, 1)
+        Fill: =Color.White
+        Height: =50
+        HoverFill: =RGBA(204, 222, 255, 1)
+        OnSelect: |-
+            =Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
+            UpdateContext(
+                {
+                    varOnSelectTriggered: false,
+                    varOnShowFields:false,
+                    varOnChangeTriggered:false
+                }
+            )
+        PressedFill: =RGBA(204, 222, 255, 1)
+        RadiusBottomLeft: =8
+        RadiusBottomRight: =8
+        RadiusTopLeft: =8
+        RadiusTopRight: =8
+        Size: =18
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
+        Visible: =!IsEmpty(colAttachedReceipts)
+        Width: =Parent.Width - 48
+        X: =24
+        Y: |-
+            =scr03_glr_ReceiptsList.Y + scr03_glr_ReceiptsList.Height + 15
+        ZIndex: =8
+
+    cmp_DeleteReceiptDialog As cmp02_ConfirmationDialog:
+        controlName: ="cmp02_ConfirmationDialog_DeleteReceipt"
+        LegalEntity: =Text(varSelectedLegalEntity)
+        OnLeftButtonClick: |-
+            =UpdateContext({varShowDeleteReceiptDialog: false});
+            UpdateContext({varDeleteReceiptId: Blank()})
+        OnRightButtonClick: |-
+            =UpdateContext({varShowDeleteReceiptDialog: false});
+            If(
+                !IsBlank(varDeleteReceiptId),
+                IfError(
+                    Patch(
+                        'Expense Mobile Unattached Document Entity (mserp)',
+                        LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varDeleteReceiptId),
+                        {
+                            ExpTransNumber: Blank()
+                        }
+                    ),
+                    Notify(
+                        Substitute(
+                            Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
+                            """message"":",
+                            ""
+                        ),
+                        NotificationType.Error,
+                        gblParams.notificationTime
+                    )
+                );
+                // Refresh receipts collection
+                ClearCollect(
+                    colAttachedReceipts,
+                    SortByColumns(
+                        Filter(
+                            'Expense Mobile Unattached Document Entity (mserp)',
+                            ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        ),
+                        "CreatingDateTime",
+                        SortOrder.Descending
+                    )
+                );
+                // Update AttachedReceiptId (first receipt or blank)
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    Patch(
+                        'Expense lines (mserp)',
+                        varSelectedExpenseDoc,
+                        {
+                            AttachedReceiptId: First(colAttachedReceipts).EntRecId
+                        }
+                    ),
+                    Patch(
+                        'Expense lines (mserp)',
+                        varSelectedExpenseDoc,
+                        {
+                            AttachedReceiptId: Blank()
+                        }
+                    )
+                );
+                // Update varReceiptImage for backward compatibility
+                Set(
+                    varReceiptImage,
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        First(colAttachedReceipts).CapturedDocument,
+                        Blank()
+                    )
+                );
+                Set(
+                    varFileFormat,
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        First(colAttachedReceipts).FileExtension,
+                        Blank()
+                    )
+                );
+                Notify(
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
+                    NotificationType.Success,
+                    gblParams.notificationTime
+                );
+                UpdateContext({varDeleteReceiptId: Blank()})
+            )
+        parmInDescriptionText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachReceiptConfirmationTextLabel'
+        parmInHeaderText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachSelectedReceiptHeaderLabel'
+        parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+        parmInLeftButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+        parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+        parmInRightButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachLabel'
+        returnFocus: ="scr03_ico_DeleteReceipt"
+        Visible: =varShowDeleteReceiptDialog
+        Y: =0
+        ZIndex: =9
 
     scr03_lbl_ValidationWarning_1 As label:
         Align: =Align.Center
@@ -707,7 +1042,16 @@
         LayoutOverflowY: =LayoutOverflow.Scroll
         Width: |
             =Parent.Width
-        Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
+        Y: |-
+            =If(
+                !IsEmpty(colAttachedReceipts),
+                scr03_btn_AddReceipt_Always.Y + scr03_btn_AddReceipt_Always.Height + 30,
+                If(
+                    IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage),
+                    scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30,
+                    scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
+                )
+            )
         ZIndex: =11
 
         EditExpenseForm As form:
@@ -819,6 +1163,49 @@
                         )
                     )
                 );
+                // Refresh receipts collection after attaching
+                If(
+                    !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                    ClearCollect(
+                        colAttachedReceipts,
+                        SortByColumns(
+                            Filter(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                            ),
+                            "CreatingDateTime",
+                            SortOrder.Descending
+                        )
+                    );
+                    // Update AttachedReceiptId with first receipt (for backward compatibility)
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        Patch(
+                            'Expense lines (mserp)',
+                            varSelectedExpenseDoc,
+                            {
+                                AttachedReceiptId: First(colAttachedReceipts).EntRecId
+                            }
+                        )
+                    );
+                    // Update varReceiptImage for backward compatibility
+                    Set(
+                        varReceiptImage,
+                        If(
+                            !IsEmpty(colAttachedReceipts),
+                            First(colAttachedReceipts).CapturedDocument,
+                            Blank()
+                        )
+                    );
+                    Set(
+                        varFileFormat,
+                        If(
+                            !IsEmpty(colAttachedReceipts),
+                            First(colAttachedReceipts).FileExtension,
+                            Blank()
+                        )
+                    )
+                );
                 //create or update expense
                 If(
                     varIsCreate,
@@ -845,6 +1232,53 @@
                 Set(
                     varSelectedExpenseDoc,
                     EditExpenseForm.LastSubmit
+                );
+                // Refresh receipts collection after expense save
+                If(
+                    !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                    ClearCollect(
+                        colAttachedReceipts,
+                        SortByColumns(
+                            Filter(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                            ),
+                            "CreatingDateTime",
+                            SortOrder.Descending
+                        )
+                    );
+                    // Update AttachedReceiptId with first receipt (for backward compatibility)
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        If(
+                            IsBlank(varSelectedExpenseDoc.AttachedReceiptId) || 
+                            Value(varSelectedExpenseDoc.AttachedReceiptId) <> First(colAttachedReceipts).EntRecId,
+                            Patch(
+                                'Expense lines (mserp)',
+                                varSelectedExpenseDoc,
+                                {
+                                    AttachedReceiptId: First(colAttachedReceipts).EntRecId
+                                }
+                            )
+                        )
+                    );
+                    // Update varReceiptImage for backward compatibility
+                    Set(
+                        varReceiptImage,
+                        If(
+                            !IsEmpty(colAttachedReceipts),
+                            First(colAttachedReceipts).CapturedDocument,
+                            Blank()
+                        )
+                    );
+                    Set(
+                        varFileFormat,
+                        If(
+                            !IsEmpty(colAttachedReceipts),
+                            First(colAttachedReceipts).FileExtension,
+                            Blank()
+                        )
+                    )
                 );
                 UpdateContext({varSubmittedExpTransNumber :Blank()});
                 Set(

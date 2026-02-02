@@ -467,33 +467,20 @@
                 LayoutMaxWidth: =
                 LayoutMinHeight: =287
                 LayoutMinWidth: =Parent.Width
-                OnSelect: |
-                    =
-                    Concurrent(
-                        Set(
-                            varIsCreate,
-                            false
-                        ),
-                        Set(
-                            varReceiptImage,  //set as receiptUrl of attached expense
-                            Blank()
-                        )
+                OnSelect: |-
+                    =Concurrent(
+                        Set(varIsCreate, false),
+                        Set(varReceiptImage, Blank()),
+                        Set(varFileFormat, Blank()),
+                        Set(varSelectedReceiptNumber, Blank()),
+                        Set(varSelectedReceiptForView, Blank())
                     );
                     Set(
                         varExpenseAgainstWorkItem,
-                        LookUp('Expense Lines Attached to a Report for Approvals (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
-                    );
-                    Set(
-                        varReceiptImage,
-                        LookUp(receiptsAgainstWorkItems,ExpenseLineAttachedTo = varExpenseAgainstWorkItem.'Expense transaction number (mserp_exptransnumber)',CapturedDocument)
-                    );
-                    Set(
-                        varFileFormat,
-                        LookUp(receiptsAgainstWorkItems,ExpenseLineAttachedTo = varExpenseAgainstWorkItem.'Expense transaction number (mserp_exptransnumber)',FileExtension)
-                    );
-                    Set(
-                        varSelectedReceiptNumber,
-                        Blank()
+                        LookUp(
+                            'Expense Lines Attached to a Report for Approvals (mserp)',
+                            'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)'
+                        )
                     );
                     If(
                         varExpenseAgainstWorkItem.PolicyViolationCount,
@@ -1123,28 +1110,39 @@
             Fill: =Color.Transparent
             FocusedBorderThickness: =0
             Height: =scr22_lbl_Attachments.Height
-            OnSelect: |+
+            OnSelect: |-
                 =UpdateContext({varSelectedTab:2});
+                // Load all receipts linked to any expense line in this work item
                 ClearCollect(
-                    colAttachmentToReport,
-                    Filter(
-                    receiptsAgainstWorkItems,
-                    ExpenseLineAttachedTo in colExpensesAgainstWorkItem[@'Expense transaction number (mserp_exptransnumber)']
-                )
-                );
-                /*ForAll( 
-                    colAttachmentToReport,
-                    ClearCollect(
-                        colAttachmentToReportPrevAndNext,
-                        {
-                            RowNumber: ,
-                            FileExtension: 
-                            
-                        }
+                    colReceiptAttachToExpenseApprovals,
+                    ForAll(
+                        Sequence(
+                            CountRows(
+                                Filter(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    ExpTransNumber in colExpensesAgainstWorkItem[@'Expense transaction number (mserp_exptransnumber)']
+                                )
+                            )
+                        ),
+                        With(
+                            {
+                                receiptsForWorkItem: SortByColumns(
+                                    Filter(
+                                        'Expense Mobile Unattached Document Entity (mserp)',
+                                        ExpTransNumber in colExpensesAgainstWorkItem[@'Expense transaction number (mserp_exptransnumber)']
+                                    ),
+                                    "CreatingDateTime",
+                                    SortOrder.Descending
+                                )
+                            },
+                            Patch(
+                                Last(FirstN(receiptsForWorkItem, Value)),
+                                {RowNumber: Value}
+                            )
+                        )
                     )
-                )*/
-                ClearCollect(colReceiptAttachToExpenseApprovals,ForAll(Sequence(CountRows(colAttachmentToReport)),Patch(Last(FirstN((colAttachmentToReport),Value)),{RowNumber:Value})));
-                
+                );
+
             TabIndex: =0
             Width: =scr22_lbl_Attachments.Width
             X: =scr22_lbl_Attachments.X

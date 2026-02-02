@@ -6,6 +6,119 @@
         Set(varChangeCalled,false);
         Set(varCntShowConfirmationDialog,false);
         UpdateContext({varRotateImage: ImageRotation.None});
+        // Initialize varCurrentReceiptIndex if not set
+        If(
+            IsBlank(varCurrentReceiptIndex),
+            Set(varCurrentReceiptIndex, 1)
+        );
+        // Load all attached receipts for this expense line
+        If(
+            !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+            ClearCollect(
+                colAttachedReceipts,
+                SortByColumns(
+                    Filter(
+                        'Expense Mobile Unattached Document Entity (mserp)',
+                        ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                    ),
+                    "CreatingDateTime",
+                    SortOrder.Descending
+                )
+            );
+            // Find current receipt index
+            If(
+                !IsEmpty(colAttachedReceipts),
+                // Receipts collection is available
+                If(
+                    !IsBlank(varSelectedReceiptForView),
+                    // Find index of selected receipt
+                    With(
+                        {
+                            receiptRecord: LookUp(colAttachedReceipts, EntRecId = varSelectedReceiptForView)
+                        },
+                        If(
+                            !IsBlank(receiptRecord),
+                            // Receipt found in collection
+                            With(
+                                {
+                                    receiptIndex: CountRows(
+                                        Filter(
+                                            colAttachedReceipts,
+                                            EntRecId <= receiptRecord.EntRecId
+                                        )
+                                    )
+                                },
+                                Set(
+                                    varCurrentReceiptIndex,
+                                    receiptIndex
+                                );
+                                Set(
+                                    varReceiptImage,
+                                    receiptRecord.CapturedDocument
+                                );
+                                Set(
+                                    varFileFormat,
+                                    receiptRecord.FileExtension
+                                )
+                            ),
+                            // Receipt not found, use first receipt
+                            Set(
+                                varCurrentReceiptIndex,
+                                1
+                            );
+                            Set(
+                                varSelectedReceiptForView,
+                                First(colAttachedReceipts).EntRecId
+                            );
+                            Set(
+                                varReceiptImage,
+                                First(colAttachedReceipts).CapturedDocument
+                            );
+                            Set(
+                                varFileFormat,
+                                First(colAttachedReceipts).FileExtension
+                            )
+                        )
+                    ),
+                    // varSelectedReceiptForView is blank, use first receipt
+                    Set(
+                        varCurrentReceiptIndex,
+                        1
+                    );
+                    Set(
+                        varSelectedReceiptForView,
+                        First(colAttachedReceipts).EntRecId
+                    );
+                    Set(
+                        varReceiptImage,
+                        First(colAttachedReceipts).CapturedDocument
+                    );
+                    Set(
+                        varFileFormat,
+                        First(colAttachedReceipts).FileExtension
+                    )
+                ),
+                // No receipts in collection - use AttachedReceiptId if available (backward compatibility)
+                If(
+                    !IsBlank(varSelectedExpenseDoc.AttachedReceiptId),
+                    Set(
+                        varReceiptImage,
+                        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), CapturedDocument)
+                    );
+                    Set(
+                        varFileFormat,
+                        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
+                    );
+                    Set(
+                        varSelectedReceiptForView,
+                        Value(varSelectedExpenseDoc.AttachedReceiptId)
+                    );
+                    Set(
+                        varCurrentReceiptIndex,
+                        1
+                    )
+                )
+            );
 
     imageView_footer_rectangle_1 As rectangle:
         Fill: =RGBA(37, 36, 35, 1)
@@ -151,8 +264,107 @@
         paramFill: |
             =RGBA(33, 33, 33, 1)
         paramTitle: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
+            =If(
+                !IsEmpty(colAttachedReceipts) && CountRows(colAttachedReceipts) > 1,
+                Concatenate(
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel',
+                    " (",
+                    Text(varCurrentReceiptIndex),
+                    " / ",
+                    Text(CountRows(colAttachedReceipts)),
+                    ")"
+                ),
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
+            )
         ZIndex: =8
+
+    scr06_btn_PreviousReceipt As button:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderThickness: =2
+        Color: =Color.White
+        Fill: =RGBA(33, 33, 33, 1)
+        Height: =50
+        HoverFill: =RGBA(50, 50, 50, 1)
+        OnSelect: |-
+            =If(
+                varCurrentReceiptIndex > 1,
+                With(
+                    {
+                        newIndex: varCurrentReceiptIndex - 1,
+                        receiptRecord: Index(colAttachedReceipts, newIndex)
+                    },
+                    Set(
+                        varCurrentReceiptIndex,
+                        newIndex
+                    );
+                    Set(
+                        varSelectedReceiptForView,
+                        receiptRecord.EntRecId
+                    );
+                    Set(
+                        varReceiptImage,
+                        receiptRecord.CapturedDocument
+                    );
+                    Set(
+                        varFileFormat,
+                        receiptRecord.FileExtension
+                    );
+                    UpdateContext({varRotateImage: ImageRotation.None})
+                )
+            )
+        PressedFill: =RGBA(50, 50, 50, 1)
+        Size: =18
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_PreviousLabel'
+        Visible: =!IsEmpty(colAttachedReceipts) && CountRows(colAttachedReceipts) > 1 && varCurrentReceiptIndex > 1
+        Width: =100
+        X: =40
+        Y: =imageView_footer_rectangle_1.Y - Self.Height - 15
+        ZIndex: =14
+
+    scr06_btn_NextReceipt As button:
+        BorderColor: =RGBA(255, 255, 255, 1)
+        BorderThickness: =2
+        Color: =Color.White
+        Fill: =RGBA(33, 33, 33, 1)
+        Height: =50
+        HoverFill: =RGBA(50, 50, 50, 1)
+        OnSelect: |-
+            =If(
+                varCurrentReceiptIndex < CountRows(colAttachedReceipts),
+                With(
+                    {
+                        newIndex: varCurrentReceiptIndex + 1,
+                        receiptRecord: Index(colAttachedReceipts, newIndex)
+                    },
+                    Set(
+                        varCurrentReceiptIndex,
+                        newIndex
+                    );
+                    Set(
+                        varSelectedReceiptForView,
+                        receiptRecord.EntRecId
+                    );
+                    Set(
+                        varReceiptImage,
+                        receiptRecord.CapturedDocument
+                    );
+                    Set(
+                        varFileFormat,
+                        receiptRecord.FileExtension
+                    );
+                    UpdateContext({varRotateImage: ImageRotation.None})
+                )
+            )
+        PressedFill: =RGBA(50, 50, 50, 1)
+        Size: =18
+        Text: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NextLabel'
+        Visible: =!IsEmpty(colAttachedReceipts) && CountRows(colAttachedReceipts) > 1 && varCurrentReceiptIndex < CountRows(colAttachedReceipts)
+        Width: =100
+        X: =Parent.Width - Self.Width - 40
+        Y: =imageView_footer_rectangle_1.Y - Self.Height - 15
+        ZIndex: =15
 
     scr06_lbl_Detach As label:
         Align: =Align.Center
@@ -212,13 +424,16 @@
             If(
                 !IsBlank(SelectedExpense) && SelectedReceiptNumber <> "0" && !IsBlank(SelectedReceiptNumber),
                 IfError(
+                    // Detach receipt by setting ExpTransNumber to Blank
                     Patch(
-                        'Expense lines (mserp)',
+                        'Expense Mobile Unattached Document Entity (mserp)',
                         LookUp(
-                            'Expense lines (mserp)',
-                            'Expense transaction number (mserp_exptransnumber)' = SelectedExpense
+                            'Expense Mobile Unattached Document Entity (mserp)',
+                            EntRecId = Value(SelectedReceiptNumber)
                         ),
-                        {Detach: 1}
+                        {
+                            ExpTransNumber: Blank()
+                        }
                     ),
                     First(
                         ClearCollect(
@@ -237,18 +452,68 @@
             );
             If(
                 (IsBlank(First(varError).Value) || First(varError).Value = ""),
+                // Refresh receipts collection
+                ClearCollect(
+                    colAttachedReceipts,
+                    SortByColumns(
+                        Filter(
+                            'Expense Mobile Unattached Document Entity (mserp)',
+                            ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        ),
+                        "CreatingDateTime",
+                        SortOrder.Descending
+                    )
+                );
+                // Update AttachedReceiptId (first receipt or blank)
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    Patch(
+                        'Expense lines (mserp)',
+                        varSelectedExpenseDoc,
+                        {
+                            AttachedReceiptId: First(colAttachedReceipts).EntRecId
+                        }
+                    ),
+                    Patch(
+                        'Expense lines (mserp)',
+                        varSelectedExpenseDoc,
+                        {
+                            AttachedReceiptId: Blank()
+                        }
+                    )
+                );
                 Notify(
                     GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
                     NotificationType.Success,
                     gblParams.notificationTime
                 );
-                Set(
-                    varReceiptImage,
-                    Blank()
-                );
-                Set(
-                    varSelectedReceiptNumber,
-                    Blank()
+                // Update current receipt display
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    Set(
+                        varCurrentReceiptIndex,
+                        1
+                    );
+                    Set(
+                        varSelectedReceiptForView,
+                        First(colAttachedReceipts).EntRecId
+                    );
+                    Set(
+                        varReceiptImage,
+                        First(colAttachedReceipts).CapturedDocument
+                    );
+                    Set(
+                        varFileFormat,
+                        First(colAttachedReceipts).FileExtension
+                    ),
+                    Set(
+                        varReceiptImage,
+                        Blank()
+                    );
+                    Set(
+                        varSelectedReceiptForView,
+                        Blank()
+                    )
                 ),
                 Notify(
                     Substitute(First(varError).Value, """", ""),
@@ -283,7 +548,12 @@
         returnFocus: ="scr06_lbl_Detach"
         SelectedExpense: |
             =varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
-        SelectedReceiptNumber: =Text(varSelectedExpenseDoc.AttachedReceiptId)
+        SelectedReceiptNumber: |-
+            =If(
+                !IsBlank(varSelectedReceiptForView),
+                Text(varSelectedReceiptForView),
+                Text(varSelectedExpenseDoc.AttachedReceiptId)
+            )
         Visible: =varCntShowConfirmationDialog
         Y: =0
         ZIndex: =11
