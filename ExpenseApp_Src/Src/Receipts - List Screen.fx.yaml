@@ -39,7 +39,7 @@
             =(Parent.Width - Self.Width)/2
         Y: =scr09_glr_ReceiptGrid.Y + (Parent.Height - scr09_hdr_TopHeader.Height - scr09_cmp_Footer_1.Height - Self.Height)/2
 
-    scr09_cmp_Footer_1 As cmp_Footer_3:
+    scr09_cmp_Footer_1 As cmp_Footer_5:
         ApprovalsText: |-
             =If(
                 varAppMode = "CashAdvance",
@@ -68,14 +68,10 @@
                 )
             )
         OnExpensesButtonClick: =Set(varSelectedTab, 2); Navigate('Expenses - List Screen',ScreenTransition.Fade)
-        OnReceiptsButtonClick: =Set(varSelectedTab, 1); Navigate('Receipts - List Screen',ScreenTransition.Fade)
         OnReportsButtonClick: |-
             =Set(varSelectedTab, 3); Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
         paramInDefaultAppMode: =varAppMode
-        paramInDefaultSelectedTab: |
-            =1
-        ReceiptText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
+        paramInDefaultSelectedTab: =1
         ReportText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
         SelectedTab: =1

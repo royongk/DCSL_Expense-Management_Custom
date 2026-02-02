@@ -68,7 +68,7 @@
             =(Parent.Width - Self.Width)/2
         Y: =scr21_hdr_TopHeader_1.Height + (Parent.Height - scr21_hdr_TopHeader_1.Height - scr21_cmp_Footer.Height - Self.Height)/2
 
-    scr21_cmp_Footer As cmp_Footer_4:
+    scr21_cmp_Footer As cmp_Footer_5:
         ApprovalsText: |-
             =If(
                 varAppMode = "CashAdvance",
@@ -111,23 +111,6 @@
                     gblParams.notificationTime
                 )
             )
-        OnReceiptsButtonClick: |-
-            =If(
-                !IsBlank(varSelectedLegalEntity),
-                Set(
-                    varSelectedTab,
-                    1
-                );
-                Navigate(
-                    'Receipts - List Screen',
-                    ScreenTransition.Fade
-                ),
-                Notify(
-                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
-                    NotificationType.Error,
-                    gblParams.notificationTime
-                )
-            )
         OnReportsButtonClick: |-
             =If(
                 !IsBlank(varSelectedLegalEntity),
@@ -148,8 +131,6 @@
             )
         paramInDefaultAppMode: =varAppMode
         paramInDefaultSelectedTab: =4
-        ReceiptText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
         ReportText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
         SelectedTab: =4

@@ -87,17 +87,7 @@
         Y: =Parent.Height-scr01_shp_BaseRectangle.Height
         ZIndex: =5
 
-    scr01_cmp_Footer As cmp_Footer_3:
-        ApprovalsAccessibleLabel: |-
-            =Concatenate(
-                "Approvals tab ",
-                If(
-                    varSelectedTab = 4,
-                    "selected. ",
-                    "unselected. "
-                ),
-                "Select to open approvals tab"
-            )
+    scr01_cmp_Footer As cmp_Footer_5:
         ApprovalsText: |-
             =If(
                 varAppMode = "CashAdvance",
@@ -107,16 +97,6 @@
                     "Travel",
                     GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
                 )
-            )
-        ExpenseAccessibleLabel: |-
-            =Concatenate(
-                "Expenses tab ",
-                If(
-                    varSelectedTab = 2,
-                    "selected. ",
-                    "unselected. "
-                ),
-                "Select to open expenses tab"
             )
         ExpensesText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
@@ -151,23 +131,6 @@
                     gblParams.notificationTime
                 )
             )
-        OnReceiptsButtonClick: |-
-            =If(
-                !IsBlank(varSelectedLegalEntity),
-                Set(
-                    varSelectedTab,
-                    1
-                );
-                Navigate(
-                    'Receipts - List Screen',
-                    ScreenTransition.Fade
-                ),
-                Notify(
-                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
-                    NotificationType.Error,
-                    gblParams.notificationTime
-                )
-            )
         OnReportsButtonClick: |-
             =If(
                 !IsBlank(varSelectedLegalEntity),
@@ -187,28 +150,7 @@
                 )
             )
         paramInDefaultAppMode: =varAppMode
-        ReceiptAccessibleLabel: |-
-            =Concatenate(
-                "Receipts tab ",
-                If(
-                    varSelectedTab = 1,
-                    "selected. ",
-                    "unselected. "
-                ),
-                "Select to open receipts tab"
-            )
-        ReceiptText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
-        ReportAccessibleLabel: |-
-            =Concatenate(
-                "Reports tab ",
-                If(
-                    varSelectedTab = 3,
-                    "selected. ",
-                    "unselected. "
-                ),
-                "Select to open reports tab"
-            )
+        paramInDefaultSelectedTab: =2
         ReportText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
         SelectedTab: =2
