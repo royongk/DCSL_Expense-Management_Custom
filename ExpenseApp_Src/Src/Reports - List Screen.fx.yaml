@@ -461,16 +461,17 @@
         ApprovalsText: |-
             =If(
                 varAppMode = "CashAdvance",
-                "Cash",
+                "Submit Cash",
                 If(
                     varAppMode = "AirfareAllowance",
-                    "Travel",
+                    "Submit Reports",
                     GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
                 )
             )
         DisplayMode: =!IsBlank(varSelectedLegalEntity)
         ExpensesText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
+            =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
+            "Add Expenses"
         OnApprovalsButtonClick: |-
             =If(
                 varAppMode = "CashAdvance",
@@ -495,8 +496,13 @@
             Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
         paramInDefaultAppMode: =varAppMode
         paramInDefaultSelectedTab: =3
-        ReportText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+        ReportText: |
+            =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
+            If(
+                varAppMode = "AirfareAllowance",
+                "View Reports",
+                "Submit Reports"
+            )
         SelectedTab: =3
         Visible: =!varCntSelect
         Y: =App.Height - Self.Height
