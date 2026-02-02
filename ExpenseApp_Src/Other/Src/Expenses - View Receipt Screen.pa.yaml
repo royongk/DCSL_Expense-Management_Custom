@@ -227,8 +227,11 @@ Screens:
           Properties:
             Height: =App.Height
             LegalEntity: =Text(varSelectedLegalEntity)
-            OnLeftButtonClick: =true
-            OnRightButtonClick: ="텍스트"
+            OnLeftButtonClick: |-
+              =//UpdateContext({varCntShowConfirmationDialog:false})
+              Set(varCntShowConfirmationDialog,false);
+              Set(varChangeCalled,false);
+            OnRightButtonClick: "=//UpdateContext({varCntShowConfirmationDialog: false});\r\nSet(varCntShowConfirmationDialog,false);\r\nIf(\r\n    !IsBlank(SelectedExpense) && SelectedReceiptNumber <> \"0\" && !IsBlank(SelectedReceiptNumber),\r\n    IfError(\r\n        Patch(\r\n            'Expense lines (mserp)',\r\n            LookUp(\r\n                'Expense lines (mserp)',\r\n                'Expense transaction number (mserp_exptransnumber)' = SelectedExpense\r\n            ),\r\n            {Detach: 1}\r\n        ),\r\n        First(\r\n            ClearCollect(\r\n                varError,\r\n                Substitute(\r\n                    Match(\r\n                        FirstError.Details.HttpResponse,\r\n                        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\r\n                    ).FullMatch,\r\n                    \"\"\"message\"\":\",\r\n                    \"\"\r\n                )\r\n            )\r\n        )\r\n    )\r\n);\r\nIf(\r\n    (IsBlank(First(varError).Value) || First(varError).Value = \"\"),\r\n    Notify(\r\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',\r\n        NotificationType.Success,\r\n        gblParams.notificationTime\r\n    );\r\n    Set(\r\n        varReceiptImage,\r\n        Blank()\r\n    );\r\n    Set(\r\n        varSelectedReceiptNumber,\r\n        Blank()\r\n    ),\r\n    Notify(\r\n        Substitute(First(varError).Value, \"\"\"\", \"\"),\r\n        NotificationType.Error,\r\n        gblParams.notificationTime\r\n    ) \r\n    \r\n);\r\nIf(\r\n    varChangeCalled,\r\n    Navigate('Expenses - Capture Receipt Screen'),\r\n    Navigate('Expenses - Edit Screen')\r\n)"
             SelectedExpense: |
               =varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
             SelectedList: ="Text"
@@ -259,8 +262,10 @@ Screens:
           Properties:
             Height: =App.Height
             LegalEntity: =Text(varSelectedLegalEntity)
-            OnLeftButtonClick: =true
-            OnRightButtonClick: ="텍스트"
+            OnLeftButtonClick: |-
+              =Set(varCntShowConfirmationDialogItemize,false);
+              Set(varChangeCalled,false)
+            OnRightButtonClick: "=//UpdateContext({varCntShowConfirmationDialog: false});\r\nSet(varCntShowConfirmationDialogItemize,false);\r\nIf(\r\n    !IsBlank(SelectedExpense) && Text(SelectedReceiptNumber) <> \"0\" && !IsBlank(Text(SelectedReceiptNumber)),\r\n    IfError(\r\n        Patch(\r\n            'Expense lines (mserp)',\r\n            LookUp(\r\n                'Expense lines (mserp)',\r\n                'Expense transaction number (mserp_exptransnumber)' = SelectedExpense\r\n            ),\r\n            {Detach: 1}\r\n        ),\r\n        First(\r\n            ClearCollect(\r\n                varError,\r\n                Substitute(\r\n                    Match(\r\n                        FirstError.Details.HttpResponse,\r\n                        \"\"\"message\"\":\"\"([^\"\"]*)\"\"\"\r\n                    ).FullMatch,\r\n                    \"\"\"message\"\":\",\r\n                    \"\"\r\n                )\r\n            )\r\n        )\r\n    )\r\n);\r\nIf(\r\n    (IsBlank(First(varError).Value) || First(varError).Value = \"\"),\r\n    Notify(\r\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',\r\n        NotificationType.Success,\r\n        gblParams.notificationTime\r\n    );\r\n    Set(\r\n        varReceiptImage,\r\n        Blank()\r\n    );\r\n    Set(\r\n        varSelectedReceiptNumber,\r\n        Blank()\r\n    ),\r\n    Notify(\r\n        Substitute(First(varError).Value, \"\"\"\", \"\"),\r\n        NotificationType.Error,\r\n        gblParams.notificationTime\r\n    ) \r\n    \r\n);\r\nIf(\r\n    varChangeCalled,\r\n    Navigate('Expenses - Capture Receipt Screen'),\r\n    Navigate('Itemization - Itemized Expense Edit Screen')\r\n)"
             SelectedExpense: |
               =varSelectedItemizedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
             SelectedList: ="Text"

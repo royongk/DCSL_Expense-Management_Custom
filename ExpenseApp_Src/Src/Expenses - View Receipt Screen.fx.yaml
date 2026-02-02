@@ -202,8 +202,66 @@
     cmp02_ConfirmationDialog_HeaderExpense As cmp02_ConfirmationDialog:
         controlName: ="cmp02_ConfirmationDialog_1"
         LegalEntity: =Text(varSelectedLegalEntity)
-        OnLeftButtonClick: =true
-        OnRightButtonClick: ="텍스트"
+        OnLeftButtonClick: |-
+            =//UpdateContext({varCntShowConfirmationDialog:false})
+            Set(varCntShowConfirmationDialog,false);
+            Set(varChangeCalled,false);
+        OnRightButtonClick: |-
+            =//UpdateContext({varCntShowConfirmationDialog: false});
+            Set(varCntShowConfirmationDialog,false);
+            If(
+                !IsBlank(SelectedExpense) && SelectedReceiptNumber <> "0" && !IsBlank(SelectedReceiptNumber),
+                IfError(
+                    Patch(
+                        'Expense lines (mserp)',
+                        LookUp(
+                            'Expense lines (mserp)',
+                            'Expense transaction number (mserp_exptransnumber)' = SelectedExpense
+                        ),
+                        {Detach: 1}
+                    ),
+                    First(
+                        ClearCollect(
+                            varError,
+                            Substitute(
+                                Match(
+                                    FirstError.Details.HttpResponse,
+                                    """message"":""([^""]*)"""
+                                ).FullMatch,
+                                """message"":",
+                                ""
+                            )
+                        )
+                    )
+                )
+            );
+            If(
+                (IsBlank(First(varError).Value) || First(varError).Value = ""),
+                Notify(
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
+                    NotificationType.Success,
+                    gblParams.notificationTime
+                );
+                Set(
+                    varReceiptImage,
+                    Blank()
+                );
+                Set(
+                    varSelectedReceiptNumber,
+                    Blank()
+                ),
+                Notify(
+                    Substitute(First(varError).Value, """", ""),
+                    NotificationType.Error,
+                    gblParams.notificationTime
+                ) 
+                
+            );
+            If(
+                varChangeCalled,
+                Navigate('Expenses - Capture Receipt Screen'),
+                Navigate('Expenses - Edit Screen')
+            )
         parmInDescriptionText: |-
             =If(
                 varChangeCalled,
@@ -233,8 +291,65 @@
     cmp02_ConfirmationDialog_Itemized As cmp02_ConfirmationDialog:
         controlName: ="cmp02_ConfirmationDialog_1"
         LegalEntity: =Text(varSelectedLegalEntity)
-        OnLeftButtonClick: =true
-        OnRightButtonClick: ="텍스트"
+        OnLeftButtonClick: |-
+            =Set(varCntShowConfirmationDialogItemize,false);
+            Set(varChangeCalled,false)
+        OnRightButtonClick: |-
+            =//UpdateContext({varCntShowConfirmationDialog: false});
+            Set(varCntShowConfirmationDialogItemize,false);
+            If(
+                !IsBlank(SelectedExpense) && Text(SelectedReceiptNumber) <> "0" && !IsBlank(Text(SelectedReceiptNumber)),
+                IfError(
+                    Patch(
+                        'Expense lines (mserp)',
+                        LookUp(
+                            'Expense lines (mserp)',
+                            'Expense transaction number (mserp_exptransnumber)' = SelectedExpense
+                        ),
+                        {Detach: 1}
+                    ),
+                    First(
+                        ClearCollect(
+                            varError,
+                            Substitute(
+                                Match(
+                                    FirstError.Details.HttpResponse,
+                                    """message"":""([^""]*)"""
+                                ).FullMatch,
+                                """message"":",
+                                ""
+                            )
+                        )
+                    )
+                )
+            );
+            If(
+                (IsBlank(First(varError).Value) || First(varError).Value = ""),
+                Notify(
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
+                    NotificationType.Success,
+                    gblParams.notificationTime
+                );
+                Set(
+                    varReceiptImage,
+                    Blank()
+                );
+                Set(
+                    varSelectedReceiptNumber,
+                    Blank()
+                ),
+                Notify(
+                    Substitute(First(varError).Value, """", ""),
+                    NotificationType.Error,
+                    gblParams.notificationTime
+                ) 
+                
+            );
+            If(
+                varChangeCalled,
+                Navigate('Expenses - Capture Receipt Screen'),
+                Navigate('Itemization - Itemized Expense Edit Screen')
+            )
         parmInDescriptionText: |-
             =If(
                 varChangeCalled,
