@@ -42,16 +42,7 @@ Screens:
                   scrTravel_cmp_Footer_1.Y - Self.Y,
                   Self.TemplateHeight * CountRows(Self.AllItems)
               )
-            Items: |-
-              =SortByColumns(
-                  Filter(
-                      'Travel requisition (mserp)',
-                      'Approval status' = 'Approval status (mserp)'.Approved &&
-                      ReferenceDataAreaId = Upper(varSelectedLegalEntity) &&
-                      Employee = userRecord.CreatingWorker
-                  ),
-                  "mserp_requisitiondate", SortOrder.Descending
-              )
+            Items: "=SortByColumns(\n    Switch(\n        varcntSelectedStatus,\n        \n        // Case 1: Open 상태만 조회\n        1, \n        Filter(\n            'Travel requisition (mserp)',\n            'Approval status' = 'Approval status (mserp)'.Approved,\n            ReferenceDataAreaId = Upper(varSelectedLegalEntity),\n            Employee = userRecord.CreatingWorker,\n            'Reconciliation status' = 'Reconciliation status (mserp)'.Open\n        ),\n\n        // Case 2: Closed 상태만 조회\n        2,\n        Filter(\n            'Travel requisition (mserp)',\n            'Approval status' = 'Approval status (mserp)'.Approved,\n            ReferenceDataAreaId = Upper(varSelectedLegalEntity),\n            Employee = userRecord.CreatingWorker,\n            'Reconciliation status' = 'Reconciliation status (mserp)'.Closed\n        ),\n\n        // Default: 1, 2가 아닐 경우 (전체 조회)\n        // Reconciliation status 조건을 뺍니다.\n        Filter(\n            'Travel requisition (mserp)',\n            'Approval status' = 'Approval status (mserp)'.Approved,\n            ReferenceDataAreaId = Upper(varSelectedLegalEntity),\n            Employee = userRecord.CreatingWorker\n        )\n    ),\n    \"mserp_requisitiondate\",\n    SortOrder.Descending\n)"
             OnSelect: |-
               =Set(
                   varSelectedTravelReq,
@@ -102,7 +93,13 @@ Screens:
               )
             TemplateSize: =150
             Width: =Parent.Width
-            Y: =scrTravel_hdr_TopHeader.Height
+            Y: |-
+              =//scrTravel_hdr_TopHeader.Height
+              If(
+                  varCntSelect,
+                  scr16_hdr_TopHeader.Height + scr16_shp_Rectangle_1.Height + scr16_shp_Rectangle_1.Height,
+                  scr16_hdr_TopHeader.Height + scr16_shp_Rectangle_1.Height
+              )
           Children:
             - Container11_Travel:
                 Control: GroupContainer@1.4.0
@@ -276,7 +273,7 @@ Screens:
                   Width: =Parent.Width
       - scrTravel_cmp_Footer_1:
           Control: CanvasComponent
-          ComponentName: cmp_Footer_3
+          ComponentName: cmp_Footer_5
           Properties:
             ApprovalsAccessibleLabel: ="Text"
             ApprovalsText: |-
@@ -303,18 +300,18 @@ Screens:
                       varAppMode = "AirfareAllowance",
                       Set(varSelectedTab, 4);
                       Navigate('Travel - List Screen', ScreenTransition.Fade),
-                      Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1})
+                      Set(varSelectedTab, 4); Navigate('Approvals - List Screen', ScreenTransition.Fade, {varFiltersApplied:false, varSelectedProjects:Blank(), varSelectedUsers: Blank(), varcntSelectedStatus:1});
+                      Reset(scr25_cmb_Project);
+                      Reset(scr25_cmb_User)
                   )
-              );
-              Reset(scr25_cmb_Project);
-              Reset(scr25_cmb_User);
+              )
             OnExpensesButtonClick: =Set(varSelectedTab, 2); Navigate('Expenses - List Screen',ScreenTransition.Fade)
-            OnReceiptsButtonClick: =Set(varSelectedTab, 1); Navigate('Receipts - List Screen',ScreenTransition.Fade)
+            OnReceiptsButtonClick: ="Text"
             OnReportsButtonClick: |-
               =Set(varSelectedTab, 3); 
               Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
             ReceiptAccessibleLabel: =
-            ReceiptText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
+            ReceiptText: ="Text"
             ReportAccessibleLabel: ="Text"
             ReportText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
             SelectedTab: =4
@@ -367,6 +364,15 @@ Screens:
             thirdIcon: =
             thirdIconAccessibleLabel: =
             thirdIconAction: =
+      - scr16_shp_Rectangle_2:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =105
+            OnSelect: =UpdateContext({varcntShowFilter:false});
+            Width: =Parent.Width
+            Y: =scr16_hdr_TopHeader.Height-2
       - Rectangle5_Travel:
           Control: Rectangle@2.3.0
           Properties:
@@ -429,3 +435,108 @@ Screens:
             Visible: =gblNavigationDrawerVisibility
             Width: =App.Width * 0.8
             unreadNotificationVisibility: =CountRows(Filter(colExpenseNoticationInfo, ReadMessage = 'NoYes (mserp)'.No)) > 0
+      - scr16_btn_FakeButton_1:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: =DisplayMode.View
+            Fill: =RGBA(241, 241, 241, 1)
+            Font: =Font.'Open Sans'
+            Height: =44
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            RadiusBottomLeft: =50
+            RadiusBottomRight: =50
+            RadiusTopLeft: =50
+            RadiusTopRight: =50
+            TabIndex: =-1
+            Text: =""
+            Visible: =false
+            Width: =228
+            X: =(Parent.Width - Self.Width)/2
+            Y: =scr16_rct_seprator.Y - scr16_shp_Rectangle_2.Y
+      - scr16_btn_Draft_1:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            BorderStyle: =BorderStyle.None
+            Color: =If(varcntSelectedStatus=1, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =If(varcntSelectedStatus=1, RGBA(34, 102, 227, 1),scr16_btn_FakeButton_1.Fill)
+            Font: =Font.'Open Sans'
+            Height: =44
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: =UpdateContext({varcntSelectedStatus:1});UpdateContext({varcntShowFilter:false});
+            PressedBorderColor: =Self.Fill
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =50
+            RadiusBottomRight: =50
+            RadiusTopLeft: =50
+            RadiusTopRight: =50
+            Size: =13.5
+            Text: ="Open"
+            Width: =103
+            X: =scr16_btn_FakeButton_1.X
+            Y: =scr16_btn_FakeButton_1.Y
+      - scr16_btn_Submitted_1:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            BorderStyle: =BorderStyle.None
+            Color: =If(varcntSelectedStatus=2, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =If(varcntSelectedStatus=2, RGBA(34, 102, 227, 1),scr16_btn_FakeButton_1.Fill)
+            Font: =Font.'Open Sans'
+            Height: =44
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: |-
+              =UpdateContext({varcntSelectedStatus:2});
+              UpdateContext({varCntSelect:false});
+              UpdateContext({varcntShowFilter:false});
+              Clear(colSelectedReportIds);
+            PressedBorderColor: =Self.Fill
+            PressedFill: =Self.Fill
+            RadiusBottomLeft: =50
+            RadiusBottomRight: =50
+            RadiusTopLeft: =50
+            RadiusTopRight: =50
+            Size: =13.5
+            Text: ="Closed"
+            Width: =103
+            X: =scr16_btn_Draft_1.X + scr16_btn_Draft_1.Width + 22
+            Y: =scr16_btn_FakeButton_1.Y
+      - scr16_shp_Rectangle_3:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =Color.White
+            Height: =105
+            Visible: =varCntSelect
+            Width: =Parent.Width
+            Y: =213
+      - scr16_rct_seprator_1:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(200, 200, 200, 1)
+            Height: =0.85
+            Width: =Parent.Width
+            Y: =scr16_shp_Rectangle.Y+scr16_shp_Rectangle.Height
+      - scr16_rct_seprator_2:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(200, 200, 200, 1)
+            Height: =0.85
+            Width: =Parent.Width
+            Y: =scr16_shp_Rectangle.Y

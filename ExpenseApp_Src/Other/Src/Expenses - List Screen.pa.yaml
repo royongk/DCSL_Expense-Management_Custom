@@ -103,18 +103,9 @@ Screens:
             Y: =Parent.Height-scr01_shp_BaseRectangle.Height
       - scr01_cmp_Footer:
           Control: CanvasComponent
-          ComponentName: cmp_Footer_3
+          ComponentName: cmp_Footer_5
           Properties:
-            ApprovalsAccessibleLabel: |-
-              =Concatenate(
-                  "Approvals tab ",
-                  If(
-                      varSelectedTab = 4,
-                      "selected. ",
-                      "unselected. "
-                  ),
-                  "Select to open approvals tab"
-              )
+            ApprovalsAccessibleLabel: ="Text"
             ApprovalsText: |-
               =If(
                   varAppMode = "CashAdvance",
@@ -126,16 +117,7 @@ Screens:
                   )
               )
             DisplayMode: =true
-            ExpenseAccessibleLabel: |-
-              =Concatenate(
-                  "Expenses tab ",
-                  If(
-                      varSelectedTab = 2,
-                      "selected. ",
-                      "unselected. "
-                  ),
-                  "Select to open expenses tab"
-              )
+            ExpenseAccessibleLabel: ="Text"
             ExpensesText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
             Fill: =RGBA(248, 248, 248, 0.94)
             Height: =84
@@ -170,23 +152,7 @@ Screens:
                       gblParams.notificationTime
                   )
               )
-            OnReceiptsButtonClick: |-
-              =If(
-                  !IsBlank(varSelectedLegalEntity),
-                  Set(
-                      varSelectedTab,
-                      1
-                  );
-                  Navigate(
-                      'Receipts - List Screen',
-                      ScreenTransition.Fade
-                  ),
-                  Notify(
-                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_WeCouldntFindEmploymentLabel',
-                      NotificationType.Error,
-                      gblParams.notificationTime
-                  )
-              )
+            OnReceiptsButtonClick: ="Text"
             OnReportsButtonClick: |-
               =If(
                   !IsBlank(varSelectedLegalEntity),
@@ -205,27 +171,9 @@ Screens:
                       gblParams.notificationTime
                   )
               )
-            ReceiptAccessibleLabel: |-
-              =Concatenate(
-                  "Receipts tab ",
-                  If(
-                      varSelectedTab = 1,
-                      "selected. ",
-                      "unselected. "
-                  ),
-                  "Select to open receipts tab"
-              )
-            ReceiptText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptsLabel'
-            ReportAccessibleLabel: |-
-              =Concatenate(
-                  "Reports tab ",
-                  If(
-                      varSelectedTab = 3,
-                      "selected. ",
-                      "unselected. "
-                  ),
-                  "Select to open reports tab"
-              )
+            ReceiptAccessibleLabel: =
+            ReceiptText: ="Text"
+            ReportAccessibleLabel: ="Text"
             ReportText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
             SelectedTab: =2
             Visible: =!varCntSelect
