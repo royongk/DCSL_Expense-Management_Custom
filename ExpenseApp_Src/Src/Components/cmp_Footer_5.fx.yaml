@@ -1,0 +1,256 @@
+cmp_Footer_5 As CanvasComponent:
+    OnApprovalsButtonClick():
+        ThisProperty:
+            Default: =true
+    ApprovalsAccessibleLabel: ="Text"
+    ApprovalsText: ="Text"
+    DisplayMode: =true
+    ExpenseAccessibleLabel: ="Text"
+    ExpensesText: ="Text"
+    Fill: =RGBA(248, 248, 248, 0.94)
+    Height: =84
+    OnExpensesButtonClick: ="Text"
+    OnReceiptsButtonClick: ="Text"
+    OnReportsButtonClick: =true
+    OnReset: =Set(varSelectedTab,cmp_Footer_5.paramInDefaultSelectedTab)
+    paramInDefaultAppMode: ="텍스트"
+    paramInDefaultSelectedTab: =2
+    paramOutSelectedTabIndex: =
+    ReceiptAccessibleLabel: =
+    ReceiptText: ="Text"
+    ReportAccessibleLabel: ="Text"
+    ReportText: ="Text"
+    SelectedTab: =100
+    Width: =Max(App.Width, App.MinScreenWidth)
+    X: =0
+    Y: =0
+    ZIndex: =1
+
+    cmp_footer_rct_Seprator_9 As rectangle:
+        Fill: =RGBA(200, 200, 200, 1)
+        Height: =0.85
+        Width: =Parent.Width
+        ZIndex: =1
+
+    expensesRegion_3 As rectangle:
+        AccessibleLabel: |-
+            =If(
+                cmp_Footer_5.SelectedTab = 2,
+                "Expenses, selected",
+                "Expenses"
+            )
+        DisplayMode: |-
+            =If(
+                cmp_Footer_5.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Fill: =RGBA(0, 0, 0, 0)
+        FocusedBorderThickness: =0
+        Height: =84
+        HoverFill: =
+        OnSelect: =Select(cmp_footer_img_Expenses_8)
+        PressedFill: =
+        TabIndex: =0
+        Width: |-
+            =If(
+                cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "AirfareAllowance"],
+                Parent.Width/3,
+                Parent.Width/2
+            )
+        ZIndex: =3
+
+    reportsRegion_3 As rectangle:
+        AccessibleLabel: |-
+            =If(
+                cmp_Footer_5.SelectedTab = 3,
+                "Reports, selected",
+                "Reports"
+            )
+        DisplayMode: |-
+            =If(
+                cmp_Footer_5.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Fill: =RGBA(0, 0, 0, 0)
+        FocusedBorderThickness: =0
+        Height: =84
+        HoverFill: =
+        OnSelect: =Select(cmp_footer_img_Reports_8)
+        PressedFill: =
+        TabIndex: =0
+        Width: |-
+            =If(
+                cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "AirfareAllowance"],
+                Parent.Width/3,
+                Parent.Width/2
+            )
+        X: =Self.Width
+        ZIndex: =4
+
+    approvalsRegion_3 As rectangle:
+        AccessibleLabel: |-
+            =If(
+                cmp_Footer_5.SelectedTab = 4,
+                "Approvals, selected",
+                "Approvals"
+            )
+        DisplayMode: |-
+            =If(
+                cmp_Footer_5.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Fill: =RGBA(0, 0, 0, 0)
+        FocusedBorderThickness: =0
+        Height: =84
+        HoverFill: =
+        OnSelect: =Select(cmp_footer_img_Approvals_2)
+        PressedFill: =
+        TabIndex: =0
+        Visible: |-
+            =If(
+                cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "AirfareAllowance"],
+                true,
+                false
+            )
+        Width: =Parent.Width/3
+        X: =2 * Self.Width
+        ZIndex: =5
+
+    cmp_footer_img_Reports_8 As image:
+        DisplayMode: |-
+            =If(
+                cmp_Footer_5.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Height: =28.16
+        Image: =If( Value(cmp_Footer_5.paramInDefaultSelectedTab=3),IcnFooterReportsSelected, IcnFooterReportsUnSelected)
+        OnSelect: =cmp_Footer_5.OnReportsButtonClick()
+        Width: =28.16
+        X: =reportsRegion_3.X + (reportsRegion_3.Width - Self.Width)/2
+        Y: =14.88
+        ZIndex: =7
+
+    cmp_footer_img_Approvals_2 As image:
+        Height: =28.16
+        Image: |-
+            =If(
+                cmp_Footer_5.paramInDefaultAppMode = "CashAdvance",
+                If(
+                    Value(cmp_Footer_5.paramInDefaultSelectedTab=4),
+                    cashSelectedIcon,
+                    cashDeselectedIcon
+                ),
+                If(
+                    cmp_Footer_5.paramInDefaultAppMode = "AirfareAllowance",
+                    If(
+                        Value(cmp_Footer_5.paramInDefaultSelectedTab=4),
+                        travelSelected,
+                        travelDeselectedIcon
+                    ),
+                    If(
+                        Value(cmp_Footer_5.paramInDefaultSelectedTab=4),
+                        approvalsSelectedIcon,
+                        approvalsIcon
+                    )
+                )
+            )
+        OnSelect: =cmp_Footer_5.OnApprovalsButtonClick()
+        Visible: =approvalsRegion_3.Visible
+        Width: =28.16
+        X: =approvalsRegion_3.X + (approvalsRegion_3.Width - Self.Width)/2
+        Y: =14.88
+        ZIndex: =8
+
+    cmp_footer_img_Expenses_8 As image:
+        DisplayMode: |-
+            =If(
+                cmp_Footer_5.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Height: =28.16
+        Image: =If( cmp_Footer_5.paramInDefaultSelectedTab=2,IcnFooterExpenseSelected,IcnFooterExpenseUnSelected)
+        OnSelect: =cmp_Footer_5.OnExpensesButtonClick()
+        Width: =28.16
+        X: =expensesRegion_3.X + (expensesRegion_3.Width - Self.Width)/2
+        Y: =16.59
+        ZIndex: =9
+
+    cmp_footer_lbl_Expenses_8 As label:
+        Align: =Align.Center
+        Color: =If(varSelectedTab=2,RGBA(34, 102, 227, 1), RGBA(110, 110, 110, 1))
+        DisplayMode: |-
+            =If(
+                cmp_Footer_5.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Font: =Font.'Segoe UI'
+        Height: =28
+        PaddingBottom: =0
+        PaddingTop: =0
+        Size: =16
+        Text: =cmp_Footer_5.ExpensesText
+        Width: |-
+            =If(
+                cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "AirfareAllowance"],
+                App.Width / 3,
+                App.Width / 2
+            )
+        Wrap: =false
+        X: =expensesRegion_3.X
+        Y: =49.49
+        ZIndex: =11
+
+    cmp_footer_lbl_Reports_8 As label:
+        Align: =Align.Center
+        Color: =If(varSelectedTab=3,RGBA(34, 102, 227, 1), RGBA(110, 110, 110, 1))
+        DisplayMode: |-
+            =If(
+                cmp_Footer_5.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Font: =Font.'Segoe UI'
+        Height: =28
+        PaddingBottom: =0
+        PaddingTop: =0
+        Size: =16
+        Text: =cmp_Footer_5.ReportText
+        Width: |-
+            =If(
+                cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "AirfareAllowance"],
+                App.Width / 3,
+                App.Width / 2
+            )
+        Wrap: =false
+        X: =reportsRegion_3.X
+        Y: =49.49
+        ZIndex: =12
+
+    cmp_footer_lbl_Approvals_2 As label:
+        Align: =Align.Center
+        Color: =If(varSelectedTab=4,RGBA(34, 102, 227, 1), RGBA(110, 110, 110, 1))
+        DisplayMode: |-
+            =If(
+                cmp_Footer_5.DisplayMode,
+                DisplayMode.Edit,
+                DisplayMode.View
+            )
+        Font: =Font.'Segoe UI'
+        Height: =28
+        PaddingBottom: =0
+        PaddingTop: =0
+        Size: =16
+        Text: =cmp_Footer_5.ApprovalsText
+        Visible: =approvalsRegion_3.Visible
+        Width: =App.Width / 3
+        Wrap: =false
+        X: =approvalsRegion_3.X
+        Y: =49.49
+        ZIndex: =13
+
