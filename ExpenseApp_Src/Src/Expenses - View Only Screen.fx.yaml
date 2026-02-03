@@ -29,7 +29,7 @@
             }
         );
         // 3-level category selection variables
-        UpdateContext({varSelectedDepartment: Blank()});
+        UpdateContext({varSelectedExpenseType: Blank()});
         UpdateContext({varSelectedBenefitType: Blank()});
         // Load existing Department and Benefit Type from Expense Category (reverse lookup)
         With(
@@ -45,16 +45,16 @@
                     {
                         mappingRecord: LookUp(
                             'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            'Expense category' = expenseCategory
+                            'Item or Service' = expenseCategory
                         )
                     },
                     If(
                         !IsBlank(mappingRecord),
                         UpdateContext({
-                            varSelectedDepartment: mappingRecord.Department
+                            varSelectedExpenseType: mappingRecord.'Expense Type'
                         });
                         UpdateContext({
-                            varSelectedBenefitType: mappingRecord.'Benefit Type'
+                            varSelectedBenefitType: mappingRecord.'Purchase Category'
                         })
                     )
                 )
@@ -563,19 +563,19 @@
                 AllowedValues: |-
                     =Distinct(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                        Department
+                        'Expense Type'
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_department"
-                Default: =varSelectedDepartment
+                Default: =varSelectedExpenseType
                 DisplayMode: =DisplayMode.View
                 DisplayName: ="Department"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =varSelectedDepartment
-                Visible: =!IsBlank(varSelectedDepartment)
+                Update: =varSelectedExpenseType
+                Visible: =!IsBlank(varSelectedExpenseType)
                 Width: =Parent.Width
                 X: =1
                 Y: =expenseCategoryFieldOrder_Y - 120
@@ -602,7 +602,7 @@
                     Font: =Font.'Segoe UI'
                     Height: =48
                     Size: =21
-                    Text: =varSelectedDepartment
+                    Text: =varSelectedExpenseType
                     Width: =Parent.Width - 60
                     Wrap: =false
                     X: =30
@@ -612,13 +612,13 @@
             BenefitType_DataCard_ViewOnly As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =If(
-                        !IsBlank(varSelectedDepartment),
+                        !IsBlank(varSelectedExpenseType),
                         Filter(
                             Distinct(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                'Benefit Type'
+                                'Purchase Category'
                             ),
-                            Department = varSelectedDepartment
+                            Department = varSelectedExpenseType
                         ),
                         []
                     )
