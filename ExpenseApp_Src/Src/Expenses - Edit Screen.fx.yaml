@@ -7,7 +7,27 @@
         UpdateContext({onReloadButtonClick: false});
         // 3-level category selection variables
         UpdateContext({varSelectedExpenseType: Blank()});
-        UpdateContext({varSelectedBenefitType: Blank()});
+        UpdateContext({varSelectedBenefitType: 
+            With(
+                {
+                    // 1. varAppMode에 따라 선택해야 할 텍스트를 먼저 결정
+                    TargetText: Switch(
+                        varAppMode,
+                        "ExpenseReport", "Expense Reimbursement",
+                        "AirfareAllowance", "Allowance",
+                        "BillingTripSettlement", "Billing Trip Settlement",
+                        "EmployeeBenefit", "Employee Benefit",
+                        Blank()
+                    )
+                },
+                // 2. Distinct 결과와 형식을 맞추기 위해 { Value: ... } 형태의 테이블 생성
+                If(
+                    !IsBlank(TargetText),
+                    Table( { Value: TargetText } ), 
+                    Blank()
+                )
+            )
+        });
         UpdateContext({varSelectedBenefitTypeValue: ""});
         UpdateContext({varSelectedItemOrService: Blank()});
         UpdateContext({curCategory: If(!varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'), varSelectedExpenseDoc.'Expense category (mserp_costtype)', Blank())});
@@ -814,7 +834,6 @@
             scr03_ico_DeleteReceipt As icon.Trash:
                 AccessibleLabel: ="Delete receipt"
                 Color: =RGBA(195, 39, 39, 1)
-                FillPortions: =0
                 Height: =24
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
@@ -1524,11 +1543,7 @@
                         Distinct(
                             Filter(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                'Expense Type' = varSelectedExpenseType &&
-                                (
-                                    (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
-                                    (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
-                                )
+                                'Expense Type' = varSelectedExpenseType
                             ),
                             'Purchase Category'
                         ),
@@ -1576,11 +1591,7 @@
                                 Distinct(
                                     Filter(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        'Expense Type' = varSelectedExpenseType &&
-                                        (
-                                            (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
-                                            (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
-                                        )
+                                        'Expense Type' = varSelectedExpenseType
                                     ),
                                     'Purchase Category'
                                 ),
@@ -1601,11 +1612,7 @@
                                 Filter(
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
                                     !IsBlank(varSelectedExpenseType) && 
-                                    'Expense Type' = varSelectedExpenseType &&
-                                    (
-                                        (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
-                                        (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
-                                    )
+                                    'Expense Type' = varSelectedExpenseType
                                 ),
                                 'Purchase Category'
                             ),
@@ -1654,7 +1661,7 @@
                             Clear(colExpenseCategories) // 조건 불충족 시 초기화
                         )
                     SearchFields: =["Value"]
-                    SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank(varSelectedDepartment)&&'Expense Type'=varSelectedDepartment&&((varAppMode="AirfareAllowance"&&Airfare='NoYes (mserp)'.Yes)||(varAppMode<>"AirfareAllowance"&&Airfare='NoYes (mserp)'.No))),'Purchase Category'),"Value",SortOrder.Ascending),ComboBox_PurchaseCategory.SearchText,Value)
+                    SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType),'Purchase Category'),"Value",SortOrder.Ascending),ComboBox_PurchaseCategory.SearchText,Value)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -1676,151 +1683,6 @@
                     Width: =30
                     Wrap: =false
                     Y: =PurchaseCategory_DataCardKey.Y
-                    ZIndex: =4
-
-            ItemOrService_DataCard As typedDataCard.allowedValuesStringEditCard:
-                AllowedValues: |-
-                    =If(
-                        !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedBenefitType),
-                        SortByColumns(
-                            Distinct(
-                                Filter(
-                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank('Item or Service') &&
-                                    'Expense Type' = varSelectedExpenseType &&
-                                    'Purchase Category' = varSelectedBenefitType
-                                ),
-                                'Item or Service'
-                            ),
-                            "mserp_expensecategory",
-                            SortOrder.Ascending
-                        ),
-                        []
-                    )
-                BorderColor: =gblParams.dropDownBorderColor
-                BorderStyle: =BorderStyle.Solid
-                Default: =varSelectedItemOrService
-                DisplayMode: =Parent.DisplayMode
-                DisplayName: ="Item or Service"
-                Fill: =RGBA(0, 0, 0, 0)
-                Height: =50
-                Required: =false
-                Update: =ComboBox_ItemOrService.Selected.'Item or Service'
-                Visible: =true
-                Width: =Parent.Width
-                X: =1
-                Y: =expenseCategoryFieldOrder_Y - 30
-                ZIndex: =1
-
-                ItemOrService_DataCardKey As label:
-                    AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =gblParams.dropDownLabelColor
-                    FocusedBorderThickness: =
-                    Font: =Font.'Segoe UI'
-                    Height: =48
-                    Size: =21
-                    Text: =Parent.DisplayName
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =10
-                    ZIndex: =1
-
-                ComboBox_ItemOrService As combobox:
-                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
-                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                    DefaultSelectedItems: |-
-                        =If(
-                            !IsBlank(varSelectedItemOrService),
-                            LookUp(
-                                Distinct(
-                                    Filter(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        !IsBlank('Item or Service') &&
-                                        'Expense Type' = varSelectedExpenseType &&
-                                        'Purchase Category' = varSelectedBenefitType
-                                    ),
-                                    'Item or Service'
-                                ),
-                                'Item or Service' = varSelectedItemOrService
-                            ),
-                            Blank()
-                        )
-                    DisplayFields: =["mserp_expensecategory"]
-                    DisplayMode: |-
-                        =If(
-                            IsBlank(ComboBox_ExpenseType.Selected) || IsBlank(ComboBox_PurchaseCategory.Selected),
-                            DisplayMode.Disabled,
-                            Parent.DisplayMode
-                        )
-                    FocusedBorderThickness: =2
-                    Height: =gblParams.dropDownHeight
-                    HoverFill: =gblParams.dropDownHoverFill
-                    InputTextPlaceholder: ="Select Item or Service"
-                    IsSearchable: =false
-                    Items: |-
-                        =SortByColumns(
-                            Distinct(
-                                Filter(
-                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank('Item or Service') &&
-                                    !IsBlank(varSelectedExpenseType) &&
-                                    'Expense Type' = varSelectedExpenseType &&
-                                    !IsBlank(varSelectedBenefitType) &&
-                                    'Purchase Category' = varSelectedBenefitType
-                                ),
-                                'Item or Service'
-                            ),
-                            "mserp_expensecategory",
-                            SortOrder.Ascending
-                        )
-                    NoSelectionText: ="Select Item or Service"
-                    OnChange: |-
-                        =UpdateContext({varSelectedItemOrService: Parent.Update.'Item or Service'})
-                    SearchFields: =["mserp_expensecategory"]
-                    SearchItems: |-
-                        =Search(
-                            SortByColumns(
-                                Distinct(
-                                    Filter(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        !IsBlank('Item or Service') &&
-                                        !IsBlank(varSelectedExpenseType) &&
-                                        'Expense Type' = varSelectedExpenseType &&
-                                        !IsBlank(varSelectedBenefitType) &&
-                                        'Purchase Category' = varSelectedBenefitType
-                                    ),
-                                    'Item or Service'
-                                ),
-                                "mserp_expensecategory",
-                                SortOrder.Ascending
-                            ),
-                            ComboBox_ItemOrService.SearchText,
-                            'Item or Service'
-                        )
-                    SelectionColor: =Color.Black
-                    SelectionFill: =gblParams.dropDownBorderColor
-                    SelectionTagColor: =RGBA(0, 0, 0, 1)
-                    SelectMultiple: =false
-                    Size: =24
-                    Width: =Parent.Width - 2 * Self.X
-                    X: =30
-                    Y: =ItemOrService_DataCardKey.Y + ItemOrService_DataCardKey.Height + 5
-                    ZIndex: =2
-
-                ItemOrService_StarVisible As label:
-                    Align: =Align.Center
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =RGBA(0, 18, 107, 1)
-                    Height: =ItemOrService_DataCardKey.Height
-                    Size: =21
-                    Text: ="*"
-                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                    Width: =30
-                    Wrap: =false
-                    Y: =ItemOrService_DataCardKey.Y
                     ZIndex: =4
 
             "'Expense category_DataCard3_3' As typedDataCard.allowedValuesStringEditCard":
@@ -11011,6 +10873,132 @@
                     Width: =30
                     Wrap: =false
                     Y: =Project_DataCardKey.Y
+                    ZIndex: =4
+
+            ItemOrService_DataCard As typedDataCard.allowedValuesStringEditCard:
+                AllowedValues: |-
+                    =If(
+                        !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedBenefitType),
+                        SortByColumns(
+                            Distinct(
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    !IsBlank('Item or Service') &&
+                                    'Expense Type' = varSelectedExpenseType &&
+                                    'Purchase Category' = varSelectedBenefitType
+                                ),
+                                'Item or Service'
+                            ),
+                            "Value",
+                            SortOrder.Ascending
+                        ),
+                        []
+                    )
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                Default: =varSelectedItemOrService
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: ="Item or Service"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =ComboBox_ItemOrService.Selected.'Item or Service'
+                Visible: =true
+                Width: =Parent.Width
+                X: =1
+                Y: =expenseCategoryFieldOrder_Y - 30
+                ZIndex: =1
+
+                ItemOrService_DataCardKey As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                ComboBox_ItemOrService As combobox:
+                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(varSelectedItemOrService),
+                            LookUp(
+                                Distinct(
+                                    Filter(
+                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                        !IsBlank('Item or Service') &&
+                                        'Expense Type' = varSelectedExpenseType &&
+                                        'Purchase Category' = varSelectedBenefitType
+                                    ),
+                                    'Item or Service'
+                                ),
+                                Value = varSelectedItemOrService
+                            ),
+                            Blank()
+                        )
+                    DisplayFields: =["Value"]
+                    DisplayMode: |-
+                        =If(
+                            IsBlank(ComboBox_ExpenseType.Selected) || IsBlank(ComboBox_PurchaseCategory.Selected),
+                            DisplayMode.Disabled,
+                            Parent.DisplayMode
+                        )
+                    FocusedBorderThickness: =2
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
+                    InputTextPlaceholder: ="Select Item or Service"
+                    IsSearchable: =false
+                    Items: |-
+                        =SortByColumns(
+                            Distinct(
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    !IsBlank('Item or Service') &&
+                                    !IsBlank(varSelectedExpenseType) &&
+                                    'Expense Type' = varSelectedExpenseType &&
+                                    !IsBlank(varSelectedBenefitType) &&
+                                    'Purchase Category' = varSelectedBenefitType
+                                ),
+                                'Item or Service'
+                            ),
+                            "Value",
+                            SortOrder.Ascending
+                        )
+                    NoSelectionText: ="Select Item or Service"
+                    OnChange: |-
+                        =UpdateContext({varSelectedItemOrService: Parent.Update})
+                    SearchFields: =["Value"]
+                    SearchItems: =[]
+                    SelectionColor: =Color.Black
+                    SelectionFill: =gblParams.dropDownBorderColor
+                    SelectionTagColor: =RGBA(0, 0, 0, 1)
+                    SelectMultiple: =false
+                    Size: =24
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =ItemOrService_DataCardKey.Y + ItemOrService_DataCardKey.Height + 5
+                    ZIndex: =2
+
+                ItemOrService_StarVisible As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =ItemOrService_DataCardKey.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =ItemOrService_DataCardKey.Y
                     ZIndex: =4
 
     formModeRectangle As rectangle:
