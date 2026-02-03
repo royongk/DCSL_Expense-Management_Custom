@@ -1099,7 +1099,6 @@
                 =UpdateContext({varSubmittedExpTransNumber : EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'});
                 //attach receipt if any
                 UpdateContext({varAttachReceiptError : Blank()});
-                // Attach all receipts in local collection to this expense line
                 If(
                     IsBlank(varSelectedExpenseDoc) && !IsBlank(varSubmittedExpTransNumber),
                     // New expense line: use varSubmittedExpTransNumber
@@ -1134,42 +1133,15 @@
                         )
                     )
                 );
-
-                // Notify on attach error or success (if any)
-                If(
-                    !IsBlank(varAttachReceiptError) && !(Text(varAttachReceiptError.HttpStatusCode) = NotFoundStatusCode),
-                    Notify(
-                        Substitute(
-                            Substitute(
-                                Match(varAttachReceiptError.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                """message"":", 
-                                ""
-                            ),
-                            """",
-                            ""
-                        ),
-                        NotificationType.Error,
-                        gblParams.notificationTime
-                    ),
-                    If(
-                        CountRows(colAttachedReceipts) > 0,
-                        Notify(
-                            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptAttachedSuccessfullyLabel',
-                            NotificationType.Success,
-                            gblParams.notificationTime
-                        )
-                    )
-                );
-
                 // Refresh receipts collection after attaching
                 If(
-                    !IsBlank(EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'),
+                    !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
                                 'Expense Mobile Unattached Document Entity (mserp)',
-                                ExpTransNumber = EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'
+                                ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                             ),
                             "mserp_creatingdatetime",
                             SortOrder.Descending
@@ -1180,7 +1152,7 @@
                         !IsEmpty(colAttachedReceipts),
                         Patch(
                             'Expense lines (mserp)',
-                            EditExpenseForm.LastSubmit,
+                            varSelectedExpenseDoc,
                             {
                                 AttachedReceiptId: First(colAttachedReceipts).EntRecId
                             }
