@@ -6,14 +6,18 @@
         Set(varChangeCalled,false);
         Set(varCntShowConfirmationDialog,false);
         UpdateContext({varRotateImage: ImageRotation.None});
+        
         // Initialize varCurrentReceiptIndex if not set
         If(
             IsBlank(varCurrentReceiptIndex),
             Set(varCurrentReceiptIndex, 1)
         );
+        
         // Load all attached receipts for this expense line
+        // [1. 최상위 If 시작] 문서 정보가 있을 때만 실행
         If(
             !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+            
             ClearCollect(
                 colAttachedReceipts,
                 SortByColumns(
@@ -21,11 +25,13 @@
                         'Expense Mobile Unattached Document Entity (mserp)',
                         ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                     ),
-                    "CreatingDateTime",
+                    "mserp_creatingdatetime",
                     SortOrder.Descending
                 )
             );
+            
             // Find current receipt index
+            // [2. 내부 If 시작] 컬렉션 비어있는지 확인
             If(
                 !IsEmpty(colAttachedReceipts),
                 // Receipts collection is available
@@ -118,7 +124,8 @@
                         1
                     )
                 )
-            );
+            ) // [2. 내부 If 종료]
+        ); // [1. 최상위 If 종료] <--- 여기에 괄호 ')'가 필요합니다.
 
     imageView_footer_rectangle_1 As rectangle:
         Fill: =RGBA(37, 36, 35, 1)
@@ -372,7 +379,7 @@
                             'Expense Mobile Unattached Document Entity (mserp)',
                             ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                         ),
-                        "CreatingDateTime",
+                        "mserp_creatingdatetime",
                         SortOrder.Descending
                     )
                 );
@@ -601,27 +608,35 @@
             =If(
                 varCurrentReceiptIndex > 1,
                 With(
-                    {
-                        newIndex: varCurrentReceiptIndex - 1,
-                        receiptRecord: Index(colAttachedReceipts, newIndex)
+                    { 
+                        // 1단계: 새로운 인덱스 번호를 먼저 계산하여 정의합니다.
+                        newIndex: varCurrentReceiptIndex - 1 
                     },
-                    Set(
-                        varCurrentReceiptIndex,
-                        newIndex
-                    );
-                    Set(
-                        varSelectedReceiptForView,
-                        receiptRecord.EntRecId
-                    );
-                    Set(
-                        varReceiptImage,
-                        receiptRecord.CapturedDocument
-                    );
-                    Set(
-                        varFileFormat,
-                        receiptRecord.FileExtension
-                    );
-                    UpdateContext({varRotateImage: ImageRotation.None})
+                    With(
+                        { 
+                            // 2단계: 위에서 정의한 newIndex를 사용하여 레코드를 찾습니다.
+                            receiptRecord: Index(colAttachedReceipts, newIndex) 
+                        },
+                        
+                        // 3단계: 실제 동작을 수행합니다.
+                        Set(
+                            varCurrentReceiptIndex,
+                            newIndex
+                        );
+                        Set(
+                            varSelectedReceiptForView,
+                            receiptRecord.EntRecId
+                        );
+                        Set(
+                            varReceiptImage,
+                            receiptRecord.CapturedDocument
+                        );
+                        Set(
+                            varFileFormat,
+                            receiptRecord.FileExtension
+                        );
+                        UpdateContext({varRotateImage: ImageRotation.None})
+                    )
                 )
             )
         PressedFill: =RGBA(50, 50, 50, 1)
@@ -644,27 +659,35 @@
             =If(
                 varCurrentReceiptIndex < CountRows(colAttachedReceipts),
                 With(
-                    {
-                        newIndex: varCurrentReceiptIndex + 1,
-                        receiptRecord: Index(colAttachedReceipts, newIndex)
+                    { 
+                        // 1단계: 다음 인덱스 번호 먼저 계산
+                        newIndex: varCurrentReceiptIndex + 1 
                     },
-                    Set(
-                        varCurrentReceiptIndex,
-                        newIndex
-                    );
-                    Set(
-                        varSelectedReceiptForView,
-                        receiptRecord.EntRecId
-                    );
-                    Set(
-                        varReceiptImage,
-                        receiptRecord.CapturedDocument
-                    );
-                    Set(
-                        varFileFormat,
-                        receiptRecord.FileExtension
-                    );
-                    UpdateContext({varRotateImage: ImageRotation.None})
+                    With(
+                        { 
+                            // 2단계: 위에서 만든 newIndex를 사용하여 레코드 찾기
+                            receiptRecord: Index(colAttachedReceipts, newIndex) 
+                        },
+                        
+                        // 3단계: 실제 동작 수행
+                        Set(
+                            varCurrentReceiptIndex,
+                            newIndex
+                        );
+                        Set(
+                            varSelectedReceiptForView,
+                            receiptRecord.EntRecId
+                        );
+                        Set(
+                            varReceiptImage,
+                            receiptRecord.CapturedDocument
+                        );
+                        Set(
+                            varFileFormat,
+                            receiptRecord.FileExtension
+                        );
+                        UpdateContext({varRotateImage: ImageRotation.None})
+                    )
                 )
             )
         PressedFill: =RGBA(50, 50, 50, 1)

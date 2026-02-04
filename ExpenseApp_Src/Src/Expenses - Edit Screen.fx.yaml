@@ -8362,128 +8362,6 @@
                     Y: =DataCardKey39_1.Y + DataCardKey39_1.Height + 5
                     ZIndex: =2
 
-            "'Purchase Date_DataCard1_3' As typedDataCard.dateTimeEditCard":
-                BorderColor: =gblParams.dropDownBorderColor
-                BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_deexpurchasedate"
-                Default: =varSelectedExpenseDoc.'Purchase Date'
-                DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Purchase Date')
-                Fill: =RGBA(0, 0, 0, 0)
-                Height: =50
-                Required: =false
-                Update: =DatePickerCanvas_PurchaseDate.SelectedDate
-                Visible: =true
-                Width: =Parent.Width
-                X: =0
-                Y: =purchaseDateFieldOrder_Y
-                ZIndex: =1
-
-                PurchaseDate_DataCardKey As label:
-                    AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =gblParams.dropDownLabelColor
-                    FocusedBorderThickness: =
-                    Font: =Font.'Segoe UI'
-                    Height: =48
-                    Size: =21
-                    Text: =LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName) 
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =10
-                    ZIndex: =1
-
-                DateValue_PurchaseDate As datepicker:
-                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                    BorderThickness: =0
-                    Color: =gblParams.dropDownLabelColor
-                    DefaultDate: =DatePickerCanvas_PurchaseDate.SelectedDate
-                    DisplayMode: =Parent.DisplayMode
-                    EndYear: =Year(Today())+100
-                    FocusedBorderThickness: =
-                    Font: =Font.'Segoe UI'
-                    Height: =gblParams.dropDownHeight
-                    IsEditable: =true
-                    PaddingBottom: =0
-                    PaddingLeft: =If(Self.DisplayMode = DisplayMode.Edit, 5, 0)
-                    Size: =24
-                    StartYear: =1899
-                    TabIndex: =-1
-                    Tooltip: =Parent.DisplayName
-                    Visible: =false
-                    Width: =Parent.Width - 2 * Self.X
-                    X: =30
-                    Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
-                    ZIndex: =2
-
-                ErrorMessage_PurchaseDate As label:
-                    AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =RGBA(168, 0, 0, 1)
-                    Font: =Font.'Segoe UI'
-                    FontWeight: =FontWeight.Semibold
-                    Height: =10
-                    Live: =Live.Assertive
-                    PaddingBottom: =0
-                    PaddingLeft: =0
-                    PaddingRight: =0
-                    PaddingTop: =0
-                    Size: =gblParams.errorMessageSize
-                    Text: =Parent.Error
-                    Visible: =Parent.DisplayMode=DisplayMode.Edit
-                    Width: =Parent.Width - 60
-                    X: =30
-                    Y: =DateValue_PurchaseDate.Y + DateValue_PurchaseDate.Height
-                    ZIndex: =6
-
-                StarVisible_PurchaseDate As label:
-                    Align: =Align.Center
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =RGBA(0, 18, 107, 1)
-                    Height: =PurchaseDate_DataCardKey.Height
-                    Size: =21
-                    Text: ="*"
-                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                    Width: =30
-                    Wrap: =false
-                    Y: =PurchaseDate_DataCardKey.Y
-                    ZIndex: =7
-
-                "DatePickerCanvas_PurchaseDate As '날짜 선택'":
-                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
-                    Appearance: ="FilledDarker"
-                    BasePaletteColor: =
-                    BorderColor: =
-                    BorderStyle: =""
-                    DisplayMode: =DisplayMode.Edit
-                    Fill: =
-                    Font: =""
-                    FontColor: =
-                    FontItalic: =false
-                    FontSize: =App.Height * gblDatePickerResolutionFactor
-                    FontStrikethrough: =false
-                    FontUnderline: =false
-                    FontWeight: =""
-                    Height: =gblParams.dropDownHeight
-                    IsEditable: =true
-                    OnChange: |-
-                        =UpdateContext({isDirty : true})
-                    Placeholder: |-
-                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
-                    Required: =false
-                    SelectedDate: |-
-                        =If(
-                            varIsCreate,
-                            Blank(),
-                            varSelectedExpenseDoc.'Purchase Date'
-                        )
-                    ValidationState: ="None"
-                    Width: =Parent.Width - 2 * Self.X
-                    X: =30
-                    Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
-                    ZIndex: =8
-
             "'Additional information_DataCard1_3' As typedDataCard.textualEditCard":
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
@@ -11127,6 +11005,131 @@
                     Wrap: =false
                     Y: =ItemOrService_DataCardKey.Y
                     ZIndex: =4
+
+            "'Purchase Date_DataCard1_3' As typedDataCard.dateTimeEditCard":
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexpurchasedate"
+                Default: =varSelectedExpenseDoc.'Purchase Date'
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Purchase Date')
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =true
+                Update: =DatePickerCanvas_PurchaseDate.SelectedDate
+                Visible: =true
+                Width: =Parent.Width
+                X: =0
+                Y: =purchaseDateFieldOrder_Y
+                ZIndex: =1
+
+                PurchaseDate_DataCardKey As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: |-
+                        =//LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName) 
+                        "Purchase date"
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                DateValue_PurchaseDate As datepicker:
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =0
+                    Color: =gblParams.dropDownLabelColor
+                    DefaultDate: =DatePickerCanvas_PurchaseDate.SelectedDate
+                    DisplayMode: =Parent.DisplayMode
+                    EndYear: =Year(Today())+100
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    Height: =gblParams.dropDownHeight
+                    IsEditable: =true
+                    PaddingBottom: =0
+                    PaddingLeft: =If(Self.DisplayMode = DisplayMode.Edit, 5, 0)
+                    Size: =24
+                    StartYear: =1899
+                    TabIndex: =-1
+                    Tooltip: =Parent.DisplayName
+                    Visible: =false
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
+                    ZIndex: =2
+
+                ErrorMessage_PurchaseDate As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(168, 0, 0, 1)
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =10
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =gblParams.errorMessageSize
+                    Text: =Parent.Error
+                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =DateValue_PurchaseDate.Y + DateValue_PurchaseDate.Height
+                    ZIndex: =6
+
+                StarVisible_PurchaseDate As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =PurchaseDate_DataCardKey.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =PurchaseDate_DataCardKey.Y
+                    ZIndex: =7
+
+                "DatePickerCanvas_PurchaseDate As '날짜 선택'":
+                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
+                    Appearance: ="FilledDarker"
+                    BasePaletteColor: =
+                    BorderColor: =
+                    BorderStyle: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Fill: =
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =App.Height * gblDatePickerResolutionFactor
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =gblParams.dropDownHeight
+                    IsEditable: =true
+                    OnChange: |-
+                        =UpdateContext({isDirty : true})
+                    Placeholder: |-
+                        =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
+                        "Enter Purchase date"
+                    Required: =false
+                    SelectedDate: |-
+                        =If(
+                            varIsCreate,
+                            Blank(),
+                            varSelectedExpenseDoc.'Purchase Date'
+                        )
+                    ValidationState: ="None"
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
+                    ZIndex: =8
 
     formModeRectangle As rectangle:
         Fill: =RGBA(0, 0, 0, 0)
