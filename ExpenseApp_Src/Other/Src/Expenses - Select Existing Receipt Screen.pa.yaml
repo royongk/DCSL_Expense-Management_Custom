@@ -11,7 +11,23 @@ Screens:
     Properties:
       Fill: =RGBA(255, 255, 255, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =// Initialize multi-select state for existing receipts
+        Clear(colSelectedExistingReceipts);
     Children:
+      - scr10_lbl_Skip:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Segoe UI'
+            FontWeight: =FontWeight.Semibold
+            Height: =33
+            OnSelect: |-
+              =Navigate('Expenses - Edit Screen',ScreenTransition.Fade,{locItemizeButtonVisibilityFlag: false})
+            Size: =13
+            Width: =150
       - attachmentControl - Expense_1:
           Control: Attachments@2.3.0
           Properties:
@@ -39,42 +55,15 @@ Screens:
             Items.Name: =Name
             Items.Value: =Value
             MaxAttachmentSize: =15
-            MaxAttachments: =1
+            MaxAttachments: =10
             MaxAttachmentsText: =
             NoAttachmentsText: =
-            OnAddFile: |
-              =Set(
-                  varReceiptFileName,
-                  First(Self.Attachments).Name
-              );
-              Set(
-                  varReceiptImage,
-                  First(Self.Attachments).Value
-              );
-              ClearCollect(
-                  colDeviceAttachedFile,
-                  Self.Attachments
-              );
-              ClearCollect(
-                  colFileSplit,
-                  ForAll(
-                      Lower(
-                          ForAll(
-                              Split(
-                                  varReceiptFileName,
-                                  "."
-                              ),
-                              {Result: ThisRecord.Value}
-                          )
-                      ),
-                      {Result: ThisRecord.Value}
-                  )
-              );
-              Set(
-                  varFileFormat,
-                  Last(colFileSplit).Result
-              );
-              Navigate('Expenses - Preview Receipt Screen')
+            OnAddFile: |-
+              =// Multi-select upload from device: keep attachments in a collection and upload on Done
+              ClearCollect(colDeviceAttachedFile, Self.Attachments);
+              Set(varReceiptImage, Blank());
+              Set(varFileFormat, Blank());
+              Set(varReceiptFileName, Blank());
             OnRemoveFile: |-
               =ClearCollect(colDeviceAttachedFile, Self.Attachments);
               Clear(colFileSplit);
@@ -259,23 +248,12 @@ Screens:
                                     LayoutMaxHeight: =
                                     LayoutMaxWidth: =
                                     OnSelect: |-
-                                      =Set(
-                                          varSelectedReceiptNumber,
-                                          ThisItem.EntRecId
-                                      );
-                                      Set(
-                                          varFileFormat,
-                                          ThisItem.FileExtension
-                                      );
-                                      Set(
-                                          IsreceiptALreadyCreated, 
-                                          true
-                                      );
-                                      Set(
-                                          varReceiptImage,
-                                         ThisItem.CapturedDocument
-                                      );
-                                      Navigate('Expenses - Preview Receipt Screen')
+                                      =// Toggle selection for multi-attach (do not navigate)
+                                      If(
+                                          IsBlank(LookUp(colSelectedExistingReceipts, EntRecId = ThisItem.EntRecId)),
+                                          Collect(colSelectedExistingReceipts, {EntRecId: ThisItem.EntRecId}),
+                                          RemoveIf(colSelectedExistingReceipts, EntRecId = ThisItem.EntRecId)
+                                      )
                                     Width: =24
                                     X: =33
                                     Y: =201
@@ -290,29 +268,31 @@ Screens:
                                     LayoutMaxHeight: =
                                     LayoutMaxWidth: =
                                     OnSelect: |-
-                                      =Set(
-                                          varSelectedReceiptNumber,
-                                          ThisItem.EntRecId
-                                      );
-                                      Set(
-                                          varFileFormat,
-                                          ThisItem.FileExtension
-                                      );
-                                      Set(
-                                          IsreceiptALreadyCreated, 
-                                          true
-                                      );
-                                      Set(
-                                          varReceiptImage,
-                                          ThisItem.CapturedDocument
-                                      );
-                                      Navigate('Expenses - Preview Receipt Screen')
+                                      =// Toggle selection for multi-attach (do not navigate)
+                                      If(
+                                          IsBlank(LookUp(colSelectedExistingReceipts, EntRecId = ThisItem.EntRecId)),
+                                          Collect(colSelectedExistingReceipts, {EntRecId: ThisItem.EntRecId}),
+                                          RemoveIf(colSelectedExistingReceipts, EntRecId = ThisItem.EntRecId)
+                                      )
                                     TabIndex: =0
                                     Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachLabel'
                                     VerticalAlign: =VerticalAlign.Top
                                     Width: =101
                                     X: =scr10_icn_AttachIcn_2.X + scr10_icn_AttachIcn_2.Width + 8
                                     Y: =scr10_icn_AttachIcn_2.Y - 10
+                              - scr10_icn_SelectedCheck:
+                                  Control: Classic/Icon@2.5.0
+                                  Properties:
+                                    AccessibleLabel: ="Selected"
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: =Color.White
+                                    Height: =24
+                                    Icon: =Icon.Check
+                                    OnSelect: =Select(scr10_icn_AttachIcn_2)
+                                    Visible: =!IsBlank(LookUp(colSelectedExistingReceipts, EntRecId = ThisItem.EntRecId))
+                                    Width: =24
+                                    X: =Parent.Width - Self.Width - 20
+                                    Y: =(Parent.Height - Self.Height) / 2
       - scr10_img_SelectedReceipt:
           Control: Image@2.2.3
           Properties:
@@ -351,21 +331,156 @@ Screens:
             Width: =icongconfig_backbutton.Width
             X: =22.5
             Y: =(scr10_hdr_TopHeader.Height-Self.Height)/2
-      - scr10_lbl_Skip:
-          Control: Label@2.5.1
+      - scr10_btn_DoneMultiAttach:
+          Control: Classic/Button@2.2.0
           Properties:
-            Align: =Align.Center
-            BorderColor: =RGBA(0, 18, 107, 1)
+            BorderColor: =ColorFade(Self.Fill, -15%)
             Color: =RGBA(255, 255, 255, 1)
-            Font: =Font.'Segoe UI'
-            FontWeight: =FontWeight.Semibold
-            Height: =33
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Open Sans'
+            Height: =72
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
             OnSelect: |-
-              =Navigate('Expenses - Edit Screen',ScreenTransition.Fade,{locItemizeButtonVisibilityFlag: false})
-            Size: =17
-            TabIndex: =0
-            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_SkipLabel'
-            Width: =scr10_hdr_TopHeader.Width * 0.235
-            Wrap: =false
-            X: =(Parent.Width - Self.Width) - 15
-            Y: =24
+              =// Commit selected existing receipts into attached receipts collection
+              ForAll(
+                  colSelectedExistingReceipts As sel,
+                  With(
+                      {
+                          receiptRecord: LookUp(
+                              'Expense Mobile Unattached Document Entity (mserp)',
+                              EntRecId = sel.EntRecId
+                          )
+                      },
+                      If(
+                          !IsBlank(receiptRecord) &&
+                          IsBlank(LookUp(colAttachedReceipts, EntRecId = receiptRecord.EntRecId)),
+                          Collect(colAttachedReceipts, receiptRecord)
+                      )
+                  )
+              );
+              // Set preview vars to first receipt for backward compatibility UI
+              If(
+                  !IsEmpty(colAttachedReceipts),
+                  Set(varReceiptImage, First(colAttachedReceipts).CapturedDocument);
+                  Set(varFileFormat, First(colAttachedReceipts).FileExtension)
+              );
+              Clear(colSelectedExistingReceipts);
+              Navigate('Expenses - Edit Screen', ScreenTransition.None, {locItemizeButtonVisibilityFlag: false})
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Size: =20
+            Text: ="Done"
+            Visible: =CountRows(colSelectedExistingReceipts) > 0
+            Width: =Parent.Width - 80
+            X: =40
+            Y: ='attachmentControl - Expense_1'.Y - Self.Height - 20
+      - scr10_btn_UploadDeviceFiles:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(34, 102, 227, 1)
+            Font: =Font.'Open Sans'
+            Height: =72
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: |-
+              =// 1. [단계 1] 파일 일괄 업로드 및 결과 수집 (Set 제거)
+              // ForAll은 각 파일에 대한 API 호출 결과를 반환하며, 이를 colUploadResults 컬렉션에 저장합니다.
+              ClearCollect(
+                  colUploadResults,
+                  ForAll(
+                      colDeviceAttachedFile As f,
+                      With(
+                          {
+                              // 바이너리 데이터 변환 로직 (중복 호출 방지 최적화)
+                              jsonRaw: JSON(f.Value, JSONFormat.IncludeBinaryData)
+                          },
+                          With(
+                              {
+                                  b64: Mid(jsonRaw, Find(",", jsonRaw) + 1, Len(jsonRaw) - Find(",", jsonRaw) - 1),
+                                  contentType: Mid(jsonRaw, Find(":", jsonRaw) + 1, (Find(";", jsonRaw) - 1) - (Find(":", jsonRaw) + 1) + 1),
+                                  ext: Lower(Last(Split(f.Name, ".")).Value),
+                                  fileName: f.Name
+                              },
+                              // F&O API 호출 (Set 없이 결과값 자체를 반환)
+                              'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_uploadlargeimage(
+                                  LookUp('Expense mobile master data (mserp)', Email = User().Email).'Expense mobile master data (mserp)',
+                                  {
+                                      imageBase64: b64,
+                                      ContentType: contentType,
+                                      FileExtension: ext,
+                                      FileName: fileName
+                                  }
+                              )
+                          )
+                      )
+                  )
+              );
+
+              // 2. [단계 2] 데이터 리프레시 및 앱 내 데이터 연결
+              // 업로드가 완료된 후 데이터 소스를 1회만 갱신합니다. (성능 향상)
+              Refresh('Expense Mobile Unattached Document Entity (mserp)');
+
+              // 수집된 업로드 결과(colUploadResults)를 순회하며 실제 영수증 레코드를 찾아 colAttachedReceipts에 추가
+              ForAll(
+                  colUploadResults As resp,
+                  With(
+                      {
+                          // API 응답에서 RecId 추출 (응답 구조에 따라 경로 확인 필요)
+                          newId: Value(ParseJSON(resp.return).DocuRefRecId)
+                      },
+                      If(
+                          !IsBlank(newId),
+                          With(
+                              {
+                                  // 새로 생성된 영수증 조회
+                                  newReceipt: LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = newId)
+                              },
+                              // 유효한 레코드이고 목록에 없으면 추가
+                              If(
+                                  !IsBlank(newReceipt) && IsBlank(LookUp(colAttachedReceipts, EntRecId = newReceipt.EntRecId)),
+                                  Collect(colAttachedReceipts, newReceipt)
+                              )
+                          )
+                      )
+                  )
+              );
+
+              // 3. [단계 3] UI 상태 업데이트 및 화면 이동
+              If(
+                  !IsEmpty(colAttachedReceipts),
+                  Set(varReceiptImage, First(colAttachedReceipts).CapturedDocument);
+                  Set(varFileFormat, First(colAttachedReceipts).FileExtension)
+              );
+
+              // 임시 컬렉션 정리
+              Clear(colDeviceAttachedFile);
+              Clear(colFileSplit);
+              Clear(colUploadResults); // 결과 컬렉션 초기화
+
+              // 화면 이동
+              Navigate('Expenses - Edit Screen', ScreenTransition.None, {locItemizeButtonVisibilityFlag: false})
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Size: =20
+            Text: ="Upload & Done"
+            Visible: =CountRows(colDeviceAttachedFile) > 0
+            Width: =Parent.Width - 80
+            X: =40
+            Y: =scr10_btn_DoneMultiAttach.Y - Self.Height - 12

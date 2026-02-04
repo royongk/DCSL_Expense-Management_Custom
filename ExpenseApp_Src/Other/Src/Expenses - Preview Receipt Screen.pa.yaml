@@ -96,6 +96,33 @@ Screens:
                       Substitute(JSON(scr05_img_Receipt.Image,JSONFormat.IncludeBinaryData),"""","")
                   )
               );
+              // Make sure the receipt record is available for lookup/collection
+              If(
+                  !IsBlank(varSelectedReceiptNumber),
+                  Refresh('Expense Mobile Unattached Document Entity (mserp)')
+              );
+              // Add or update selected receipt in local collection for UI (avoid duplicates)
+              With(
+                  {
+                      selectedReceipt:
+                          LookUp(
+                              'Expense Mobile Unattached Document Entity (mserp)',
+                              EntRecId = varSelectedReceiptNumber
+                          )
+                  },
+                  If(
+                      !IsBlank(selectedReceipt),
+                      If(
+                          IsBlank(
+                              LookUp(
+                                  colAttachedReceipts,
+                                  EntRecId = selectedReceipt.EntRecId
+                              )
+                          ),
+                          Collect(colAttachedReceipts, selectedReceipt)
+                      )
+                  )
+              );
               If(
                   varIsCreate && varOCREnabled && !IsBlank(varSelectedReceiptNumber),
                   UpdateContext({
@@ -139,28 +166,6 @@ Screens:
                       GlobalLabels.Labels.'15062:LocalizedName,msdyn_InvalidReceiptLabel',
                       NotificationType.Error,
                       gblParams.notificationTime
-                  )
-              );
-              // Add or update selected receipt in local collection for UI (avoid duplicates)
-              With(
-                  {
-                      selectedReceipt:
-                          LookUp(
-                              'Expense Mobile Unattached Document Entity (mserp)',
-                              EntRecId = varSelectedReceiptNumber
-                          )
-                  },
-                  If(
-                      !IsBlank(selectedReceipt),
-                      If(
-                          IsBlank(
-                              LookUp(
-                                  colAttachedReceipts,
-                                  EntRecId = selectedReceipt.EntRecId
-                              )
-                          ),
-                          Collect(colAttachedReceipts, selectedReceipt)
-                      )
                   )
               );
               Clear(colFileSplit);
