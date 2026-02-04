@@ -294,15 +294,15 @@ Screens:
                         Color: =Color.Black
                         FillPortions: =1
                         Font: =Font.'Segoe UI'
-                        Height: =Parent.Height
+                        Height: =scr03_img_ReceiptIcon.Height
                         LayoutMinHeight: =40
                         LayoutMinWidth: =150
-                        Size: =16
+                        Size: =14
                         Text: |-
                           =Coalesce(
-                              varReceiptFileName,                 // 1순위: 방금 선택한 신규 파일명
-                              ThisItem.DocumentName,              // 2순위: 기존 저장된 파일명
-                              Concatenate("Receipt-", Text(ThisItem.EntRecId)) // 3순위: 둘 다 없을 때 임의 생성 명칭
+                              varReceiptFileName,
+                              ThisItem.'Description',
+                              Concatenate("Receipt-", Text(ThisItem.EntRecId))
                           )
                         VerticalAlign: =VerticalAlign.Center
                         Width: =Parent.Width
