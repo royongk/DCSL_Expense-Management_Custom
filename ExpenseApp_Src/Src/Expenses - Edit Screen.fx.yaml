@@ -1,40 +1,37 @@
 "'Expenses - Edit Screen' As screen.'phoneDetailEditLayout_ver3.0'":
     Fill: =RGBA(248, 248, 248, 1)
     OnVisible: |
-        =UpdateContext({varStateSelected: Blank()});
+        =UpdateContext({varViewOnly: false});
+        UpdateContext({varStateSelected: Blank()});
         UpdateContext({varZipCodeSelectedRecId: -1 });
         UpdateContext({varProjectHierarchyId: Blank()});
         UpdateContext({onReloadButtonClick: false});
         // 3-level category selection variables
-        UpdateContext({varSelectedExpenseType: Blank()});
-        UpdateContext({varSelectedBenefitType: 
-            With(
-                {
-                    // 1. varAppMode에 따라 선택해야 할 텍스트를 먼저 결정
-                    TargetText: Switch(
-                        varAppMode,
-                        "ExpenseReport", "Expense Reimbursement",
-                        "AirfareAllowance", "Allowance",
-                        "BillingTripSettlement", "Billing Trip Settlement",
-                        "EmployeeBenefit", "Employee Benefit",
-                        Blank()
-                    )
-                },
-                // 2. Distinct 결과와 형식을 맞추기 위해 { Value: ... } 형태의 테이블 생성
-                If(
-                    !IsBlank(TargetText),
-                    Table( { Value: TargetText } ), 
+        UpdateContext({
+            varSelectedExpenseType: 
+            If(
+                varIsCreate, 
+                // 신규 생성 시 varAppMode에 따라 기본값 설정
+                Switch(
+                    varAppMode,
+                    "ExpenseReport", "Expense Reimbursement",
+                    "AirfareAllowance", "Allowance",
+                    "BillingTripSettlement", "Billing Trip Settlement",
+                    "EmployeeBenefit", "Employee Benefit",
                     Blank()
-                )
+                ),
+                // 수정 모드일 때는 초기화 (이후 로직에서 기존 값 매핑됨)
+                Blank()
             )
         });
-        UpdateContext({varSelectedBenefitTypeValue: ""});
+        UpdateContext({varSelectedPurchaseCategory: Blank()});
+        UpdateContext({varSelectedPurchaseCategoryValue: ""});
         UpdateContext({varSelectedItemOrService: Blank()});
         UpdateContext({curCategory: If(!varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'), varSelectedExpenseDoc.'Expense category (mserp_costtype)', Blank())});
         // Cost Center context
         UpdateContext({varSelectedCostCenter: Blank()});
         // TargetText context
-        UpdateContext({TargetText: Blank()});
+        UpdateContext({TargetText: ""});
         If(
             !varIsCreate && !IsBlank(varSelectedExpenseDoc.CostCenter),
             UpdateContext({
@@ -65,7 +62,7 @@
                 {
                     mappingRecord: LookUp(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                        'Item or Service' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
+                        'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
                     )
                 },
                 If(
@@ -74,7 +71,7 @@
                         varSelectedExpenseType: mappingRecord.'Expense Type'
                     });
                     UpdateContext({
-                        varSelectedBenefitType: mappingRecord.'Purchase Category'
+                        varSelectedPurchaseCategory: mappingRecord.'Purchase Category'
                     });
                     UpdateContext({
                         varSelectedItemOrService: mappingRecord.'Item or Service'
@@ -813,7 +810,6 @@
                 ZIndex: =1
 
             scr03_lbl_ReceiptFileName As label:
-                AutoHeight: =true
                 Color: =Color.Black
                 FillPortions: =1
                 Font: =Font.'Segoe UI'
@@ -822,19 +818,20 @@
                 LayoutMaxWidth: =0
                 Size: =16
                 Text: |-
-                    =If(
-                        !IsBlank(ThisItem.DocumentName),
-                        ThisItem.DocumentName,
-                        Concatenate("Receipt-", Text(ThisItem.EntRecId))
+                    =Coalesce(
+                        varReceiptFileName,                 // 1순위: 방금 선택한 신규 파일명
+                        ThisItem.DocumentName,              // 2순위: 기존 저장된 파일명
+                        Concatenate("Receipt-", Text(ThisItem.EntRecId)) // 3순위: 둘 다 없을 때 임의 생성 명칭
                     )
                 VerticalAlign: =VerticalAlign.Center
-                Width: =Parent.Width - scr03_img_ReceiptIcon.Width - scr03_ico_DeleteReceipt.Width - 30
+                Width: =Parent.Width
                 ZIndex: =2
 
             scr03_ico_DeleteReceipt As icon.Trash:
                 AccessibleLabel: ="Delete receipt"
                 Color: =RGBA(195, 39, 39, 1)
                 Height: =24
+                Icon: =Icon.Cancel
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
                 OnSelect: |-
@@ -1508,7 +1505,7 @@
                         Reset(ComboBox_PurchaseCategory);
                         Reset(ComboBox_ItemOrService);
                         Reset(ComboBox1_8);
-                        UpdateContext({varSelectedBenefitType: Blank()});
+                        UpdateContext({varSelectedPurchaseCategory: Blank()});
                         UpdateContext({varSelectedItemOrService: Blank()});
                         UpdateContext({curCategory: Blank()})
                     SearchFields: =["Value"]
@@ -1552,7 +1549,7 @@
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_benefittype"
-                Default: =varSelectedBenefitType
+                Default: =varSelectedPurchaseCategory
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: ="Purchase Category"
                 Fill: =RGBA(0, 0, 0, 0)
@@ -1586,7 +1583,7 @@
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
                         =If(
-                            !IsBlank(varSelectedBenefitType) && !IsBlank(varSelectedExpenseType),
+                            !IsBlank(varSelectedPurchaseCategory) && !IsBlank(varSelectedExpenseType),
                             LookUp(
                                 Distinct(
                                     Filter(
@@ -1595,7 +1592,7 @@
                                     ),
                                     'Purchase Category'
                                 ),
-                                Value = varSelectedBenefitType
+                                Value = varSelectedPurchaseCategory
                             ),
                             Blank()
                         )
@@ -1621,8 +1618,8 @@
                         )
                     NoSelectionText: ="Select Purchase Category"
                     OnChange: |-
-                        =UpdateContext({varSelectedBenefitType: Parent.Update});
-                        UpdateContext({varSelectedBenefitTypeValue: Parent.Update});
+                        =UpdateContext({varSelectedPurchaseCategory: Parent.Update});
+                        UpdateContext({varSelectedPurchaseCategoryValue: Parent.Update});
                         Reset(ComboBox1_8);
                         Reset(ComboBox_ItemOrService);
                         UpdateContext({curCategory:Blank()});
@@ -1638,9 +1635,9 @@
                                         ForAll(
                                             Filter(
                                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                                !IsBlank('Item or Service') &&
+                                                !IsBlank('Expense category') &&
                                                 'Expense Type' = varSelectedExpenseType 
-                                                && 'Purchase Category' = varSelectedBenefitType &&
+                                                && 'Purchase Category' = varSelectedPurchaseCategory &&
                                                 (
                                                     (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
                                                     (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
@@ -1648,7 +1645,7 @@
                                             ) As MappingRecord,
                                             LookUp(
                                                 'Expense category (mserp)',
-                                                'Expense category' = MappingRecord.'Item or Service' &&
+                                                'Expense category' = MappingRecord.'Expense category' &&
                                                 Inactive = 'NoYes (mserp)'.No
                                             )
                                         ),
@@ -1691,13 +1688,13 @@
                         ForAll(
                             Filter(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                !IsBlank('Item or Service') &&
+                                !IsBlank('Expense category') &&
                                 'Expense Type' = varSelectedExpenseType 
-                                //&& 'Benefit Type' = varSelectedBenefitTypeValue
+                                //&& 'Benefit Type' = varSelectedPurchaseCategoryValue
                             ) As MappingRecord,
                             LookUp(
                                 'Expense category (mserp)',
-                                'Expense category' = MappingRecord.'Item or Service' &&
+                                'Expense category' = MappingRecord.'Expense category' &&
                                 Inactive = 'NoYes (mserp)'.No
                             )
                         ),
@@ -3616,7 +3613,9 @@
                     Font: =Font.'Segoe UI'
                     Height: =48
                     Size: =21
-                    Text: =LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName)
+                    Text: |-
+                        =LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName)
+                        //"Transaction amount"
                     Tooltip: =Self.Text
                     Width: =Parent.Width - 60
                     Wrap: =false
@@ -3841,7 +3840,9 @@
                     Font: =Font.'Segoe UI'
                     Height: =48
                     Size: =21
-                    Text: =LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName) 
+                    Text: |-
+                        =LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName) 
+                        //"Currency"
                     Width: =Parent.Width - 60
                     Wrap: =false
                     X: =60
@@ -10878,16 +10879,16 @@
             ItemOrService_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =If(
-                        !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedBenefitType),
+                        !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory),
                         SortByColumns(
                             Distinct(
                                 Filter(
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank('Item or Service') &&
+                                    !IsBlank('Expense category') &&
                                     'Expense Type' = varSelectedExpenseType &&
-                                    'Purchase Category' = varSelectedBenefitType
+                                    'Purchase Category' = varSelectedPurchaseCategory
                                 ),
-                                'Item or Service'
+                                'Expense category'
                             ),
                             "Value",
                             SortOrder.Ascending
@@ -10902,7 +10903,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =ComboBox_ItemOrService.Selected.'Item or Service'
+                Update: =ComboBox_ItemOrService.Selected.Value
                 Visible: =true
                 Width: =Parent.Width
                 X: =1
@@ -10935,11 +10936,11 @@
                                 Distinct(
                                     Filter(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        !IsBlank('Item or Service') &&
+                                        !IsBlank('Expense category') &&
                                         'Expense Type' = varSelectedExpenseType &&
-                                        'Purchase Category' = varSelectedBenefitType
+                                        'Purchase Category' = varSelectedPurchaseCategory
                                     ),
-                                    'Item or Service'
+                                    'Expense category'
                                 ),
                                 Value = varSelectedItemOrService
                             ),
@@ -10962,11 +10963,11 @@
                             Distinct(
                                 Filter(
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank('Item or Service') &&
+                                    !IsBlank('Expense category') &&
                                     !IsBlank(varSelectedExpenseType) &&
                                     'Expense Type' = varSelectedExpenseType &&
-                                    !IsBlank(varSelectedBenefitType) &&
-                                    'Purchase Category' = varSelectedBenefitType
+                                    !IsBlank(varSelectedPurchaseCategory) &&
+                                    'Purchase Category' = varSelectedPurchaseCategory
                                 ),
                                 'Item or Service'
                             ),
@@ -10977,7 +10978,7 @@
                     OnChange: |-
                         =UpdateContext({varSelectedItemOrService: Parent.Update})
                     SearchFields: =["Value"]
-                    SearchItems: =[]
+                    SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank('Expense category')&&!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType&&!IsBlank(varSelectedPurchaseCategory)&&'Purchase Category'=varSelectedPurchaseCategory),'Item or Service'),"Value",SortOrder.Ascending),ComboBox_ItemOrService.SearchText,Value)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)

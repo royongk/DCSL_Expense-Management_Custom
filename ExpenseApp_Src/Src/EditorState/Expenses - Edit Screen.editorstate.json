@@ -7258,7 +7258,7 @@
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
-          "AutoRuleBindingString": "If(\n    !IsBlank(varSelectedItemOrService),\n    LookUp(\n        Distinct(\n            Filter(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                !IsBlank('Item or Service') &&\n                'Expense Type' = varSelectedExpenseType &&\n                'Purchase Category' = varSelectedBenefitType\n            ),\n            'Item or Service'\n        ),\n        'Item or Service' = varSelectedItemOrService\n    ),\n    Blank()\n)",
+          "AutoRuleBindingString": "",
           "InvariantPropertyName": "DefaultSelectedItems",
           "IsLockable": false,
           "NameMapSourceSchema": "?"
@@ -7280,7 +7280,7 @@
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
-          "AutoRuleBindingString": "SortByColumns(\n    Distinct(\n        Filter(\n            'DCSL Expense Category Mapping Setup Entity (mserp)',\n            !IsBlank('Item or Service') &&\n            !IsBlank(varSelectedExpenseType) &&\n            'Expense Type' = varSelectedExpenseType &&\n            !IsBlank(varSelectedBenefitType) &&\n            'Purchase Category' = varSelectedBenefitType\n        ),\n        'Item or Service'\n    ),\n    \"mserp_expensecategory\",\n    SortOrder.Ascending\n)",
+          "AutoRuleBindingString": "",
           "InvariantPropertyName": "Items",
           "IsLockable": false,
           "NameMapSourceSchema": "?"
@@ -8679,7 +8679,7 @@
         {
           "Category": "Behavior",
           "PropertyName": "OnChange",
-          "RuleProviderType": "User"
+          "RuleProviderType": "Unknown"
         },
         {
           "Category": "Behavior",
@@ -26197,7 +26197,7 @@
         {
           "Category": "Data",
           "PropertyName": "Text",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         },
         {
           "Category": "Design",
@@ -29369,7 +29369,7 @@
         {
           "Category": "Data",
           "PropertyName": "Text",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         },
         {
           "Category": "Design",
@@ -84262,7 +84262,7 @@
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
-          "AutoRuleBindingString": "If(\n    !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedBenefitType),\n    SortByColumns(\n        Distinct(\n            Filter(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                !IsBlank('Item or Service') &&\n                'Expense Type' = varSelectedExpenseType &&\n                'Purchase Category' = varSelectedBenefitType\n            ),\n            'Item or Service'\n        ),\n        \"mserp_expensecategory\",\n        SortOrder.Ascending\n    ),\n    []\n)",
+          "AutoRuleBindingString": "",
           "InvariantPropertyName": "AllowedValues",
           "IsLockable": false,
           "NameMapSourceSchema": "?"
@@ -84275,7 +84275,14 @@
         "Fill",
         "Height",
         "Required",
-        "Update",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "ComboBox_ItemOrService.Selected.'Item or Service'",
+          "InvariantPropertyName": "Update",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "Visible",
         "Width",
         "X",
@@ -84319,7 +84326,7 @@
         {
           "Category": "Data",
           "PropertyName": "Update",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         },
         {
           "Category": "Design",
@@ -90103,7 +90110,14 @@
         "BorderColor",
         "BorderStyle",
         "DataField",
-        "Default",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "",
+          "InvariantPropertyName": "Default",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "DisplayMode",
         {
           "AFDDataSourceName": "",
@@ -94017,7 +94031,14 @@
         "Width",
         "X",
         "ZIndex",
-        "Icon",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "Icon.ArrowDown",
+          "InvariantPropertyName": "Icon",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "Rotation",
         "Tooltip",
         "ContentLanguage",
@@ -94172,7 +94193,7 @@
         {
           "Category": "Design",
           "PropertyName": "Icon",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         },
         {
           "Category": "Design",
@@ -96878,14 +96899,35 @@
     "scr03_lbl_ReceiptFileName": {
       "AllowAccessToGlobals": true,
       "ControlPropertyState": [
-        "AutoHeight",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "true",
+          "InvariantPropertyName": "AutoHeight",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "Color",
         "Font",
         "Height",
         "Size",
-        "Text",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "If(\n    !IsBlank(ThisItem.DocumentName),\n    ThisItem.DocumentName,\n    Concatenate(\"Receipt-\", Text(ThisItem.EntRecId))\n)",
+          "InvariantPropertyName": "Text",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "VerticalAlign",
-        "Width",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "Parent.Width - scr03_img_ReceiptIcon.Width - scr03_ico_DeleteReceipt.Width - 30",
+          "InvariantPropertyName": "Width",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "X",
         "ZIndex",
         "Live",
@@ -97003,7 +97045,7 @@
         {
           "Category": "Data",
           "PropertyName": "Text",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         },
         {
           "Category": "Data",
@@ -97028,7 +97070,7 @@
         {
           "Category": "Design",
           "PropertyName": "AutoHeight",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         },
         {
           "Category": "Design",
@@ -97058,7 +97100,7 @@
         {
           "Category": "Design",
           "PropertyName": "Width",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         },
         {
           "Category": "Design",

@@ -41,7 +41,7 @@
         UpdateContext({onReloadButtonClick : false});
         // 3-level category selection variables
         UpdateContext({varSelectedExpenseType: Blank()});
-        UpdateContext({varSelectedBenefitType: Blank()});
+        UpdateContext({varSelectedPurchaseCategory: Blank()});
         UpdateContext({curCategory : ComboBox1_9.Selected.'Expense category'});
         // Cost Center context
         UpdateContext({varSelectedCostCenter: Blank()});
@@ -61,16 +61,16 @@
                 {
                     mappingRecord: LookUp(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                        'Item or Service' = varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'
+                        'Expense category' = varSelectedItemizedExpenseDoc.'Expense category (mserp_costtype)'
                     )
                 },
                 If(
                     !IsBlank(mappingRecord),
                     UpdateContext({
-                        varSelectedExpenseType: mappingRecord.'Expense Type'
+                        varSelectedExpenseType: mappingRecord.mserp_department
                     });
                     UpdateContext({
-                        varSelectedBenefitType: mappingRecord.'Purchase Category'
+                        varSelectedPurchaseCategory: mappingRecord.mserp_benefittype
                     })
                 )
             )
@@ -1014,7 +1014,7 @@
                         =UpdateContext({varSelectedExpenseType: Parent.Update});
                         Reset(Itemization_ComboBox_BenefitType);
                         Reset(ComboBox1_9);
-                        UpdateContext({varSelectedBenefitType: Blank()});
+                        UpdateContext({varSelectedPurchaseCategory: Blank()});
                         UpdateContext({curCategory: Blank()})
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct('DCSL Expense Category Mapping Setup Entity (mserp)','Expense Type'),"Value",SortOrder.Ascending),Itemization_ComboBox_Department.SearchText,Value)
@@ -1057,7 +1057,7 @@
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_benefittype"
-                Default: =varSelectedBenefitType
+                Default: =varSelectedPurchaseCategory
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: ="Benefit Type"
                 Fill: =RGBA(0, 0, 0, 0)
@@ -1091,7 +1091,7 @@
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
                         =If(
-                            !IsBlank(varSelectedBenefitType) && !IsBlank(varSelectedExpenseType),
+                            !IsBlank(varSelectedPurchaseCategory) && !IsBlank(varSelectedExpenseType),
                             LookUp(
                                 Distinct(
                                     Filter(
@@ -1100,7 +1100,7 @@
                                     ),
                                     'Purchase Category'
                                 ),
-                                Value = varSelectedBenefitType
+                                Value = varSelectedPurchaseCategory
                             ),
                             Blank()
                         )
@@ -1129,7 +1129,7 @@
                         )
                     NoSelectionText: ="Select Benefit Type"
                     OnChange: |-
-                        =UpdateContext({varSelectedBenefitType: Parent.Update});
+                        =UpdateContext({varSelectedPurchaseCategory: Parent.Update});
                         Reset(ComboBox1_9);
                         UpdateContext({curCategory: Blank()})
                     SearchFields: =["mserp_benefittype"]
@@ -1252,7 +1252,7 @@
                             LookUp('Expense category (mserp)','Expense category' = Parent.Default && 'Company Code' = varSelectedLegalEntity),
                             []
                         )
-                    DisplayFields: =["mserp_expensecategory","mserp_description"]
+                    DisplayFields: =[""]
                     DisplayMode: |-
                         =If(
                             IsBlank(Itemization_ComboBox_Department.Selected) || IsBlank(Itemization_ComboBox_BenefitType.Selected),
@@ -1264,21 +1264,22 @@
                     HoverFill: =gblParams.dropDownHoverFill
                     InputTextPlaceholder: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterExpenseCategoryLabel' 
+                    IsSearchable: =false
                     Items: |-
                         =If(
-                            !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedBenefitType),
+                            !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory),
                             SortByColumns(
                                 Filter(
                                     ForAll(
                                         Filter(
                                             'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                            !IsBlank('Item or Service') &&
+                                            !IsBlank('Expense category') &&
                                             'Expense Type' = varSelectedExpenseType &&
-                                            'Purchase Category' = varSelectedBenefitType
+                                            'Purchase Category' = varSelectedPurchaseCategory
                                         ) As MappingRecord,
                                         LookUp(
                                             'Expense category (mserp)',
-                                            'Expense category' = MappingRecord.'Item or Service' &&
+                                            'Expense category' = MappingRecord.'Expense category' &&
                                             'Company Code' = varSelectedLegalEntity &&
                                             Inactive = 'NoYes (mserp)'.No &&
                                             'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
@@ -1453,35 +1454,8 @@
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     Reset: =true
-                    SearchFields: =["mserp_expensecategory"]
-                    SearchItems: |-
-                        =If(
-                            !IsBlank(Itemization_ComboBox_Department.Selected) && !IsBlank(Itemization_ComboBox_BenefitType.Selected),
-                            Search(
-                                SortByColumns(
-                                    ForAll(
-                                        Filter(
-                                            'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                            !IsBlank('Item or Service') &&
-                                            'Expense Type' = Itemization_ComboBox_Department.Selected.mserp_department &&
-                                            'Purchase Category' = Itemization_ComboBox_BenefitType.Selected.mserp_benefittype
-                                        ) As MappingRecord,
-                                        LookUp(
-                                            'Expense category (mserp)',
-                                            'Expense category' = MappingRecord.'Item or Service' &&
-                                            'Company Code' = varSelectedLegalEntity &&
-                                            Inactive = 'NoYes (mserp)'.No &&
-                                            'Expense type' <> 'TrvExpType (mserp)'.'Per diem'
-                                        )
-                                    ),
-                                    "mserp_expensecategory",
-                                    SortOrder.Ascending
-                                ),
-                                ComboBox1_9.SearchText,
-                                'Expense category'
-                            ),
-                            []
-                        )
+                    SearchFields: =[""]
+                    SearchItems: =[]
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)

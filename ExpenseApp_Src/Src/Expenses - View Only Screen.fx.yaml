@@ -30,7 +30,7 @@
         );
         // 3-level category selection variables
         UpdateContext({varSelectedExpenseType: Blank()});
-        UpdateContext({varSelectedBenefitType: Blank()});
+        UpdateContext({varSelectedPurchaseCategory: Blank()});
         // Load existing Department and Benefit Type from Expense Category (reverse lookup)
         With(
             {
@@ -45,16 +45,16 @@
                     {
                         mappingRecord: LookUp(
                             'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            'Item or Service' = expenseCategory
+                            'Expense category' = expenseCategory
                         )
                     },
                     If(
                         !IsBlank(mappingRecord),
                         UpdateContext({
-                            varSelectedExpenseType: mappingRecord.'Expense Type'
+                            varSelectedExpenseType: mappingRecord.mserp_department
                         });
                         UpdateContext({
-                            varSelectedBenefitType: mappingRecord.'Purchase Category'
+                            varSelectedPurchaseCategory: mappingRecord.mserp_benefittype
                         })
                     )
                 )
@@ -625,14 +625,14 @@
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_benefittype"
-                Default: =varSelectedBenefitType
+                Default: =varSelectedPurchaseCategory
                 DisplayMode: =DisplayMode.View
                 DisplayName: ="Benefit Type"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =varSelectedBenefitType
-                Visible: =!IsBlank(varSelectedBenefitType)
+                Update: =varSelectedPurchaseCategory
+                Visible: =!IsBlank(varSelectedPurchaseCategory)
                 Width: =Parent.Width
                 X: =1
                 Y: =expenseCategoryFieldOrder_Y - 60
@@ -659,7 +659,7 @@
                     Font: =Font.'Segoe UI'
                     Height: =48
                     Size: =21
-                    Text: =varSelectedBenefitType
+                    Text: =varSelectedPurchaseCategory
                     Width: =Parent.Width - 60
                     Wrap: =false
                     X: =30
