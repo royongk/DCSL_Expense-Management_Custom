@@ -537,11 +537,11 @@
                     Blank()
                 )
             ),
-            // === New expense: clear any previous selection ===
-            If(
-                varIsCreate,
-                Clear(colAttachedReceipts)
-            )
+            // === New expense ===
+            // Do NOT clear colAttachedReceipts here.
+            // New expense flow is initialized from the create button on 'Expenses - List Screen'.
+            // Clearing here breaks the Preview -> Done -> Edit flow (selected receipts disappear on navigation).
+            Blank()
         );
 
     scr03_ico_Back_4 As icon.ChevronLeft:
