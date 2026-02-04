@@ -537,8 +537,11 @@
                     Blank()
                 )
             ),
-            // === New expense: keep current in-memory selection (do not clear) ===
-            Blank()
+            // === New expense: clear any previous selection ===
+            If(
+                varIsCreate,
+                Clear(colAttachedReceipts)
+            )
         );
 
     scr03_ico_Back_4 As icon.ChevronLeft:
@@ -1431,7 +1434,7 @@
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_department"
+                DataField: ="mserp_deexexpensetype"
                 Default: =varSelectedExpenseType
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: ="Expense Type"
@@ -1548,7 +1551,7 @@
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_benefittype"
+                DataField: ="mserp_deexpurchasecategory"
                 Default: =varSelectedPurchaseCategory
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: ="Purchase Category"
@@ -10897,6 +10900,7 @@
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexitemorservice"
                 Default: =varSelectedItemOrService
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: ="Item or Service"
@@ -11739,6 +11743,7 @@
             =UpdateContext({ctVarExpenseDetailsBack: false});
         OnRightButtonClick: |-
             =UpdateContext({ctVarExpenseDetailsBack: false});
+            Clear(colAttachedReceipts);
             Select(scr03_ico_Back_4)
         parmInDescriptionText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_LeaveScreenConsequenceLabel'
