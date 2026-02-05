@@ -27,7 +27,21 @@
         UpdateContext({varSelectedPurchaseCategory: Blank()});
         UpdateContext({varSelectedPurchaseCategoryValue: ""});
         UpdateContext({varSelectedItemOrService: Blank()});
-        UpdateContext({curCategory: If(!varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'), varSelectedExpenseDoc.'Expense category (mserp_costtype)', Blank())});
+        UpdateContext({
+            curCategory: If(
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
+                varSelectedExpenseDoc.'Expense category (mserp_costtype)',
+                // 신규 생성 시: "Dummy for Expense" 조회
+                If(
+                    varIsCreate && !IsBlank(varSelectedLegalEntity),
+                    Coalesce(
+                        LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
+                        Blank()
+                    ),
+                    Blank()
+                )
+            )
+        });
         // Cost Center context
         UpdateContext({varSelectedCostCenter: Blank()});
         // TargetText context
@@ -88,7 +102,9 @@
         UpdateContext({taxModifiedByUser: false});
         UpdateContext({varLoadingSpinner : true});
         If(
-            !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
+            !varIsCreate && 
+            !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)') &&
+            varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> "",
             UpdateContext(
                 {
                     locItemizeButtonVisibilityFlag : 'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', 
@@ -99,7 +115,8 @@
                     }).return
         
                 }
-            )
+            ),
+            UpdateContext({locItemizeButtonVisibilityFlag: false})
         );
         If(
             !varIsCreate && gblIsProjectValidationFlag,
@@ -1521,7 +1538,16 @@
                         Reset(ComboBox1_8);
                         UpdateContext({varSelectedPurchaseCategory: Blank()});
                         UpdateContext({varSelectedItemOrService: Blank()});
-                        UpdateContext({curCategory: Blank()})
+                        UpdateContext({
+                            curCategory: If(
+                                !IsBlank(varSelectedLegalEntity),
+                                Coalesce(
+                                    LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
+                                    Blank()
+                                ),
+                                Blank()
+                            )
+                        })
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct('DCSL Expense Category Mapping Setup Entity (mserp)','Expense Type'),"Value",SortOrder.Ascending),ComboBox_ExpenseType.SearchText,Value)
                     SelectionColor: =Color.Black
@@ -1632,11 +1658,20 @@
                         )
                     NoSelectionText: ="Select Purchase Category"
                     OnChange: |-
-                        =UpdateContext({varSelectedPurchaseCategory: Parent.Update});
+                        =                        UpdateContext({varSelectedPurchaseCategory: Parent.Update});
                         UpdateContext({varSelectedPurchaseCategoryValue: Parent.Update});
                         Reset(ComboBox1_8);
                         Reset(ComboBox_ItemOrService);
-                        UpdateContext({curCategory:Blank()});
+                        UpdateContext({
+                            curCategory: If(
+                                !IsBlank(varSelectedLegalEntity),
+                                Coalesce(
+                                    LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
+                                    Blank()
+                                ),
+                                Blank()
+                            )
+                        });
                         UpdateContext({varSelectedItemOrService: Blank()});
                         
                         // [추가] Expense Category 목록을 미리 조회하여 컬렉션 생성
@@ -1759,7 +1794,17 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =true
-                Update: =ComboBox1_8.Selected.'Expense category'
+                Update: |-
+                    =Coalesce(
+                        If(!IsBlank(ComboBox1_8.Selected), ComboBox1_8.Selected.'Expense category', Blank()),
+                        curCategory,
+                        // Fallback: "Dummy for Expense" 조회
+                        If(
+                            !IsBlank(varSelectedLegalEntity),
+                            LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
+                            Blank()
+                        )
+                    )
                 Visible: =false
                 Width: =Parent.Width
                 X: =1
@@ -1904,7 +1949,10 @@
                             varSelectedCategoryRecord: LookUp(colExpenseCategories, 'Expense category' = ComboBox1_8.Selected.'Expense category') 
                         });
                         If(
-                            varOnShowFields && !IsBlank(ComboBox1_8.Selected),
+                            varOnShowFields && 
+                            !IsBlank(ComboBox1_8.Selected) &&
+                            !IsBlank(varSelectedCategoryRecord) &&
+                            !IsBlank(varSelectedCategoryRecord.'Expense category'),
                             UpdateContext(
                                 {
                                     locItemizeButtonVisibilityFlag : 
@@ -1916,6 +1964,25 @@
                                     }
                                     ).return
                                 }
+                            ),
+                            // Fallback: curCategory 사용 또는 false
+                            UpdateContext({
+                                locItemizeButtonVisibilityFlag: If(
+                                    !IsBlank(curCategory) && curCategory <> "",
+                                    IfError(
+                                        'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(
+                                            LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', 
+                                            {
+                                                CostType: curCategory,
+                                                SplitLineType:"Default",
+                                                LineType: "Default"
+                                            }
+                                        ).return,
+                                        false
+                                    ),
+                                    false
+                                )
+                            })
                             );
                         If(
                             IsBlank(Self.Selected),
@@ -2102,7 +2169,14 @@
                         UpdateContext({isDirty : true});
                         
                         );
-                        UpdateContext({curCategory : Self.Selected.'Expense category'});
+                        UpdateContext({
+                            curCategory: If(
+                                !IsBlank(Self.Selected) && !IsBlank(Self.Selected.'Expense category'),
+                                Self.Selected.'Expense category',
+                                // Fallback: 기존 curCategory 유지 (null이 아닌 경우)
+                                curCategory
+                            )
+                        });
                         UpdateContext({currExpenseType : Self.Selected.'Expense type'});
                         UpdateContext({msCallStartedForSalestaxCalculation : false});
                         UpdateContext({taxModifiedByUser: false}); 
