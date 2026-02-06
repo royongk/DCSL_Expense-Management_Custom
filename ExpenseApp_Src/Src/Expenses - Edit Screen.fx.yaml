@@ -468,34 +468,32 @@
         If(
             !IsBlank(varSelectedExpenseDoc) &&
             !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-            Refresh('Expense Mobile Unattached Document Entity (mserp)');
-            ClearCollect(
-                colTempReceipts,
-                'Expense Mobile Unattached Document Entity (mserp)'
-            );
+            // [수정] View Attached Receipts to Expense Lines 사용 (이미 첨부된 영수증 조회)
+            Refresh('View Attached Receipts to Expense Lines (mserp)');
             ClearCollect(
                 colAttachedReceipts,
                 SortByColumns(
                     Filter(
-                        colTempReceipts,
-                        ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        'View Attached Receipts to Expense Lines (mserp)',
+                        ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                     ),
-                    "mserp_creatingdatetime",
+                    "mserp_createddatetime1",
                     SortOrder.Descending
                 )
             );
+            // [수정] Fallback: AttachedReceiptId가 있지만 View에서 못 찾은 경우
             If(
                 IsEmpty(colAttachedReceipts) &&
                 !IsBlank(varSelectedExpenseDoc.AttachedReceiptId),
                 Collect(
                     colAttachedReceipts,
                     LookUp(
-                        'Expense Mobile Unattached Document Entity (mserp)',
+                        'Expense Mobile Attached Document Entity (mserp)',
                         EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId)
                     )
                 )
             );
-            Clear(colTempReceipts);
+            // 미리보기용 변수 세팅
             Set(
                 varReceiptImage,
                 If(
@@ -914,14 +912,16 @@
                     )
                 );
                 // Refresh receipts collection
+                // [수정] View Attached Receipts to Expense Lines 사용
+                Refresh('View Attached Receipts to Expense Lines (mserp)');
                 ClearCollect(
                     colAttachedReceipts,
                     SortByColumns(
                         Filter(
-                            'Expense Mobile Unattached Document Entity (mserp)',
-                            ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                            'View Attached Receipts to Expense Lines (mserp)',
+                            ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                         ),
-                        "mserp_creatingdatetime",
+                        "mserp_createddatetime1",
                         SortOrder.Descending
                     )
                 );
@@ -1235,28 +1235,19 @@
                 // Refresh receipts collection after expense save
                 If(
                     !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                    // 1단계: 가상 필드 오류를 피하기 위해 먼저 데이터를 로컬 컬렉션으로 가져옵니다.
-                    // (참고: 데이터 양이 많다면 CreatedDateTime 등 실제 필드로 1차 범위를 좁히는 것이 좋습니다)
-                    ClearCollect(
-                        colTempReceipts, 
-                        'Expense Mobile Unattached Document Entity (mserp)'
-                    );
-                
-                    // 2단계: 로컬 컬렉션 데이터에 대해 가상 필드(ExpTransNumber)로 필터링 및 정렬을 수행하여 최종 컬렉션에 담습니다.
+                    // [수정] View Attached Receipts to Expense Lines 사용 (이미 첨부된 영수증 조회)
+                    Refresh('View Attached Receipts to Expense Lines (mserp)');
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
-                                colTempReceipts,
-                                ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                'View Attached Receipts to Expense Lines (mserp)',
+                                ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                             ),
-                            "mserp_creatingdatetime",
+                            "mserp_createddatetime1",
                             SortOrder.Descending
                         )
                     );
-                
-                    // 3단계: 임시 컬렉션 정리 (메모리 최적화)
-                    Clear(colTempReceipts);
                     // Update AttachedReceiptId with first receipt (for backward compatibility)
                     If(
                         !IsEmpty(colAttachedReceipts),
@@ -10978,10 +10969,12 @@
                                     Filter(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
                                         !IsBlank('Expense category') &&
+                                        !IsBlank(varSelectedExpenseType) &&
                                         'Expense Type' = varSelectedExpenseType &&
+                                        !IsBlank(varSelectedPurchaseCategory) &&
                                         'Purchase Category' = varSelectedPurchaseCategory
                                     ),
-                                    'Expense category'
+                                    'Item or Service'
                                 ),
                                 Value = varSelectedItemOrService
                             ),
