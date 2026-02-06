@@ -59,11 +59,41 @@ Screens:
             MaxAttachmentsText: =
             NoAttachmentsText: =
             OnAddFile: |-
-              =// Multi-select upload from device: keep attachments in a collection and upload on Done
-              ClearCollect(colDeviceAttachedFile, Self.Attachments);
-              Set(varReceiptImage, Blank());
-              Set(varFileFormat, Blank());
-              Set(varReceiptFileName, Blank());
+              =// Device 파일을 선택하면 바로 Preview 화면으로 이동 (카메라 플로우와 동일하게 처리)
+              Set(
+                  varReceiptFileName,
+                  First(Self.Attachments).Name
+              );
+              Set(
+                  varReceiptImage,
+                  First(Self.Attachments).Value
+              );
+              // 확장자 추출
+              ClearCollect(
+                  colFileSplit,
+                  ForAll(
+                      Lower(
+                          ForAll(
+                              Split(
+                                  varReceiptFileName,
+                                  "."
+                              ),
+                              { Result: ThisRecord.Value }
+                          )
+                      ),
+                      { Result: ThisRecord.Value }
+                  )
+              );
+              Set(
+                  varFileFormat,
+                  Last(colFileSplit).Result
+              );
+              // 선택한 파일을 추후 확장 기능을 위해 컬렉션에 유지
+              ClearCollect(
+                  colDeviceAttachedFile,
+                  Self.Attachments
+              );
+              Navigate('Expenses - Preview Receipt Screen')
             OnRemoveFile: |-
               =ClearCollect(colDeviceAttachedFile, Self.Attachments);
               Clear(colFileSplit);
@@ -356,7 +386,7 @@ Screens:
                       },
                       If(
                           !IsBlank(receiptRecord) &&
-                          IsBlank(LookUp(colAttachedReceipts, EntRecId = receiptRecord.EntRecId)),
+                          IsBlank(LookUp(colAttachedReceipts, mserp_entrecid = receiptRecord.EntRecId)),
                           Collect(colAttachedReceipts, receiptRecord)
                       )
                   )
@@ -364,8 +394,8 @@ Screens:
               // Set preview vars to first receipt for backward compatibility UI
               If(
                   !IsEmpty(colAttachedReceipts),
-                  Set(varReceiptImage, First(colAttachedReceipts).CapturedDocument);
-                  Set(varFileFormat, First(colAttachedReceipts).FileExtension)
+                  Set(varReceiptImage, First(colAttachedReceipts).mserp_captureddocument);
+                  Set(varFileFormat, First(colAttachedReceipts).mserp_fileextension)
               );
               Clear(colSelectedExistingReceipts);
               Navigate('Expenses - Edit Screen', ScreenTransition.None, {locItemizeButtonVisibilityFlag: false})
@@ -378,7 +408,7 @@ Screens:
             RadiusTopRight: =8
             Size: =20
             Text: ="Done"
-            Visible: =CountRows(colSelectedExistingReceipts) > 0
+            Visible: =false
             Width: =Parent.Width - 80
             X: =40
             Y: ='attachmentControl - Expense_1'.Y - Self.Height - 20
@@ -394,93 +424,6 @@ Screens:
             HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
             HoverColor: =RGBA(255, 255, 255, 1)
             HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-            OnSelect: |-
-              =// 1. [단계 1] 파일 일괄 업로드 및 결과 수집 (Set 제거)
-              // ForAll은 각 파일에 대한 API 호출 결과를 반환하며, 이를 colUploadResults 컬렉션에 저장합니다.
-              ClearCollect(
-                  colUploadResults,
-                  ForAll(
-                      colDeviceAttachedFile As f,
-                      With(
-                          {
-                              // 바이너리 데이터 변환 로직 (중복 호출 방지 최적화)
-                              jsonRaw: JSON(f.Value, JSONFormat.IncludeBinaryData)
-                          },
-                          With(
-                              {
-                                  // [수정] 구분자(',')가 있는지 확인 후 b64 추출
-                                  b64: If(
-                                      Find(",", jsonRaw) > 0,
-                                      Mid(jsonRaw, Find(",", jsonRaw) + 1, Len(jsonRaw) - Find(",", jsonRaw) - 1),
-                                      "" // 구분자 없으면 빈 값
-                                  ),
-                                  // [수정] 구분자(':', ';')가 모두 있는지 확인 후 contentType 추출
-                                  contentType: If(
-                                      Find(":", jsonRaw) > 0 && Find(";", jsonRaw) > 0,
-                                      Mid(jsonRaw, Find(":", jsonRaw) + 1, Find(";", jsonRaw) - Find(":", jsonRaw) - 1),
-                                      "application/octet-stream" // 기본 MIME 타입 설정
-                                  ),
-                                  ext: Lower(Last(Split(f.Name, ".")).Value),
-                                  fileName: f.Name
-                              },
-                              // F&O API 호출 (이후 코드는 동일)
-                              'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_uploadlargeimage(
-                                  LookUp('Expense mobile master data (mserp)', Email = User().Email).'Expense mobile master data (mserp)',
-                                  {
-                                      imageBase64: b64,
-                                      ContentType: contentType,
-                                      FileExtension: ext,
-                                      FileName: fileName
-                                  }
-                              )
-                          )
-                      )
-                  )
-              );
-
-              // 2. [단계 2] 데이터 리프레시 및 앱 내 데이터 연결
-              // 업로드가 완료된 후 데이터 소스를 1회만 갱신합니다. (성능 향상)
-              Refresh('Expense Mobile Unattached Document Entity (mserp)');
-
-              // 수집된 업로드 결과(colUploadResults)를 순회하며 실제 영수증 레코드를 찾아 colAttachedReceipts에 추가
-              ForAll(
-                  colUploadResults As resp,
-                  With(
-                      {
-                          // API 응답에서 RecId 추출 (응답 구조에 따라 경로 확인 필요)
-                          newId: Value(ParseJSON(resp.return).DocuRefRecId)
-                      },
-                      If(
-                          !IsBlank(newId),
-                          With(
-                              {
-                                  // 새로 생성된 영수증 조회
-                                  newReceipt: LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = newId)
-                              },
-                              // 유효한 레코드이고 목록에 없으면 추가
-                              If(
-                                  !IsBlank(newReceipt) && IsBlank(LookUp(colAttachedReceipts, EntRecId = newReceipt.EntRecId)),
-                                  Collect(colAttachedReceipts, newReceipt)
-                              )
-                          )
-                      )
-                  )
-              );
-
-              // 3. [단계 3] UI 상태 업데이트 및 화면 이동
-              If(
-                  !IsEmpty(colAttachedReceipts),
-                  Set(varReceiptImage, First(colAttachedReceipts).CapturedDocument);
-                  Set(varFileFormat, First(colAttachedReceipts).FileExtension)
-              );
-
-              // 임시 컬렉션 정리
-              Clear(colDeviceAttachedFile);
-              Clear(colFileSplit);
-              Clear(colUploadResults); // 결과 컬렉션 초기화
-
-              // 화면 이동
-              Navigate('Expenses - Edit Screen', ScreenTransition.None, {locItemizeButtonVisibilityFlag: false})
             PressedBorderColor: =Self.Fill
             PressedColor: =Self.Fill
             PressedFill: =Self.Color
@@ -489,8 +432,8 @@ Screens:
             RadiusTopLeft: =8
             RadiusTopRight: =8
             Size: =20
-            Text: ="Upload & Done"
-            Visible: =CountRows(colDeviceAttachedFile) > 0
+            Text: ="Upload & Done (disabled)"
+            Visible: =false
             Width: =Parent.Width - 80
             X: =40
             Y: =scr10_btn_DoneMultiAttach.Y - Self.Height - 12

@@ -94771,7 +94771,14 @@
     "scr03_glr_ReceiptsListtemplate1": {
       "AllowAccessToGlobals": true,
       "ControlPropertyState": [
-        "OnSelect",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "Set(\n    varSelectedReceiptForView,\n    ThisItem.EntRecId\n);\nSet(\n    varReceiptImage,\n    ThisItem.CapturedDocument\n);\nSet(\n    varFileFormat,\n    ThisItem.FileExtension\n);\nNavigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly : false})",
+          "InvariantPropertyName": "OnSelect",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "ItemAccessibleLabel",
         "TemplateFill"
       ],
@@ -94802,7 +94809,7 @@
         {
           "Category": "Behavior",
           "PropertyName": "OnSelect",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         }
       ],
       "StyleName": "defaultGalleryTemplateStyle",
@@ -95392,7 +95399,14 @@
         "AccessibleLabel",
         "Color",
         "Height",
-        "OnSelect",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "UpdateContext({varDeleteReceiptId: ThisItem.EntRecId});\nUpdateContext({varShowDeleteReceiptDialog: true})",
+          "InvariantPropertyName": "OnSelect",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "TabIndex",
         "Visible",
         "Width",
@@ -95705,7 +95719,7 @@
         {
           "Category": "Behavior",
           "PropertyName": "OnSelect",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         }
       ],
       "StyleName": "defaultIconStyle",
@@ -96824,7 +96838,14 @@
       "AllowAccessToGlobals": true,
       "ControlPropertyState": [
         "Height",
-        "Image",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "If(\n    ThisItem.FileExtension in [\"jpg\", \"bmp\", \"jpeg\", \"png\", \"heic\", \"tif\", \"tiff\", \"raw\"],\n    If(\n        !IsBlank(ThisItem.CapturedDocument),\n        ThisItem.CapturedDocument,\n        IconMail\n    ),\n    ThisItem.FileExtension in [\"xlsx\", \"xls\"],\n    IconExcel,\n    ThisItem.FileExtension in [\"docx\", \"doc\"],\n    IconWord,\n    ThisItem.FileExtension = \"pdf\",\n    IconPDF,\n    ThisItem.FileExtension = \"txt\",\n    IconTxt,\n    IconMail\n)",
+          "InvariantPropertyName": "Image",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "ImagePosition",
         "Width",
         "ZIndex",
@@ -96942,7 +96963,7 @@
         {
           "Category": "Data",
           "PropertyName": "Image",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         },
         {
           "Category": "Data",

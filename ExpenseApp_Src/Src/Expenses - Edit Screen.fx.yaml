@@ -475,7 +475,7 @@
                 SortByColumns(
                     Filter(
                         'View Attached Receipts to Expense Lines (mserp)',
-                        ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
                     ),
                     "mserp_createddatetime1",
                     SortOrder.Descending
@@ -498,7 +498,7 @@
                 varReceiptImage,
                 If(
                     !IsEmpty(colAttachedReceipts),
-                    First(colAttachedReceipts).CapturedDocument,
+                    First(colAttachedReceipts).mserp_captureddocument,
                     Blank()
                 )
             );
@@ -506,7 +506,7 @@
                 varFileFormat,
                 If(
                     !IsEmpty(colAttachedReceipts),
-                    First(colAttachedReceipts).FileExtension,
+                    First(colAttachedReceipts).mserp_fileextension,
                     Blank()
                 )
             )
@@ -719,15 +719,15 @@
         OnSelect: |-
             =Set(
                 varSelectedReceiptForView,
-                ThisItem.EntRecId
+                ThisItem.mserp_entrecid
             );
             Set(
                 varReceiptImage,
-                ThisItem.CapturedDocument
+                ThisItem.mserp_captureddocument
             );
             Set(
                 varFileFormat,
-                ThisItem.FileExtension
+                ThisItem.mserp_fileextension
             );
             Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly : false})
         TemplatePadding: =0
@@ -759,19 +759,19 @@
                 Height: =40
                 Image: |-
                     =If(
-                        ThisItem.FileExtension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
+                        ThisItem.mserp_fileextension in ["jpg", "bmp", "jpeg", "png", "heic", "tif", "tiff", "raw"],
                         If(
-                            !IsBlank(ThisItem.CapturedDocument),
-                            ThisItem.CapturedDocument,
+                            !IsBlank(ThisItem.mserp_captureddocument),
+                            ThisItem.mserp_captureddocument,
                             IconMail
                         ),
-                        ThisItem.FileExtension in ["xlsx", "xls"],
+                        ThisItem.mserp_fileextension in ["xlsx", "xls"],
                         IconExcel,
-                        ThisItem.FileExtension in ["docx", "doc"],
+                        ThisItem.mserp_fileextension in ["docx", "doc"],
                         IconWord,
-                        ThisItem.FileExtension = "pdf",
+                        ThisItem.mserp_fileextension = "pdf",
                         IconPDF,
-                        ThisItem.FileExtension = "txt",
+                        ThisItem.mserp_fileextension = "txt",
                         IconTxt,
                         IconMail
                     )
@@ -791,8 +791,8 @@
                 Text: |-
                     =Coalesce(
                         varReceiptFileName,
-                        ThisItem.'Description',
-                        Concatenate("Receipt-", Text(ThisItem.EntRecId))
+                        ThisItem.mserp_filename,
+                        Concatenate("Receipt-", Text(ThisItem.mserp_entrecid))
                     )
                 VerticalAlign: =VerticalAlign.Center
                 Width: =Parent.Width
@@ -806,7 +806,7 @@
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
                 OnSelect: |-
-                    =UpdateContext({varDeleteReceiptId: ThisItem.EntRecId});
+                    =UpdateContext({varDeleteReceiptId: ThisItem.mserp_entrecid});
                     UpdateContext({varShowDeleteReceiptDialog: true})
                 TabIndex: =0
                 Visible: =!varViewOnly
@@ -1109,7 +1109,7 @@
                                 // [수정] ThisRecord 대신 명시적인 별칭(CurrentReceipt) 사용
                                 LookUp(
                                     'Expense Mobile Unattached Document Entity (mserp)', 
-                                    EntRecId = CurrentReceipt.EntRecId
+                                    EntRecId = CurrentReceipt.mserp_entrecid
                                 ),
                                 {
                                     ExpTransNumber: varSubmittedExpTransNumber
@@ -1119,7 +1119,7 @@
                             Collect(
                                 colErrorLog,
                                 {
-                                    FailedRecordId: CurrentReceipt.EntRecId,
+                                    FailedRecordId: CurrentReceipt.mserp_entrecid,
                                     ErrorMessage: FirstError.Details
                                 }
                             ); // 세미콜론으로 문장 분리
@@ -1136,7 +1136,7 @@
                                     'Expense Mobile Unattached Document Entity (mserp)',
                                     LookUp(
                                         'Expense Mobile Unattached Document Entity (mserp)', 
-                                        EntRecId = CurrentReceipt.EntRecId
+                                        EntRecId = CurrentReceipt.mserp_entrecid
                                     ),
                                     {
                                         ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
@@ -1146,7 +1146,7 @@
                                 Collect(
                                     colErrorLog,
                                     {
-                                        FailedRecordId: CurrentReceipt.EntRecId,
+                                        FailedRecordId: CurrentReceipt.mserp_entrecid,
                                         ErrorMessage: FirstError.Details
                                     }
                                 ); // 세미콜론으로 문장 분리
@@ -1183,7 +1183,7 @@
                             'Expense lines (mserp)',
                             varSelectedExpenseDoc,
                             {
-                                AttachedReceiptId: First(colAttachedReceipts).EntRecId
+                                AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
                             }
                         )
                     );
@@ -1192,7 +1192,7 @@
                         varReceiptImage,
                         If(
                             !IsEmpty(colAttachedReceipts),
-                            First(colAttachedReceipts).CapturedDocument,
+                            First(colAttachedReceipts).mserp_captureddocument,
                             Blank()
                         )
                     );
@@ -1200,7 +1200,7 @@
                         varFileFormat,
                         If(
                             !IsEmpty(colAttachedReceipts),
-                            First(colAttachedReceipts).FileExtension,
+                            First(colAttachedReceipts).mserp_fileextension,
                             Blank()
                         )
                     )
@@ -1253,12 +1253,12 @@
                         !IsEmpty(colAttachedReceipts),
                         If(
                             IsBlank(varSelectedExpenseDoc.AttachedReceiptId) || 
-                            Value(varSelectedExpenseDoc.AttachedReceiptId) <> First(colAttachedReceipts).EntRecId,
+                            Value(varSelectedExpenseDoc.AttachedReceiptId) <> First(colAttachedReceipts).mserp_entrecid,
                             Patch(
                                 'Expense lines (mserp)',
                                 varSelectedExpenseDoc,
                                 {
-                                    AttachedReceiptId: First(colAttachedReceipts).EntRecId
+                                    AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
                                 }
                             )
                         )
@@ -1268,7 +1268,7 @@
                         varReceiptImage,
                         If(
                             !IsEmpty(colAttachedReceipts),
-                            First(colAttachedReceipts).CapturedDocument,
+                            First(colAttachedReceipts).mserp_captureddocument,
                             Blank()
                         )
                     );
@@ -1276,7 +1276,7 @@
                         varFileFormat,
                         If(
                             !IsEmpty(colAttachedReceipts),
-                            First(colAttachedReceipts).FileExtension,
+                            First(colAttachedReceipts).mserp_fileextension,
                             Blank()
                         )
                     )

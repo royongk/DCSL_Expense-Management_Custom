@@ -352,7 +352,7 @@
                     },
                     If(
                         !IsBlank(receiptRecord) &&
-                        IsBlank(LookUp(colAttachedReceipts, EntRecId = receiptRecord.EntRecId)),
+                        IsBlank(LookUp(colAttachedReceipts, mserp_entrecid = receiptRecord.EntRecId)),
                         Collect(colAttachedReceipts, receiptRecord)
                     )
                 )
@@ -360,8 +360,8 @@
             // Set preview vars to first receipt for backward compatibility UI
             If(
                 !IsEmpty(colAttachedReceipts),
-                Set(varReceiptImage, First(colAttachedReceipts).CapturedDocument);
-                Set(varFileFormat, First(colAttachedReceipts).FileExtension)
+                Set(varReceiptImage, First(colAttachedReceipts).mserp_captureddocument);
+                Set(varFileFormat, First(colAttachedReceipts).mserp_fileextension)
             );
             Clear(colSelectedExistingReceipts);
             Navigate('Expenses - Edit Screen', ScreenTransition.None, {locItemizeButtonVisibilityFlag: false})
@@ -380,7 +380,6 @@
     scr10_btn_UploadDeviceFiles As button:
         Fill: =RGBA(34, 102, 227, 1)
         Height: =72
-        OnSelect: =false
         RadiusBottomLeft: =8
         RadiusBottomRight: =8
         RadiusTopLeft: =8

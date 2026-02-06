@@ -1242,7 +1242,14 @@
       "ControlPropertyState": [
         "Fill",
         "Height",
-        "OnSelect",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "// Commit selected existing receipts into attached receipts collection\nForAll(\n    colSelectedExistingReceipts As sel,\n    With(\n        {\n            receiptRecord: LookUp(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                EntRecId = sel.EntRecId\n            )\n        },\n        If(\n            !IsBlank(receiptRecord) &&\n            IsBlank(LookUp(colAttachedReceipts, EntRecId = receiptRecord.EntRecId)),\n            Collect(colAttachedReceipts, receiptRecord)\n        )\n    )\n);\n// Set preview vars to first receipt for backward compatibility UI\nIf(\n    !IsEmpty(colAttachedReceipts),\n    Set(varReceiptImage, First(colAttachedReceipts).CapturedDocument);\n    Set(varFileFormat, First(colAttachedReceipts).FileExtension)\n);\nClear(colSelectedExistingReceipts);\nNavigate('Expenses - Edit Screen', ScreenTransition.None, {locItemizeButtonVisibilityFlag: false})",
+          "InvariantPropertyName": "OnSelect",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "RadiusBottomLeft",
         "RadiusBottomRight",
         "RadiusTopLeft",
@@ -1547,7 +1554,7 @@
         {
           "Category": "Behavior",
           "PropertyName": "OnSelect",
-          "RuleProviderType": "Unknown"
+          "RuleProviderType": "User"
         }
       ],
       "StyleName": "defaultButtonStyle",
