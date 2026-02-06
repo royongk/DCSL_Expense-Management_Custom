@@ -689,26 +689,6 @@
         Y: =scr03_lbl_ChangeReceipt_1.Y + (scr03_lbl_ChangeReceipt_1.Height-scr03_ico_ViewReceipt_1.Height)/2
         ZIndex: =6
 
-    scr03_lbl_ValidationWarning_1 As label:
-        Align: =Align.Center
-        Color: =RGBA(165, 33, 33, 1)
-        Fill: =RGBA(249, 217, 217, 1)
-        Font: =Font.'Segoe UI'
-        Height: |-
-            =If(
-                Self.Visible,
-                88,
-                0
-            )
-        Size: =15
-        Text: |-
-            =//If(ctVarIsRequiredFieldEmpty,GlobalLabels.Labels.ValidationMsgExpenseNeedMoreDetails)
-            //not having receipt in expense is part of policy violation
-        Visible: =//ctVarIsRequiredFieldEmpty //Or ((varSelectedExpenseDoc.receiptsAttached = "No" Or IsBlank(varSelectedExpenseDoc)) And IsBlank(varReceiptImage))
-        Width: =Parent.Width
-        Y: =scr03_hdr_TopHeader_1.Height
-        ZIndex: =7
-
     "scr03_glr_ReceiptsList As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
         '#CopilotOverlayLabel': ="List of attached receipts"
         AccessibleLabel: ="List of attached receipts"
@@ -719,7 +699,6 @@
                 200,
                 Self.TemplateHeight * CountRows(Self.AllItems)
             )
-        # Show pending receipts (new expense, not attached yet) + already attached receipts (view)
         Items: |-
             =Ungroup(
                 Table(
@@ -827,15 +806,24 @@
                 Width: =24
                 ZIndex: =3
 
-    scr03_hdr_TopHeader_1 As hdr02_Header:
-        Fill: =scr03_hdr_TopHeader_1.paramFill
-        paramFill: =RGBA(255, 255, 255, 1)
-        paramTitle: |-
+    scr03_lbl_ValidationWarning_1 As label:
+        Align: =Align.Center
+        Color: =RGBA(165, 33, 33, 1)
+        Fill: =RGBA(249, 217, 217, 1)
+        Font: =Font.'Segoe UI'
+        Height: |-
             =If(
-                varIsCreate,
-                GlobalLabels.Labels.'15062:LocalizedName,msdyn_NewExpenseLabel',
-                GlobalLabels.Labels.'15062:LocalizedName,msdyn_EditExpenseLabel'
+                Self.Visible,
+                88,
+                0
             )
+        Size: =15
+        Text: |-
+            =//If(ctVarIsRequiredFieldEmpty,GlobalLabels.Labels.ValidationMsgExpenseNeedMoreDetails)
+            //not having receipt in expense is part of policy violation
+        Visible: =//ctVarIsRequiredFieldEmpty //Or ((varSelectedExpenseDoc.receiptsAttached = "No" Or IsBlank(varSelectedExpenseDoc)) And IsBlank(varReceiptImage))
+        Width: =Parent.Width
+        Y: =scr03_hdr_TopHeader_1.Height
         ZIndex: =8
 
     scr03_btn_AddReceipt_Always As button:
@@ -865,7 +853,18 @@
         Width: =Parent.Width - 48
         X: =24
         Y: =scr03_glr_ReceiptsList.Y + scr03_glr_ReceiptsList.Height + 15
-        ZIndex: =8
+        ZIndex: =9
+
+    scr03_hdr_TopHeader_1 As hdr02_Header:
+        Fill: =scr03_hdr_TopHeader_1.paramFill
+        paramFill: =RGBA(255, 255, 255, 1)
+        paramTitle: |-
+            =If(
+                varIsCreate,
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_NewExpenseLabel',
+                GlobalLabels.Labels.'15062:LocalizedName,msdyn_EditExpenseLabel'
+            )
+        ZIndex: =10
 
     scr03_ico_Back_1 As icon.ChevronLeft:
         AccessibleLabel: ="Press to go back"
@@ -895,117 +894,7 @@
         Width: =icongconfig_backbutton.Width
         X: =22.5
         Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
-        ZIndex: =9
-
-    cmp_DeleteReceiptDialog As cmp02_ConfirmationDialog:
-        controlName: ="cmp02_ConfirmationDialog_DeleteReceipt"
-        LegalEntity: =Text(varSelectedLegalEntity)
-        OnLeftButtonClick: |-
-            =UpdateContext({varShowDeleteReceiptDialog: false});
-            UpdateContext({varDeleteReceiptId: Blank()})
-        OnRightButtonClick: |-
-            =UpdateContext({varShowDeleteReceiptDialog: false});
-            If(
-                !IsBlank(varDeleteReceiptId),
-                // Pending receipt (new expense): just remove from pending list and stop
-                If(
-                    !IsBlank(LookUp(colPendingReceipts, mserp_entrecid = varDeleteReceiptId)),
-                    RemoveIf(colPendingReceipts, mserp_entrecid = varDeleteReceiptId);
-                    Notify(
-                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
-                        NotificationType.Success,
-                        gblParams.notificationTime
-                    );
-                    UpdateContext({varDeleteReceiptId: Blank()}),
-                IfError(
-                    Patch(
-                        'Expense Mobile Unattached Document Entity (mserp)',
-                        LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varDeleteReceiptId),
-                        {
-                            ExpTransNumber: Blank()
-                        }
-                    ),
-                    Notify(
-                        Substitute(
-                            Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
-                            """message"":",
-                            ""
-                        ),
-                        NotificationType.Error,
-                        gblParams.notificationTime
-                    )
-                );
-                // Refresh receipts collection
-                // [수정] View Attached Receipts to Expense Lines 사용
-                Refresh('View Attached Receipts to Expense Lines (mserp)');
-                ClearCollect(
-                    colAttachedReceipts,
-                    SortByColumns(
-                        Filter(
-                            'View Attached Receipts to Expense Lines (mserp)',
-                            ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
-                        ),
-                        "mserp_createddatetime1",
-                        SortOrder.Descending
-                    )
-                );
-                // Update AttachedReceiptId (first receipt or blank)
-                If(
-                    !IsEmpty(colAttachedReceipts),
-                    Patch(
-                        'Expense lines (mserp)',
-                        varSelectedExpenseDoc,
-                        {
-                            AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
-                        }
-                    ),
-                    Patch(
-                        'Expense lines (mserp)',
-                        varSelectedExpenseDoc,
-                        {
-                            AttachedReceiptId: Blank()
-                        }
-                    )
-                );
-                // Update varReceiptImage for backward compatibility
-                Set(
-                    varReceiptImage,
-                    If(
-                        !IsEmpty(colAttachedReceipts),
-                        First(colAttachedReceipts).mserp_captureddocument,
-                        Blank()
-                    )
-                );
-                Set(
-                    varFileFormat,
-                    If(
-                        !IsEmpty(colAttachedReceipts),
-                        First(colAttachedReceipts).mserp_fileextension,
-                        Blank()
-                    )
-                );
-                Notify(
-                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
-                    NotificationType.Success,
-                    gblParams.notificationTime
-                );
-                UpdateContext({varDeleteReceiptId: Blank()})
-                )
-            )
-        parmInDescriptionText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachReceiptConfirmationTextLabel'
-        parmInHeaderText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachSelectedReceiptHeaderLabel'
-        parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
-        parmInLeftButtonText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
-        parmInRightButtonColor: =RGBA(195, 39, 39, 1)
-        parmInRightButtonText: |-
-            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachLabel'
-        returnFocus: ="scr03_ico_DeleteReceipt"
-        Visible: =varShowDeleteReceiptDialog
-        Y: =0
-        ZIndex: =9
+        ZIndex: =11
 
     scr03_lbl_PolicyViolationWarning_1 As label:
         Color: |-
@@ -1047,7 +936,7 @@
         Width: |
             =Parent.Width
         Y: =scr03_hdr_TopHeader_1.Height
-        ZIndex: =10
+        ZIndex: =12
 
     "'Expense Entr Container' As groupContainer.verticalAutoLayoutContainer":
         Height: |-
@@ -1073,7 +962,7 @@
                     scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
                 )
             )
-        ZIndex: =11
+        ZIndex: =13
 
         EditExpenseForm As form:
             AlignInContainer: =AlignInContainer.SetByContainer
@@ -11196,7 +11085,7 @@
         Width: =EditExpenseForm.Width
         X: =EditExpenseForm.X
         Y: ='Expense Entr Container'.Y
-        ZIndex: =12
+        ZIndex: =14
 
     scr03_lbl_ViewDetails_2 As label:
         Color: =scr03_lbl_PolicyViolationWarning_1.Color
@@ -11211,7 +11100,7 @@
         Width: =130
         X: =scr03_ico_Navigate_2.X - Self.Width - 10
         Y: =91
-        ZIndex: =13
+        ZIndex: =15
 
     scr03_ico_Navigate_2 As icon.ChevronRight:
         AccessibleLabel: ="Select to view details"
@@ -11225,7 +11114,7 @@
         Width: =34
         X: =Parent.Width - Self.Width - 10
         Y: =115
-        ZIndex: =14
+        ZIndex: =16
 
     ExpenseInfo_1 As ExpenseInfo:
         Amount1: |-
@@ -11299,7 +11188,7 @@
         VehicleType: =varCurVehicleType
         Visible: =currExpenseType = 'TrvExpType (mserp)'.Mileage
         Y: =(Parent.Height - Self.Height)
-        ZIndex: =15
+        ZIndex: =17
 
     "'footerButtonsContainer - ExpenseEditScreen' As groupContainer.verticalAutoLayoutContainer":
         DropShadow: =DropShadow.ExtraBold
@@ -11322,7 +11211,7 @@
             =10
         Width: =Parent.Width
         Y: =Parent.Height - Self.Height
-        ZIndex: =16
+        ZIndex: =18
 
         transAmountContainer As groupContainer.horizontalAutoLayoutContainer:
             FillPortions: =0
@@ -11880,7 +11769,7 @@
         Width: =LoadingSpinnerExpense.Width
         X: =LoadingSpinnerExpense.X
         Y: =LoadingSpinnerExpense.Y
-        ZIndex: =17
+        ZIndex: =19
 
     LoadingSpinnerExpense As 회전자:
         Appearance: ="Primary"
@@ -11899,7 +11788,7 @@
         Width: =EditExpenseForm.Width
         X: =EditExpenseForm.X
         Y: ='Expense Entr Container'.Y
-        ZIndex: =18
+        ZIndex: =20
 
     cmpItemizationCancelDialog As cmp02_ConfirmationDialog:
         OnLeftButtonClick: =true
@@ -11918,7 +11807,7 @@
         SelectedExpense: =varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
         Visible: =locCategoryChange
         Y: =0
-        ZIndex: =19
+        ZIndex: =21
 
     scr03_cmp02_CancelDialog_1 As cmp02_ConfirmationDialog:
         controlName: ="scr03_cmp02_CancelDialog_1"
@@ -11941,5 +11830,115 @@
         returnFocus: ="scr03_ico_Back_1"
         Visible: =ctVarExpenseDetailsBack
         Y: =0
-        ZIndex: =20
+        ZIndex: =22
+
+    cmp_DeleteReceiptDialog As cmp02_ConfirmationDialog:
+        controlName: ="cmp02_ConfirmationDialog_DeleteReceipt"
+        LegalEntity: =Text(varSelectedLegalEntity)
+        OnLeftButtonClick: |-
+            =UpdateContext({varShowDeleteReceiptDialog: false});
+            UpdateContext({varDeleteReceiptId: Blank()})
+        OnRightButtonClick: |-
+            =UpdateContext({varShowDeleteReceiptDialog: false});
+            If(
+                !IsBlank(varDeleteReceiptId),
+                // Pending receipt (new expense): just remove from pending list and stop
+                If(
+                    !IsBlank(LookUp(colPendingReceipts, mserp_entrecid = varDeleteReceiptId)),
+                    RemoveIf(colPendingReceipts, mserp_entrecid = varDeleteReceiptId);
+                    Notify(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
+                        NotificationType.Success,
+                        gblParams.notificationTime
+                    );
+                    UpdateContext({varDeleteReceiptId: Blank()}),
+                IfError(
+                    Patch(
+                        'Expense Mobile Unattached Document Entity (mserp)',
+                        LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varDeleteReceiptId),
+                        {
+                            ExpTransNumber: Blank()
+                        }
+                    ),
+                    Notify(
+                        Substitute(
+                            Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
+                            """message"":",
+                            ""
+                        ),
+                        NotificationType.Error,
+                        gblParams.notificationTime
+                    )
+                );
+                // Refresh receipts collection
+                // [수정] View Attached Receipts to Expense Lines 사용
+                Refresh('View Attached Receipts to Expense Lines (mserp)');
+                ClearCollect(
+                    colAttachedReceipts,
+                    SortByColumns(
+                        Filter(
+                            'View Attached Receipts to Expense Lines (mserp)',
+                            ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        ),
+                        "mserp_createddatetime1",
+                        SortOrder.Descending
+                    )
+                );
+                // Update AttachedReceiptId (first receipt or blank)
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    Patch(
+                        'Expense lines (mserp)',
+                        varSelectedExpenseDoc,
+                        {
+                            AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
+                        }
+                    ),
+                    Patch(
+                        'Expense lines (mserp)',
+                        varSelectedExpenseDoc,
+                        {
+                            AttachedReceiptId: Blank()
+                        }
+                    )
+                );
+                // Update varReceiptImage for backward compatibility
+                Set(
+                    varReceiptImage,
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        First(colAttachedReceipts).mserp_captureddocument,
+                        Blank()
+                    )
+                );
+                Set(
+                    varFileFormat,
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        First(colAttachedReceipts).mserp_fileextension,
+                        Blank()
+                    )
+                );
+                Notify(
+                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
+                    NotificationType.Success,
+                    gblParams.notificationTime
+                );
+                UpdateContext({varDeleteReceiptId: Blank()})
+                )
+            )
+        parmInDescriptionText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachReceiptConfirmationTextLabel'
+        parmInHeaderText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachSelectedReceiptHeaderLabel'
+        parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+        parmInLeftButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+        parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+        parmInRightButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachLabel'
+        returnFocus: ="scr03_ico_DeleteReceipt"
+        Visible: =varShowDeleteReceiptDialog
+        Y: =0
+        ZIndex: =23
 

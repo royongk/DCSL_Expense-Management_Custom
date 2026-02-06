@@ -115,6 +115,7 @@
                                     ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                                 }
                             ),
+                            // [수정된 부분] 알림 실행 후, selectedReceipt 레코드를 반환하여 Patch의 반환 타입과 일치시킴
                             Notify(
                                 Substitute(
                                     Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
@@ -123,7 +124,7 @@
                                 ),
                                 NotificationType.Error,
                                 gblParams.notificationTime
-                            )
+                            ); selectedReceipt
                         )
                     )
                 )

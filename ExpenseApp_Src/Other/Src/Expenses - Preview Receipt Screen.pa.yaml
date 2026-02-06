@@ -112,14 +112,41 @@ Screens:
                   },
                   If(
                       !IsBlank(selectedReceipt),
+                      // 신규 생성: pending receipts에 누적(즉시 UI 표시)
                       If(
-                          IsBlank(
-                              LookUp(
-                                  colAttachedReceipts,
-                                  mserp_entrecid = selectedReceipt.EntRecId
+                          varIsCreate || IsBlank(varSelectedExpenseDoc) || IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                          If(
+                              IsBlank(LookUp(colPendingReceipts, mserp_entrecid = selectedReceipt.EntRecId)),
+                              Collect(
+                                  colPendingReceipts,
+                                  {
+                                      mserp_entrecid: selectedReceipt.EntRecId,
+                                      mserp_captureddocument: selectedReceipt.CapturedDocument,
+                                      mserp_fileextension: selectedReceipt.FileExtension,
+                                      mserp_filename: Coalesce(selectedReceipt.Description, varReceiptFileName)
+                                  }
                               )
                           ),
-                          Collect(colAttachedReceipts, selectedReceipt)
+                          // 수정 모드: 즉시 attach(ExpTransNumber 세팅)해서 View Attached에서 조회되게 함
+                          IfError(
+                              Patch(
+                                  'Expense Mobile Unattached Document Entity (mserp)',
+                                  selectedReceipt,
+                                  {
+                                      ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                  }
+                              ),
+                              // [수정된 부분] 알림 실행 후, selectedReceipt 레코드를 반환하여 Patch의 반환 타입과 일치시킴
+                              Notify(
+                                  Substitute(
+                                      Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
+                                      """message"":",
+                                      ""
+                                  ),
+                                  NotificationType.Error,
+                                  gblParams.notificationTime
+                              ); selectedReceipt
+                          )
                       )
                   )
               );
