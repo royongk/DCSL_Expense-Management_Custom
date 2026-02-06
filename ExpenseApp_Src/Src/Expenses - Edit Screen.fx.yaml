@@ -464,6 +464,12 @@
         UpdateContext({varProjectChanged: false});
         UpdateContext({varShowDeleteReceiptDialog: false});
         UpdateContext({varDeleteReceiptId: Blank()});
+        // Pending receipts are used only during new expense creation (before ExpTransNumber exists).
+        // When entering edit mode for an existing expense, clear pending to avoid mixing states.
+        If(
+            !varIsCreate,
+            Clear(colPendingReceipts)
+        );
         
         If(
             !IsBlank(varSelectedExpenseDoc) &&
@@ -713,7 +719,15 @@
                 200,
                 Self.TemplateHeight * CountRows(Self.AllItems)
             )
-        Items: =colAttachedReceipts
+        # Show pending receipts (new expense, not attached yet) + already attached receipts (view)
+        Items: |-
+            =Ungroup(
+                Table(
+                    { r: colPendingReceipts },
+                    { r: colAttachedReceipts }
+                ),
+                r
+            )
         Layout: =Layout.Vertical
         LoadingSpinner: =LoadingSpinner.Data
         OnSelect: |-
@@ -732,7 +746,7 @@
             Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly : false})
         TemplatePadding: =0
         TemplateSize: =70
-        Visible: =!IsEmpty(colAttachedReceipts)
+        Visible: =!IsEmpty(colAttachedReceipts) || !IsEmpty(colPendingReceipts)
         Width: =Parent.Width - 48
         X: =24
         Y: |-
@@ -847,7 +861,7 @@
         Size: =18
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-        Visible: =!IsEmpty(colAttachedReceipts)
+        Visible: =!IsEmpty(colAttachedReceipts) || !IsEmpty(colPendingReceipts)
         Width: =Parent.Width - 48
         X: =24
         Y: =scr03_glr_ReceiptsList.Y + scr03_glr_ReceiptsList.Height + 15
@@ -893,6 +907,16 @@
             =UpdateContext({varShowDeleteReceiptDialog: false});
             If(
                 !IsBlank(varDeleteReceiptId),
+                // Pending receipt (new expense): just remove from pending list and stop
+                If(
+                    !IsBlank(LookUp(colPendingReceipts, mserp_entrecid = varDeleteReceiptId)),
+                    RemoveIf(colPendingReceipts, mserp_entrecid = varDeleteReceiptId);
+                    Notify(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
+                        NotificationType.Success,
+                        gblParams.notificationTime
+                    );
+                    UpdateContext({varDeleteReceiptId: Blank()}),
                 IfError(
                     Patch(
                         'Expense Mobile Unattached Document Entity (mserp)',
@@ -932,7 +956,7 @@
                         'Expense lines (mserp)',
                         varSelectedExpenseDoc,
                         {
-                            AttachedReceiptId: First(colAttachedReceipts).EntRecId
+                            AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
                         }
                     ),
                     Patch(
@@ -948,7 +972,7 @@
                     varReceiptImage,
                     If(
                         !IsEmpty(colAttachedReceipts),
-                        First(colAttachedReceipts).CapturedDocument,
+                        First(colAttachedReceipts).mserp_captureddocument,
                         Blank()
                     )
                 );
@@ -956,7 +980,7 @@
                     varFileFormat,
                     If(
                         !IsEmpty(colAttachedReceipts),
-                        First(colAttachedReceipts).FileExtension,
+                        First(colAttachedReceipts).mserp_fileextension,
                         Blank()
                     )
                 );
@@ -966,6 +990,7 @@
                     gblParams.notificationTime
                 );
                 UpdateContext({varDeleteReceiptId: Blank()})
+                )
             )
         parmInDescriptionText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachReceiptConfirmationTextLabel'
@@ -1102,7 +1127,7 @@
                     IsBlank(varSelectedExpenseDoc) && !IsBlank(varSubmittedExpTransNumber),
                     // New expense line: use varSubmittedExpTransNumber
                     ForAll(
-                        colAttachedReceipts As CurrentReceipt, // [중요] 'As'를 사용하여 별칭 지정
+                        colPendingReceipts As CurrentReceipt, // [수정] 신규 생성 시에는 pending receipts를 attach
                         IfError(
                             Patch(
                                 'Expense Mobile Unattached Document Entity (mserp)',
@@ -1130,7 +1155,7 @@
                     If(
                         !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
                         ForAll(
-                            colAttachedReceipts As CurrentReceipt, // [중요] 여기도 동일하게 수정
+                            colPendingReceipts As CurrentReceipt, // [수정] 혹시 남아있는 pending이 있으면 저장 시점에 attach
                             IfError(
                                 Patch(
                                     'Expense Mobile Unattached Document Entity (mserp)',
@@ -1165,14 +1190,15 @@
                 // Refresh receipts collection after attaching
                 If(
                     !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                    Refresh('View Attached Receipts to Expense Lines (mserp)');
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                'View Attached Receipts to Expense Lines (mserp)',
+                                ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                             ),
-                            "mserp_creatingdatetime",
+                            "mserp_createddatetime1",
                             SortOrder.Descending
                         )
                     );
@@ -1203,7 +1229,9 @@
                             First(colAttachedReceipts).mserp_fileextension,
                             Blank()
                         )
-                    )
+                    );
+                    // After attaching, pending receipts should be cleared
+                    Clear(colPendingReceipts)
                 );
                 //create or update expense
                 If(
