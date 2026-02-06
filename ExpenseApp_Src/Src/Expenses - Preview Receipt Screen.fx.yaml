@@ -102,7 +102,11 @@
                                     mserp_entrecid: selectedReceipt.EntRecId,
                                     mserp_captureddocument: selectedReceipt.CapturedDocument,
                                     mserp_fileextension: selectedReceipt.FileExtension,
-                                    mserp_filename: Coalesce(selectedReceipt.Description, varReceiptFileName)
+                                    // Use server-side description if available; otherwise generate a stable name from EntRecId
+                                    mserp_filename: Coalesce(
+                                        selectedReceipt.Description,
+                                        Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
+                                    )
                                 }
                             )
                         ),

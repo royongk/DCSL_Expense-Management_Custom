@@ -638,7 +638,7 @@
         TabIndex: =0
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-        Visible: =IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) 
+        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage) 
         Width: |
             =Parent.Width -  Self.X*2
         X: =26
@@ -700,12 +700,18 @@
                 Self.TemplateHeight * CountRows(Self.AllItems)
             )
         Items: |-
-            =Ungroup(
-                Table(
-                    { r: colPendingReceipts },
-                    { r: colAttachedReceipts }
+            =Filter(
+                Ungroup(
+                    Table(
+                        { r: colPendingReceipts },
+                        { r: colAttachedReceipts }
+                    ),
+                    r
                 ),
-                r
+                // Only show valid receipt records
+                !IsBlank(mserp_entrecid)
+                    || !IsBlank(mserp_captureddocument)
+                    || !IsBlank(mserp_fileextension)
             )
         Layout: =Layout.Vertical
         LoadingSpinner: =LoadingSpinner.Data
