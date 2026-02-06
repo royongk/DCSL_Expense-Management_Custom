@@ -465,31 +465,28 @@
         UpdateContext({varShowDeleteReceiptDialog: false});
         UpdateContext({varDeleteReceiptId: Blank()});
         
-        // ==========================================================================================
-        // [수정됨] Load attached receipts (위임 제한을 우회하는 안전한 로딩 방식)
-        // ==========================================================================================
         If(
-            !varIsCreate, // 수정 모드일 때만 실행
-        
-            // 1. [기존] 대량 조회 시도 (최근 항목들)
-            ClearCollect(colTempAttachedDocsRaw, 'Expense Mobile Unattached Document Entity (mserp)');
-            
+            !IsBlank(varSelectedExpenseDoc) &&
+            !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+            Refresh('Expense Mobile Unattached Document Entity (mserp)');
+            ClearCollect(
+                colTempReceipts,
+                'Expense Mobile Unattached Document Entity (mserp)'
+            );
             ClearCollect(
                 colAttachedReceipts,
                 SortByColumns(
                     Filter(
-                        colTempAttachedDocsRaw,
-                        // 가상 필드 필터링 (로컬)
+                        colTempReceipts,
                         ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                     ),
                     "mserp_creatingdatetime",
                     SortOrder.Descending
                 )
             );
-        
-            // 2. [추가] 만약 위임 제한으로 인해 목록이 비어있지만, 연결된 영수증 ID가 있는 경우 -> 직접 조회 (LookUp)
             If(
-                IsEmpty(colAttachedReceipts) && !IsBlank(varSelectedExpenseDoc.AttachedReceiptId),
+                IsEmpty(colAttachedReceipts) &&
+                !IsBlank(varSelectedExpenseDoc.AttachedReceiptId),
                 Collect(
                     colAttachedReceipts,
                     LookUp(
@@ -498,42 +495,22 @@
                     )
                 )
             );
-        
-            // 3. [기존] 연결 정보 마이그레이션 로직 (ExpTransNumber가 없는 경우 연결)
-            If(
-                !IsBlank(varSelectedExpenseDoc.AttachedReceiptId),
-                With(
-                    {
-                        // 현재 컬렉션에 있는지 확인 (없으면 서버에서 다시 조회)
-                        targetReceipt: Coalesce(
-                            LookUp(colAttachedReceipts, EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId)),
-                            LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId))
-                        )
-                    },
-                    If(
-                        !IsBlank(targetReceipt) && IsBlank(targetReceipt.ExpTransNumber),
-                        // Update ExpTransNumber for existing receipt
-                        Patch(
-                            'Expense Mobile Unattached Document Entity (mserp)',
-                            targetReceipt,
-                            {
-                                ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
-                            }
-                        );
-                        // Patch 후에는 컬렉션을 갱신하지 않고 현재 항목을 그대로 사용
-                        Refresh('Expense Mobile Unattached Document Entity (mserp)')
-                    )
-                )
-            );
-        
-            // 4. [기존] 이미지 미리보기 변수 설정
+            Clear(colTempReceipts);
             Set(
                 varReceiptImage,
-                If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).CapturedDocument, Blank())
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    First(colAttachedReceipts).CapturedDocument,
+                    Blank()
+                )
             );
             Set(
                 varFileFormat,
-                If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).FileExtension, Blank())
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    First(colAttachedReceipts).FileExtension,
+                    Blank()
+                )
             )
         );
 
