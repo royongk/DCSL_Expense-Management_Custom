@@ -474,29 +474,17 @@
         If(
             !IsBlank(varSelectedExpenseDoc) &&
             !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-            // [수정] View Attached Receipts to Expense Lines 사용 (이미 첨부된 영수증 조회)
-            Refresh('View Attached Receipts to Expense Lines (mserp)');
+            // Attached receipts are always loaded from Expense Mobile Attached Document Entity (mserp)
+            Refresh('Expense Mobile Attached Document Entity (mserp)');
             ClearCollect(
                 colAttachedReceipts,
                 SortByColumns(
                     Filter(
-                        'View Attached Receipts to Expense Lines (mserp)',
-                        'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
-                    ),
-                    "mserp_createddatetime1",
-                    SortOrder.Descending
-                )
-            );
-            // [수정] Fallback: AttachedReceiptId가 있지만 View에서 못 찾은 경우
-            If(
-                IsEmpty(colAttachedReceipts) &&
-                !IsBlank(varSelectedExpenseDoc.AttachedReceiptId),
-                Collect(
-                    colAttachedReceipts,
-                    LookUp(
                         'Expense Mobile Attached Document Entity (mserp)',
                         'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
-                    )
+                    ),
+                    "mserp_documentcreateddatetime",
+                    SortOrder.Descending
                 )
             );
             // 미리보기용 변수 세팅
@@ -1147,18 +1135,17 @@
                 If(
                     !IsBlank(varTargetExpTransNumber),
                     
-                    // View 갱신
-                    Refresh('View Attached Receipts to Expense Lines (mserp)');
+                    // Attached receipts from Expense Mobile Attached Document Entity (mserp)
+                    Refresh('Expense Mobile Attached Document Entity (mserp)');
                     
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
-                                'View Attached Receipts to Expense Lines (mserp)',
-                                // 가상 필드 대신 물리적 키(RecId) 사용
+                                'Expense Mobile Attached Document Entity (mserp)',
                                 'Reference record ID' = Coalesce(Value(varSelectedExpenseDoc.ExpenseRecId), Value(varSubmittedExpRecId))
                             ),
-                            "mserp_createddatetime1",
+                            "mserp_documentcreateddatetime",
                             SortOrder.Descending
                         )
                     );
@@ -1216,17 +1203,16 @@
                 // Refresh receipts collection after expense save
                 If(
                     !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                    // [수정] View Attached Receipts to Expense Lines 사용 (이미 첨부된 영수증 조회)
-                    Refresh('View Attached Receipts to Expense Lines (mserp)');
+                    // Load attached receipts from Expense Mobile Attached Document Entity (mserp)
+                    Refresh('Expense Mobile Attached Document Entity (mserp)');
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
-                                'View Attached Receipts to Expense Lines (mserp)',
-                                // [수정 2] 가상 필드(ExpenseLineAttachedTo) 대신 Reference record ID 사용
+                                'Expense Mobile Attached Document Entity (mserp)',
                                 'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
                             ),
-                            "mserp_createddatetime1",
+                            "mserp_documentcreateddatetime",
                             SortOrder.Descending
                         )
                     );
@@ -11936,17 +11922,16 @@
                         gblParams.notificationTime
                     )
                 );
-                // Refresh receipts collection
-                // [수정] View Attached Receipts to Expense Lines 사용
-                Refresh('View Attached Receipts to Expense Lines (mserp)');
+                // Refresh receipts collection from Expense Mobile Attached Document Entity (mserp)
+                Refresh('Expense Mobile Attached Document Entity (mserp)');
                 ClearCollect(
                     colAttachedReceipts,
                     SortByColumns(
                         Filter(
-                            'View Attached Receipts to Expense Lines (mserp)',
-                            ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                            'Expense Mobile Attached Document Entity (mserp)',
+                            'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
                         ),
-                        "mserp_createddatetime1",
+                        "mserp_documentcreateddatetime",
                         SortOrder.Descending
                     )
                 );
@@ -12114,15 +12099,15 @@
                 // 4. 첨부 파일 뷰 갱신 (선택 사항: 이동 전 데이터 정합성 유지)
                 If(
                     !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                    Refresh('View Attached Receipts to Expense Lines (mserp)');
+                    Refresh('Expense Mobile Attached Document Entity (mserp)');
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
-                                'View Attached Receipts to Expense Lines (mserp)',
+                                'Expense Mobile Attached Document Entity (mserp)',
                                 'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
                             ),
-                            "mserp_createddatetime1",
+                            "mserp_documentcreateddatetime",
                             SortOrder.Descending
                         )
                     );
@@ -12223,15 +12208,15 @@
                 // 4. 첨부 파일 뷰 갱신
                 If(
                     !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                    Refresh('View Attached Receipts to Expense Lines (mserp)');
+                    Refresh('Expense Mobile Attached Document Entity (mserp)');
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
-                                'View Attached Receipts to Expense Lines (mserp)',
+                                'Expense Mobile Attached Document Entity (mserp)',
                                 'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
                             ),
-                            "mserp_createddatetime1",
+                            "mserp_documentcreateddatetime",
                             SortOrder.Descending
                         )
                     );
