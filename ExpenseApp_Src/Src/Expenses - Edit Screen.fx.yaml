@@ -495,7 +495,7 @@
                     colAttachedReceipts,
                     LookUp(
                         'Expense Mobile Attached Document Entity (mserp)',
-                        EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId)
+                        'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
                     )
                 )
             );
@@ -1011,124 +1011,140 @@
                 );
                 UpdateContext({msCallStartedForSalestaxCalculation: false});
             OnSuccess: |-
-                =UpdateContext({varSubmittedExpTransNumber : EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'});
-                //attach receipt if any
-                UpdateContext({varAttachReceiptError : Blank()});
+                =// 1. 제출된 경비 번호 및 RecId 확보
+                UpdateContext({varSubmittedExpTransNumber : EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'});
+                UpdateContext({varSubmittedExpRecId : EditExpenseForm.LastSubmit.ExpenseRecId}); 
                 
-                // 1. 에러 로그 컬렉션 초기화
+                // 2. 연결 대상 식별 (기존 경비 or 신규 생성 경비)
+                UpdateContext({
+                    varTargetExpTransNumber: Coalesce(
+                        varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', 
+                        varSubmittedExpTransNumber
+                    )
+                });
+                
+                UpdateContext({varAttachReceiptError : ""});
                 Clear(colErrorLog);
                 
-                // 2. 패치 실행 및 에러 수집
+                // 3. 연결 대상 테이블 갱신
+                Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                
+                // 4. [1차 시도] 첨부 파일 연결 실행
                 If(
-                    IsBlank(varSelectedExpenseDoc) && !IsBlank(varSubmittedExpTransNumber),
-                    // New expense line: use varSubmittedExpTransNumber
+                    !IsBlank(varTargetExpTransNumber),
                     ForAll(
-                        colPendingReceipts As CurrentReceipt, // [수정] 신규 생성 시에는 pending receipts를 attach
+                        colPendingReceipts As CurrentReceipt,
                         IfError(
                             Patch(
                                 'Expense Mobile Unattached Document Entity (mserp)',
-                                // [수정] ThisRecord 대신 명시적인 별칭(CurrentReceipt) 사용
-                                LookUp(
-                                    'Expense Mobile Unattached Document Entity (mserp)', 
-                                    EntRecId = CurrentReceipt.mserp_entrecid
-                                ),
+                                // 정확한 레코드 지정을 위한 LookUp
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = CurrentReceipt.mserp_entrecid),
                                 {
-                                    ExpTransNumber: varSubmittedExpTransNumber
+                                    ExpTransNumber: varTargetExpTransNumber
                                 }
                             ),
-                            // [수정 포인트] Collect 실행 후 Blank()를 반환하도록 체이닝
+                            // 실패 시 에러 로그 수집
                             Collect(
                                 colErrorLog,
                                 {
                                     FailedRecordId: CurrentReceipt.mserp_entrecid,
-                                    ErrorMessage: FirstError.Details
+                                    ErrorMessage: FirstError.Details.HttpResponse
                                 }
-                            ); // 세미콜론으로 문장 분리
-                            Blank() // 명시적으로 Blank 반환 (Record와 호환됨)
-                        )
-                    ),
-                    // Existing expense line: use varSelectedExpenseDoc.ExpTransNumber
-                    If(
-                        !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                        ForAll(
-                            colPendingReceipts As CurrentReceipt, // [수정] 혹시 남아있는 pending이 있으면 저장 시점에 attach
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp(
-                                        'Expense Mobile Unattached Document Entity (mserp)', 
-                                        EntRecId = CurrentReceipt.mserp_entrecid
-                                    ),
-                                    {
-                                        ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
-                                    }
-                                ),
-                                // [수정 포인트] Collect 실행 후 Blank()를 반환하도록 체이닝
-                                Collect(
-                                    colErrorLog,
-                                    {
-                                        FailedRecordId: CurrentReceipt.mserp_entrecid,
-                                        ErrorMessage: FirstError.Details
-                                    }
-                                ); // 세미콜론으로 문장 분리
-                                Blank() // 명시적으로 Blank 반환 (Record와 호환됨)
-                            )
+                            ); Blank()
                         )
                     )
                 );
-                // 3. 에러가 하나라도 발생했는지 확인 후 후처리
+                
+                // 5. [재시도 로직] 실패한 항목이 있다면 1회 재시도 (동시성 Lock 회피)
                 If(
                     !IsEmpty(colErrorLog),
-                    // 에러가 있다면 첫 번째 에러를 변수에 담거나 사용자에게 알림
-                    UpdateContext({varAttachReceiptError: First(colErrorLog).ErrorMessage});
-                    Notify("일부 영수증 연결 중 오류가 발생했습니다.", NotificationType.Error)
+                    
+                    // 잠시 대기 효과 및 데이터 동기화를 위한 Refresh
+                    Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                    
+                    // 실패한 영수증만 추출하여 재시도 컬렉션 생성
+                    ClearCollect(
+                        colRetryReceipts, 
+                        Filter(colPendingReceipts, mserp_entrecid in colErrorLog.FailedRecordId)
+                    );
+                    Clear(colErrorLog); // 에러 로그 초기화 후 재시도
+                    
+                    // 재시도 실행
+                    ForAll(
+                        colRetryReceipts As RetryReceipt,
+                        IfError(
+                            Patch(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = RetryReceipt.mserp_entrecid),
+                                {
+                                    ExpTransNumber: varTargetExpTransNumber
+                                }
+                            ),
+                            // 재시도도 실패하면 최종 에러로 기록
+                            Collect(
+                                colErrorLog,
+                                {
+                                    FailedRecordId: RetryReceipt.mserp_entrecid,
+                                    ErrorMessage: FirstError.Details.HttpResponse
+                                }
+                            ); Blank()
+                        )
+                    )
                 );
-                // Refresh receipts collection after attaching
+                
+                // 6. 최종 결과 확인 및 사용자 알림
                 If(
-                    !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                    !IsEmpty(colErrorLog),
+                    Notify(
+                        "시스템 혼잡으로 일부 영수증 연결에 실패했습니다. 나중에 다시 추가해주세요.", 
+                        NotificationType.Error, 
+                        gblParams.notificationTime
+                    )
+                );
+                
+                // 7. 결과 뷰 갱신 및 로컬 컬렉션 업데이트
+                If(
+                    !IsBlank(varTargetExpTransNumber),
+                    
+                    // View 갱신
                     Refresh('View Attached Receipts to Expense Lines (mserp)');
+                    
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
                                 'View Attached Receipts to Expense Lines (mserp)',
-                                ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                // 가상 필드 대신 물리적 키(RecId) 사용
+                                'Reference record ID' = Coalesce(Value(varSelectedExpenseDoc.ExpenseRecId), Value(varSubmittedExpRecId))
                             ),
                             "mserp_createddatetime1",
                             SortOrder.Descending
                         )
                     );
-                    // Update AttachedReceiptId with first receipt (for backward compatibility)
+                    
+                    // 검증: 보낸 개수보다 조회된 개수가 적고, 에러 로그도 없다면 (단순 반영 지연)
+                    If(
+                        varIsCreate && CountRows(colPendingReceipts) > CountRows(colAttachedReceipts) && IsEmpty(colErrorLog),
+                        Notify("영수증이 처리 중입니다. 잠시 후 목록이 갱신됩니다.", NotificationType.Warning, 3000)
+                    );
+                
+                    // 대표 영수증 ID 업데이트 (AttachedReceiptId)
                     If(
                         !IsEmpty(colAttachedReceipts),
                         Patch(
                             'Expense lines (mserp)',
-                            varSelectedExpenseDoc,
+                            Coalesce(varSelectedExpenseDoc, EditExpenseForm.LastSubmit),
                             {
                                 AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
                             }
                         )
                     );
-                    // Update varReceiptImage for backward compatibility
-                    Set(
-                        varReceiptImage,
-                        If(
-                            !IsEmpty(colAttachedReceipts),
-                            First(colAttachedReceipts).mserp_captureddocument,
-                            Blank()
-                        )
-                    );
-                    Set(
-                        varFileFormat,
-                        If(
-                            !IsEmpty(colAttachedReceipts),
-                            First(colAttachedReceipts).mserp_fileextension,
-                            Blank()
-                        )
-                    );
-                    // After attaching, pending receipts should be cleared
-                    Clear(colPendingReceipts)
+                    
+                    // 성공 후 Pending 초기화
+                    Clear(colPendingReceipts);
+                    Clear(colRetryReceipts)
                 );
+                
                 //create or update expense
                 If(
                     varIsCreate,
@@ -1166,7 +1182,8 @@
                         SortByColumns(
                             Filter(
                                 'View Attached Receipts to Expense Lines (mserp)',
-                                ExpenseLineAttachedTo = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                // [수정 2] 가상 필드(ExpenseLineAttachedTo) 대신 Reference record ID 사용
+                                'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
                             ),
                             "mserp_createddatetime1",
                             SortOrder.Descending
