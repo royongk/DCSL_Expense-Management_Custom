@@ -1017,11 +1017,12 @@
             OnSuccess: |-
                 =// [EditExpenseForm > OnSuccess]
                 
-                // 1. 새로 생성된 경비 ID(ExpTransNumber) 확보
+                // 1. 새로 생성된 경비 ID(ExpTransNumber) 및 RecId 확보
                 Set(
                     varTargetExpTransNumber,
                     Self.LastSubmit.'Expense transaction number (mserp_exptransnumber)'
                 );
+                UpdateContext({varSubmittedExpRecId: Self.LastSubmit.ExpenseRecId});
                 
                 // 2. 에러 로그 초기화
                 Clear(colErrorLog);
@@ -1032,10 +1033,8 @@
                 
                 If(
                     !IsEmpty(colPendingReceipts),
-                    // [수정] 타이머만 시작하고, btn_PostSaveAction은 호출하지 않음
-                    // 타이머가 완료되면 자동으로 btn_PostSaveAction을 호출함
+                    // 타이머 시작
                     UpdateContext({varStartReceiptProcessing: true}),
-                    
                     // 첨부파일이 없으면 바로 후처리 버튼 클릭
                     Select(btn_PostSaveAction)
                 );
@@ -1174,22 +1173,23 @@
                     Clear(colRetryReceipts)
                 );
                 
+                // [제거] 성공 메시지는 btn_PostSaveAction에서만 표시
                 //create or update expense
-                If(
-                    varIsCreate,
-                    Notify(
-                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel',
-                        NotificationType.Success,
-                        gblParams.notificationTime
-                    ),
-                    If(
-                        isDirty || isExpenseReceiptAttached,
-                        Notify(
-                            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', 
-                            NotificationType.Success,
-                            gblParams.notificationTime)   
-                    )
-                );
+                // If(
+                //     varIsCreate,
+                //     Notify(
+                //         GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel',
+                //         NotificationType.Success,
+                //         gblParams.notificationTime
+                //     ),
+                //     If(
+                //         isDirty || isExpenseReceiptAttached,
+                //         Notify(
+                //             GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', 
+                //             NotificationType.Success,
+                //             gblParams.notificationTime)   
+                //     )
+                // );
                 
                 // no longer new expense creation
                 Set(
@@ -12010,7 +12010,11 @@
                     // ID 값을 로컬 변수로 확정
                     With(
                         {
-                            targetRecId: wItem.mserp_entrecid
+                            targetRecId: wItem.mserp_entrecid,
+                            targetExpRecId: Coalesce(
+                                varSubmittedExpRecId, 
+                                Value(LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varTargetExpTransNumber).ExpenseRecId)
+                            )
                         },
                         // Patch 시도 및 에러 핸들링
                         IfError(
@@ -12018,7 +12022,8 @@
                                 'Expense Mobile Unattached Document Entity (mserp)',
                                 LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = targetRecId), 
                                 {
-                                    ExpTransNumber: varTargetExpTransNumber
+                                    ExpTransNumber: varTargetExpTransNumber,
+                                    'Reference record ID': targetExpRecId
                                 }
                             ),
                             // [실패 시] 에러 로그 기록
@@ -12029,7 +12034,6 @@
                                     ErrorMessage: FirstError.Message
                                 }
                             ); 
-                            // [중요 수정] Collect는 Table을 반환하므로, Patch(Record)와 타입을 맞추기 위해 Blank()를 반환
                             Blank()
                         )
                     );
@@ -12039,9 +12043,41 @@
                 )
             );
             
+            // 2. 모든 영수증 처리 완료 확인
             If(
                 IsEmpty(colPendingReceipts),
-                UpdateContext({varStartReceiptProcessing: false}); // 이 코드가 중요함
+                // 타이머 중지
+                UpdateContext({varStartReceiptProcessing: false});
+                
+                // [추가] 첨부 파일 목록 갱신
+                If(
+                    !IsBlank(varTargetExpTransNumber),
+                    Refresh('Expense Mobile Attached Document Entity (mserp)');
+                    With(
+                        {
+                            savedExpense: LookUp(
+                                'Expense lines (mserp)',
+                                'Expense transaction number (mserp_exptransnumber)' = varTargetExpTransNumber
+                            )
+                        },
+                        If(
+                            !IsBlank(savedExpense),
+                            ClearCollect(
+                                colAttachedReceipts,
+                                SortByColumns(
+                                    Filter(
+                                        'Expense Mobile Attached Document Entity (mserp)',
+                                        'Reference record ID' = Value(savedExpense.ExpenseRecId)
+                                    ),
+                                    "mserp_documentcreateddatetime",
+                                    SortOrder.Descending
+                                )
+                            )
+                        )
+                    )
+                );
+                
+                // 후처리 버튼 호출
                 Select(btn_PostSaveAction)
             )
         Repeat: =varStartReceiptProcessing && !IsEmpty(colPendingReceipts)
@@ -12060,15 +12096,15 @@
             
             UpdateContext({varStartReceiptProcessing: false}); // [추가] 강제 종료 보장
             
-            // [수정] 타이머가 처리 중이면 완료 처리를 하지 않음
+            // [수정] 타이머 완료 확인 강화
             If(
-                !IsEmpty(colPendingReceipts),
-                // [CASE 1] 아직 처리할 영수증이 남아있는 경우 -> 경고 표시 후 리턴
+                !IsEmpty(colPendingReceipts) || varStartReceiptProcessing,
+                // [CASE 1] 아직 처리할 영수증이 남아있는 경우
                 Notify("영수증 처리 중입니다. 잠시만 기다려주세요.", NotificationType.Warning, 2000),
                 
                 // [CASE 2] 처리가 끝난 경우 -> 완료 처리 진행
                 
-                // 1. 결과 알림
+                // 1. 결과 알림 (단 한 번만 표시)
                 If(
                     varIsCreate,
                     Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel', NotificationType.Success, gblParams.notificationTime),
@@ -12079,17 +12115,17 @@
                 );
             
                 // 2. 상태 변수 초기화 및 정리 (변수 꼬임 방지)
-                UpdateContext({varStartReceiptProcessing: false}); // ★ 강제 초기화
+                UpdateContext({varStartReceiptProcessing: false});
                 Set(varIsCreate, false);
                 Set(varSelectedExpenseDoc, EditExpenseForm.LastSubmit);
-                UpdateContext({varSubmittedExpTransNumber : ""}); // ★ Blank() 대신 빈 문자열("") 사용
+                UpdateContext({varSubmittedExpTransNumber: ""});
+                UpdateContext({varSubmittedExpRecId: Blank()});
                 Set(isExpenseReceiptAttached, false);
                 Set(OCRresponse, Blank());
                 Set(gblNavigationDrawerVisibility, false);
             
                 // 3. 컬렉션 정리
                 Clear(colPendingReceipts);
-                //Clear(colRetryReceipts); // 필요 시 주석 해제
                 Clear(colErrorLog);
             
                 // 4. 첨부 파일 뷰 갱신 (선택 사항: 이동 전 데이터 정합성 유지)
