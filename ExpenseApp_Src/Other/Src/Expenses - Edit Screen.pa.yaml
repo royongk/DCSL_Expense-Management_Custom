@@ -86,7 +86,7 @@ Screens:
             RadiusBottomRight: =18
             RadiusTopLeft: =18
             RadiusTopRight: =18
-            Visible: =IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage)
+            Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
             Width: |
               =Parent.Width -  Self.X*2
             X: =24
@@ -110,7 +110,7 @@ Screens:
             RadiusBottomRight: =8
             RadiusTopLeft: =8
             RadiusTopRight: =8
-            Visible: '=IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) '
+            Visible: '=IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage) '
             Width: |
               =Parent.Width -  Self.X*2
             X: =44
@@ -125,7 +125,8 @@ Screens:
             FontWeight: =FontWeight.Semibold
             Height: =Parent.Height / 4
             OnSelect: |-
-              =Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
+              =Set(varSelectedReceiptNumber, Blank()); // [추가] 초기화
+              Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
               UpdateContext(
                   {
                       varOnSelectTriggered: false,
@@ -135,7 +136,7 @@ Screens:
               )
             TabIndex: =0
             Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-            Visible: '=IsEmpty(colAttachedReceipts) && IsBlank(varReceiptImage) '
+            Visible: '=IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage) '
             Width: |
               =Parent.Width -  Self.X*2
             X: =26
@@ -160,7 +161,7 @@ Screens:
             Size: =17
             TabIndex: =0
             Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
-            Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
+            Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
             Width: =scr03_img_NoReceiptOuter_1.Width+1
             X: =scr03_img_NoReceiptOuter_1.X
             Y: =scr03_img_NoReceiptOuter_1.Y + (scr03_img_NoReceiptOuter_1.Height -Self.Height)+1
@@ -181,7 +182,7 @@ Screens:
                   }
               )
             TabIndex: =0
-            Visible: =IsEmpty(colAttachedReceipts) && !(IsBlank(varReceiptImage))
+            Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
             Width: =18
             X: =scr03_lbl_ChangeReceipt_1.X + 25
             Y: =scr03_lbl_ChangeReceipt_1.Y + (scr03_lbl_ChangeReceipt_1.Height-scr03_ico_ViewReceipt_1.Height)/2
@@ -198,12 +199,18 @@ Screens:
                   Self.TemplateHeight * CountRows(Self.AllItems)
               )
             Items: |-
-              =Ungroup(
-                  Table(
-                      { r: colPendingReceipts },
-                      { r: colAttachedReceipts }
+              =Filter(
+                  Ungroup(
+                      Table(
+                          { r: colPendingReceipts },
+                          { r: colAttachedReceipts }
+                      ),
+                      r
                   ),
-                  r
+                  // Only show valid receipt records
+                  !IsBlank(mserp_entrecid)
+                      || !IsBlank(mserp_captureddocument)
+                      || !IsBlank(mserp_fileextension)
               )
             OnSelect: |-
               =Set(
@@ -286,7 +293,6 @@ Screens:
                         Size: =14
                         Text: |-
                           =Coalesce(
-                              varReceiptFileName,
                               ThisItem.mserp_filename,
                               Concatenate("Receipt-", Text(ThisItem.mserp_entrecid))
                           )
@@ -340,7 +346,8 @@ Screens:
             HoverColor: =RGBA(255, 255, 255, 1)
             HoverFill: =RGBA(204, 222, 255, 1)
             OnSelect: |-
-              =Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
+              =Set(varSelectedReceiptNumber, Blank()); // [추가] 이전 영수증 ID 초기화
+              Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
               UpdateContext(
                   {
                       varOnSelectTriggered: false,
@@ -455,7 +462,7 @@ Screens:
             Y: |-
               =If(
                   !IsEmpty(colAttachedReceipts),
-                  scr03_btn_AddReceipt_Always.Y + scr03_btn_AddReceipt_Always.Height + 30,
+                  scr03_btn_AddReceipt_Always.Y + scr03_btn_AddReceipt_Always.Height,
                   If(
                       IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage),
                       scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30,

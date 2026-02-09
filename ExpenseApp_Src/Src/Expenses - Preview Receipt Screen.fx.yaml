@@ -118,8 +118,25 @@
                                 {
                                     ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                                 }
+                            );
+                            // -------------------------------------------------------------------------
+                            // [수정] Patch 성공 시 로컬 컬렉션(colAttachedReceipts)에 즉시 추가하여 UI 갱신
+                            // -------------------------------------------------------------------------
+                            Collect(
+                                colAttachedReceipts,
+                                {
+                                    mserp_entrecid: selectedReceipt.EntRecId,
+                                    mserp_captureddocument: selectedReceipt.CapturedDocument,
+                                    mserp_fileextension: selectedReceipt.FileExtension,
+                                    mserp_filename: Coalesce(
+                                        selectedReceipt.Description,
+                                        Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
+                                    )
+                                }
                             ),
-                            // [수정된 부분] 알림 실행 후, selectedReceipt 레코드를 반환하여 Patch의 반환 타입과 일치시킴
+                            // -------------------------------------------------------------------------
+            
+                            // [수정된 부분] 오류 발생 시 알림 후 'Table' 타입을 반환하도록 수정 (colAttachedReceipts 사용)
                             Notify(
                                 Substitute(
                                     Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
@@ -128,7 +145,7 @@
                                 ),
                                 NotificationType.Error,
                                 gblParams.notificationTime
-                            ); selectedReceipt
+                            ); colAttachedReceipts
                         )
                     )
                 )

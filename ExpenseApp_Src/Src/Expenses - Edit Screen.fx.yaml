@@ -626,7 +626,8 @@
         FontWeight: =FontWeight.Semibold
         Height: =Parent.Height / 4
         OnSelect: |-
-            =Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
+            =Set(varSelectedReceiptNumber, Blank()); // [추가] 초기화
+            Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
             UpdateContext(
                 {
                     varOnSelectTriggered: false,
@@ -838,7 +839,8 @@
         Height: =50
         HoverFill: =RGBA(204, 222, 255, 1)
         OnSelect: |-
-            =Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
+            =Set(varSelectedReceiptNumber, Blank()); // [추가] 이전 영수증 ID 초기화
+            Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
             UpdateContext(
                 {
                     varOnSelectTriggered: false,
@@ -960,7 +962,7 @@
         Y: |-
             =If(
                 !IsEmpty(colAttachedReceipts),
-                scr03_btn_AddReceipt_Always.Y + scr03_btn_AddReceipt_Always.Height + 30,
+                scr03_btn_AddReceipt_Always.Y + scr03_btn_AddReceipt_Always.Height,
                 If(
                     IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage),
                     scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30,
