@@ -12038,18 +12038,12 @@
                 )
             );
             
-            // 2. 반복 및 종료 처리
             If(
                 IsEmpty(colPendingReceipts),
-                // [모두 완료 시]
-                UpdateContext({varStartReceiptProcessing: false}); // 타이머 중지
-                Select(btn_PostSaveAction),                        // 저장 후 처리 버튼 클릭
-                
-                // [아직 남았을 시] 
-                // 타이머가 반복(Repeat: true) 설정되어 있으므로 자동으로 다음 아이템 처리
-                true 
+                UpdateContext({varStartReceiptProcessing: false}); // 이 코드가 중요함
+                Select(btn_PostSaveAction)
             )
-        Repeat: =!IsEmpty(colPendingReceipts)
+        Repeat: =varStartReceiptProcessing && !IsEmpty(colPendingReceipts)
         Start: =varStartReceiptProcessing
         Visible: =false
         Width: =280
@@ -12062,6 +12056,8 @@
         OnSelect: |-
             =// [btn_PostSaveAction.OnSelect]
             // 저장 후 알림, 변수 정리, 화면 이동을 담당하는 공통 로직
+            
+            UpdateContext({varStartReceiptProcessing: false}); // [추가] 강제 종료 보장
             
             // [핵심 수정] 변수가 true여도 실제 대기 중인 영수증(colPendingReceipts)이 없으면 통과시킴 (무한 대기 방지)
             If(
