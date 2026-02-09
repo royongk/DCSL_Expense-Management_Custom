@@ -209,14 +209,37 @@
                 varSelectedExpenseDoc,
                 LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
             );
-            // populating base64 to show image on selection of expense
+            
+            // [추가] 다중 영수증 컬렉션 로드
+            Refresh('View Attached Receipts to Expense Lines (mserp)');
+            ClearCollect(
+                colAttachedReceipts,
+                SortByColumns(
+                    Filter(
+                        'View Attached Receipts to Expense Lines (mserp)',
+                        'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                    ),
+                    "mserp_createddatetime1",
+                    SortOrder.Descending
+                )
+            );
+            
+            // [수정] 단일 영수증 조회 대신 컬렉션의 첫 번째 항목 사용
             Set(
                 varReceiptImage,
-                LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument) 
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    First(colAttachedReceipts).mserp_captureddocument,
+                    Blank()
+                )
             );
             Set(
                 varFileFormat,
-                LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    First(colAttachedReceipts).mserp_fileextension,
+                    Blank()
+                )
             );
             Set(
                 varExpenseAgainstWorkItem,
