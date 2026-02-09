@@ -999,7 +999,19 @@
                 =If(
                     CountRows(Split(Text(Self.Error), ":")) > 2,
                     Notify(
-                        Mid(Mid(EditExpenseForm.Error, Find(":", EditExpenseForm.Error) + 2), Find(":", Mid(EditExpenseForm.Error, Find(":", EditExpenseForm.Error) + 2)) + 2), 
+                        Mid(
+                            Mid(
+                                EditExpenseForm.Error,
+                                Find(":", EditExpenseForm.Error) + 2
+                            ),
+                            Find(
+                                ":",
+                                Mid(
+                                    EditExpenseForm.Error,
+                                    Find(":", EditExpenseForm.Error) + 2
+                                )
+                            ) + 2
+                        ), 
                         NotificationType.Error, 
                         gblParams.notificationTime
                     ),
@@ -1013,25 +1025,102 @@
             OnSuccess: |-
                 =// [EditExpenseForm > OnSuccess]
                 
-                // 1. 새로 생성된 경비 ID(ExpTransNumber)를 변수에 저장
-                Set(varTargetExpTransNumber, Self.LastSubmit.'Expense transaction number (mserp_exptransnumber)');
-                
-                // 2. 처리할 첨부파일이 있는지 확인
-                If(
-                    !IsEmpty(colAttachedReceipts),
-                    
-                    // [CASE 1: 첨부파일 있음]
-                    // 처리 대기열(colPendingReceipts)에 복사
-                    ClearCollect(colPendingReceipts, colAttachedReceipts);
-                    
-                    // ★ 핵심 수정: 타이머 변수를 false -> true로 토글하여 강제 시작 ★
-                    UpdateContext({varStartReceiptProcessing: false}); 
-                    UpdateContext({varStartReceiptProcessing: true}),
-                
-                    // [CASE 2: 첨부파일 없음]
-                    // 즉시 저장 후 처리 버튼 클릭 (화면 이동)
-                    Select(btn_PostSaveAction)
+                // 1. 새로 생성된 경비 ID(ExpTransNumber) 확보
+                Set(
+                    varTargetExpTransNumber,
+                    Self.LastSubmit.'Expense transaction number (mserp_exptransnumber)'
                 );
+                
+                // 2. 에러 로그 초기화
+                Clear(colErrorLog);
+                
+                // 3. 처리할 첨부파일(colPendingReceipts 기준) Patch 실행
+                If(
+                    !IsEmpty(colPendingReceipts),
+                    ForAll(
+                        colPendingReceipts As r,
+                        With(
+                            {
+                                receiptRecord: LookUp(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    EntRecId = r.mserp_entrecid
+                                )
+                            },
+                            If(
+                                !IsBlank(receiptRecord) && !IsBlank(varTargetExpTransNumber),
+                                // Patch 시도
+                                IfError(
+                                    Patch(
+                                        'Expense Mobile Unattached Document Entity (mserp)',
+                                        receiptRecord,
+                                        { ExpTransNumber: varTargetExpTransNumber }
+                                    ),
+                                    // 오류 처리: 404(NotFoundStatusCode)는 무시, 그 외만 로그 수집
+                                    With(
+                                        {
+                                            errorDetails: FirstError.Details
+                                        },
+                                        If(
+                                            !IsBlank(errorDetails) &&
+                                            Text(errorDetails.HttpStatusCode) = NotFoundStatusCode,
+                                            Blank(),
+                                            Collect(
+                                                colErrorLog,
+                                                {
+                                                    FailedRecordId: r.mserp_entrecid,
+                                                    ErrorMessage: FirstError.Message
+                                                }
+                                            )
+                                        )
+                                    )
+                                ),
+                                // receiptRecord 자체를 찾지 못한 경우
+                                Collect(
+                                    colErrorLog,
+                                    {
+                                        FailedRecordId: r.mserp_entrecid,
+                                        ErrorMessage: "Receipt record not found after refresh"
+                                    }
+                                )
+                            )
+                        )
+                    )
+                );
+                
+                // 4. 첨부 View 갱신 및 로컬 컬렉션(colAttachedReceipts) 재로딩
+                Refresh('View Attached Receipts to Expense Lines (mserp)');
+                ClearCollect(
+                    colAttachedReceipts,
+                    SortByColumns(
+                        Filter(
+                            'View Attached Receipts to Expense Lines (mserp)',
+                            'Reference record ID' = Value(Self.LastSubmit.ExpenseRecId)
+                        ),
+                        "mserp_createddatetime1",
+                        SortOrder.Descending
+                    )
+                );
+                
+                // 5. 에러 요약 알림 (있을 때만)
+                If(
+                    !IsEmpty(colErrorLog),
+                    Notify(
+                        Concatenate(
+                            "일부 파일 연결 실패 (",
+                            Text(CountRows(colErrorLog)),
+                            "개). 나중에 다시 추가해주세요."
+                        ),
+                        NotificationType.Error,
+                        gblParams.notificationTime
+                    )
+                );
+                
+                // 6. Pending/에러 컬렉션 정리
+                Clear(colPendingReceipts);
+                Clear(colErrorLog);
+                
+                // 7. 후처리 공통 로직 실행 (알림 + 화면 이동 등)
+                Select(btn_PostSaveAction);
                 
                 /* 백업용
                 // 1. 제출된 경비 번호 및 RecId 확보
