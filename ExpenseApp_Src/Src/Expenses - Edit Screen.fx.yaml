@@ -1045,8 +1045,7 @@
                                 'Expense Mobile Unattached Document Entity (mserp)',
                                 LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = CurrentReceipt.mserp_entrecid),
                                 {
-                                    ExpTransNumber: varTargetExpTransNumber,
-                                    'Reference record ID': varSubmittedExpRecId
+                                    ExpTransNumber: varTargetExpTransNumber
                                 }
                             ),
                             // 실패 시 에러 로그 수집
@@ -1089,6 +1088,7 @@
                     );
                     
                     // 대표 영수증 ID 업데이트 (AttachedReceiptId)
+                    /*
                     If(
                         !IsEmpty(colAttachedReceipts),
                         Patch(
@@ -1099,6 +1099,7 @@
                             }
                         )
                     )
+                    */
                 );
                 
                 // 7. 상태 변수 초기화
@@ -11888,5 +11889,4 @@
         Visible: =varShowDeleteReceiptDialog
         Y: =0
         ZIndex: =23
-
 
