@@ -1016,6 +1016,7 @@
                 UpdateContext({msCallStartedForSalestaxCalculation: false});
             OnSuccess: |-
                 =// [EditExpenseForm > OnSuccess]
+                // 모든 처리를 동기적으로 완료
                 
                 // 1. 새로 생성된 경비 ID(ExpTransNumber) 및 RecId 확보
                 Set(
@@ -1024,52 +1025,28 @@
                 );
                 UpdateContext({varSubmittedExpRecId: Self.LastSubmit.ExpenseRecId});
                 
-                // 2. 에러 로그 초기화
+                // 2. 진행 표시 시작
+                UpdateContext({varLoadingSpinner: true});
+                
+                // 3. 에러 로그 초기화
                 Clear(colErrorLog);
                 
-                // 3. 첨부 파일 처리 로직 (타이머 위임)
-                // 대기 중인 영수증(colPendingReceipts)이 있으면 타이머를 켜서 하나씩 저장하게 하고,
-                // 없으면 바로 완료 버튼(btn_PostSaveAction)을 누릅니다.
-                
+                // 4. 첨부 파일 연결 처리 (동기적 ForAll)
                 If(
-                    !IsEmpty(colPendingReceipts),
-                    // 타이머 시작
-                    UpdateContext({varStartReceiptProcessing: true}),
-                    // 첨부파일이 없으면 바로 후처리 버튼 클릭
-                    Select(btn_PostSaveAction)
-                );
-                
-                /* 백업용
-                // 1. 제출된 경비 번호 및 RecId 확보
-                UpdateContext({varSubmittedExpTransNumber : EditExpenseForm.LastSubmit.'Expense transaction number (mserp_exptransnumber)'});
-                UpdateContext({varSubmittedExpRecId : EditExpenseForm.LastSubmit.ExpenseRecId}); 
-                
-                // 2. 연결 대상 식별 (기존 경비 or 신규 생성 경비)
-                UpdateContext({
-                    varTargetExpTransNumber: Coalesce(
-                        varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', 
-                        varSubmittedExpTransNumber
-                    )
-                });
-                
-                UpdateContext({varAttachReceiptError : ""});
-                Clear(colErrorLog);
-                
-                // 3. 연결 대상 테이블 갱신
-                Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                
-                // 4. [1차 시도] 첨부 파일 연결 실행
-                If(
-                    !IsBlank(varTargetExpTransNumber),
+                    !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
+                    // Refresh로 최신 데이터 확보
+                    Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                    
+                    // ForAll로 모든 영수증 일괄 처리
                     ForAll(
                         colPendingReceipts As CurrentReceipt,
                         IfError(
                             Patch(
                                 'Expense Mobile Unattached Document Entity (mserp)',
-                                // 정확한 레코드 지정을 위한 LookUp
                                 LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = CurrentReceipt.mserp_entrecid),
                                 {
-                                    ExpTransNumber: varTargetExpTransNumber
+                                    ExpTransNumber: varTargetExpTransNumber,
+                                    'Reference record ID': varSubmittedExpRecId
                                 }
                             ),
                             // 실패 시 에러 로그 수집
@@ -1077,292 +1054,210 @@
                                 colErrorLog,
                                 {
                                     FailedRecordId: CurrentReceipt.mserp_entrecid,
-                                    ErrorMessage: FirstError.Details.HttpResponse
+                                    ErrorMessage: FirstError.Message
                                 }
-                            ); Blank()
+                            );
+                            Blank()
                         )
                     )
                 );
                 
-                // 5. [재시도 로직] 실패한 항목이 있다면 1회 재시도 (동시성 Lock 회피)
-                If(
-                    !IsEmpty(colErrorLog),
-                    
-                    // 잠시 대기 효과 및 데이터 동기화를 위한 Refresh
-                    Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                    
-                    // 실패한 영수증만 추출하여 재시도 컬렉션 생성
-                    ClearCollect(
-                        colRetryReceipts, 
-                        Filter(colPendingReceipts, mserp_entrecid in colErrorLog.FailedRecordId)
-                    );
-                    Clear(colErrorLog); // 에러 로그 초기화 후 재시도
-                    
-                    // 재시도 실행
-                    ForAll(
-                        colRetryReceipts As RetryReceipt,
-                        IfError(
-                            Patch(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = RetryReceipt.mserp_entrecid),
-                                {
-                                    ExpTransNumber: varTargetExpTransNumber
-                                }
-                            ),
-                            // 재시도도 실패하면 최종 에러로 기록
-                            Collect(
-                                colErrorLog,
-                                {
-                                    FailedRecordId: RetryReceipt.mserp_entrecid,
-                                    ErrorMessage: FirstError.Details.HttpResponse
-                                }
-                            ); Blank()
-                        )
-                    )
-                );
-                
-                // 6. 최종 결과 확인 및 사용자 알림
+                // 5. 에러 처리 및 알림
                 If(
                     !IsEmpty(colErrorLog),
                     Notify(
-                        "시스템 혼잡으로 일부 영수증 연결에 실패했습니다. 나중에 다시 추가해주세요.", 
-                        NotificationType.Error, 
+                        "시스템 혼잡으로 일부 영수증 연결에 실패했습니다. 나중에 다시 추가해주세요.",
+                        NotificationType.Error,
                         gblParams.notificationTime
                     )
                 );
                 
-                // 7. 결과 뷰 갱신 및 로컬 컬렉션 업데이트
+                // 6. 첨부 파일 목록 갱신
                 If(
                     !IsBlank(varTargetExpTransNumber),
-                    
-                    // Attached receipts from Expense Mobile Attached Document Entity (mserp)
                     Refresh('Expense Mobile Attached Document Entity (mserp)');
-                    
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
                             Filter(
                                 'Expense Mobile Attached Document Entity (mserp)',
-                                'Reference record ID' = Coalesce(Value(varSelectedExpenseDoc.ExpenseRecId), Value(varSubmittedExpRecId))
+                                'Reference record ID' = Value(varSubmittedExpRecId)
                             ),
                             "mserp_documentcreateddatetime",
                             SortOrder.Descending
                         )
                     );
                     
-                    // 검증: 보낸 개수보다 조회된 개수가 적고, 에러 로그도 없다면 (단순 반영 지연)
-                    If(
-                        varIsCreate && CountRows(colPendingReceipts) > CountRows(colAttachedReceipts) && IsEmpty(colErrorLog),
-                        Notify("영수증이 처리 중입니다. 잠시 후 목록이 갱신됩니다.", NotificationType.Warning, 3000)
-                    );
-                
                     // 대표 영수증 ID 업데이트 (AttachedReceiptId)
                     If(
                         !IsEmpty(colAttachedReceipts),
                         Patch(
                             'Expense lines (mserp)',
-                            Coalesce(varSelectedExpenseDoc, EditExpenseForm.LastSubmit),
+                            Self.LastSubmit,
                             {
                                 AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
                             }
                         )
-                    );
-                    
-                    // 성공 후 Pending 초기화
-                    Clear(colPendingReceipts);
-                    Clear(colRetryReceipts)
+                    )
                 );
                 
-                // [제거] 성공 메시지는 btn_PostSaveAction에서만 표시
-                //create or update expense
-                // If(
-                //     varIsCreate,
-                //     Notify(
-                //         GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel',
-                //         NotificationType.Success,
-                //         gblParams.notificationTime
-                //     ),
-                //     If(
-                //         isDirty || isExpenseReceiptAttached,
-                //         Notify(
-                //             GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', 
-                //             NotificationType.Success,
-                //             gblParams.notificationTime)   
-                //     )
-                // );
+                // 7. 상태 변수 초기화
+                Set(varIsCreate, false);
+                Set(varSelectedExpenseDoc, Self.LastSubmit);
+                UpdateContext({varSubmittedExpTransNumber: ""});
+                UpdateContext({varSubmittedExpRecId: Blank()});
+                Set(isExpenseReceiptAttached, false);
+                Set(OCRresponse, Blank());
+                Set(gblNavigationDrawerVisibility, false);
                 
-                // no longer new expense creation
+                // 8. 컬렉션 정리
+                Clear(colPendingReceipts);
+                Clear(colErrorLog);
+                
+                // 9. 하위 호환성을 위한 varReceiptImage 업데이트
                 Set(
-                    varIsCreate,
-                    false
-                );
-                
-                Set(
-                    varSelectedExpenseDoc,
-                    EditExpenseForm.LastSubmit
-                );
-                // Refresh receipts collection after expense save
-                If(
-                    !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                    // Load attached receipts from Expense Mobile Attached Document Entity (mserp)
-                    Refresh('Expense Mobile Attached Document Entity (mserp)');
-                    ClearCollect(
-                        colAttachedReceipts,
-                        SortByColumns(
-                            Filter(
-                                'Expense Mobile Attached Document Entity (mserp)',
-                                'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
-                            ),
-                            "mserp_documentcreateddatetime",
-                            SortOrder.Descending
-                        )
-                    );
-                    // Update AttachedReceiptId with first receipt (for backward compatibility)
+                    varReceiptImage,
                     If(
                         !IsEmpty(colAttachedReceipts),
-                        If(
-                            IsBlank(varSelectedExpenseDoc.AttachedReceiptId) || 
-                            Value(varSelectedExpenseDoc.AttachedReceiptId) <> First(colAttachedReceipts).mserp_entrecid,
-                            Patch(
-                                'Expense lines (mserp)',
-                                varSelectedExpenseDoc,
-                                {
-                                    AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
-                                }
-                            )
-                        )
-                    );
-                    // Update varReceiptImage for backward compatibility
-                    Set(
-                        varReceiptImage,
-                        If(
-                            !IsEmpty(colAttachedReceipts),
-                            First(colAttachedReceipts).mserp_captureddocument,
-                            Blank()
-                        )
-                    );
-                    Set(
-                        varFileFormat,
-                        If(
-                            !IsEmpty(colAttachedReceipts),
-                            First(colAttachedReceipts).mserp_fileextension,
-                            Blank()
-                        )
+                        First(colAttachedReceipts).mserp_captureddocument,
+                        Blank()
                     )
                 );
-                UpdateContext({varSubmittedExpTransNumber :Blank()});
                 Set(
+                    varFileFormat,
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        First(colAttachedReceipts).mserp_fileextension,
+                        Blank()
+                    )
+                );
+                
+                // 10. 진행 표시 종료
+                UpdateContext({varLoadingSpinner: false});
+                
+                // 11. 성공 메시지 표시 (단 한 번만)
+                If(
                     varIsCreate,
-                    false
-                );
-                Set(
-                    isExpenseReceiptAttached,
-                    false
-                );
-                Set(
-                    OCRresponse,
-                    Blank()
-                );
-                Set(
-                    gblNavigationDrawerVisibility,
-                    false
-                );
-                If(gblItemizeExpenseButtonClick,
-                
-                Set(
-                    IsCreditcardTransactionInLocalCurrency,
-                    LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', IsCreditcardTransactionInLocalCurrency
+                    Notify(
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel',
+                        NotificationType.Success,
+                        gblParams.notificationTime
+                    ),
+                    If(
+                        isDirty || isExpenseReceiptAttached,
+                        Notify(
+                            GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel',
+                            NotificationType.Success,
+                            gblParams.notificationTime
+                        )
                     )
-                        );
-                        ClearCollect(
-                            dsItemizations,
-                            AddColumns(
-                                GroupBy(
-                                    Filter(
-                                        'Expense lines (mserp)',
-                                        'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
-                                    ),
-                                    'Itemization group',
-                                    Itemization
-                                ),
-                                StartDate, Text(Last(SortByColumns(Itemization,"mserp_transdate",SortOrder.Descending)).'Transaction date',"yyyy-mm-dd hh:mm:ssZ"),
-                                DailyRate,
-                                If(
-                                    IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
-                                    First(Itemization).'Transaction amount',
-                                    First(Itemization).'Local amount'
-                                ),
-                                Quantity, CountRows(Itemization),
-                                SubCategoryName, First(Itemization).'Expense subcategory name',
-                                SubCategoryRecId, First(Itemization).'Expense subcategory',
-                                ItemizationGroupId , mserp_expenseitemizationgroupid
-                            )
-                        );
-                        
                 );
                 
-                //locAllowNavigationBack is set to false in cases when the user clicks on the perdiems or the itemization button
+                // 12. Itemization 로직 처리
+                If(
+                    gblItemizeExpenseButtonClick,
+                    Set(
+                        IsCreditcardTransactionInLocalCurrency,
+                        LookUp(
+                            'Expense lines (mserp)',
+                            'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)',
+                            IsCreditcardTransactionInLocalCurrency
+                        )
+                    );
+                    ClearCollect(
+                        dsItemizations,
+                        AddColumns(
+                            GroupBy(
+                                Filter(
+                                    'Expense lines (mserp)',
+                                    'Expense line type' = 'Expense line type (mserp)'.'Itemized line' &&
+                                    'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                ),
+                                'Itemization group',
+                                Itemization
+                            ),
+                            StartDate,
+                            Text(Last(SortByColumns(Itemization, "mserp_transdate", SortOrder.Descending)).'Transaction date', "yyyy-mm-dd hh:mm:ssZ"),
+                            DailyRate,
+                            If(
+                                IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,
+                                First(Itemization).'Transaction amount',
+                                First(Itemization).'Local amount'
+                            ),
+                            Quantity,
+                            CountRows(Itemization),
+                            SubCategoryName,
+                            First(Itemization).'Expense subcategory name',
+                            SubCategoryRecId,
+                            First(Itemization).'Expense subcategory',
+                            ItemizationGroupId,
+                            mserp_expenseitemizationgroupid
+                        )
+                    )
+                );
+                
+                // 13. 화면 이동
                 If(
                     locAllowNavigationBack,
                     If(
                         varIsCreate,
+                        // 신규 생성 시 목록으로 이동
                         Navigate('Expenses - List Screen'),
+                        // 수정 모드일 때
                         If(
                             !IsBlank(varNavigatedFrom),
-                            UpdateContext({varExpenseReportNumber : varSelectedReport.'Expense report number'});
+                            UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});
                             Set(
                                 varSelectedReport,
-                                LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber)
+                                LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber)
                             );
                             ClearCollect(
                                 colAttachedExpensesForReport,
                                 Filter(
                                     'Expense lines (mserp)',
-                                    'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
-                                    && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
+                                    'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' &&
+                                    'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
                                 )
                             );
-                            ClearCollect(
-                                colAttachedExpenses,
-                                colAttachedExpensesForReport
-                            )
-                        );
-                
-                        If(
-                            gblItemizeExpenseButtonClick,
-                            Navigate('Itemization - Detail Screen',Transition.None,{varNavigatedFrom : varNavigatedFrom, varItemizationScreen: "itemizationDetailScreen"}),
-                        Switch(
-                            varNavigatedFrom,
-                            "scr17",
-                            Navigate('Reports - Edit Screen'),
-                            "scr20",
-                            Navigate('Reports - View Only Screen'),
-                            "scr18",
-                            Navigate('Reports - Attach Expenses Screen'),
-                            "scr19",
-                            Navigate('Reports - View Attached Expenses Screen'),
-                            Blank(),
+                            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);
+                            
+                            If(
+                                gblItemizeExpenseButtonClick,
+                                Navigate(
+                                    'Itemization - Detail Screen',
+                                    Transition.None,
+                                    {varNavigatedFrom: varNavigatedFrom, varItemizationScreen: "itemizationDetailScreen"}
+                                ),
+                                Switch(
+                                    varNavigatedFrom,
+                                    "scr17", Navigate('Reports - Edit Screen'),
+                                    "scr20", Navigate('Reports - View Only Screen'),
+                                    "scr18", Navigate('Reports - Attach Expenses Screen'),
+                                    "scr19", Navigate('Reports - View Attached Expenses Screen'),
+                                    Navigate('Expenses - List Screen')
+                                )
+                            );
+                            UpdateContext({varNavigatedFrom: Blank()}),
+                            // varNavigatedFrom이 비어있을 경우
                             Navigate('Expenses - List Screen')
-                        );
-                        UpdateContext({varNavigatedFrom : Blank()});
                         )
-                    );
-                    UpdateContext(
-                        {
-                            dirtyTransAmount:Blank(),
-                            dirtyTransDate : Blank(),
-                            dirtyMerchant : "",
-                            varOnSelectTriggered: false,
-                            varOnShowFields:false,
-                            varOnChangeTriggered:false,
-                            varSalesTaxAmount: Blank()
-                        }
-                    )
+                    ),
+                    // locAllowNavigationBack이 false인 경우
+                    Navigate('Expenses - List Screen', ScreenTransition.None)
                 );
-                Set(gblItemizeExpenseButtonClick, false);
-                UpdateContext({msCallStartedForSalestaxCalculation: false});
-                Navigate('Expenses - List Screen', ScreenTransition.None);
-                */
+                
+                // 14. 최종 변수 정리
+                UpdateContext({
+                    dirtyTransAmount: Blank(),
+                    dirtyTransDate: Blank(),
+                    dirtyMerchant: "",
+                    varOnSelectTriggered: false,
+                    varOnShowFields: false,
+                    varOnChangeTriggered: false,
+                    varSalesTaxAmount: Blank(),
+                    msCallStartedForSalestaxCalculation: false
+                });
+                Set(gblItemizeExpenseButtonClick, false)
             SnapToColumns: =false
             Width: =Parent.Width
             Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
@@ -11994,328 +11889,4 @@
         Y: =0
         ZIndex: =23
 
-    tmr_ProcessReceipts As timer:
-        Duration: =200
-        Height: =70
-        OnTimerEnd: |-
-            =// 1. 컬렉션의 첫 번째 아이템 가져오기
-            With(
-                {
-                    wItem: First(colPendingReceipts)
-                },
-                // 아이템이 존재할 경우 처리
-                If(
-                    !IsBlank(wItem),
-                    
-                    // ID 값을 로컬 변수로 확정
-                    With(
-                        {
-                            targetRecId: wItem.mserp_entrecid,
-                            targetExpRecId: Coalesce(
-                                varSubmittedExpRecId, 
-                                Value(LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varTargetExpTransNumber).ExpenseRecId)
-                            )
-                        },
-                        // Patch 시도 및 에러 핸들링
-                        IfError(
-                            Patch(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = targetRecId), 
-                                {
-                                    ExpTransNumber: varTargetExpTransNumber,
-                                    'Reference record ID': targetExpRecId
-                                }
-                            ),
-                            // [실패 시] 에러 로그 기록
-                            Collect(
-                                colErrorLog,
-                                {
-                                    FailedRecordId: targetRecId,
-                                    ErrorMessage: FirstError.Message
-                                }
-                            ); 
-                            Blank()
-                        )
-                    );
-            
-                    // [공통] 성공/실패 여부와 관계없이 처리 시도한 아이템은 대기 목록에서 제거
-                    Remove(colPendingReceipts, wItem)
-                )
-            );
-            
-            // 2. 모든 영수증 처리 완료 확인
-            If(
-                IsEmpty(colPendingReceipts),
-                // 타이머 중지
-                UpdateContext({varStartReceiptProcessing: false});
-                
-                // [추가] 첨부 파일 목록 갱신
-                If(
-                    !IsBlank(varTargetExpTransNumber),
-                    Refresh('Expense Mobile Attached Document Entity (mserp)');
-                    With(
-                        {
-                            savedExpense: LookUp(
-                                'Expense lines (mserp)',
-                                'Expense transaction number (mserp_exptransnumber)' = varTargetExpTransNumber
-                            )
-                        },
-                        If(
-                            !IsBlank(savedExpense),
-                            ClearCollect(
-                                colAttachedReceipts,
-                                SortByColumns(
-                                    Filter(
-                                        'Expense Mobile Attached Document Entity (mserp)',
-                                        'Reference record ID' = Value(savedExpense.ExpenseRecId)
-                                    ),
-                                    "mserp_documentcreateddatetime",
-                                    SortOrder.Descending
-                                )
-                            )
-                        )
-                    )
-                );
-                
-                // 후처리 버튼 호출
-                Select(btn_PostSaveAction)
-            )
-        Repeat: =varStartReceiptProcessing && !IsEmpty(colPendingReceipts)
-        Start: =varStartReceiptProcessing
-        Visible: =false
-        Width: =280
-        X: =337
-        Y: =931
-        ZIndex: =24
-
-    btn_PostSaveAction As button:
-        Height: =70
-        OnSelect: |-
-            =// [btn_PostSaveAction.OnSelect]
-            // 저장 후 알림, 변수 정리, 화면 이동을 담당하는 공통 로직
-            
-            UpdateContext({varStartReceiptProcessing: false}); // [추가] 강제 종료 보장
-            
-            // [수정] 타이머 완료 확인 강화
-            If(
-                !IsEmpty(colPendingReceipts) || varStartReceiptProcessing,
-                // [CASE 1] 아직 처리할 영수증이 남아있는 경우
-                Notify("영수증 처리 중입니다. 잠시만 기다려주세요.", NotificationType.Warning, 2000),
-                
-                // [CASE 2] 처리가 끝난 경우 -> 완료 처리 진행
-                
-                // 1. 결과 알림 (단 한 번만 표시)
-                If(
-                    varIsCreate,
-                    Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel', NotificationType.Success, gblParams.notificationTime),
-                    If(
-                        isDirty || isExpenseReceiptAttached, 
-                        Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', NotificationType.Success, gblParams.notificationTime)
-                    )
-                );
-            
-                // 2. 상태 변수 초기화 및 정리 (변수 꼬임 방지)
-                UpdateContext({varStartReceiptProcessing: false});
-                Set(varIsCreate, false);
-                Set(varSelectedExpenseDoc, EditExpenseForm.LastSubmit);
-                UpdateContext({varSubmittedExpTransNumber: ""});
-                UpdateContext({varSubmittedExpRecId: Blank()});
-                Set(isExpenseReceiptAttached, false);
-                Set(OCRresponse, Blank());
-                Set(gblNavigationDrawerVisibility, false);
-            
-                // 3. 컬렉션 정리
-                Clear(colPendingReceipts);
-                Clear(colErrorLog);
-            
-                // 4. 첨부 파일 뷰 갱신 (선택 사항: 이동 전 데이터 정합성 유지)
-                If(
-                    !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                    Refresh('Expense Mobile Attached Document Entity (mserp)');
-                    ClearCollect(
-                        colAttachedReceipts,
-                        SortByColumns(
-                            Filter(
-                                'Expense Mobile Attached Document Entity (mserp)',
-                                'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
-                            ),
-                            "mserp_documentcreateddatetime",
-                            SortOrder.Descending
-                        )
-                    );
-                    Set(varReceiptImage, If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_captureddocument, Blank()));
-                    Set(varFileFormat, If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_fileextension, Blank()))
-                );
-            
-                // 5. Itemization(항목별 상세) 로직 처리
-                If(
-                    gblItemizeExpenseButtonClick,
-                    Set(IsCreditcardTransactionInLocalCurrency, LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', IsCreditcardTransactionInLocalCurrency));
-                    ClearCollect(dsItemizations, AddColumns(GroupBy(Filter('Expense lines (mserp)', 'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'), 'Itemization group', Itemization), StartDate, Text(Last(SortByColumns(Itemization,"mserp_transdate",SortOrder.Descending)).'Transaction date',"yyyy-mm-dd hh:mm:ssZ"), DailyRate, If(IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No, First(Itemization).'Transaction amount', First(Itemization).'Local amount'), Quantity, CountRows(Itemization), SubCategoryName, First(Itemization).'Expense subcategory name', SubCategoryRecId, First(Itemization).'Expense subcategory', ItemizationGroupId , mserp_expenseitemizationgroupid))
-                );
-            
-                // 6. 화면 이동 (Navigation)
-                If(
-                    locAllowNavigationBack,
-                    If(
-                        varIsCreate,
-                        // (1) 신규 생성 시 목록으로 이동
-                        Navigate('Expenses - List Screen'),
-                        
-                        // (2) 수정 모드일 때
-                        If(
-                            !IsBlank(varNavigatedFrom),
-                            UpdateContext({varExpenseReportNumber : varSelectedReport.'Expense report number'});
-                            Set(varSelectedReport, LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber));
-                            ClearCollect(colAttachedExpensesForReport, Filter('Expense lines (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'));
-                            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);
-            
-                            If(
-                                gblItemizeExpenseButtonClick,
-                                Navigate('Itemization - Detail Screen',Transition.None,{varNavigatedFrom : varNavigatedFrom, varItemizationScreen: "itemizationDetailScreen"}),
-                                Switch(
-                                    varNavigatedFrom,
-                                    "scr17", Navigate('Reports - Edit Screen'),
-                                    "scr20", Navigate('Reports - View Only Screen'),
-                                    "scr18", Navigate('Reports - Attach Expenses Screen'),
-                                    "scr19", Navigate('Reports - View Attached Expenses Screen'),
-                                    Navigate('Expenses - List Screen')
-                                )
-                            );
-                            UpdateContext({varNavigatedFrom : Blank()}),
-                            
-                            // varNavigatedFrom이 비어있을 경우 (일반적인 수정)
-                            Navigate('Expenses - List Screen')
-                        )
-                    ),
-                    
-                    // locAllowNavigationBack이 false이거나 위 조건에 걸리지 않은 경우 강제 이동
-                    Navigate('Expenses - List Screen', ScreenTransition.None)
-                );
-            
-                // 7. 최종 변수 정리
-                UpdateContext({
-                    dirtyTransAmount:Blank(),
-                    dirtyTransDate : Blank(),
-                    dirtyMerchant : "",
-                    varOnSelectTriggered: false,
-                    varOnShowFields:false,
-                    varOnChangeTriggered:false,
-                    varSalesTaxAmount: Blank(),
-                    msCallStartedForSalestaxCalculation: false
-                });
-                Set(gblItemizeExpenseButtonClick, false)
-            );
-            /*
-            // [btn_PostSaveAction.OnSelect]
-            // 저장 후 알림, 변수 정리, 화면 이동을 담당하는 공통 로직입니다.
-            
-            // [추가] 영수증 처리 완료 확인
-            If(
-                varStartReceiptProcessing = true,
-                // 타이머가 아직 실행 중이면 대기 (이론적으로는 발생하지 않아야 함)
-                Notify("영수증 처리 중입니다. 잠시만 기다려주세요.", NotificationType.Warning, 2000),
-                // 타이머 완료 또는 영수증이 없는 경우
-                
-                // 1. 결과 알림
-                If(
-                    varIsCreate,
-                    Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel', NotificationType.Success, gblParams.notificationTime),
-                    If(isDirty || isExpenseReceiptAttached, Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', NotificationType.Success, gblParams.notificationTime))
-                );
-                
-                // 2. 상태 변수 초기화
-                Set(varIsCreate, false);
-                Set(varSelectedExpenseDoc, EditExpenseForm.LastSubmit);
-                UpdateContext({varSubmittedExpTransNumber : ""});
-                Set(isExpenseReceiptAttached, false);
-                Set(OCRresponse, Blank());
-                Set(gblNavigationDrawerVisibility, false);
-                
-                // 3. [추가] Pending 영수증 정리 (타이머 완료 후)
-                Clear(colPendingReceipts);
-                //Clear(colRetryReceipts);
-                Clear(colErrorLog);
-                
-                // 4. 첨부 파일 뷰 갱신
-                If(
-                    !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                    Refresh('Expense Mobile Attached Document Entity (mserp)');
-                    ClearCollect(
-                        colAttachedReceipts,
-                        SortByColumns(
-                            Filter(
-                                'Expense Mobile Attached Document Entity (mserp)',
-                                'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
-                            ),
-                            "mserp_documentcreateddatetime",
-                            SortOrder.Descending
-                        )
-                    );
-                    Set(varReceiptImage, If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_captureddocument, Blank()));
-                    Set(varFileFormat, If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_fileextension, Blank()))
-                )
-            );
-            
-            // [추가] 영수증 처리 완료 확인 후 나머지 로직 실행
-            If(
-                varStartReceiptProcessing = false,
-                // 4. Itemization(항목별 상세) 로직 처리
-                If(gblItemizeExpenseButtonClick,
-                    Set(IsCreditcardTransactionInLocalCurrency, LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', IsCreditcardTransactionInLocalCurrency));
-                    ClearCollect(dsItemizations, AddColumns(GroupBy(Filter('Expense lines (mserp)', 'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'), 'Itemization group', Itemization), StartDate, Text(Last(SortByColumns(Itemization,"mserp_transdate",SortOrder.Descending)).'Transaction date',"yyyy-mm-dd hh:mm:ssZ"), DailyRate, If(IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No, First(Itemization).'Transaction amount', First(Itemization).'Local amount'), Quantity, CountRows(Itemization), SubCategoryName, First(Itemization).'Expense subcategory name', SubCategoryRecId, First(Itemization).'Expense subcategory', ItemizationGroupId , mserp_expenseitemizationgroupid));
-                );
-                
-                // 5. 화면 이동 (Navigation)
-                If(
-                    locAllowNavigationBack,
-                    If(
-                        varIsCreate,
-                        Navigate('Expenses - List Screen'),
-                        If(
-                            !IsBlank(varNavigatedFrom),
-                            UpdateContext({varExpenseReportNumber : varSelectedReport.'Expense report number'});
-                            Set(varSelectedReport, LookUp('Expense reports (mserp)','Expense report number' = varExpenseReportNumber));
-                            ClearCollect(colAttachedExpensesForReport, Filter('Expense lines (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'));
-                            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport)
-                        );
-                
-                        If(
-                            gblItemizeExpenseButtonClick,
-                            Navigate('Itemization - Detail Screen',Transition.None,{varNavigatedFrom : varNavigatedFrom, varItemizationScreen: "itemizationDetailScreen"}),
-                            Switch(
-                                varNavigatedFrom,
-                                "scr17", Navigate('Reports - Edit Screen'),
-                                "scr20", Navigate('Reports - View Only Screen'),
-                                "scr18", Navigate('Reports - Attach Expenses Screen'),
-                                "scr19", Navigate('Reports - View Attached Expenses Screen'),
-                                Blank(), Navigate('Expenses - List Screen')
-                            );
-                            UpdateContext({varNavigatedFrom : Blank()});
-                        )
-                    );
-                    UpdateContext({
-                        dirtyTransAmount:Blank(),
-                        dirtyTransDate : Blank(),
-                        dirtyMerchant : "",
-                        varOnSelectTriggered: false,
-                        varOnShowFields:false,
-                        varOnChangeTriggered:false,
-                        varSalesTaxAmount: Blank()
-                    })
-                );
-                
-                Set(gblItemizeExpenseButtonClick, false);
-                UpdateContext({msCallStartedForSalestaxCalculation: false});
-                // 혹시 위 조건에 걸리지 않아 이동하지 않았을 경우를 대비한 기본 이동
-                Navigate('Expenses - List Screen', ScreenTransition.None)
-            )
-            */
-        Size: =24
-        Text: ="버튼"
-        Visible: =false
-        Width: =280
-        X: =331
-        Y: =931
-        ZIndex: =25
 
