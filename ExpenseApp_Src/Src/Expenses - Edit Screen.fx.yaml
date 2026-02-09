@@ -517,6 +517,10 @@
                 )
             )
         );
+        
+        // 에러 로그 컬렉션 스키마 초기화
+        ClearCollect(colErrorLog, {FailedRecordId: 0, ErrorMessage: ""});
+        Clear(colErrorLog);
 
     scr03_ico_Back_4 As icon.ChevronLeft:
         Color: =icongconfig_backbutton.Color
@@ -1034,93 +1038,18 @@
                 // 2. 에러 로그 초기화
                 Clear(colErrorLog);
                 
-                // 3. 처리할 첨부파일(colPendingReceipts 기준) Patch 실행
+                // 3. 첨부 파일 처리 로직 (타이머 위임)
+                // 대기 중인 영수증(colPendingReceipts)이 있으면 타이머를 켜서 하나씩 저장하게 하고,
+                // 없으면 바로 완료 버튼(btn_PostSaveAction)을 누릅니다.
+                
                 If(
                     !IsEmpty(colPendingReceipts),
-                    ForAll(
-                        colPendingReceipts As r,
-                        With(
-                            {
-                                receiptRecord: LookUp(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    EntRecId = r.mserp_entrecid
-                                )
-                            },
-                            If(
-                                !IsBlank(receiptRecord) && !IsBlank(varTargetExpTransNumber),
-                                // Patch 시도
-                                IfError(
-                                    Patch(
-                                        'Expense Mobile Unattached Document Entity (mserp)',
-                                        receiptRecord,
-                                        { ExpTransNumber: varTargetExpTransNumber }
-                                    ),
-                                    // 오류 처리: 404(NotFoundStatusCode)는 무시, 그 외만 로그 수집
-                                    With(
-                                        {
-                                            errorDetails: FirstError.Details
-                                        },
-                                        If(
-                                            !IsBlank(errorDetails) &&
-                                            Text(errorDetails.HttpStatusCode) = NotFoundStatusCode,
-                                            Blank(),
-                                            Collect(
-                                                colErrorLog,
-                                                {
-                                                    FailedRecordId: r.mserp_entrecid,
-                                                    ErrorMessage: FirstError.Message
-                                                }
-                                            )
-                                        )
-                                    )
-                                ),
-                                // receiptRecord 자체를 찾지 못한 경우
-                                Collect(
-                                    colErrorLog,
-                                    {
-                                        FailedRecordId: r.mserp_entrecid,
-                                        ErrorMessage: "Receipt record not found after refresh"
-                                    }
-                                )
-                            )
-                        )
-                    )
+                    // [중요] 직접 저장하지 않고, 타이머 변수를 true로 변경하여 타이머가 작동하게 함
+                    UpdateContext({varStartReceiptProcessing: true}),
+                    
+                    // 첨부파일이 없으면 바로 후처리 버튼 클릭
+                    Select(btn_PostSaveAction)
                 );
-                
-                // 4. 첨부 View 갱신 및 로컬 컬렉션(colAttachedReceipts) 재로딩
-                Refresh('View Attached Receipts to Expense Lines (mserp)');
-                ClearCollect(
-                    colAttachedReceipts,
-                    SortByColumns(
-                        Filter(
-                            'View Attached Receipts to Expense Lines (mserp)',
-                            'Reference record ID' = Value(Self.LastSubmit.ExpenseRecId)
-                        ),
-                        "mserp_createddatetime1",
-                        SortOrder.Descending
-                    )
-                );
-                
-                // 5. 에러 요약 알림 (있을 때만)
-                If(
-                    !IsEmpty(colErrorLog),
-                    Notify(
-                        Concatenate(
-                            "일부 파일 연결 실패 (",
-                            Text(CountRows(colErrorLog)),
-                            "개). 나중에 다시 추가해주세요."
-                        ),
-                        NotificationType.Error,
-                        gblParams.notificationTime
-                    )
-                );
-                
-                // 6. Pending/에러 컬렉션 정리
-                Clear(colPendingReceipts);
-                Clear(colErrorLog);
-                
-                // 7. 후처리 공통 로직 실행 (알림 + 화면 이동 등)
-                Select(btn_PostSaveAction);
                 
                 /* 백업용
                 // 1. 제출된 경비 번호 및 RecId 확보
@@ -12080,190 +12009,61 @@
         ZIndex: =23
 
     tmr_ProcessReceipts As timer:
-        Duration: =2000
+        Duration: =200
         Height: =70
         OnTimerEnd: |-
-            =// [tmr_ReceiptProcessing > OnTimerEnd]
-            
-            // 1. 현재 처리할 영수증 가져오기
-            UpdateContext({ _currentReceipt: First(colPendingReceipts) });
-            
-            // 2. Patch 실행 로직 (이전 단계에서 수정한 코드 유지)
-            If(
-                !IsBlank(_currentReceipt) && !IsBlank(_currentReceipt.mserp_entrecid) && !IsBlank(varTargetExpTransNumber),
-                With(
-                    { receiptRecord: LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = _currentReceipt.mserp_entrecid) },
-                    If(
-                        !IsBlank(receiptRecord),
-                        IfError(
-                            Patch('Expense Mobile Unattached Document Entity (mserp)', receiptRecord, { ExpTransNumber: varTargetExpTransNumber }),
-                            If(Text(FirstError.Details.HttpStatusCode) <> NotFoundStatusCode, Collect(colErrorLog, { FailedRecordId: _currentReceipt.mserp_entrecid, ErrorMessage: FirstError.Message })); receiptRecord
-                        ),
-                        Collect(colErrorLog, { FailedRecordId: _currentReceipt.mserp_entrecid, ErrorMessage: "Receipt record not found" }); receiptRecord
-                    )
-                )
-            );
-            
-            // 3. ★ 핵심: 처리된 항목 무조건 제거 (무한 루프 방지)
-            If(!IsEmpty(colPendingReceipts), Remove(colPendingReceipts, First(colPendingReceipts)));
-            
-            // 4. ★ 핵심: 모든 항목 처리 완료 시 완료 버튼 클릭 (화면 이동 트리거)
-            If(
-                IsEmpty(colPendingReceipts),
-                
-                // 타이머 변수 초기화
-                UpdateContext({varStartReceiptProcessing: false});
-                
-                // 데이터 갱신
-                Refresh('View Attached Receipts to Expense Lines (mserp)');
-                Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                
-                // 완료 액션 실행 (화면 이동)
-                Select(btn_PostSaveAction)
-            );
-            /*
-            // 1. 방어 로직: 경비 번호가 없으면 루프 중단 (첫 번째 실패 방지)
-            If(
-                IsBlank(varTargetExpTransNumber),
-                Notify(
-                    "오류: 경비 번호를 찾을 수 없습니다. 잠시 후 다시 시도하세요.",
-                    NotificationType.Error
-                );
-                UpdateContext({varStartReceiptProcessing: false});
-            ,
-                // 2. [핵심] 데이터 소스 강제 새로고침
-                // 루프가 돌 때마다 F&O 서버의 최신 상태(업로드된 파일 목록)를 가져옵니다.
-                Refresh('Expense Mobile Unattached Document Entity (mserp)');
-            
-                // 3. 현재 처리할 영수증 가져오기
-                UpdateContext(
-                    {
-                        _currentReceipt: First(colPendingReceipts)
-                    }
-                );
-            
-                // 4. [추가] _currentReceipt 및 LookUp 결과 방어 코드
+            =// 1. 컬렉션의 첫 번째 아이템 가져오기
+            With(
+                {
+                    wItem: First(colPendingReceipts)
+                },
+                // 아이템이 존재할 경우 처리
                 If(
-                    !IsBlank(_currentReceipt) && !IsBlank(_currentReceipt.mserp_entrecid),
+                    !IsBlank(wItem),
+                    
+                    // ID 값을 로컬 변수로 확정
                     With(
                         {
-                            receiptRecord: LookUp(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                EntRecId = _currentReceipt.mserp_entrecid
-                            )
+                            targetRecId: wItem.mserp_entrecid
                         },
-                        If(
-                            !IsBlank(receiptRecord),
-                            // 4-1. Patch 실행 (단일 영수증 기준 로직 확장)
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    receiptRecord,
-                                    { ExpTransNumber: varTargetExpTransNumber }
-                                ),
-                                // 실패 시: 원본 로직처럼 404(NotFoundStatusCode)는 무시, 그 외만 로그 수집
-                                With(
-                                    {
-                                        errorDetails: FirstError.Details
-                                    },
-                                    If(
-                                        !IsBlank(errorDetails) &&
-                                        Text(errorDetails.HttpStatusCode) = NotFoundStatusCode,
-                                        // 404인 경우 무시 (원본과 동일한 동작)
-                                        Blank(),
-                                        Collect(
-                                            colErrorLog,
-                                            {
-                                                FailedRecordId: _currentReceipt.mserp_entrecid,
-                                                ErrorMessage: FirstError.Message
-                                            }
-                                        )
-                                    )
-                                )
+                        // Patch 시도 및 에러 핸들링
+                        IfError(
+                            Patch(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = targetRecId), 
+                                {
+                                    ExpTransNumber: varTargetExpTransNumber
+                                }
                             ),
-                            // LookUp 실패 시: 데이터 동기화 지연 등으로 레코드를 찾지 못한 경우
+                            // [실패 시] 에러 로그 기록
                             Collect(
                                 colErrorLog,
                                 {
-                                    FailedRecordId: _currentReceipt.mserp_entrecid,
-                                    ErrorMessage: "Receipt record not found after refresh"
+                                    FailedRecordId: targetRecId,
+                                    ErrorMessage: FirstError.Message
                                 }
-                            )
-                        )
-                    ),
-                    // _currentReceipt 자체가 Blank인 경우 (이론적으로는 거의 발생하지 않지만 방어)
-                    If(
-                        !IsEmpty(colPendingReceipts),
-                        Collect(
-                            colErrorLog,
-                            {
-                                FailedRecordId: Blank(),
-                                ErrorMessage: "Current receipt is blank"
-                            }
-                        )
-                    )
-                );
-            
-                // 5. 처리된 영수증 제거 (에러 발생 여부와 관계없이, 컬렉션에 존재하는 경우만)
-                If(
-                    !IsBlank(_currentReceipt) &&
-                    !IsEmpty(colPendingReceipts) &&
-                    !IsBlank(
-                        LookUp(
-                            colPendingReceipts,
-                            mserp_entrecid = _currentReceipt.mserp_entrecid
-                        )
-                    ),
-                    Remove(colPendingReceipts, _currentReceipt)
-                );
-            
-                // 6. 모든 처리가 끝났는지 확인
-                If(
-                    IsEmpty(colPendingReceipts),
-                    // (1) 타이머 정지
-                    UpdateContext({varStartReceiptProcessing: false});
-                    
-                    // (2) 데이터 동기화 후 연결된 영수증 최종 확인
-                    Refresh('View Attached Receipts to Expense Lines (mserp)');
-                    Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                    
-                    If(
-                        !IsBlank(varTargetExpTransNumber),
-                        ClearCollect(
-                            colAttachedReceipts,
-                            SortByColumns(
-                                Filter(
-                                    'View Attached Receipts to Expense Lines (mserp)',
-                                    'Reference record ID' = Coalesce(
-                                        Value(varSelectedExpenseDoc.ExpenseRecId),
-                                        Value(EditExpenseForm.LastSubmit.ExpenseRecId)
-                                    )
-                                ),
-                                "mserp_createddatetime1",
-                                SortOrder.Descending
-                            )
-                        )
-                    );
-                    
-                    // (3) 에러 확인 - 일부 실패한 경우만 사용자에게 알림
-                    If(
-                        !IsEmpty(colErrorLog),
-                        Notify(
-                            Concatenate(
-                                "일부 파일 연결 실패 (",
-                                Text(CountRows(colErrorLog)),
-                                "개). 나중에 다시 추가해주세요."
-                            ),
-                            NotificationType.Error,
-                            gblParams.notificationTime
+                            ); 
+                            // [중요 수정] Collect는 Table을 반환하므로, Patch(Record)와 타입을 맞추기 위해 Blank()를 반환
+                            Blank()
                         )
                     );
             
-                    // (4) 후처리 액션 (저장 완료)
-                    Select(btn_PostSaveAction)
+                    // [공통] 성공/실패 여부와 관계없이 처리 시도한 아이템은 대기 목록에서 제거
+                    Remove(colPendingReceipts, wItem)
                 )
             );
-            */
+            
+            // 2. 반복 및 종료 처리
+            If(
+                IsEmpty(colPendingReceipts),
+                // [모두 완료 시]
+                UpdateContext({varStartReceiptProcessing: false}); // 타이머 중지
+                Select(btn_PostSaveAction),                        // 저장 후 처리 버튼 클릭
+                
+                // [아직 남았을 시] 
+                // 타이머가 반복(Repeat: true) 설정되어 있으므로 자동으로 다음 아이템 처리
+                true 
+            )
         Repeat: =!IsEmpty(colPendingReceipts)
         Start: =varStartReceiptProcessing
         Visible: =false
