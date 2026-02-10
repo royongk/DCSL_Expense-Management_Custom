@@ -66,14 +66,14 @@ Screens:
                   AcceptsFocus: =
                   AlignInContainer: =AlignInContainer.SetByContainer
                   BorderColor: =RGBA(0, 18, 107, 1)
-                  DataSource: ='Cash advances (mserp)'
+                  DataSource: ='DCSL TrvCash Advance Entity  (mserp)'
                   DefaultMode: |-
                     =If(
                         varIsCreateCashAdvance,
                         FormMode.New,
                         FormMode.Edit
                     )
-                  Item: =varSelectedCashAdvance
+                  Item: =If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance)
                   OnFailure: |-
                     =If(
                         CountRows(Split(Text(Self.Error), ":")) > 2,
@@ -88,10 +88,7 @@ Screens:
                             gblParams.notificationTime
                         )
                     )
-                  OnSuccess: |-
-                    =Set(varSelectedCashAdvance, EditCashAdvanceForm.LastSubmit);
-                    Notify("Cash advance saved successfully", NotificationType.Success, gblParams.notificationTime);
-                    Navigate('Cash Advance - List Screen', ScreenTransition.None)
+                  OnSuccess: "=Set(varSelectedCashAdvance, EditCashAdvanceForm.LastSubmit);\n// 1. 방금 저장된 레코드(LastSubmit)를 찾아 WorkflowAction을 \"Submit\"으로 업데이트\nPatch(\n    'DCSL TrvCash Advance Entity  (mserp)',\n    EditCashAdvanceForm.LastSubmit, \n    {\n        WorkflowAction: \"Submit\"\n    }\n);\n\n// 2. (선택 사항) 업데이트 중 에러가 발생했는지 확인하는 로직 (사용자가 제공한 예시 기반)\nIf(\n    !IsEmpty(Errors('DCSL TrvCash Advance Entity  (mserp)')),\n    Notify(First(Errors('DCSL TrvCash Advance Entity  (mserp)')).Message, NotificationType.Error),\n    \n    // 3. 에러가 없으면 성공 알림 및 화면 이동\n    Notify(\"Cash Advance has been submitted successfully.\", NotificationType.Success);\n    Navigate('Cash Advance - List Screen', ScreenTransition.None);\n    ResetForm(EditCashAdvanceForm)\n)\n/*\nNotify(\"Cash advance saved successfully\", NotificationType.Success, gblParams.notificationTime);\nNavigate('Cash Advance - List Screen', ScreenTransition.None)\n*/"
                   Width: =Parent.Width
                 Children:
                   - Requested date_DataCard:
@@ -131,7 +128,7 @@ Screens:
                               Height: =gblParams.dropDownHeight
                               IconBackground: =RGBA(56, 96, 178, 1)
                               IconFill: =RGBA(255, 255, 255, 1)
-                              Size: =14
+                              Size: =21
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_RequestedDate_Label.Y + CashAdvance_RequestedDate_Label.Height + 8
@@ -203,7 +200,6 @@ Screens:
                               SelectMultiple: =false
                               SelectionColor: =RGBA(255, 255, 255, 1)
                               SelectionFill: =RGBA(56, 96, 178, 1)
-                              Size: =13
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_Location_Label.Y + CashAdvance_Location_Label.Height + 8
@@ -274,7 +270,6 @@ Screens:
                               SelectMultiple: =false
                               SelectionColor: =RGBA(255, 255, 255, 1)
                               SelectionFill: =RGBA(56, 96, 178, 1)
-                              Size: =13
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_Purpose_Label.Y + CashAdvance_Purpose_Label.Height + 8
@@ -330,7 +325,6 @@ Screens:
                               HintText: =
                               HoverBorderColor: =RGBA(0, 18, 107, 1)
                               HoverFill: =RGBA(186, 202, 226, 1)
-                              Size: =13
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_RequestedAmount_Label.Y + CashAdvance_RequestedAmount_Label.Height + 8
@@ -401,7 +395,6 @@ Screens:
                               SelectMultiple: =false
                               SelectionColor: =RGBA(255, 255, 255, 1)
                               SelectionFill: =RGBA(56, 96, 178, 1)
-                              Size: =13
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_Currency_Label.Y + CashAdvance_Currency_Label.Height + 8
@@ -458,7 +451,6 @@ Screens:
                               HoverBorderColor: =RGBA(0, 18, 107, 1)
                               HoverFill: =RGBA(186, 202, 226, 1)
                               Mode: =TextMode.MultiLine
-                              Size: =13
                               Width: =Parent.Width - 80
                               X: =40
                               Y: =CashAdvance_Note_Label.Y + CashAdvance_Note_Label.Height + 8
@@ -484,7 +476,7 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deexrequestingworker"
-                        Default: =ThisItem.mserp_deexrequestingworker
+                        Default: =ThisItem.mserp_employee
                         DisplayName: =DataSourceInfo([@'Cash advances (mserp)'],DataSourceInfo.DisplayName,'mserp_deexrequestingworker')
                         Required: =true
                         Update: |-
@@ -593,7 +585,7 @@ Screens:
                     =If(
                         IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||
                         IsBlank(ComboBox_CashAdvance_Location.Selected.Location) ||
-                        IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)') && IsBlank(ComboBox_CashAdvance_Purpose.SearchText) ||
+                        IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)') ||
                         IsBlank(DataCardValue_CashAdvance_RequestedAmount.Text) ||
                         IsBlank(ComboBox_CashAdvance_Currency.Selected.mserp_currencycode),
                         Notify("Please fill in all required fields", NotificationType.Error, gblParams.notificationTime),
@@ -625,12 +617,17 @@ Screens:
                   HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                   OnSelect: |-
                     =If(
+                        // 1. 필수 값 체크 (신규 필드 기준)
                         IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||
-                        IsBlank(ComboBox_CashAdvance_Location.Selected.Location) ||
-                        IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)') && IsBlank(ComboBox_CashAdvance_Purpose.SearchText) ||
+                        IsBlank(ComboBox_CashAdvance_Location.Selected.Location) ||  // Location이 텍스트 필드인 경우 .Value 또는 .Text 확인 필요
+                        IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)') ||   // Purpose가 텍스트 필드인 경우 .Value, Lookup인 경우 해당 ID 참조
                         IsBlank(DataCardValue_CashAdvance_RequestedAmount.Text) ||
-                        IsBlank(ComboBox_CashAdvance_Currency.Selected.mserp_currencycode),
+                        IsBlank(ComboBox_CashAdvance_Currency.Selected.mserp_currencycode),    // mserp_currency가 Lookup이 아닌 단순 코드값일 경우 .Value
+
+                        // 2. 누락 시 알림
                         Notify("Please fill in all required fields", NotificationType.Error, gblParams.notificationTime),
+
+                        // 3. 폼 제출
                         SubmitForm(EditCashAdvanceForm)
                     )
                   PressedBorderColor: =Self.Fill
@@ -641,7 +638,7 @@ Screens:
                   RadiusTopLeft: =8
                   RadiusTopRight: =8
                   Size: =19.15
-                  Text: ="Submit(추후 적용)"
+                  Text: ="Submit"
                   Width: =Parent.Width - Self.X*2
                   X: =40
                   Y: =CashAdvanceEdit_SaveDraftButton.Y + CashAdvanceEdit_SaveDraftButton.Height + 20
