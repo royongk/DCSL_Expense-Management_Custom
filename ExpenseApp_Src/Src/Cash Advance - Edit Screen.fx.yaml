@@ -71,6 +71,57 @@
             Width: =Parent.Width
             ZIndex: =8
 
+            "'Requested date_DataCard' As typedDataCard.dateTimeEditCard":
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_requesteddate"
+                Default: =ThisItem.'Requested date'
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: ="Requested date"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =80
+                Required: =true
+                Update: =DatePicker_CashAdvance_RequestedDate.SelectedDate
+                Width: =Parent.Width
+                X: =0
+                Y: =0
+                ZIndex: =1
+
+                CashAdvance_RequestedDate_Label As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =24
+                    Size: =21
+                    Text: ="Requested date"
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =5
+                    ZIndex: =1
+
+                DatePicker_CashAdvance_RequestedDate As datepicker:
+                    DisplayMode: =Parent.DisplayMode
+                    Height: =gblParams.dropDownHeight
+                    SelectedDate: =If(varIsCreateCashAdvance, Today(), ThisItem.'Requested date')
+                    Width: =Parent.Width - 80
+                    X: =40
+                    Y: =CashAdvance_RequestedDate_Label.Y + CashAdvance_RequestedDate_Label.Height + 8
+                    ZIndex: =3
+
+                CashAdvance_RequestedDate_Star As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 0)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =CashAdvance_RequestedDate_Label.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =CashAdvance_RequestedDate_Label.Y
+                    ZIndex: =4
+
             Employee_DataCard1 As typedDataCard.numberEditCard:
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_deexrequestingworker"
@@ -144,57 +195,6 @@
                     Width: =30
                     Wrap: =false
                     Y: =DataCardKey25.Y
-                    ZIndex: =4
-
-            "'Requested date_DataCard' As typedDataCard.dateTimeEditCard":
-                BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_requesteddate"
-                Default: =ThisItem.'Requested date'
-                DisplayMode: =Parent.DisplayMode
-                DisplayName: ="Requested date"
-                Fill: =RGBA(0, 0, 0, 0)
-                Height: =80
-                Required: =true
-                Update: =DatePicker_CashAdvance_RequestedDate.SelectedDate
-                Width: =Parent.Width
-                X: =0
-                Y: =0
-                ZIndex: =1
-
-                CashAdvance_RequestedDate_Label As label:
-                    AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 0)
-                    Color: =gblParams.dropDownLabelColor
-                    Font: =Font.'Segoe UI'
-                    Height: =24
-                    Size: =21
-                    Text: ="Requested date"
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =5
-                    ZIndex: =1
-
-                DatePicker_CashAdvance_RequestedDate As datepicker:
-                    DisplayMode: =Parent.DisplayMode
-                    Height: =gblParams.dropDownHeight
-                    SelectedDate: =If(varIsCreateCashAdvance, Today(), ThisItem.'Requested date')
-                    Width: =Parent.Width - 80
-                    X: =40
-                    Y: =CashAdvance_RequestedDate_Label.Y + CashAdvance_RequestedDate_Label.Height + 8
-                    ZIndex: =3
-
-                CashAdvance_RequestedDate_Star As label:
-                    Align: =Align.Center
-                    BorderColor: =RGBA(0, 0, 0, 0)
-                    Color: =RGBA(0, 18, 107, 1)
-                    Height: =CashAdvance_RequestedDate_Label.Height
-                    Size: =21
-                    Text: ="*"
-                    Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                    Width: =30
-                    Wrap: =false
-                    Y: =CashAdvance_RequestedDate_Label.Y
                     ZIndex: =4
 
             Location_DataCard As typedDataCard.textualEditCard:

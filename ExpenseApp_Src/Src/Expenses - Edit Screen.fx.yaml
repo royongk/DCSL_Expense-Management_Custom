@@ -1213,79 +1213,6 @@
             Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
             ZIndex: =1
 
-            "'Expense Beneficiary_DataCard1' As typedDataCard.textualMultiLineEditCard":
-                BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_deexexpensebeneficiary"
-                Default: =ThisItem.'Expense Beneficiary'
-                DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexexpensebeneficiary')
-                Fill: =RGBA(0, 0, 0, 0)
-                Height: =50
-                Required: =false
-                Update: =DataCardValue17.Text
-                Visible: =false
-                Width: =640
-                X: =0
-                Y: =62
-                ZIndex: =1
-
-                DataCardKey24 As label:
-                    AutoHeight: =true
-                    Height: =48
-                    Size: =21
-                    Text: =Parent.DisplayName
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =10
-                    ZIndex: =1
-
-                DataCardValue17 As text:
-                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                    Default: =Parent.Default
-                    DelayOutput: =true
-                    DisplayMode: =Parent.DisplayMode
-                    Height: =140
-                    Mode: =TextMode.MultiLine
-                    PaddingLeft: =5
-                    RadiusBottomLeft: =0
-                    RadiusBottomRight: =0
-                    RadiusTopLeft: =0
-                    RadiusTopRight: =0
-                    Size: =21
-                    Tooltip: =Parent.DisplayName
-                    Width: =Parent.Width - 60
-                    X: =30
-                    Y: =DataCardKey24.Y + DataCardKey24.Height + 5
-                    ZIndex: =2
-
-                ErrorMessage24 As label:
-                    AutoHeight: =true
-                    Height: =10
-                    Live: =Live.Assertive
-                    PaddingBottom: =0
-                    PaddingLeft: =0
-                    PaddingRight: =0
-                    PaddingTop: =0
-                    Size: =24
-                    Text: =Parent.Error
-                    Visible: =Parent.DisplayMode=DisplayMode.Edit
-                    Width: =Parent.Width - 60
-                    X: =30
-                    Y: =DataCardValue17.Y + DataCardValue17.Height
-                    ZIndex: =3
-
-                StarVisible24 As label:
-                    Align: =Align.Center
-                    Height: =DataCardKey24.Height
-                    Size: =21
-                    Text: ="*"
-                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                    Width: =30
-                    Wrap: =false
-                    Y: =DataCardKey24.Y
-                    ZIndex: =4
-
             ExpenseType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =Distinct(
@@ -1565,6 +1492,148 @@
                     Width: =30
                     Wrap: =false
                     Y: =PurchaseCategory_DataCardKey.Y
+                    ZIndex: =4
+
+            ItemOrService_DataCard As typedDataCard.allowedValuesStringEditCard:
+                AllowedValues: |-
+                    =If(
+                        !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory),
+                        SortByColumns(
+                            Distinct(
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    !IsBlank('Expense category') &&
+                                    'Expense Type' = varSelectedExpenseType &&
+                                    'Purchase Category' = varSelectedPurchaseCategory
+                                ),
+                                'Expense category'
+                            ),
+                            "Value",
+                            SortOrder.Ascending
+                        ),
+                        []
+                    )
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexitemorservice"
+                Default: =varSelectedItemOrService
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: ="Item or Service"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =ComboBox_ItemOrService.Selected.Value
+                Visible: =true
+                Width: =Parent.Width
+                X: =1
+                Y: =expenseCategoryFieldOrder_Y - 30
+                ZIndex: =1
+
+                ItemOrService_DataCardKey As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                ComboBox_ItemOrService As combobox:
+                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(varSelectedItemOrService),
+                            LookUp(
+                                Distinct(
+                                    Filter(
+                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                        !IsBlank('Expense category') &&
+                                        !IsBlank(varSelectedExpenseType) &&
+                                        'Expense Type' = varSelectedExpenseType &&
+                                        !IsBlank(varSelectedPurchaseCategory) &&
+                                        'Purchase Category' = varSelectedPurchaseCategory
+                                    ),
+                                    'Item or Service'
+                                ),
+                                Value = varSelectedItemOrService
+                            ),
+                            Blank()
+                        )
+                    DisplayFields: =["Value"]
+                    DisplayMode: |-
+                        =If(
+                            IsBlank(ComboBox_ExpenseType.Selected) || IsBlank(ComboBox_PurchaseCategory.Selected),
+                            DisplayMode.Disabled,
+                            Parent.DisplayMode
+                        )
+                    FocusedBorderThickness: =2
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
+                    InputTextPlaceholder: ="Select Item or Service"
+                    IsSearchable: =false
+                    Items: |-
+                        =SortByColumns(
+                            Distinct(
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    !IsBlank('Expense category') &&
+                                    !IsBlank(varSelectedExpenseType) &&
+                                    'Expense Type' = varSelectedExpenseType &&
+                                    !IsBlank(varSelectedPurchaseCategory) &&
+                                    'Purchase Category' = varSelectedPurchaseCategory
+                                ),
+                                'Item or Service'
+                            ),
+                            "Value",
+                            SortOrder.Ascending
+                        )
+                    NoSelectionText: ="Select Item or Service"
+                    OnChange: |-
+                        =UpdateContext({varSelectedItemOrService: Parent.Update});
+                        // Derive project type from 3-level category selection
+                        UpdateContext(
+                            {
+                                varSelectedProjectType: 
+                                    LookUp(
+                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                        'Expense Type' = varSelectedExpenseType &&
+                                        'Purchase Category' = varSelectedPurchaseCategory &&
+                                        'Item or Service' = Parent.Update,
+                                        'Project Type'
+                                    )
+                            }
+                        )
+                    SearchFields: =["Value"]
+                    SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank('Expense category')&&!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType&&!IsBlank(varSelectedPurchaseCategory)&&'Purchase Category'=varSelectedPurchaseCategory),'Item or Service'),"Value",SortOrder.Ascending),ComboBox_ItemOrService.SearchText,Value)
+                    SelectionColor: =Color.Black
+                    SelectionFill: =gblParams.dropDownBorderColor
+                    SelectionTagColor: =RGBA(0, 0, 0, 1)
+                    SelectMultiple: =false
+                    Size: =24
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =ItemOrService_DataCardKey.Y + ItemOrService_DataCardKey.Height + 5
+                    ZIndex: =2
+
+                ItemOrService_StarVisible As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =ItemOrService_DataCardKey.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =ItemOrService_DataCardKey.Y
                     ZIndex: =4
 
             "'Expense category_DataCard3_3' As typedDataCard.allowedValuesStringEditCard":
@@ -8324,6 +8393,131 @@
                     Y: =DataCardKey39_1.Y + DataCardKey39_1.Height + 5
                     ZIndex: =2
 
+            "'Purchase Date_DataCard1_3' As typedDataCard.dateTimeEditCard":
+                BorderColor: =gblParams.dropDownBorderColor
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexpurchasedate"
+                Default: =varSelectedExpenseDoc.'Purchase Date'
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Purchase Date')
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =true
+                Update: =DatePickerCanvas_PurchaseDate.SelectedDate
+                Visible: =true
+                Width: =Parent.Width
+                X: =0
+                Y: =purchaseDateFieldOrder_Y
+                ZIndex: =1
+
+                PurchaseDate_DataCardKey As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: |-
+                        =//LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName) 
+                        "Purchase date"
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                DateValue_PurchaseDate As datepicker:
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =0
+                    Color: =gblParams.dropDownLabelColor
+                    DefaultDate: =DatePickerCanvas_PurchaseDate.SelectedDate
+                    DisplayMode: =Parent.DisplayMode
+                    EndYear: =Year(Today())+100
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    Height: =gblParams.dropDownHeight
+                    IsEditable: =true
+                    PaddingBottom: =0
+                    PaddingLeft: =If(Self.DisplayMode = DisplayMode.Edit, 5, 0)
+                    Size: =24
+                    StartYear: =1899
+                    TabIndex: =-1
+                    Tooltip: =Parent.DisplayName
+                    Visible: =false
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
+                    ZIndex: =2
+
+                ErrorMessage_PurchaseDate As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(168, 0, 0, 1)
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Semibold
+                    Height: =10
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =gblParams.errorMessageSize
+                    Text: =Parent.Error
+                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =DateValue_PurchaseDate.Y + DateValue_PurchaseDate.Height
+                    ZIndex: =6
+
+                StarVisible_PurchaseDate As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =PurchaseDate_DataCardKey.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =PurchaseDate_DataCardKey.Y
+                    ZIndex: =7
+
+                "DatePickerCanvas_PurchaseDate As '날짜 선택'":
+                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
+                    Appearance: ="FilledDarker"
+                    BasePaletteColor: =
+                    BorderColor: =
+                    BorderStyle: =""
+                    DisplayMode: =DisplayMode.Edit
+                    Fill: =
+                    Font: =""
+                    FontColor: =
+                    FontItalic: =false
+                    FontSize: =App.Height * gblDatePickerResolutionFactor
+                    FontStrikethrough: =false
+                    FontUnderline: =false
+                    FontWeight: =""
+                    Height: =gblParams.dropDownHeight
+                    IsEditable: =true
+                    OnChange: |-
+                        =UpdateContext({isDirty : true})
+                    Placeholder: |-
+                        =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
+                        "Enter Purchase date"
+                    Required: =false
+                    SelectedDate: |-
+                        =If(
+                            varIsCreate,
+                            Blank(),
+                            varSelectedExpenseDoc.'Purchase Date'
+                        )
+                    ValidationState: ="None"
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =30
+                    Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
+                    ZIndex: =8
+
             "'Additional information_DataCard1_3' As typedDataCard.textualEditCard":
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
@@ -10861,47 +11055,24 @@
                     Y: =Project_DataCardKey.Y
                     ZIndex: =4
 
-            ItemOrService_DataCard As typedDataCard.allowedValuesStringEditCard:
-                AllowedValues: |-
-                    =If(
-                        !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory),
-                        SortByColumns(
-                            Distinct(
-                                Filter(
-                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank('Expense category') &&
-                                    'Expense Type' = varSelectedExpenseType &&
-                                    'Purchase Category' = varSelectedPurchaseCategory
-                                ),
-                                'Expense category'
-                            ),
-                            "Value",
-                            SortOrder.Ascending
-                        ),
-                        []
-                    )
-                BorderColor: =gblParams.dropDownBorderColor
+            "'Expense Beneficiary_DataCard1' As typedDataCard.textualMultiLineEditCard":
                 BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_deexitemorservice"
-                Default: =varSelectedItemOrService
+                DataField: ="mserp_deexexpensebeneficiary"
+                Default: =ThisItem.'Expense Beneficiary'
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: ="Item or Service"
+                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexexpensebeneficiary')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =ComboBox_ItemOrService.Selected.Value
-                Visible: =true
-                Width: =Parent.Width
-                X: =1
-                Y: =expenseCategoryFieldOrder_Y - 30
+                Update: =DataCardValue17.Text
+                Visible: =false
+                Width: =640
+                X: =0
+                Y: =62
                 ZIndex: =1
 
-                ItemOrService_DataCardKey As label:
+                DataCardKey24 As label:
                     AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =gblParams.dropDownLabelColor
-                    FocusedBorderThickness: =
-                    Font: =Font.'Segoe UI'
                     Height: =48
                     Size: =21
                     Text: =Parent.DisplayName
@@ -10911,222 +11082,51 @@
                     Y: =10
                     ZIndex: =1
 
-                ComboBox_ItemOrService As combobox:
-                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
+                DataCardValue17 As text:
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                    DefaultSelectedItems: |-
-                        =If(
-                            !IsBlank(varSelectedItemOrService),
-                            LookUp(
-                                Distinct(
-                                    Filter(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        !IsBlank('Expense category') &&
-                                        !IsBlank(varSelectedExpenseType) &&
-                                        'Expense Type' = varSelectedExpenseType &&
-                                        !IsBlank(varSelectedPurchaseCategory) &&
-                                        'Purchase Category' = varSelectedPurchaseCategory
-                                    ),
-                                    'Item or Service'
-                                ),
-                                Value = varSelectedItemOrService
-                            ),
-                            Blank()
-                        )
-                    DisplayFields: =["Value"]
-                    DisplayMode: |-
-                        =If(
-                            IsBlank(ComboBox_ExpenseType.Selected) || IsBlank(ComboBox_PurchaseCategory.Selected),
-                            DisplayMode.Disabled,
-                            Parent.DisplayMode
-                        )
-                    FocusedBorderThickness: =2
-                    Height: =gblParams.dropDownHeight
-                    HoverFill: =gblParams.dropDownHoverFill
-                    InputTextPlaceholder: ="Select Item or Service"
-                    IsSearchable: =false
-                    Items: |-
-                        =SortByColumns(
-                            Distinct(
-                                Filter(
-                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    !IsBlank('Expense category') &&
-                                    !IsBlank(varSelectedExpenseType) &&
-                                    'Expense Type' = varSelectedExpenseType &&
-                                    !IsBlank(varSelectedPurchaseCategory) &&
-                                    'Purchase Category' = varSelectedPurchaseCategory
-                                ),
-                                'Item or Service'
-                            ),
-                            "Value",
-                            SortOrder.Ascending
-                        )
-                    NoSelectionText: ="Select Item or Service"
-                    OnChange: |-
-                        =UpdateContext({varSelectedItemOrService: Parent.Update});
-                        // Derive project type from 3-level category selection
-                        UpdateContext(
-                            {
-                                varSelectedProjectType: 
-                                    LookUp(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        'Expense Type' = varSelectedExpenseType &&
-                                        'Purchase Category' = varSelectedPurchaseCategory &&
-                                        'Item or Service' = Parent.Update,
-                                        'Project Type'
-                                    )
-                            }
-                        )
-                    SearchFields: =["Value"]
-                    SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank('Expense category')&&!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType&&!IsBlank(varSelectedPurchaseCategory)&&'Purchase Category'=varSelectedPurchaseCategory),'Item or Service'),"Value",SortOrder.Ascending),ComboBox_ItemOrService.SearchText,Value)
-                    SelectionColor: =Color.Black
-                    SelectionFill: =gblParams.dropDownBorderColor
-                    SelectionTagColor: =RGBA(0, 0, 0, 1)
-                    SelectMultiple: =false
-                    Size: =24
-                    Width: =Parent.Width - 2 * Self.X
-                    X: =30
-                    Y: =ItemOrService_DataCardKey.Y + ItemOrService_DataCardKey.Height + 5
-                    ZIndex: =2
-
-                ItemOrService_StarVisible As label:
-                    Align: =Align.Center
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =RGBA(0, 18, 107, 1)
-                    Height: =ItemOrService_DataCardKey.Height
-                    Size: =21
-                    Text: ="*"
-                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                    Width: =30
-                    Wrap: =false
-                    Y: =ItemOrService_DataCardKey.Y
-                    ZIndex: =4
-
-            "'Purchase Date_DataCard1_3' As typedDataCard.dateTimeEditCard":
-                BorderColor: =gblParams.dropDownBorderColor
-                BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_deexpurchasedate"
-                Default: =varSelectedExpenseDoc.'Purchase Date'
-                DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Purchase Date')
-                Fill: =RGBA(0, 0, 0, 0)
-                Height: =50
-                Required: =true
-                Update: =DatePickerCanvas_PurchaseDate.SelectedDate
-                Visible: =true
-                Width: =Parent.Width
-                X: =0
-                Y: =purchaseDateFieldOrder_Y
-                ZIndex: =1
-
-                PurchaseDate_DataCardKey As label:
-                    AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =gblParams.dropDownLabelColor
-                    FocusedBorderThickness: =
-                    Font: =Font.'Segoe UI'
-                    Height: =48
-                    Size: =21
-                    Text: |-
-                        =//LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName) 
-                        "Purchase date"
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =10
-                    ZIndex: =1
-
-                DateValue_PurchaseDate As datepicker:
-                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                    BorderThickness: =0
-                    Color: =gblParams.dropDownLabelColor
-                    DefaultDate: =DatePickerCanvas_PurchaseDate.SelectedDate
+                    Default: =Parent.Default
+                    DelayOutput: =true
                     DisplayMode: =Parent.DisplayMode
-                    EndYear: =Year(Today())+100
-                    FocusedBorderThickness: =
-                    Font: =Font.'Segoe UI'
-                    Height: =gblParams.dropDownHeight
-                    IsEditable: =true
-                    PaddingBottom: =0
-                    PaddingLeft: =If(Self.DisplayMode = DisplayMode.Edit, 5, 0)
-                    Size: =24
-                    StartYear: =1899
-                    TabIndex: =-1
+                    Height: =140
+                    Mode: =TextMode.MultiLine
+                    PaddingLeft: =5
+                    RadiusBottomLeft: =0
+                    RadiusBottomRight: =0
+                    RadiusTopLeft: =0
+                    RadiusTopRight: =0
+                    Size: =21
                     Tooltip: =Parent.DisplayName
-                    Visible: =false
-                    Width: =Parent.Width - 2 * Self.X
+                    Width: =Parent.Width - 60
                     X: =30
-                    Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
+                    Y: =DataCardKey24.Y + DataCardKey24.Height + 5
                     ZIndex: =2
 
-                ErrorMessage_PurchaseDate As label:
+                ErrorMessage24 As label:
                     AutoHeight: =true
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =RGBA(168, 0, 0, 1)
-                    Font: =Font.'Segoe UI'
-                    FontWeight: =FontWeight.Semibold
                     Height: =10
                     Live: =Live.Assertive
                     PaddingBottom: =0
                     PaddingLeft: =0
                     PaddingRight: =0
                     PaddingTop: =0
-                    Size: =gblParams.errorMessageSize
+                    Size: =24
                     Text: =Parent.Error
                     Visible: =Parent.DisplayMode=DisplayMode.Edit
                     Width: =Parent.Width - 60
                     X: =30
-                    Y: =DateValue_PurchaseDate.Y + DateValue_PurchaseDate.Height
-                    ZIndex: =6
+                    Y: =DataCardValue17.Y + DataCardValue17.Height
+                    ZIndex: =3
 
-                StarVisible_PurchaseDate As label:
+                StarVisible24 As label:
                     Align: =Align.Center
-                    BorderColor: =RGBA(0, 0, 0, 1)
-                    Color: =RGBA(0, 18, 107, 1)
-                    Height: =PurchaseDate_DataCardKey.Height
+                    Height: =DataCardKey24.Height
                     Size: =21
                     Text: ="*"
                     Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
-                    Y: =PurchaseDate_DataCardKey.Y
-                    ZIndex: =7
-
-                "DatePickerCanvas_PurchaseDate As '날짜 선택'":
-                    AccessibleLabel: =Concatenate("Select ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
-                    Appearance: ="FilledDarker"
-                    BasePaletteColor: =
-                    BorderColor: =
-                    BorderStyle: =""
-                    DisplayMode: =DisplayMode.Edit
-                    Fill: =
-                    Font: =""
-                    FontColor: =
-                    FontItalic: =false
-                    FontSize: =App.Height * gblDatePickerResolutionFactor
-                    FontStrikethrough: =false
-                    FontUnderline: =false
-                    FontWeight: =""
-                    Height: =gblParams.dropDownHeight
-                    IsEditable: =true
-                    OnChange: |-
-                        =UpdateContext({isDirty : true})
-                    Placeholder: |-
-                        =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionDateLabel'
-                        "Enter Purchase date"
-                    Required: =false
-                    SelectedDate: |-
-                        =If(
-                            varIsCreate,
-                            Blank(),
-                            varSelectedExpenseDoc.'Purchase Date'
-                        )
-                    ValidationState: ="None"
-                    Width: =Parent.Width - 2 * Self.X
-                    X: =30
-                    Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
-                    ZIndex: =8
+                    Y: =DataCardKey24.Y
+                    ZIndex: =4
 
     formModeRectangle As rectangle:
         Fill: =RGBA(0, 0, 0, 0)
