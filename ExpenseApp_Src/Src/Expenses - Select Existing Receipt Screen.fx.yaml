@@ -340,7 +340,8 @@
         Fill: =RGBA(34, 102, 227, 1)
         Height: =72
         OnSelect: |-
-            =// Commit selected existing receipts into attached receipts collection
+            =// [scr10_btn_DoneMultiAttach OnSelect 수정 코드]
+            
             ForAll(
                 colSelectedExistingReceipts As sel,
                 With(
@@ -351,19 +352,58 @@
                         )
                     },
                     If(
-                        !IsBlank(receiptRecord) &&
-                        IsBlank(LookUp(colAttachedReceipts, mserp_entrecid = receiptRecord.EntRecId)),
-                        Collect(colAttachedReceipts, receiptRecord)
+                        !IsBlank(receiptRecord),
+                        
+                        // 신규 생성 중이거나 경비 번호가 없는 경우 -> colPendingReceipts에 담기
+                        If(
+                            varIsCreate || IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                            
+                            // 신규 모드: Pending에 추가
+                            If(
+                                IsBlank(LookUp(colPendingReceipts, mserp_entrecid = receiptRecord.EntRecId)),
+                                Collect(
+                                    colPendingReceipts,
+                                    {
+                                        mserp_entrecid: receiptRecord.EntRecId,
+                                        mserp_captureddocument: receiptRecord.CapturedDocument,
+                                        mserp_fileextension: receiptRecord.FileExtension,
+                                        mserp_filename: Coalesce(receiptRecord.Description, Concatenate("Receipt-", Text(receiptRecord.EntRecId)))
+                                    }
+                                )
+                            ),
+            
+                            // 수정 모드: 즉시 Patch 및 Attached에 추가
+                            IfError(
+                                Patch(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    receiptRecord,
+                                    {
+                                        ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                    }
+                                );
+                                Collect(colAttachedReceipts, receiptRecord),
+                                // [수정 포인트] Notify 뒤에 세미콜론과 컬렉션을 추가하여 반환 타입을 Table로 맞춤
+                                Notify("Error: " & FirstError.Message, NotificationType.Error); colAttachedReceipts
+                            )
+                        )
                     )
                 )
             );
-            // Set preview vars to first receipt for backward compatibility UI
-            If(
-                !IsEmpty(colAttachedReceipts),
-                Set(varReceiptImage, First(colAttachedReceipts).mserp_captureddocument);
-                Set(varFileFormat, First(colAttachedReceipts).mserp_fileextension)
-            );
+            
             Clear(colSelectedExistingReceipts);
+            
+            // 미리보기 설정 (Pending 우선)
+            If(
+                !IsEmpty(colPendingReceipts),
+                Set(varReceiptImage, First(colPendingReceipts).mserp_captureddocument);
+                Set(varFileFormat, First(colPendingReceipts).mserp_fileextension),
+                If(
+                    !IsEmpty(colAttachedReceipts),
+                    Set(varReceiptImage, First(colAttachedReceipts).mserp_captureddocument);
+                    Set(varFileFormat, First(colAttachedReceipts).mserp_fileextension)
+                )
+            );
+            
             Navigate('Expenses - Edit Screen', ScreenTransition.None, {locItemizeButtonVisibilityFlag: false})
         RadiusBottomLeft: =8
         RadiusBottomRight: =8

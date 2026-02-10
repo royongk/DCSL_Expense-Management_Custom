@@ -19,7 +19,10 @@
         Fill: =RGBA(34, 102, 227, 1)
         Height: =88
         OnSelect: |-
-            =If(
+            =// [scr05_btn_Done OnSelect 수정 코드]
+            
+            // 1. 이미지 업로드 로직 (기존 코드 유지)
+            If(
                 !IsreceiptALreadyCreated,
                 If(
                     IsBlank(varSelectedReceiptNumber),
@@ -75,81 +78,75 @@
                     Substitute(JSON(scr05_img_Receipt.Image,JSONFormat.IncludeBinaryData),"""","")
                 )
             );
-            // Make sure the receipt record is available for lookup/collection
+            
+            // 2. [핵심 수정 구간] 컬렉션 처리 로직
             If(
                 !IsBlank(varSelectedReceiptNumber),
-                Refresh('Expense Mobile Unattached Document Entity (mserp)')
-            );
-            // Add or update selected receipt in local collection for UI (avoid duplicates)
-            With(
-                {
-                    selectedReceipt:
-                        LookUp(
+                Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                With(
+                    {
+                        selectedReceipt: LookUp(
                             'Expense Mobile Unattached Document Entity (mserp)',
                             EntRecId = varSelectedReceiptNumber
                         )
-                },
-                If(
-                    !IsBlank(selectedReceipt),
-                    // 신규 생성: pending receipts에 누적(즉시 UI 표시)
+                    },
                     If(
-                        varIsCreate || IsBlank(varSelectedExpenseDoc) || IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                        !IsBlank(selectedReceipt),
+                        // [조건 강화] 신규 생성 모드이거나, 경비 번호가 없는 경우 -> 무조건 Pending에 추가
                         If(
-                            IsBlank(LookUp(colPendingReceipts, mserp_entrecid = selectedReceipt.EntRecId)),
-                            Collect(
-                                colPendingReceipts,
-                                {
-                                    mserp_entrecid: selectedReceipt.EntRecId,
-                                    mserp_captureddocument: selectedReceipt.CapturedDocument,
-                                    mserp_fileextension: selectedReceipt.FileExtension,
-                                    // Use server-side description if available; otherwise generate a stable name from EntRecId
-                                    mserp_filename: Coalesce(
-                                        selectedReceipt.Description,
-                                        Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
-                                    )
-                                }
-                            )
-                        ),
-                        // 수정 모드: 즉시 attach(ExpTransNumber 세팅)해서 View Attached에서 조회되게 함
-                        IfError(
-                            Patch(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                selectedReceipt,
-                                {
-                                    ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
-                                }
-                            );
-                            // -------------------------------------------------------------------------
-                            // [수정] Patch 성공 시 로컬 컬렉션(colAttachedReceipts)에 즉시 추가하여 UI 갱신
-                            // -------------------------------------------------------------------------
-                            Collect(
-                                colAttachedReceipts,
-                                {
-                                    mserp_entrecid: selectedReceipt.EntRecId,
-                                    mserp_captureddocument: selectedReceipt.CapturedDocument,
-                                    mserp_fileextension: selectedReceipt.FileExtension,
-                                    mserp_filename: Coalesce(
-                                        selectedReceipt.Description,
-                                        Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
-                                    )
-                                }
+                            varIsCreate || IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                            
+                            // CASE 1: 신규 생성 (Pending 컬렉션에 추가)
+                            If(
+                                IsBlank(LookUp(colPendingReceipts, mserp_entrecid = selectedReceipt.EntRecId)),
+                                Collect(
+                                    colPendingReceipts,
+                                    {
+                                        mserp_entrecid: selectedReceipt.EntRecId,
+                                        mserp_captureddocument: selectedReceipt.CapturedDocument,
+                                        mserp_fileextension: selectedReceipt.FileExtension,
+                                        mserp_filename: Coalesce(
+                                            selectedReceipt.Description,
+                                            Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
+                                        )
+                                    }
+                                )
                             ),
-                            // -------------------------------------------------------------------------
             
-                            // [수정된 부분] 오류 발생 시 알림 후 'Table' 타입을 반환하도록 수정 (colAttachedReceipts 사용)
-                            Notify(
-                                Substitute(
-                                    Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
-                                    """message"":",
-                                    ""
+                            // CASE 2: 기존 경비 수정 (즉시 DB 연결 및 Attached 컬렉션 갱신)
+                            IfError(
+                                Patch(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    selectedReceipt,
+                                    {
+                                        ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                                    }
+                                );
+                                Collect(
+                                    colAttachedReceipts,
+                                    {
+                                        mserp_entrecid: selectedReceipt.EntRecId,
+                                        mserp_captureddocument: selectedReceipt.CapturedDocument,
+                                        mserp_fileextension: selectedReceipt.FileExtension,
+                                        mserp_filename: Coalesce(
+                                            selectedReceipt.Description,
+                                            Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
+                                        )
+                                    }
                                 ),
-                                NotificationType.Error,
-                                gblParams.notificationTime
-                            ); colAttachedReceipts
+                                // [수정 포인트] Notify 뒤에 세미콜론과 컬렉션을 추가하여 반환 타입을 Table로 맞춤
+                                Notify(
+                                    "Error attaching receipt: " & FirstError.Message,
+                                    NotificationType.Error,
+                                    3000
+                                ); colAttachedReceipts
+                            )
                         )
                     )
                 )
             );
+            
+            // 3. OCR 및 화면 이동 로직 (기존 유지)
             If(
                 varIsCreate && varOCREnabled && !IsBlank(varSelectedReceiptNumber),
                 UpdateContext({

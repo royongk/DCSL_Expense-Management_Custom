@@ -373,32 +373,7 @@ Screens:
             HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
             HoverColor: =RGBA(255, 255, 255, 1)
             HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-            OnSelect: |-
-              =// Commit selected existing receipts into attached receipts collection
-              ForAll(
-                  colSelectedExistingReceipts As sel,
-                  With(
-                      {
-                          receiptRecord: LookUp(
-                              'Expense Mobile Unattached Document Entity (mserp)',
-                              EntRecId = sel.EntRecId
-                          )
-                      },
-                      If(
-                          !IsBlank(receiptRecord) &&
-                          IsBlank(LookUp(colAttachedReceipts, mserp_entrecid = receiptRecord.EntRecId)),
-                          Collect(colAttachedReceipts, receiptRecord)
-                      )
-                  )
-              );
-              // Set preview vars to first receipt for backward compatibility UI
-              If(
-                  !IsEmpty(colAttachedReceipts),
-                  Set(varReceiptImage, First(colAttachedReceipts).mserp_captureddocument);
-                  Set(varFileFormat, First(colAttachedReceipts).mserp_fileextension)
-              );
-              Clear(colSelectedExistingReceipts);
-              Navigate('Expenses - Edit Screen', ScreenTransition.None, {locItemizeButtonVisibilityFlag: false})
+            OnSelect: "=// [scr10_btn_DoneMultiAttach OnSelect 수정 코드]\n\nForAll(\n    colSelectedExistingReceipts As sel,\n    With(\n        {\n            receiptRecord: LookUp(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                EntRecId = sel.EntRecId\n            )\n        },\n        If(\n            !IsBlank(receiptRecord),\n            \n            // 신규 생성 중이거나 경비 번호가 없는 경우 -> colPendingReceipts에 담기\n            If(\n                varIsCreate || IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n                \n                // 신규 모드: Pending에 추가\n                If(\n                    IsBlank(LookUp(colPendingReceipts, mserp_entrecid = receiptRecord.EntRecId)),\n                    Collect(\n                        colPendingReceipts,\n                        {\n                            mserp_entrecid: receiptRecord.EntRecId,\n                            mserp_captureddocument: receiptRecord.CapturedDocument,\n                            mserp_fileextension: receiptRecord.FileExtension,\n                            mserp_filename: Coalesce(receiptRecord.Description, Concatenate(\"Receipt-\", Text(receiptRecord.EntRecId)))\n                        }\n                    )\n                ),\n\n                // 수정 모드: 즉시 Patch 및 Attached에 추가\n                IfError(\n                    Patch(\n                        'Expense Mobile Unattached Document Entity (mserp)',\n                        receiptRecord,\n                        {\n                            ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'\n                        }\n                    );\n                    Collect(colAttachedReceipts, receiptRecord),\n                    // [수정 포인트] Notify 뒤에 세미콜론과 컬렉션을 추가하여 반환 타입을 Table로 맞춤\n                    Notify(\"Error: \" & FirstError.Message, NotificationType.Error); colAttachedReceipts\n                )\n            )\n        )\n    )\n);\n\nClear(colSelectedExistingReceipts);\n\n// 미리보기 설정 (Pending 우선)\nIf(\n    !IsEmpty(colPendingReceipts),\n    Set(varReceiptImage, First(colPendingReceipts).mserp_captureddocument);\n    Set(varFileFormat, First(colPendingReceipts).mserp_fileextension),\n    If(\n        !IsEmpty(colAttachedReceipts),\n        Set(varReceiptImage, First(colAttachedReceipts).mserp_captureddocument);\n        Set(varFileFormat, First(colAttachedReceipts).mserp_fileextension)\n    )\n);\n\nNavigate('Expenses - Edit Screen', ScreenTransition.None, {locItemizeButtonVisibilityFlag: false})"
             PressedBorderColor: =Self.Fill
             PressedColor: =Self.Fill
             PressedFill: =Self.Color

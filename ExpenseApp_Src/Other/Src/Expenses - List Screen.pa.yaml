@@ -224,27 +224,65 @@ Screens:
                       false
                   )
               );
+
+              Clear(colPendingReceipts);
               // assign the expense to a varSelectedExpenseDoc
               Set(
                   varSelectedExpenseDoc,
                   LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
               );
 
-              // [추가] 다중 영수증 컬렉션 로드
-              Refresh('Expense Mobile Attached Document Entity (mserp)');
-              ClearCollect(
-                  colAttachedReceipts,
-                  SortByColumns(
-                      Filter(
-                          'Expense Mobile Attached Document Entity (mserp)',
-                          'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
-                      ),
-                      "mserp_creatingdatetime",
-                      SortOrder.Descending
+              // 1. [Attached Entity] 조회 (이미 완전히 연결된 파일)
+              ClearCollect(colFromAttached,
+                  Filter(
+                      'Expense Mobile Attached Document Entity (mserp)',
+                      'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
                   )
               );
 
-              // [수정] 단일 영수증 조회 대신 컬렉션의 첫 번째 항목 사용
+              // 2. Unattached Entity 조회 (수정됨)
+              // [변경점] 서버에 필터를 걸지 않고 내 목록을 먼저 다 가져옴 (Virtual Field 오류 방지)
+              ClearCollect(colAllMyUnattached, 'Expense Mobile Unattached Document Entity (mserp)');
+
+              // [변경점] 앱 내부(Local)에서 ExpTransNumber로 필터링 수행
+              ClearCollect(colFromUnattached,
+                  Filter(
+                      colAllMyUnattached,
+                      ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                  )
+              );
+              );
+
+              // 3. [데이터 병합] 두 결과를 하나의 컬렉션(colAttachedReceipts)으로 통합
+              // 화면 표시를 위해 필드명을 통일합니다.
+              ClearCollect(
+                  colAttachedReceipts,
+                  // 1. 이미 첨부된 파일들 (Attached Entity)
+                  ForAll(colFromAttached, {
+                      mserp_entrecid: EntRecId,
+                      mserp_captureddocument: mserp_captureddocument,
+                      mserp_fileextension: mserp_fileextension,
+                      mserp_filename: mserp_filename,
+                      mserp_createddatetime: mserp_creatingdatetime // Attached 엔터티의 필드명
+                  }),
+                  // 2. 방금 연결하여 대기 중인 파일들 (Unattached Entity)
+                  ForAll(colFromUnattached, {
+                      mserp_entrecid: EntRecId,
+                      mserp_captureddocument: CapturedDocument,
+                      mserp_fileextension: FileExtension,
+                      mserp_filename: Coalesce(Description, Concatenate("Receipt-", Text(EntRecId))),
+                      // [수정 포인트] CreatedDateTime -> mserp_createddatetime (또는 Now())
+                      mserp_createddatetime: CreatingDateTime 
+                  })
+              );
+
+              // 4. 최종 정렬
+              ClearCollect(
+                  colAttachedReceipts,
+                  SortByColumns(colAttachedReceipts, "mserp_createddatetime", SortOrder.Descending)
+              );
+
+              // 4. 미리보기 이미지 설정 (컬렉션 기준)
               Set(
                   varReceiptImage,
                   If(
