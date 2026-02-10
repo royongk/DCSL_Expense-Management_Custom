@@ -61,6 +61,8 @@
         );
         // Project context
         UpdateContext({varSelectedProject: Blank()});
+        // Project type context (will be derived from Expense Type / Purchase Category / Item or Service)
+        UpdateContext({varSelectedProjectType: Blank()});
         If(
             !varIsCreate && !IsBlank(varSelectedExpenseDoc.Project),
             UpdateContext({
@@ -1368,6 +1370,8 @@
                         Reset(ComboBox1_8);
                         UpdateContext({varSelectedPurchaseCategory: Blank()});
                         UpdateContext({varSelectedItemOrService: Blank()});
+                        // Reset project type when expense type changes
+                        UpdateContext({varSelectedProjectType: Blank()});
                         UpdateContext({
                             curCategory: If(
                                 !IsBlank(varSelectedLegalEntity),
@@ -1488,7 +1492,7 @@
                         )
                     NoSelectionText: ="Select Purchase Category"
                     OnChange: |-
-                        =                        UpdateContext({varSelectedPurchaseCategory: Parent.Update});
+                        =UpdateContext({varSelectedPurchaseCategory: Parent.Update});
                         UpdateContext({varSelectedPurchaseCategoryValue: Parent.Update});
                         Reset(ComboBox1_8);
                         Reset(ComboBox_ItemOrService);
@@ -1503,6 +1507,8 @@
                             )
                         });
                         UpdateContext({varSelectedItemOrService: Blank()});
+                        // Reset project type when purchase category changes
+                        UpdateContext({varSelectedProjectType: Blank()});
                         
                         // [추가] Expense Category 목록을 미리 조회하여 컬렉션 생성
                         If(
@@ -1625,14 +1631,56 @@
                 Height: =50
                 Required: =true
                 Update: |-
-                    =Coalesce(
-                        If(!IsBlank(ComboBox1_8.Selected), ComboBox1_8.Selected.'Expense category', Blank()),
-                        curCategory,
-                        // Fallback: "Dummy for Expense" 조회
-                        If(
-                            !IsBlank(varSelectedLegalEntity),
-                            LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
-                            Blank()
+                    =With(
+                        {
+                            // Existing category from the current expense line (edit mode only)
+                            currentCategory: varSelectedExpenseDoc.'Expense category (mserp_costtype)',
+                            // Mapped category from 3-level selection + legal entity
+                            mappedCategory: 
+                                LookUp(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    'Company Code' = varSelectedLegalEntity &&
+                                    'Expense Type' = varSelectedExpenseType &&
+                                    'Purchase Category' = varSelectedPurchaseCategory &&
+                                    'Item or Service' = varSelectedItemOrService,
+                                    'Expense category'
+                                )
+                        },
+                        With(
+                            {
+                                // Apply mapping only when it actually changes from the existing category
+                                isCategoryChanged:
+                                    !IsBlank(currentCategory) &&
+                                    !IsBlank(mappedCategory) &&
+                                    mappedCategory <> currentCategory
+                            },
+                            Coalesce(
+                                // 1) User-selected category from ComboBox1_8
+                                If(
+                                    !IsBlank(ComboBox1_8.Selected),
+                                    ComboBox1_8.Selected.'Expense category',
+                                    Blank()
+                                ),
+                                // 2) Mapped category when new or when 3-level selection changed
+                                If(
+                                    IsBlank(currentCategory) || isCategoryChanged,
+                                    mappedCategory,
+                                    Blank()
+                                ),
+                                // 3) Fallback to curCategory (existing behavior for backward compatibility)
+                                curCategory,
+                                // 4) Final fallback: "Dummy for Expense" lookup
+                                If(
+                                    !IsBlank(varSelectedLegalEntity),
+                                    LookUp(
+                                        'Expense category (mserp)',
+                                        'Expense category' = "Dummy for Expense" &&
+                                        'Company Code' = varSelectedLegalEntity,
+                                        'Expense category'
+                                    ),
+                                    Blank()
+                                )
+                            )
                         )
                     )
                 Visible: =false
@@ -10667,9 +10715,14 @@
 
             Project_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
-                    =Filter(
-                        'DCSL Financial Dimension Master (mserp)',
-                        'Dimension name' = "Project"
+                    =If(
+                        !IsBlank(varSelectedProjectType) && !IsBlank(varSelectedLegalEntity),
+                        Filter(
+                            'DCSL ProjectTypeProjectValue Entity (mserp)',
+                            'Project Type' = varSelectedProjectType &&
+                            Company = varSelectedLegalEntity
+                        ),
+                        []
                     )
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
@@ -10680,7 +10733,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =ComboBox_Project.Selected.'Dimension value'
+                Update: =ComboBox_Project.Selected.Project
                 Visible: =true
                 Width: =Parent.Width
                 X: =0
@@ -10707,24 +10760,34 @@
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
                         =If(
-                            !IsBlank(varSelectedProject),
-                            varSelectedProject,
+                            !IsBlank(varSelectedExpenseDoc.Project) && !IsBlank(varSelectedProjectType) && !IsBlank(varSelectedLegalEntity),
+                            LookUp(
+                                'DCSL ProjectTypeProjectValue Entity (mserp)',
+                                Project = varSelectedExpenseDoc.Project &&
+                                Company = varSelectedLegalEntity &&
+                                'Project Type' = varSelectedProjectType
+                            ),
                             Blank()
                         )
-                    DisplayFields: =["mserp_dimensionvalue","mserp_description"]
+                    DisplayFields: =["mserp_projectvalue","mserp_projectname"]
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
                     InputTextPlaceholder: ="Select Project"
                     Items: |-
-                        =SortByColumns(
-                            Filter(
-                                'DCSL Financial Dimension Master (mserp)',
-                                'Dimension name' = "Project"
+                        =If(
+                            !IsBlank(varSelectedProjectType) && !IsBlank(varSelectedLegalEntity),
+                            SortByColumns(
+                                Filter(
+                                    'DCSL ProjectTypeProjectValue Entity (mserp)',
+                                    'Project Type' = varSelectedProjectType &&
+                                    Company = varSelectedLegalEntity
+                                ),
+                                "mserp_projectvalue",
+                                SortOrder.Ascending
                             ),
-                            "mserp_dimensionvalue",
-                            SortOrder.Ascending
+                            []
                         )
                     NoSelectionText: ="Select Project"
                     OnChange: |-
@@ -10734,20 +10797,25 @@
                                 isDirty: true
                             }
                         )
-                    SearchFields: =["mserp_dimensionvalue","mserp_description"]
+                    SearchFields: =["mserp_projectvalue","mserp_projectname"]
                     SearchItems: |-
-                        =Search(
-                            SortByColumns(
-                                Filter(
-                                    'DCSL Financial Dimension Master (mserp)',
-                                    'Dimension name' = "Project"
+                        =If(
+                            !IsBlank(varSelectedProjectType) && !IsBlank(varSelectedLegalEntity),
+                            Search(
+                                SortByColumns(
+                                    Filter(
+                                        'DCSL ProjectTypeProjectValue Entity (mserp)',
+                                        'Project Type' = varSelectedProjectType &&
+                                        Company = varSelectedLegalEntity
+                                    ),
+                                    "mserp_projectvalue",
+                                    SortOrder.Ascending
                                 ),
-                                "mserp_dimensionvalue",
-                                SortOrder.Ascending
+                                ComboBox_Project.SearchText,
+                                Project,
+                                Description
                             ),
-                            ComboBox_Project.SearchText,
-                            'Dimension value',
-                            Description
+                            []
                         )
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
@@ -10896,7 +10964,20 @@
                         )
                     NoSelectionText: ="Select Item or Service"
                     OnChange: |-
-                        =UpdateContext({varSelectedItemOrService: Parent.Update})
+                        =UpdateContext({varSelectedItemOrService: Parent.Update});
+                        // Derive project type from 3-level category selection
+                        UpdateContext(
+                            {
+                                varSelectedProjectType: 
+                                    LookUp(
+                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                        'Expense Type' = varSelectedExpenseType &&
+                                        'Purchase Category' = varSelectedPurchaseCategory &&
+                                        'Item or Service' = Parent.Update,
+                                        'Project Type'
+                                    )
+                            }
+                        )
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank('Expense category')&&!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType&&!IsBlank(varSelectedPurchaseCategory)&&'Purchase Category'=varSelectedPurchaseCategory),'Item or Service'),"Value",SortOrder.Ascending),ComboBox_ItemOrService.SearchText,Value)
                     SelectionColor: =Color.Black
