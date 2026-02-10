@@ -1122,8 +1122,47 @@ Screens:
           Properties:
             Height: =App.Height
             LegalEntity: ="Text"
-            OnLeftButtonClick: =true
-            OnRightButtonClick: ="텍스트"
+            OnLeftButtonClick: |-
+              =UpdateContext({varCntDelete: false});
+            OnRightButtonClick: |-
+              =Clear(deleteErrorsList);
+              ForAll(
+                  colSelectedReportIds,
+                  IfError(
+                      Remove(
+                          'Expense reports (mserp)',
+                          LookUp(
+                              'Expense reports (mserp)',
+                              'Expense report number' = colSelectedReportIds[@reportNumber]
+                          )
+                      ),
+                      Collect(
+                          deleteErrorsList,
+                          {
+                              message : Last(Split(FirstError.Message, ":")).Value
+                          }
+                      )
+                  )
+              );
+              If(
+                  CountRows(deleteErrorsList) = 0,
+                  Notify(
+                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportsDeletedSuccessfullyLabel',
+                      NotificationType.Success, 
+                      gblParams.notificationTime
+                  ),
+                  ForAll(
+                      Distinct(deleteErrorsList,message),
+                      Notify(
+                          ThisRecord.Value,
+                          NotificationType.Error, 
+                          gblParams.notificationTime
+                      )
+                  )
+              );
+              UpdateContext({varCntDelete: false});
+              UpdateContext({varCntSelect: false});
+              Clear(colSelectedReportIds);
             SelectedExpense: =
             SelectedList: ="Text"
             SelectedReceiptNumber: =

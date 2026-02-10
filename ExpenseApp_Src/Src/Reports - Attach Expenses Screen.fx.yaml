@@ -15,9 +15,31 @@
                 'Approval status' = 'Document status (mserp)'.Draft && 
                 IsBlank('Expense report number (mserp_expnumber)') && 
                 ('Expense line type' = 'Expense line type (mserp)'.Default 
+                || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&
+                
+                // [수정된 부분] Purpose가 비어있으면 전체 표시(OR), 값이 있으면 조건부 필터링
+                (
+                    IsBlank(ctxTargetPurpose) || 
+                    (
+                        (varAppMode = "AirfareAllowance" && 'Item or Service' = ctxTargetPurpose) ||
+                        (varAppMode <> "AirfareAllowance" && 'Expense Type' = ctxTargetPurpose)
+                    )
+                )
+            ) 
+        );
+        /*
+        Collect(
+            dsExpenses,
+            Filter(
+                SortByColumns('Expense lines (mserp)', "mserp_transdate", SortOrder.Descending),
+                'Company (mserp_company)' = varSelectedLegalEntity && 
+                'Approval status' = 'Document status (mserp)'.Draft && 
+                IsBlank('Expense report number (mserp_expnumber)') && 
+                ('Expense line type' = 'Expense line type (mserp)'.Default 
                 || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header')
             ) 
         );
+        */
         ClearCollect(
             colExpensesToBeAttached,
             colAttachedExpenses

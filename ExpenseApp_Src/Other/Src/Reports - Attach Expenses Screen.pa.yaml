@@ -11,33 +11,7 @@ Screens:
     Properties:
       Fill: =RGBA(229, 229, 229, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
-      OnVisible: |-
-        =UpdateContext({varCntBack:false});
-
-        ClearCollect(
-            dsExpenses,
-            colAttachedExpenses
-        );
-        Collect(
-            dsExpenses,
-            Filter(
-                SortByColumns('Expense lines (mserp)', "mserp_transdate", SortOrder.Descending),
-                'Company (mserp_company)' = varSelectedLegalEntity && 
-                'Approval status' = 'Document status (mserp)'.Draft && 
-                IsBlank('Expense report number (mserp_expnumber)') && 
-                ('Expense line type' = 'Expense line type (mserp)'.Default 
-                || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header')
-            ) 
-        );
-        ClearCollect(
-            colExpensesToBeAttached,
-            colAttachedExpenses
-        );
-        ClearCollect(
-            colAttachedExpensesForReport,
-            colAttachedExpenses
-        );
-        //Clear(colToAttach);
+      OnVisible: "=UpdateContext({varCntBack:false});\n\nClearCollect(\n    dsExpenses,\n    colAttachedExpenses\n);\nCollect(\n    dsExpenses,\n    Filter(\n        SortByColumns('Expense lines (mserp)', \"mserp_transdate\", SortOrder.Descending),\n        'Company (mserp_company)' = varSelectedLegalEntity && \n        'Approval status' = 'Document status (mserp)'.Draft && \n        IsBlank('Expense report number (mserp_expnumber)') && \n        ('Expense line type' = 'Expense line type (mserp)'.Default \n        || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&\n        \n        // [수정된 부분] Purpose가 비어있으면 전체 표시(OR), 값이 있으면 조건부 필터링\n        (\n            IsBlank(ctxTargetPurpose) || \n            (\n                (varAppMode = \"AirfareAllowance\" && 'Item or Service' = ctxTargetPurpose) ||\n                (varAppMode <> \"AirfareAllowance\" && 'Expense Type' = ctxTargetPurpose)\n            )\n        )\n    ) \n);\n/*\nCollect(\n    dsExpenses,\n    Filter(\n        SortByColumns('Expense lines (mserp)', \"mserp_transdate\", SortOrder.Descending),\n        'Company (mserp_company)' = varSelectedLegalEntity && \n        'Approval status' = 'Document status (mserp)'.Draft && \n        IsBlank('Expense report number (mserp_expnumber)') && \n        ('Expense line type' = 'Expense line type (mserp)'.Default \n        || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header')\n    ) \n);\n*/\nClearCollect(\n    colExpensesToBeAttached,\n    colAttachedExpenses\n);\nClearCollect(\n    colAttachedExpensesForReport,\n    colAttachedExpenses\n);\n//Clear(colToAttach);"
     Children:
       - scr18_btn_Done:
           Control: Classic/Button@2.2.0
