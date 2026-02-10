@@ -61,7 +61,7 @@ Screens:
             - EditCashAdvanceForm:
                 Control: Form@2.4.4
                 Variant: Classic
-                Layout: Horizontal
+                Layout: Vertical
                 Properties:
                   AcceptsFocus: =
                   AlignInContainer: =AlignInContainer.SetByContainer
@@ -88,405 +88,27 @@ Screens:
                             gblParams.notificationTime
                         )
                     )
-                  OnSuccess: "=Set(varSelectedCashAdvance, EditCashAdvanceForm.LastSubmit);\n// 1. 방금 저장된 레코드(LastSubmit)를 찾아 WorkflowAction을 \"Submit\"으로 업데이트\nPatch(\n    'DCSL TrvCash Advance Entity  (mserp)',\n    EditCashAdvanceForm.LastSubmit, \n    {\n        WorkflowAction: \"Submit\"\n    }\n);\n\n// 2. (선택 사항) 업데이트 중 에러가 발생했는지 확인하는 로직 (사용자가 제공한 예시 기반)\nIf(\n    !IsEmpty(Errors('DCSL TrvCash Advance Entity  (mserp)')),\n    Notify(First(Errors('DCSL TrvCash Advance Entity  (mserp)')).Message, NotificationType.Error),\n    \n    // 3. 에러가 없으면 성공 알림 및 화면 이동\n    Notify(\"Cash Advance has been submitted successfully.\", NotificationType.Success);\n    Navigate('Cash Advance - List Screen', ScreenTransition.None);\n    ResetForm(EditCashAdvanceForm)\n)\n/*\nNotify(\"Cash advance saved successfully\", NotificationType.Success, gblParams.notificationTime);\nNavigate('Cash Advance - List Screen', ScreenTransition.None)\n*/"
+                  OnSuccess: |
+                    =Set(varSelectedCashAdvance, EditCashAdvanceForm.LastSubmit);
+                    Notify("Cash advance saved successfully", NotificationType.Success, gblParams.notificationTime);
+                    Navigate('Cash Advance - List Screen', ScreenTransition.None)
                   Width: =Parent.Width
                 Children:
-                  - Requested date_DataCard:
+                  - Requested date_DataCard3:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicDateTimeEdit
+                      IsLocked: true
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_requesteddate"
                         Default: =ThisItem.'Requested date'
-                        DisplayName: ="Requested date"
-                        Height: =80
-                        Required: =true
-                        Update: =DatePicker_CashAdvance_RequestedDate.SelectedDate
-                        Width: =Parent.Width
+                        DisplayName: =DataSourceInfo([@'DCSL TrvCash Advance Entity  (mserp)'],DataSourceInfo.DisplayName,'mserp_requesteddate')
+                        Required: =false
+                        Update: =If(Not IsBlank(DateValue8.SelectedDate), DateTime(Year(DateValue8.SelectedDate), Month(DateValue8.SelectedDate), Day(DateValue8.SelectedDate), Value(HourValue8.Selected.Value), Value(MinuteValue8.Selected.Value), 0))
                         X: =0
                         Y: =0
                       Children:
-                        - CashAdvance_RequestedDate_Label:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =24
-                              Text: ="Requested date"
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =5
-                        - DatePicker_CashAdvance_RequestedDate:
-                            Control: Classic/DatePicker@2.6.0
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              DisplayMode: =Parent.DisplayMode
-                              Font: =Font.'Open Sans'
-                              Height: =gblParams.dropDownHeight
-                              IconBackground: =RGBA(56, 96, 178, 1)
-                              IconFill: =RGBA(255, 255, 255, 1)
-                              Size: =21
-                              Width: =Parent.Width - 80
-                              X: =40
-                              Y: =CashAdvance_RequestedDate_Label.Y + CashAdvance_RequestedDate_Label.Height + 8
-                        - CashAdvance_RequestedDate_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_RequestedDate_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =CashAdvance_RequestedDate_Label.Y
-                  - Location_DataCard:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicTextualEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_location"
-                        Default: =ThisItem.Location
-                        DisplayName: ="Location"
-                        Height: =80
-                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
-                        Required: =true
-                        Update: =If(IsBlank(ComboBox_CashAdvance_Location.Selected.Location), ComboBox_CashAdvance_Location.SearchText, ComboBox_CashAdvance_Location.Selected.Location)
-                        Width: =Parent.Width
-                        X: =0
-                        Y: =1
-                      Children:
-                        - CashAdvance_Location_Label:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =24
-                              Text: ="Location"
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =5
-                        - ComboBox_CashAdvance_Location:
-                            Control: Classic/ComboBox@2.4.0
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              ChevronBackground: =RGBA(56, 96, 178, 1)
-                              ChevronFill: =RGBA(255, 255, 255, 1)
-                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: =If(IsBlank(ThisItem.Location), Blank(), LookUp('Travel locations (mserp)', Location = ThisItem.Location))
-                              DisplayFields: =["mserp_destination"]
-                              DisplayMode: =Parent.DisplayMode
-                              Font: =Font.'Open Sans'
-                              Height: =gblParams.dropDownHeight
-                              HoverFill: =RGBA(186, 202, 226, 1)
-                              InputTextPlaceholder: ="Select Location."
-                              Items: =Filter('Travel locations (mserp)', 'Company Code' = varSelectedLegalEntity)
-                              PaddingBottom: =5
-                              PaddingLeft: =5
-                              PaddingRight: =5
-                              PaddingTop: =5
-                              PressedColor: =RGBA(255, 255, 255, 1)
-                              PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =["mserp_destination"]
-                              SelectMultiple: =false
-                              SelectionColor: =RGBA(255, 255, 255, 1)
-                              SelectionFill: =RGBA(56, 96, 178, 1)
-                              Width: =Parent.Width - 80
-                              X: =40
-                              Y: =CashAdvance_Location_Label.Y + CashAdvance_Location_Label.Height + 8
-                        - CashAdvance_Location_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_Location_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =CashAdvance_Location_Label.Y
-                  - Purpose_DataCard:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicTextualEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_purpose"
-                        Default: =ThisItem.Purpose
-                        DisplayName: ="Purpose"
-                        Height: =80
-                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
-                        Required: =true
-                        Update: =If(IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)'), ComboBox_CashAdvance_Purpose.SearchText, ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)')
-                        Width: =Parent.Width
-                        X: =0
-                        Y: =2
-                      Children:
-                        - CashAdvance_Purpose_Label:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =24
-                              Text: ="Purpose"
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =5
-                        - ComboBox_CashAdvance_Purpose:
-                            Control: Classic/ComboBox@2.4.0
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              ChevronBackground: =RGBA(56, 96, 178, 1)
-                              ChevronFill: =RGBA(255, 255, 255, 1)
-                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: =If(IsBlank(ThisItem.Purpose), Blank(), LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = ThisItem.Purpose))
-                              DisplayFields: =["mserp_value"]
-                              DisplayMode: =Parent.DisplayMode
-                              Font: =Font.'Open Sans'
-                              Height: =gblParams.dropDownHeight
-                              HoverFill: =RGBA(186, 202, 226, 1)
-                              InputTextPlaceholder: ="Select Purpose."
-                              Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
-                              PaddingBottom: =5
-                              PaddingLeft: =5
-                              PaddingRight: =5
-                              PaddingTop: =5
-                              PressedColor: =RGBA(255, 255, 255, 1)
-                              PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =["mserp_value"]
-                              SelectMultiple: =false
-                              SelectionColor: =RGBA(255, 255, 255, 1)
-                              SelectionFill: =RGBA(56, 96, 178, 1)
-                              Width: =Parent.Width - 80
-                              X: =40
-                              Y: =CashAdvance_Purpose_Label.Y + CashAdvance_Purpose_Label.Height + 8
-                        - CashAdvance_Purpose_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_Purpose_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =CashAdvance_Purpose_Label.Y
-                  - Requested amount_DataCard:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicNumberEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_requestedamount"
-                        Default: =ThisItem.'Requested amount'
-                        DisplayName: ="Requested amount"
-                        Height: =80
-                        Required: =true
-                        Update: =Value(DataCardValue_CashAdvance_RequestedAmount.Text)
-                        Width: =Parent.Width/2 - 10
-                        X: =0
-                        Y: =3
-                      Children:
-                        - CashAdvance_RequestedAmount_Label:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =24
-                              Text: ="Requested amount"
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =5
-                        - DataCardValue_CashAdvance_RequestedAmount:
-                            Control: Classic/TextInput@2.3.2
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Default: =If(IsBlank(ThisItem.'Requested amount'), "", Text(ThisItem.'Requested amount'))
-                              DisplayMode: =Parent.DisplayMode
-                              Font: =Font.'Open Sans'
-                              Format: =TextFormat.Number
-                              Height: =gblParams.dropDownHeight
-                              HintText: =
-                              HoverBorderColor: =RGBA(0, 18, 107, 1)
-                              HoverFill: =RGBA(186, 202, 226, 1)
-                              Width: =Parent.Width - 80
-                              X: =40
-                              Y: =CashAdvance_RequestedAmount_Label.Y + CashAdvance_RequestedAmount_Label.Height + 8
-                        - CashAdvance_RequestedAmount_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_RequestedAmount_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =CashAdvance_RequestedAmount_Label.Y
-                  - Currency_DataCard:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicTextualEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_currency"
-                        Default: =ThisItem.Currency
-                        DisplayName: ="Currency"
-                        Height: =80
-                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
-                        Required: =true
-                        Update: =ComboBox_CashAdvance_Currency.Selected.mserp_currencycode
-                        Width: =Parent.Width/2
-                        X: =0
-                        Y: =3
-                      Children:
-                        - CashAdvance_Currency_Label:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =24
-                              Text: ="Currency"
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =5
-                        - ComboBox_CashAdvance_Currency:
-                            Control: Classic/ComboBox@2.4.0
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              ChevronBackground: =RGBA(56, 96, 178, 1)
-                              ChevronFill: =RGBA(255, 255, 255, 1)
-                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: =If(IsBlank(ThisItem.Currency), Blank(), LookUp('Currencies (mserp)', 'Currency code' = ThisItem.Currency))
-                              DisplayFields: =["mserp_currencycode"]
-                              DisplayMode: =Parent.DisplayMode
-                              Font: =Font.'Open Sans'
-                              Height: =gblParams.dropDownHeight
-                              HoverFill: =RGBA(186, 202, 226, 1)
-                              InputTextPlaceholder: ="Select Currency."
-                              Items: =ShowColumns('Currencies (mserp)', 'Currency code', Name)
-                              PaddingBottom: =5
-                              PaddingLeft: =5
-                              PaddingRight: =5
-                              PaddingTop: =5
-                              PressedColor: =RGBA(255, 255, 255, 1)
-                              PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =["mserp_currencycode"]
-                              SelectMultiple: =false
-                              SelectionColor: =RGBA(255, 255, 255, 1)
-                              SelectionFill: =RGBA(56, 96, 178, 1)
-                              Width: =Parent.Width - 80
-                              X: =40
-                              Y: =CashAdvance_Currency_Label.Y + CashAdvance_Currency_Label.Height + 8
-                        - CashAdvance_Currency_Star:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Font: =Font.'Open Sans'
-                              Height: =CashAdvance_Currency_Label.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode = DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =CashAdvance_Currency_Label.Y
-                  - Note_DataCard:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicTextualEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_note"
-                        Default: =ThisItem.Note
-                        DisplayName: ="Note"
-                        Height: =120
-                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
-                        Required: =false
-                        Update: =DataCardValue_CashAdvance_Note.Text
-                        Width: =Parent.Width
-                        X: =0
-                        Y: =4
-                      Children:
-                        - CashAdvance_Note_Label:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 0)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =24
-                              Text: ="Note"
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =5
-                        - DataCardValue_CashAdvance_Note:
-                            Control: Classic/TextInput@2.3.2
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Default: =ThisItem.Note
-                              DisplayMode: =Parent.DisplayMode
-                              Font: =Font.'Open Sans'
-                              Height: =80
-                              HintText: =
-                              HoverBorderColor: =RGBA(0, 18, 107, 1)
-                              HoverFill: =RGBA(186, 202, 226, 1)
-                              Mode: =TextMode.MultiLine
-                              Width: =Parent.Width - 80
-                              X: =40
-                              Y: =CashAdvance_Note_Label.Y + CashAdvance_Note_Label.Height + 8
-                  - CompanyCode_DataCard:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicTextualEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_dataareaid"
-                        Default: =varSelectedLegalEntity
-                        DisplayName: ="Company Code"
-                        Height: =0
-                        MaxLength: =DataSourceInfo(%DATACARD_DATASOURCE_NAME.ID%, %DataSourceInfo.RESERVED%.MaxLength, '%DATACARD_FIELD_NAME.ID%')
-                        Required: =true
-                        Update: =varSelectedLegalEntity
-                        Visible: =false
-                        Width: =Parent.Width
-                        X: =0
-                        Y: =5
-                  - Employee_DataCard1:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicNumberEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_deexrequestingworker"
-                        Default: =ThisItem.mserp_employee
-                        DisplayName: =DataSourceInfo([@'Cash advances (mserp)'],DataSourceInfo.DisplayName,'mserp_deexrequestingworker')
-                        Required: =true
-                        Update: |-
-                          =//Value(DataCardValue18.Text)
-                          userRecord.CreatingWorker
-                        Visible: =false
-                        X: =0
-                        Y: =6
-                      Children:
-                        - DataCardKey25:
+                        - DataCardKey27:
                             Control: Label@2.5.1
                             MetadataKey: FieldName
                             Properties:
@@ -496,32 +118,104 @@ Screens:
                               Font: =Font.'Open Sans'
                               Height: =48
                               Text: =Parent.DisplayName
-                              Width: =(Parent.Width - 60) * 0.4
+                              Width: =Parent.Width - 60
                               Wrap: =false
                               X: =30
-                              Y: =10 + (DataCardValue18.Height / 2) - (Self.Height / 2)
-                        - DataCardValue18:
-                            Control: Classic/TextInput@2.3.2
-                            MetadataKey: FieldValue
+                              Y: =10
+                        - DateValue8:
+                            Control: Classic/DatePicker@2.6.0
+                            MetadataKey: DateFieldValue
                             Properties:
                               BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              Default: =Parent.Default
-                              DelayOutput: =true
+                              DefaultDate: =Parent.Default
+                              DisplayMode: =Parent.DisplayMode
+                              EndYear: =Year(Today())+100
+                              Font: =Font.'Open Sans'
+                              IconBackground: =RGBA(56, 96, 178, 1)
+                              IconFill: =RGBA(255, 255, 255, 1)
+                              IsEditable: =true
+                              PaddingBottom: =0
+                              PaddingLeft: =If(Self.DisplayMode = DisplayMode.Edit, 5, 0)
+                              StartYear: =1899
+                              Tooltip: =Parent.DisplayName
+                              Width: =(Parent.Width - 60) / 2
+                              X: =30
+                              Y: =DataCardKey27.Y + DataCardKey27.Height + 5
+                        - HourValue8:
+                            Control: Classic/DropDown@2.3.1
+                            MetadataKey: HourFieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              Default: =Text(Hour(Parent.Default),"00")
                               DisplayMode: =Parent.DisplayMode
                               Font: =Font.'Open Sans'
-                              Format: =TextFormat.Number
-                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =DateValue8.Height
                               HoverFill: =RGBA(186, 202, 226, 1)
-                              PaddingLeft: =5
-                              RadiusBottomLeft: =0
-                              RadiusBottomRight: =0
-                              RadiusTopLeft: =0
-                              RadiusTopRight: =0
+                              Items: =["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"]
+                              Items.Value: =Value
+                              PaddingBottom: =5
+                              PaddingLeft: =If(Self.DisplayMode = DisplayMode.Edit, 5, 0)
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SelectionColor: =RGBA(255, 255, 255, 1)
+                              SelectionFill: =RGBA(56, 96, 178, 1)
                               Tooltip: =Parent.DisplayName
-                              Width: =(Parent.Width - 60) * 0.6
-                              X: =DataCardKey25.X + DataCardKey25.Width
-                              Y: =10
-                        - ErrorMessage25:
+                              Width: =DateValue8.Width / 2 - 10
+                              X: =DateValue8.X + DateValue8.Width + 10
+                              Y: =DateValue8.Y
+                        - Separator11:
+                            Control: Label@2.5.1
+                            MetadataKey: HourMinuteSeparator
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              Height: =HourValue8.Height
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Text: =":"
+                              Width: =10
+                              Wrap: =false
+                              X: =HourValue8.X + HourValue8.Width
+                              Y: =HourValue8.Y
+                        - MinuteValue8:
+                            Control: Classic/DropDown@2.3.1
+                            MetadataKey: MinuteFieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              Default: =Text(Minute(Parent.Default),"00")
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Height: =HourValue8.Height
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              Items: =["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59"]
+                              Items.Value: =Value
+                              PaddingBottom: =5
+                              PaddingLeft: =If(Self.DisplayMode = DisplayMode.Edit, 5, 0)
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SelectionColor: =RGBA(255, 255, 255, 1)
+                              SelectionFill: =RGBA(56, 96, 178, 1)
+                              Tooltip: =Parent.DisplayName
+                              Width: =HourValue8.Width
+                              X: =HourValue8.X + HourValue8.Width + Separator11.Width
+                              Y: =HourValue8.Y
+                        - ErrorMessage26:
                             Control: Label@2.5.1
                             MetadataKey: ErrorMessage
                             Properties:
@@ -541,8 +235,8 @@ Screens:
                               Visible: =Parent.DisplayMode=DisplayMode.Edit
                               Width: =Parent.Width - 60
                               X: =30
-                              Y: =DataCardValue18.Y + DataCardValue18.Height
-                        - StarVisible25:
+                              Y: =HourValue8.Y + HourValue8.Height
+                        - StarVisible26:
                             Control: Label@2.5.1
                             MetadataKey: FieldRequired
                             Properties:
@@ -550,12 +244,435 @@ Screens:
                               BorderColor: =RGBA(0, 0, 0, 1)
                               Color: =RGBA(0, 18, 107, 1)
                               Font: =Font.'Open Sans'
-                              Height: =DataCardKey25.Height
+                              Height: =DataCardKey27.Height
                               Text: ="*"
                               Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
                               Width: =30
                               Wrap: =false
-                              Y: =DataCardKey25.Y
+                              Y: =DataCardKey27.Y
+                  - Location_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      IsLocked: true
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_location"
+                        Default: =ThisItem.Location
+                        DisplayName: =DataSourceInfo([@'DCSL TrvCash Advance Entity  (mserp)'],DataSourceInfo.DisplayName,'mserp_location')
+                        MaxLength: =DataSourceInfo([@'DCSL TrvCash Advance Entity  (mserp)'], DataSourceInfo.MaxLength, 'mserp_location')
+                        Required: =false
+                        Update: =DataCardValue19.Text
+                        X: =0
+                        Y: =1
+                      Children:
+                        - DataCardKey29:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardValue19:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              MaxLength: =Parent.MaxLength
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Tooltip: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardKey29.Y + DataCardKey29.Height + 5
+                        - ErrorMessage27:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardValue19.Y + DataCardValue19.Height
+                        - StarVisible27:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey29.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey29.Y
+                  - Purpose_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      IsLocked: true
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_purpose"
+                        Default: =ThisItem.Purpose
+                        DisplayName: =DataSourceInfo([@'DCSL TrvCash Advance Entity  (mserp)'],DataSourceInfo.DisplayName,'mserp_purpose')
+                        MaxLength: =DataSourceInfo([@'DCSL TrvCash Advance Entity  (mserp)'], DataSourceInfo.MaxLength, 'mserp_purpose')
+                        Required: =false
+                        Update: =DataCardValue21.Text
+                        X: =0
+                        Y: =2
+                      Children:
+                        - DataCardKey30:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardValue21:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              MaxLength: =Parent.MaxLength
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Tooltip: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardKey30.Y + DataCardKey30.Height + 5
+                        - ErrorMessage29:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardValue21.Y + DataCardValue21.Height
+                        - StarVisible29:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey30.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey30.Y
+                  - Requested amount_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicNumberEdit
+                      IsLocked: true
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_requestedamount"
+                        Default: =ThisItem.'Requested amount'
+                        DisplayName: =DataSourceInfo([@'DCSL TrvCash Advance Entity  (mserp)'],DataSourceInfo.DisplayName,'mserp_requestedamount')
+                        Required: =true
+                        Update: =Value(DataCardValue22.Text)
+                        X: =0
+                        Y: =3
+                      Children:
+                        - DataCardKey31:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardValue22:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Format: =TextFormat.Number
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Tooltip: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardKey31.Y + DataCardKey31.Height + 5
+                        - ErrorMessage30:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardValue22.Y + DataCardValue22.Height
+                        - StarVisible30:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey31.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey31.Y
+                  - Currency_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      IsLocked: true
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_currency"
+                        Default: =ThisItem.Currency
+                        DisplayName: =DataSourceInfo([@'DCSL TrvCash Advance Entity  (mserp)'],DataSourceInfo.DisplayName,'mserp_currency')
+                        MaxLength: =DataSourceInfo([@'DCSL TrvCash Advance Entity  (mserp)'], DataSourceInfo.MaxLength, 'mserp_currency')
+                        Required: =false
+                        Update: =DataCardValue23.Text
+                        X: =0
+                        Y: =4
+                      Children:
+                        - DataCardKey32:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardValue23:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              MaxLength: =Parent.MaxLength
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Tooltip: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardKey32.Y + DataCardKey32.Height + 5
+                        - ErrorMessage31:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardValue23.Y + DataCardValue23.Height
+                        - StarVisible31:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey32.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey32.Y
+                  - Employee_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicNumberEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_employee"
+                        Default: =ThisItem.Employee
+                        DisplayName: =DataSourceInfo([@'DCSL TrvCash Advance Entity  (mserp)'],DataSourceInfo.DisplayName,'mserp_employee')
+                        Required: =false
+                        Update: =Value(DataCardValue24.Text)
+                        Visible: =false
+                        X: =0
+                        Y: =5
+                      Children:
+                        - DataCardKey33:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardValue24:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Format: =TextFormat.Number
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Tooltip: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardKey33.Y + DataCardKey33.Height + 5
+                        - ErrorMessage32:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardValue24.Y + DataCardValue24.Height
+                        - StarVisible32:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey33.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey33.Y
       - CashAdvanceEdit_ButtonsContainer:
           Control: GroupContainer@1.4.0
           Variant: ManualLayout
@@ -583,12 +700,17 @@ Screens:
                   HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                   OnSelect: |-
                     =If(
+                        // 1. 필수 값 체크 수정 (속성 불일치 해결)
                         IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||
-                        IsBlank(ComboBox_CashAdvance_Location.Selected.Location) ||
-                        IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)') ||
+                        IsBlank(ComboBox_CashAdvance_Location.Selected.Value) || 
+                        IsBlank(ComboBox_CashAdvance_Purpose.Selected.Value) || 
                         IsBlank(DataCardValue_CashAdvance_RequestedAmount.Text) ||
-                        IsBlank(ComboBox_CashAdvance_Currency.Selected.mserp_currencycode),
+                        IsBlank(ComboBox_CashAdvance_Currency.Selected.Value), 
+
+                        // 2. 값이 하나라도 비어있으면 알림 표시
                         Notify("Please fill in all required fields", NotificationType.Error, gblParams.notificationTime),
+
+                        // 3. 모든 값이 채워져 있으면 폼 제출
                         SubmitForm(EditCashAdvanceForm)
                     )
                   PressedBorderColor: =Self.Fill
@@ -615,21 +737,7 @@ Screens:
                   HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
                   HoverColor: =RGBA(255, 255, 255, 1)
                   HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                  OnSelect: |-
-                    =If(
-                        // 1. 필수 값 체크 (신규 필드 기준)
-                        IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||
-                        IsBlank(ComboBox_CashAdvance_Location.Selected.Location) ||  // Location이 텍스트 필드인 경우 .Value 또는 .Text 확인 필요
-                        IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)') ||   // Purpose가 텍스트 필드인 경우 .Value, Lookup인 경우 해당 ID 참조
-                        IsBlank(DataCardValue_CashAdvance_RequestedAmount.Text) ||
-                        IsBlank(ComboBox_CashAdvance_Currency.Selected.mserp_currencycode),    // mserp_currency가 Lookup이 아닌 단순 코드값일 경우 .Value
-
-                        // 2. 누락 시 알림
-                        Notify("Please fill in all required fields", NotificationType.Error, gblParams.notificationTime),
-
-                        // 3. 폼 제출
-                        SubmitForm(EditCashAdvanceForm)
-                    )
+                  OnSelect: "=If(\n    // 1. 필수 값 체크 (신규 필드 기준)\n    IsBlank(DatePicker_CashAdvance_RequestedDate.SelectedDate) ||\n    IsBlank(ComboBox_CashAdvance_Location.Selected.Location) ||  // Location이 텍스트 필드인 경우 .Value 또는 .Text 확인 필요\n    IsBlank(ComboBox_CashAdvance_Purpose.Selected.'Purpose (mserp_value)') ||   // Purpose가 텍스트 필드인 경우 .Value, Lookup인 경우 해당 ID 참조\n    IsBlank(DataCardValue_CashAdvance_RequestedAmount.Text) ||\n    IsBlank(ComboBox_CashAdvance_Currency.Selected.mserp_currencycode),    // mserp_currency가 Lookup이 아닌 단순 코드값일 경우 .Value\n\n    // 2. 누락 시 알림\n    Notify(\"Please fill in all required fields\", NotificationType.Error, gblParams.notificationTime),\n\n    // 1. 방금 저장된 레코드(LastSubmit)를 찾아 WorkflowAction을 \"Submit\"으로 업데이트\n    Patch(\n        'DCSL TrvCash Advance Entity  (mserp)',\n        EditCashAdvanceForm.LastSubmit, \n        {\n            WorkflowAction: \"Submit\"\n        }\n    );\n\n    // 2. (선택 사항) 업데이트 중 에러가 발생했는지 확인하는 로직 (사용자가 제공한 예시 기반)\n    If(\n        !IsEmpty(Errors('DCSL TrvCash Advance Entity  (mserp)')),\n        Notify(First(Errors('DCSL TrvCash Advance Entity  (mserp)')).Message, NotificationType.Error),\n        \n        // 3. 에러가 없으면 성공 알림 및 화면 이동\n        Notify(\"Cash Advance has been submitted successfully.\", NotificationType.Success);\n        Navigate('Cash Advance - List Screen', ScreenTransition.None);\n        ResetForm(EditCashAdvanceForm)\n    );\n\n    // 3. 폼 제출\n    SubmitForm(EditCashAdvanceForm)\n)"
                   PressedBorderColor: =Self.Fill
                   PressedColor: =Self.Fill
                   PressedFill: =Self.Color
