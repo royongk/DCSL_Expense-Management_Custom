@@ -14,6 +14,30 @@ Screens:
       OnVisible: |-
         =UpdateContext({varIsCreateCashAdvance: IsBlank(varSelectedCashAdvance)});
     Children:
+      - scr17_cmp02_CancelDialog_2:
+          Control: CanvasComponent
+          ComponentName: cmp02_ConfirmationDialog
+          Properties:
+            Height: =App.Height
+            LegalEntity: ="Text"
+            OnLeftButtonClick: |-
+              =UpdateContext({ctVarExpenseDetailsBack: false});
+            OnRightButtonClick: |-
+              =UpdateContext({ctVarExpenseDetailsBack: false});
+              Select(CashAdvanceEdit_BackIcon)
+            SelectedExpense: =
+            SelectedList: ="Text"
+            SelectedReceiptNumber: =
+            Visible: =ctVarReportDetailsBack
+            Width: =Max(App.Width, App.MinScreenWidth)
+            controlName: ="scr17_cmp02_CancelDialog_1"
+            parmInDescriptionText: ="All unsaved changes will be lost."
+            parmInHeaderText: ="Do you want to go back?"
+            parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+            parmInLeftButtonText: ="No"
+            parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+            parmInRightButtonText: ="Yes"
+            returnFocus: ="scr17_ico_Back_1"
       - CashAdvanceEdit_Header:
           Control: CanvasComponent
           ComponentName: hdr02_Header
@@ -26,8 +50,8 @@ Screens:
             paramTitle: |-
               =If(
                   varIsCreateCashAdvance,
-                  "New Cash Advance",
-                  "Edit Cash Advance"
+                  "New Cash Advance Request",
+                  "Edit Cash Advance Request"
               )
       - CashAdvanceEdit_BackIcon:
           Control: Classic/Icon@2.5.0
@@ -38,7 +62,13 @@ Screens:
             Fill: =icongconfig_backbutton.Fill
             Height: =icongconfig_backbutton.Height
             Icon: =Icon.ChevronLeft
-            OnSelect: =Navigate('Cash Advance - List Screen', ScreenTransition.None)
+            OnSelect: |-
+              =Navigate('Cash Advance - List Screen', ScreenTransition.None);
+              If(
+                  varIsCreate,
+                  UpdateContext({ctVarExpenseDetailsBack: true}),
+                  Select(CashAdvanceEdit_BackIcon)
+              );
             TabIndex: =0
             Width: =icongconfig_backbutton.Width
             X: =22.5
