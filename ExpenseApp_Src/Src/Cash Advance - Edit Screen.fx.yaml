@@ -3,6 +3,16 @@
     OnVisible: |-
         =UpdateContext({varIsCreateCashAdvance: IsBlank(varSelectedCashAdvance)});
 
+    CashAdvanceEdit_Header As hdr02_Header:
+        Fill: =CashAdvanceEdit_Header.paramFill
+        paramFill: =RGBA(255, 255, 255, 1)
+        paramTitle: |-
+            =If(
+                varIsCreateCashAdvance,
+                "New Cash Advance Request",
+                "Edit Cash Advance Request"
+            )
+
     scr17_cmp02_CancelDialog_2 As cmp02_ConfirmationDialog:
         ContentLanguage: =""
         controlName: ="scr17_cmp02_CancelDialog_1"
@@ -21,16 +31,6 @@
         returnFocus: ="scr17_ico_Back_1"
         Visible: =ctVarReportDetailsBack
         Y: =0
-
-    CashAdvanceEdit_Header As hdr02_Header:
-        Fill: =CashAdvanceEdit_Header.paramFill
-        paramFill: =RGBA(255, 255, 255, 1)
-        paramTitle: |-
-            =If(
-                varIsCreateCashAdvance,
-                "New Cash Advance Request",
-                "Edit Cash Advance Request"
-            )
 
     CashAdvanceEdit_BackIcon As icon.ChevronLeft:
         AccessibleLabel: ="Press to go back"
