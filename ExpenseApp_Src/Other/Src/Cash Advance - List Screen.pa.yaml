@@ -77,7 +77,7 @@ Screens:
                   scrCashAdvance_cmp_Footer_1.Y - Self.Y,
                   Self.TemplateHeight * CountRows(Self.AllItems)
               )
-            Items: "=SortByColumns(\n    Filter(\n        'Cash advances (mserp)',\n        // 1. 법인 필터\n        'Company (mserp_company)' = Upper(varSelectedLegalEntity),\n        \n        // 2. 상태 필터 (다중 선택 지원 로직으로 변경)\n        (\n            // A. 아무것도 선택하지 않았으면 전체 표시\n            IsEmpty(ComboBox_CashAdvanceStatusFilter.SelectedItems) ||\n            \n            // B. \"All\" (Value가 Blank인 항목)이 선택 목록에 포함되어 있으면 전체 표시\n            CountRows(Filter(ComboBox_CashAdvanceStatusFilter.SelectedItems, IsBlank(Value))) > 0 ||\n            \n            // C. 그 외: 현재 행의 상태가 선택된 목록 안에 있는지 확인 (in 연산자)\n            'Cash advance status' in ComboBox_CashAdvanceStatusFilter.SelectedItems.Value\n        ),\n        \n        // 3. 날짜 범위 필터 (이전에 수정한 로직 유지)\n        (\n            IsBlank(varCashAdvanceDateFilterStart) || \n            'Requested date' >= varCashAdvanceDateFilterStart\n        ) &&\n        (\n            IsBlank(varCashAdvanceDateFilterEnd) || \n            'Requested date' < DateAdd(varCashAdvanceDateFilterEnd, 1, TimeUnit.Days)\n        ),\n\n        // 4. 로그인한 사용자 필터\n        Employee = userRecord.CreatingWorker\n    ),\n    \"mserp_requesteddate\", \n    SortOrder.Descending\n)"
+            Items: "=SortByColumns(\n    Filter(\n        'DCSL TrvCash Advance Entity  (mserp)',\n        // 1. 법인 필터\n        'Company (mserp_company)' = Upper(varSelectedLegalEntity),\n        \n        // 2. 상태 필터 (다중 선택 지원 로직으로 변경)\n        (\n            // A. 아무것도 선택하지 않았으면 전체 표시\n            IsEmpty(ComboBox_CashAdvanceStatusFilter.SelectedItems) ||\n            \n            // B. \"All\" (Value가 Blank인 항목)이 선택 목록에 포함되어 있으면 전체 표시\n            CountRows(Filter(ComboBox_CashAdvanceStatusFilter.SelectedItems, IsBlank(Value))) > 0 ||\n            \n            // C. 그 외: 현재 행의 상태가 선택된 목록 안에 있는지 확인 (in 연산자)\n            'Cash advance status' in ComboBox_CashAdvanceStatusFilter.SelectedItems.Value\n        ),\n        \n        // 3. 날짜 범위 필터 (이전에 수정한 로직 유지)\n        (\n            IsBlank(varCashAdvanceDateFilterStart) || \n            'Requested date' >= varCashAdvanceDateFilterStart\n        ) &&\n        (\n            IsBlank(varCashAdvanceDateFilterEnd) || \n            'Requested date' < DateAdd(varCashAdvanceDateFilterEnd, 1, TimeUnit.Days)\n        ),\n\n        // 4. 로그인한 사용자 필터\n        Employee = userRecord.CreatingWorker\n    ),\n    \"mserp_requesteddate\", \n    SortOrder.Descending\n)"
             OnSelect: |-
               =If(
                   varCntSelect,
@@ -663,7 +663,6 @@ Screens:
             OnSelect: |-
               =Set(varSelectedCashAdvance, Blank());
               Set(varIsCreateCashAdvance, true);
-              NewForm(EditCashAdvanceForm); // [추가] 폼을 강제로 새 항목 모드로 초기화
               Navigate('Cash Advance - Edit Screen', ScreenTransition.Fade)
             TabIndex: =0
             Visible: =!varCntSelect
