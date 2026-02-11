@@ -37,152 +37,197 @@
 
         RequestedDate_Container As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =100
+            Height: =175
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =5
+            LayoutGap: =10
             LayoutMode: =LayoutMode.Auto
-            PaddingLeft: =30
-            PaddingRight: =30
-            PaddingTop: =10
+            PaddingLeft: =25
             Width: =Parent.Width
             ZIndex: =1
 
-            lbl_RequestedDate As label:
-                Font: =Font.'Segoe UI'
-                Height: =30
-                Size: =14
-                Text: ="Requested Date *"
-                Width: =Parent.Width - 60
+            LblContainer_RequestedDate As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width
                 ZIndex: =1
+
+                lbl_RequestedDate As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    Size: =18
+                    Text: ="Requested Date *"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
 
             dtp_RequestedDate As datepicker:
                 DefaultDate: =If(varIsCreateCashAdvance, Today(), varSelectedCashAdvance.'Requested date')
-                Height: =50
-                Width: =Parent.Width - 60
+                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
+                Size: =24
+                Width: =Parent.Width - Self.X*2
+                X: =40
                 ZIndex: =2
 
         Location_Container As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =100
+            Height: =175
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =5
+            LayoutGap: =10
             LayoutMode: =LayoutMode.Auto
-            PaddingLeft: =30
-            PaddingRight: =30
-            PaddingTop: =10
+            PaddingLeft: =25
             Width: =Parent.Width
             ZIndex: =2
 
-            lbl_Location As label:
-                Font: =Font.'Segoe UI'
-                Height: =30
-                Size: =14
-                Text: ="Location"
-                Width: =Parent.Width - 60
+            LblContainer_Location As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width
                 ZIndex: =1
+
+                lbl_Location As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    Size: =18
+                    Text: ="Location"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
 
             cb_Location As combobox:
                 DefaultSelectedItems: =If(!varIsCreateCashAdvance, LookUp('Travel locations (mserp)', Location = varSelectedCashAdvance.Location), Blank())
                 DisplayFields: =["mserp_destination"]
-                Height: =50
+                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
                 InputTextPlaceholder: ="Select Location"
                 Items: =Filter('Travel locations (mserp)','Company Code' = varSelectedLegalEntity)
                 SearchFields: =["mserp_destination"]
                 SearchItems: =Search(Filter('Travel locations (mserp)','Company Code'=varSelectedLegalEntity),cb_Location.SearchText,mserp_destination)
                 SelectMultiple: =false
-                Width: =Parent.Width - 60
+                Size: =24
+                Width: =Parent.Width - Self.X*2
+                X: =40
                 ZIndex: =2
 
         Purpose_Container As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =100
+            Height: =175
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =5
+            LayoutGap: =10
             LayoutMode: =LayoutMode.Auto
-            PaddingLeft: =30
-            PaddingRight: =30
-            PaddingTop: =10
+            PaddingLeft: =25
             Width: =Parent.Width
             ZIndex: =3
 
-            lbl_Purpose As label:
-                Font: =Font.'Segoe UI'
-                Height: =30
-                Size: =14
-                Text: ="Purpose"
-                Width: =Parent.Width - 60
+            LblContainer_Purpose As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width
                 ZIndex: =1
+
+                lbl_Purpose As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    Size: =18
+                    Text: ="Purpose"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
 
             cb_Purpose As combobox:
                 DefaultSelectedItems: =If(!varIsCreateCashAdvance, LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedCashAdvance.Purpose), Blank())
                 DisplayFields: =["mserp_value"]
-                Height: =50
+                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
                 InputTextPlaceholder: ="Select Purpose"
                 Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
                 SearchFields: =["mserp_value"]
                 SearchItems: =Search(Filter('DimAttributeTrvTravelTxtEntity (mserp)','Company Code'=varSelectedLegalEntity),cb_Purpose.SearchText,mserp_value)
                 SelectMultiple: =false
-                Width: =Parent.Width - 60
+                Size: =24
+                Width: =Parent.Width - Self.X*2
+                X: =40
                 ZIndex: =2
 
         RequestedAmount_Container As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =100
+            Height: =175
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =5
+            LayoutGap: =10
             LayoutMode: =LayoutMode.Auto
-            PaddingLeft: =30
-            PaddingRight: =30
-            PaddingTop: =10
+            PaddingLeft: =25
             Width: =Parent.Width
             ZIndex: =4
 
-            lbl_RequestedAmount As label:
-                Font: =Font.'Segoe UI'
-                Height: =30
-                Size: =14
-                Text: ="Requested Amount *"
-                Width: =Parent.Width - 60
+            LblContainer_RequestedAmount As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width
                 ZIndex: =1
+
+                lbl_RequestedAmount As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    Size: =18
+                    Text: ="Requested Amount *"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
 
             txt_RequestedAmount As text:
                 Default: =If(varIsCreateCashAdvance, "", Text(varSelectedCashAdvance.'Requested amount'))
                 Format: =TextFormat.Number
-                Height: =50
+                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
                 HintText: ="0.00"
-                Width: =Parent.Width - 60
+                Size: =24
+                Width: =Parent.Width - Self.X*2
+                X: =40
                 ZIndex: =2
 
         Currency_Container As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =100
+            Height: =175
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =5
+            LayoutGap: =10
             LayoutMode: =LayoutMode.Auto
-            PaddingLeft: =30
-            PaddingRight: =30
-            PaddingTop: =10
+            PaddingLeft: =25
             Width: =Parent.Width
             ZIndex: =5
 
-            lbl_Currency As label:
-                Font: =Font.'Segoe UI'
-                Height: =30
-                Size: =14
-                Text: ="Currency"
-                Width: =Parent.Width - 60
+            LblContainer_Currency As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutMode: =LayoutMode.Auto
+                Width: =Parent.Width
                 ZIndex: =1
+
+                lbl_Currency As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    Size: =18
+                    Text: ="Currency"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
 
             cb_Currency As combobox:
                 DefaultSelectedItems: =LookUp('Currencies (mserp)', 'Currency code' = Coalesce(varSelectedCashAdvance.Currency, varDefaultCurrency))
                 DisplayFields: =["mserp_currencycode"]
-                Height: =50
+                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
                 InputTextPlaceholder: ="Find items"
                 Items: =ShowColumns('Currencies (mserp)','Currency code',Name)
                 SearchFields: =["mserp_currencycode"]
                 SearchItems: =Search(ShowColumns('Currencies (mserp)','Currency code',Name),cb_Currency.SearchText,mserp_currencycode)
                 SelectMultiple: =false
-                Width: =Parent.Width - 60
+                Size: =24
+                Width: =Parent.Width - Self.X*2
+                X: =40
                 ZIndex: =2
 
     CashAdvanceEdit_ButtonsButtonsContainer As groupContainer.manualLayoutContainer:
@@ -203,30 +248,17 @@
                     IsBlank(dtp_RequestedDate.SelectedDate) || IsBlank(txt_RequestedAmount.Text),
                     Notify("Please fill in all required fields (Requested Date, Amount)", NotificationType.Error, gblParams.notificationTime),
                     
-                    If(varIsCreateCashAdvance,
-                        Patch(
-                            'DCSL TrvCash Advance Entity  (mserp)',
-                            Defaults('DCSL TrvCash Advance Entity  (mserp)'),
-                            {
-                                mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
-                                mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
-                                mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
-                                mserp_requestedamount: Value(txt_RequestedAmount.Text),
-                                mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), varDefaultCurrency, cb_Currency.Selected.mserp_currencycode),
-                                mserp_cashadvancestatus: 'Cash advance status (mserp)'.Created
-                            }
-                        ),
-                        Patch(
-                            'DCSL TrvCash Advance Entity  (mserp)',
-                            varSelectedCashAdvance,
-                            {
-                                mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
-                                mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
-                                mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
-                                mserp_requestedamount: Value(txt_RequestedAmount.Text),
-                                mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), varSelectedCashAdvance.Currency, cb_Currency.Selected.mserp_currencycode)
-                            }
-                        )
+                    Patch(
+                        'DCSL TrvCash Advance Entity  (mserp)',
+                        If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),
+                        {
+                            mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
+                            mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
+                            mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
+                            mserp_requestedamount: Value(txt_RequestedAmount.Text),
+                            mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode),
+                            mserp_cashadvancestatus: 'Cash advance status (mserp)'.Created
+                        }
                     );
                     Notify("Cash Advance saved successfully", NotificationType.Success, gblParams.notificationTime);
                     Navigate('Cash Advance - List Screen', ScreenTransition.None)
@@ -253,34 +285,18 @@
                     IsBlank(dtp_RequestedDate.SelectedDate) || IsBlank(txt_RequestedAmount.Text),
                     Notify("Please fill in all required fields (Requested Date, Amount)", NotificationType.Error, gblParams.notificationTime),
                     
-                    If(varIsCreateCashAdvance,
-                         Set(varLastSubmittedCashAdvance, 
-                             Patch(
-                                'DCSL TrvCash Advance Entity  (mserp)',
-                                Defaults('DCSL TrvCash Advance Entity  (mserp)'),
-                                {
-                                    mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
-                                    mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
-                                    mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
-                                    mserp_requestedamount: Value(txt_RequestedAmount.Text),
-                                    mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), varDefaultCurrency, cb_Currency.Selected.mserp_currencycode),
-                                    mserp_cashadvancestatus: 'Cash advance status (mserp)'.Created,
-                                    mserp_workflowaction: "Submit"
-                                }
-                            )
-                        ),
-                        Patch(
-                            'DCSL TrvCash Advance Entity  (mserp)',
-                            varSelectedCashAdvance,
-                            {
-                                mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
-                                mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
-                                mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
-                                mserp_requestedamount: Value(txt_RequestedAmount.Text),
-                                mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), varSelectedCashAdvance.Currency, cb_Currency.Selected.mserp_currencycode),
-                                mserp_workflowaction: "Submit"
-                            }
-                        )
+                    Patch(
+                        'DCSL TrvCash Advance Entity  (mserp)',
+                        If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),
+                        {
+                            mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
+                            mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
+                            mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
+                            mserp_requestedamount: Value(txt_RequestedAmount.Text),
+                            mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode),
+                            mserp_cashadvancestatus: 'Cash advance status (mserp)'.Created,
+                            mserp_workflowaction: "Submit"
+                        }
                     );
                     
                     Notify("Cash Advance submitted successfully", NotificationType.Success, gblParams.notificationTime);
