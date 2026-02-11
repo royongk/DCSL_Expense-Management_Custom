@@ -1,0 +1,330 @@
+---
+trigger: always_on
+---
+
+# 덜위치 Expense Management Power Apps 커스터마이징 프로젝트 규칙
+
+## 1. 프로젝트 개요 (Project Overview)
+
+- **프로젝트명:** 덜위치 Expense Management Power Apps 확장 및 고도화
+- **목표:** Microsoft Dynamics 365 Expense Management를 Power Apps 인터페이스로 확장하여, 엄격한 재무 통제를 유지하면서도 직원이 모바일과 PC를 통해 손쉽게 비용을 청구할 수 있도록 함
+- **핵심 기능:**
+  - 일반 직원(Team Member 라이선스)의 경비 리포트 작성 및 제출
+  - 영수증 캡처 및 첨부
+  - D365 F&O와의 실시간 데이터 연동 (Dataverse Virtual Tables)
+  - Finance/HR 검토자의 검토 및 수정 기능
+  - 3단계 카테고리 선택 (Department → Benefit Type → Expense Category)
+  - Travel Requisition 연동 및 잔여 금액 관리
+- **사용자 역할:**
+  - **일반 직원 (Team Member):** Power Apps에서 경비 입력 및 제출 (Front-End)
+    - 리포트 생성, 영수증 첨부, 임시 저장(Draft)
+    - 승인 요청 제출(Submit) - 제출 후 수정 잠금(Lock)
+  - **검토자 (Finance/HR - Full User):** D365 F&O에서 데이터 검증, 수정, 승인 (Back-End)
+    - 데이터 검증 및 수정 권한
+    - 라인 분할(Split) 기능
+    - 1차 승인 권한
+  - **시스템:** 표준 워크플로우를 통한 GL 전기
+
+## 2. 기술 스택 (Tech Stack)
+
+- **Front-End:** Power Apps (반응형 - 모바일/PC 지원)
+- **Back-End:** Dynamics 365 Finance & Operations (F&O)
+- **데이터 브리지:** Dataverse (Dual-Write)
+- **연동 방식:** Dataverse Virtual Tables를 통한 실시간 데이터 동기화
+- **개발 도구:**
+  - **Power Apps Studio (웹 편집기):** .msapp 파일 다운로드/업로드
+  - **Power Apps CLI (pac):** .msapp 파일 unpack/pack 작업
+  - **Visual Studio Code & Cursor:** 로컬 소스 코드 편집 (YAML 형식)
+- **소스 코드 형식:**
+  - Power Fx YAML (`.fx.yaml`): `Src/` 폴더 - Power Fx 공식 형식 (권장)
+  - Power Apps YAML (`.pa.yaml`): `Other/Src/` 폴더 - Power Apps Studio 호환 형식
+  - Canvas Manifest (`.json`): 앱 메타데이터
+  - Data Sources (`.json`): Dataverse Virtual Tables 연결 정보
+- **핵심 원칙:**
+  - Power Apps는 F&O의 승인 프로세스에 영향을 주지 않으며, 초안(Draft) 데이터 생성만 담당
+  - D365 F&O는 마스터 데이터 소스 및 최종 전기 목적지
+  - Dataverse는 중복 없는 실시간 데이터 흐름을 위한 브리지 테이블 역할
+
+## 3. 핵심 설계 문서 (Source of Truth)
+
+코드를 생성하거나 수정할 때, 반드시 아래의 파일을 최우선으로 참고해야 합니다.
+
+- **요구사항 문서:** `Doc/DCSL_Expense Mnagement Mobile App_Power Apps Requirement_KOR_251223.pdf`
+- **데이터 매핑 정의:**
+  - Expense Report Header ↔ D365 TrvExpTable
+  - Expense Report Line ↔ D365 TrvExpTrans
+  - Travel Requisition ↔ D365 TrvRequisitionTableView
+
+**규칙:** 상충 시 요구사항 문서의 데이터 매핑 정의를 우선합니다.
+
+## 4. 프로세스 흐름 (Process Flow)
+
+1. **작성 (Draft)** - [일반 직원] Power Apps
+   - 리포트 생성
+   - 영수증 첨부
+   - 임시 저장
+   - Document Status = 초안(Draft)
+   - Approval Status = 초안(Draft)
+
+2. **제출 (Submit)** - [일반 직원] Power Apps
+   - 승인 요청
+   - 수정 잠금(Lock)
+   - Document Status = 제출(Submit)
+   - Approval Status = 초안(Draft)
+
+3. **검토 (Review)** - [Finance/HR] D365 F&O
+   - 데이터 검증
+   - 수정/분할(Split)
+   - 1차 승인
+
+4. **전기 (Post)** - [시스템] D365 F&O
+   - 표준 워크플로우
+   - GL 전기
+
+## 5. 주요 화면 및 기능 정의
+
+### EXAPP-012: 출장 신청서 (Travel Requisition)
+- **ERP 연동 화면:** Travel Requisition
+- **기능:** 사용자에게 할당된 Travel Requisition 목록 조회
+- **표시 필드:** Date, Total estimate, Remaining amount, Business purpose
+- **동작:** 목록 선택 시 생성 화면으로 이동
+
+### EXAPP-013: 경비 등록 (Expense Report Line)
+- **ERP 연동 화면:** Expense Report Line
+- **기능:** 영수증 첨부 및 구체적인 비용 내역 입력
+- **주요 필드:**
+  - 경비 범주 (CostType)
+  - 거래 금액 (AmountCurr)
+  - 거래 날짜 (TransDate)
+  - 통화 (ExchangeCode)
+  - 결제 방법 (PayMethod)
+  - Merchant (MerchantId)
+- **신규 기능:**
+  - **3단계 카테고리 선택:**
+    - Level 1: Department Type (Admin / Academic) - 드롭다운
+    - Level 2: Benefit Type (Benefit claim, Billing trip 등) - Level 1 선택값에 따라 필터링
+    - Level 3: Expense Category - Level 2 선택값에 따라 필터링
+  - **Cost Center 표시:**
+    - Cost Center 코드와 이름(Display Name) 함께 표기
+    - 사용자 수정 불가 (D365 동기화)
+
+### EXAPP-014: 출장 보고서 등록 (Expense Report Header)
+- **ERP 연동 화면:** Expense Report Header
+- **기능:** 지출 목적(Purpose), 장소(Location) 등 리포트 기본 정보 입력
+- **표시 필드 (Read-only):**
+  - Destination (Home Country)
+  - Map to travel requisition
+  - Travel requisition amount
+  - Remaining amount
+- **저장 로직:**
+  - Document Status = 초안(Draft)
+  - Approval Status = 초안(Draft)
+- **제출 로직:**
+  - Document Status = 제출(Submit)
+  - Approval Status = 초안(Draft)
+
+### EXAPP-015: 보고서 목록 (Expense Report Header)
+- **ERP 연동 화면:** Expense Report Header
+- **기능:** 사용자가 작성한 지출 결의서(Expense Report) 목록 조회
+- **주요 기능:**
+  - 각 리포트의 결재 상태(Status) 확인
+  - (+) 버튼을 통한 신규 지출 결의서 생성
+  - **상태 값 표시:** Document Status (Draft, Submitted, Approved, Rejected)를 배지(Badge) 형태로 표시
+  - **수정 권한 제어:** Submitted 상태인 리포트는 상세 화면에서 Read-only 모드로 진입
+  - **대리 문서 조회:** 대리인(Delegate) 기능 사용 시, 위임자(Delegator)의 지출 결의서 목록도 조회 가능 (F&O - Expenses delegated to me 화면 데이터)
+
+## 6. 데이터 매핑 정의
+
+### Expense Report Header
+| Power Apps 필드 | D365 필드 | 타입 | 비고 |
+|----------------|-----------|------|------|
+| 리포트 번호 | ExpNumber | String | 자동 생성 시퀀스 |
+| 목적 | Purpose | Lookup (선택 박스) | |
+| 위치 | Location | Lookup (선택 박스) | |
+| Destination | Home Country | String | |
+| Map to travel requisition | Map to travel requisition | Lookup (선택박스) | |
+| Travel requisition amount | Travel requisition amount | Decimal | |
+| Remaining amount | Remaining amount | String | |
+
+### Expense Report Line
+| Power Apps 필드 | D365 필드 | 타입 | 비고 |
+|----------------|-----------|------|------|
+| 경비 범주 | CostType | String | 경비 범주 |
+| 거래 금액 | AmountCurr | Decimal | 거래 통화 |
+| 거래 날짜 | TransDate | Date | 사용자 입력 |
+| 통화 | ExchangeCode | String | 통화 |
+| 결제 방법 | PayMethod | String | 결제 방법 |
+| Merchant | MerchantId | String | Merchant |
+| (New) 부서 | Department | Lookup (선택 박스) | Level 1: 3단계 드롭다운 필터링 (D365에 테이블 추가 예정) |
+| (New) 혜택 유형 | Benefit Type | Lookup (선택 박스) | Level 2: 3단계 드롭다운 필터링 (D365에 테이블 추가 예정) |
+| (New) 비용 유형 | Expense Category | Lookup (선택 박스) | Level 3: 3단계 드롭다운 필터링 |
+| (New) 코스트 센터 | Cost Center | Lookup (선택 박스) | D365 동기화 |
+| (New) 코스트 센터 이름 | Cost Center Name | String | D365 동기화, 사용자 수정 불가 |
+
+### Travel Requisition & Employee Allowance
+| Power Apps 필드 | D365 필드 | 타입 | 비고 |
+|----------------|-----------|------|------|
+| Date | Date | Date | |
+| Total estimate | Total estimate | String | |
+| Remaining amount | Remaining amount | String | |
+| Business purpose | Business purpose | String | |
+
+## 7. 코딩 스타일 및 규칙 (Coding Conventions)
+
+- **언어:** 코드 내의 주석, 변수명, 함수명은 가급적 **영어**로 작성하여 통일성을 유지합니다.
+- **Power Apps:**
+  - **데이터 소스:** Dataverse Virtual Tables를 통한 D365 F&O 데이터 연동
+  - **상태 관리:** Document Status와 Approval Status를 명확히 구분하여 관리
+  - **권한 제어:** Submitted 상태의 리포트는 Read-only 모드로 제한
+  - **필터링 로직:** 3단계 드롭다운은 상위 레벨 선택값에 따라 하위 레벨 필터링
+- **D365 F&O:**
+  - **표준 워크플로우:** Power Apps는 초안 데이터 생성만 담당하며, 승인 프로세스는 F&O 표준 워크플로우 유지
+  - **VAT 계산:** 표준 F&O Tax Group 로직 활용
+  - **데이터 검증:** Finance/HR 검토자가 직접 수정 가능
+- **Power Apps YAML 편집:**
+  - YAML 파일 편집 시 들여쓰기 및 문법 주의 (스페이스 2칸 또는 4칸 일관성 유지)
+  - Power Fx 공식은 `=` 기호로 시작
+  - 컨트롤 속성은 YAML 구조에 맞게 작성
+  - 주석은 `//` 또는 `#` 사용 가능
+  - `Src/*.fx.yaml` 파일을 우선적으로 편집 (Power Fx 공식 형식)
+  - `Other/Src/*.pa.yaml` 파일은 Power Apps Studio 호환성을 위해 유지
+
+- **Power Apps Symbol 명명 규칙 (필수):**
+  - **Symbol 이름 고유성:** Power Apps에서 모든 컨트롤(Symbol) 이름은 앱 전체에서 고유해야 합니다. (PA3008 오류 방지)
+  - **다중 화면 컨트롤 명명:** 여러 화면에서 동일한 기능의 컨트롤을 사용할 경우, 화면 이름을 접두사로 사용하여 구분해야 합니다.
+    - 예시: `Expenses - Edit Screen`과 `Itemization - Itemized Expense Edit Screen`에 같은 `Department_DataCard`가 있으면
+    - 해결: `Itemization_Department_DataCard`처럼 접두사를 추가하여 고유하게 만듭니다.
+  - **명명 패턴:** `{ScreenName}_{ControlName}` 형식을 권장합니다.
+    - 예시: `Itemization_Department_DataCard`, `Itemization_ComboBox_Department`
+  - **참조 업데이트:** 컨트롤 이름 변경 시 해당 컨트롤을 참조하는 모든 곳을 함께 업데이트해야 합니다.
+    - 컨트롤 참조: `ControlName.Property`
+    - Reset 함수: `Reset(ControlName)`
+    - 조건문: `If(ControlName.Selected, ...)`
+    - 기타 속성 참조: `ControlName.Y`, `ControlName.Height` 등
+
+- **YAML 멀티라인 블록 규칙 (필수):**
+  - **멀티라인 Power Fx 공식:** 여러 줄에 걸친 Power Fx 공식은 반드시 멀티라인 블록 표시자(`|-`)를 사용해야 합니다. (PA3003 오류 방지)
+  - **올바른 형식:**
+    ```yaml
+    DefaultSelectedItems: |-
+        =If(
+            !IsBlank(varSelectedDepartment),
+            LookUp(...),
+            []
+        )
+    ```
+  - **잘못된 형식:**
+    ```yaml
+    DefaultSelectedItems: =If(
+        !IsBlank(varSelectedDepartment),  # ← 멀티라인 블록 표시자 누락
+        LookUp(...),
+        []
+    )
+    ```
+  - **들여쓰기:** 멀티라인 블록 내부의 모든 라인은 속성 이름과 동일한 들여쓰기 레벨에서 시작해야 합니다.
+  - **적용 대상 속성:** `DefaultSelectedItems`, `Items`, `SearchItems`, `DisplayMode`, `OnChange`, `OnSelect` 등 긴 Power Fx 공식이 포함된 모든 속성
+- **보안:**
+  - 사용자 입력값은 항상 유효성 검사(Validation)를 거쳐야 합니다.
+  - Dataverse Virtual Tables를 통한 데이터 동기화 시 데이터 무결성 보장
+  - 라이선스별 권한 제어 (Team Member vs Full User)
+
+## 8. 로컬 개발 워크플로우 (Local Development Workflow)
+
+### 개발 환경 설정
+1. **Power Apps Studio에서 앱 다운로드:**
+   - Power Apps Studio (웹 편집기)에서 `.msapp` 파일 다운로드
+   - 파일명: `DCSL - Expense Management.msapp`
+
+2. **Power Apps CLI (pac) 설치 및 Unpack:**
+   - Power Platform CLI 설치: `pac install latest`
+   - Unpack 명령어: `pac canvas unpack --msapp "<path-to-msapp>" --sources <output-folder>`
+   - 출력 폴더: `ExpenseApp_Src/`
+
+3. **VS Code에서 소스 코드 편집:**
+   - `ExpenseApp_Src/` 폴더를 VS Code에서 열기
+   - 주요 편집 대상:
+     - `Src/*.fx.yaml`: Power Fx 공식 형식 (권장)
+     - `Other/Src/*.pa.yaml`: Power Apps Studio 호환 형식
+     - `DataSources/*.json`: 데이터 소스 연결 정보
+
+### 개발 워크플로우
+1. **수정 작업:**
+   - VS Code에서 YAML 파일 직접 편집
+   - Power Fx 공식 및 컨트롤 속성 수정
+   - 데이터 소스 연결 정보 업데이트
+   - **검증 필수:** 수정 후 반드시 `pac canvas pack`을 실행하여 오류 확인
+
+2. **Pack 및 검증:**
+   - Pack 명령어: `pac canvas pack --sources C:\PJT\Dulwich\ExpenseApp_Src --msapp <output-msapp>`
+   - **오류 체크:**
+     - PA3003: YAML 파싱 오류 (멀티라인 블록 표시자 누락 또는 들여쓰기 오류)
+     - PA3008: Symbol 중복 정의 오류 (여러 화면에서 동일한 컨트롤 이름 사용)
+   - 오류 발생 시 수정 후 재시도
+
+3. **업로드 및 테스트:**
+   - Pack 성공 후 Power Apps Studio에서 `.msapp` 파일 업로드하여 테스트
+   - 실제 동작 확인 및 검증
+
+4. **버전 관리:**
+   - `C:\PJT\Dulwich\ExpenseApp_Src/` 폴더 전체를 Git으로 관리
+   - `.msapp` 파일은 바이너리이므로 Git LFS 사용 권장
+
+### 주의사항
+- **Microsoft 공식 권고사항:**
+  - YAML 소스 코드는 주로 변경 사항 검토 및 소규모 편집용
+  - 복잡한 UI 변경은 Power Apps Studio에서 수행 권장
+  - Pack 후 Power Apps Studio에서 최종 검증 필수
+
+- **파일 구조 이해:**
+  - `Src/*.fx.yaml`: Power Fx 공식 형식 (최신 표준)
+    - **우선 편집 대상:** 새로운 컨트롤 추가 및 주요 로직 수정 시 이 파일을 먼저 수정합니다.
+    - **형식:** Power Fx 공식 형식 (`'ControlName' As controlType:`)
+  - `Other/Src/*.pa.yaml`: Power Apps Studio 호환 형식
+    - **역할:** Power Apps Studio에서 자동 생성되는 호환 형식
+    - **주의사항:** 이 파일을 직접 수정하지 않으며, Power Apps CLI가 자동으로 동기화합니다.
+    - **중복 정의 문제:** `.fx.yaml`과 `.pa.yaml` 모두에 같은 이름의 컨트롤이 있으면 PA3008 오류가 발생합니다.
+      - 해결: `.fx.yaml` 파일만 수정하고 `.pa.yaml`은 자동 동기화되도록 합니다.
+      - 또는 `.fx.yaml`에서 Symbol 이름을 고유하게 만들어 중복을 방지합니다.
+
+- **데이터 소스 관리:**
+  - `DataSources/` 폴더의 JSON 파일은 Dataverse Virtual Tables 연결 정보 포함
+  - 수정 시 D365 F&O와의 연동 무결성 확인 필수
+
+## 9. 일반적인 오류 및 해결 방법
+
+### PA3003: YAML 파싱 오류
+- **원인:** 멀티라인 Power Fx 공식에서 블록 표시자(`|-`) 누락 또는 들여쓰기 오류
+- **해결:**
+  1. 멀티라인 Power Fx 공식이 있는 속성에 `|-` 추가
+  2. 공식 내용이 속성 이름과 동일한 들여쓰기 레벨에서 시작하는지 확인
+  3. 예시: `DefaultSelectedItems: |-` 다음 줄의 `=If(`가 올바른 들여쓰기를 가지는지 확인
+
+### PA3008: Symbol 중복 정의 오류
+- **원인:** 앱 전체에서 동일한 컨트롤 이름이 여러 번 정의됨
+- **해결:**
+  1. 중복된 컨트롤 이름 찾기: `grep -r "ControlName As" ExpenseApp_Src/Src/`
+  2. 접두사를 추가하여 고유하게 만들기: `{ScreenName}_{ControlName}`
+  3. 해당 컨트롤을 참조하는 모든 곳 업데이트:
+     - 컨트롤 속성: `ControlName.Property`
+     - Reset 함수: `Reset(ControlName)`
+     - 조건문 및 표현식: `ControlName.Selected`, `ControlName.Y` 등
+  4. Pack 재실행하여 오류 해결 확인
+
+### 파일 형식 불일치
+- **원인:** `.fx.yaml`과 `.pa.yaml` 파일 간 동기화 문제
+- **해결:**
+  1. `.fx.yaml` 파일만 수정 (권장)
+  2. Power Apps CLI가 자동으로 `.pa.yaml` 동기화
+  3. 직접 `.pa.yaml` 수정 시 주의: Pack 시 덮어씌워질 수 있음
+
+## 10. 다음은 답변을 줄 때 고려해야 할 사항들
+
+- 내가 코드 작성을 요청하기 전까지 절대 코드를 작성하지 말 것
+- 이해하기 어려운 지점 혹은 책임과 맥락 관점에서 추가적으로 고려해야 할 사항이 있다면 질문 줄 것, 그러면 답변 주겠음
+- 일반적인 클린코드 원칙들
+- 디자인 패턴을 적용한 제안들
+- 테스트 코드 작성의 용이성
+- Power Apps와 D365 F&O 간의 데이터 일관성 유지
+- 이원화 플랫폼 전략 준수 (Power Apps = Front-End, D365 F&O = Back-End)
+- **Symbol 명명 규칙 준수:** 여러 화면에서 사용되는 컨트롤은 고유한 이름을 사용해야 함
+- **YAML 문법 준수:** 멀티라인 Power Fx 공식에는 반드시 블록 표시자(`|-`) 사용
