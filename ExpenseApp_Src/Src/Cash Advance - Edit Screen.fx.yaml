@@ -2,6 +2,11 @@
     Fill: =RGBA(248, 248, 248, 1)
     OnVisible: |-
         =UpdateContext({varIsCreateCashAdvance: IsBlank(varSelectedCashAdvance)});
+        Reset(dtp_RequestedDate);
+        Reset(cb_Location);
+        Reset(cb_Purpose);
+        Reset(txt_RequestedAmount);
+        Reset(cb_Currency);
 
     CashAdvanceEdit_Header As hdr02_Header:
         Fill: =CashAdvanceEdit_Header.paramFill
@@ -95,10 +100,10 @@
 
             dtp_RequestedDate As datepicker:
                 DefaultDate: =If(varIsCreateCashAdvance, Today(), varSelectedCashAdvance.'Requested date')
-                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
-                Size: =24
+                Size: =21
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =2
@@ -139,7 +144,7 @@
             cb_Location As combobox:
                 DefaultSelectedItems: =If(!varIsCreateCashAdvance, LookUp('Travel locations (mserp)', Location = varSelectedCashAdvance.Location), Blank())
                 DisplayFields: =["mserp_destination"]
-                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
                 InputTextPlaceholder: ="Select Location"
                 Items: =Filter('Travel locations (mserp)','Company Code' = varSelectedLegalEntity)
                 LayoutMaxHeight: =0
@@ -147,7 +152,7 @@
                 SearchFields: =["mserp_destination"]
                 SearchItems: =Search(Filter('Travel locations (mserp)','Company Code'=varSelectedLegalEntity),cb_Location.SearchText,mserp_destination)
                 SelectMultiple: =false
-                Size: =24
+                Size: =21
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =2
@@ -188,7 +193,7 @@
             cb_Purpose As combobox:
                 DefaultSelectedItems: =If(!varIsCreateCashAdvance, LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedCashAdvance.Purpose), Blank())
                 DisplayFields: =["mserp_value"]
-                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
                 InputTextPlaceholder: ="Select Purpose"
                 Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
                 LayoutMaxHeight: =0
@@ -196,7 +201,7 @@
                 SearchFields: =["mserp_value"]
                 SearchItems: =Search(Filter('DimAttributeTrvTravelTxtEntity (mserp)','Company Code'=varSelectedLegalEntity),cb_Purpose.SearchText,mserp_value)
                 SelectMultiple: =false
-                Size: =24
+                Size: =21
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =2
@@ -237,11 +242,11 @@
             txt_RequestedAmount As text:
                 Default: =If(varIsCreateCashAdvance, "", Text(varSelectedCashAdvance.'Requested amount'))
                 Format: =TextFormat.Number
-                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
                 HintText: ="0.00"
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
-                Size: =24
+                Size: =21
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =2
@@ -282,7 +287,7 @@
             cb_Currency As combobox:
                 DefaultSelectedItems: =LookUp('Currencies (mserp)', 'Currency code' = Coalesce(varSelectedCashAdvance.Currency, varDefaultCurrency))
                 DisplayFields: =["mserp_currencycode"]
-                Height: ='Cash Advance - Edit Screen'.Height*Value(0.0616,"en-US")
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
                 InputTextPlaceholder: ="Find items"
                 Items: =ShowColumns('Currencies (mserp)','Currency code',Name)
                 LayoutMaxHeight: =0
@@ -290,7 +295,7 @@
                 SearchFields: =["mserp_currencycode"]
                 SearchItems: =Search(ShowColumns('Currencies (mserp)','Currency code',Name),cb_Currency.SearchText,mserp_currencycode)
                 SelectMultiple: =false
-                Size: =24
+                Size: =21
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =2
