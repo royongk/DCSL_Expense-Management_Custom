@@ -13,63 +13,66 @@ Screens:
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
       OnVisible: |-
         =UpdateContext({ctLabel1 : false});
-                UpdateContext({ctLabel2 : false});
-                UpdateContext({ctLabel3 : false});
-                UpdateContext({ctLabel4 : false});
-                UpdateContext({ctLabel5 : false});
-                UpdateContext({ctVarReportDetailsBack:false});
-                UpdateContext({isExpReportDirty : false});
-                If(
-                    IsBlank(
-                        LookUp(
-                            colReportPostDetails,
-                            fieldName = "Description"
-                        )
-                    ),
-                    Reset(scr17_txt_Description_1)
-                );
-                If(
-                    varIsCreateReport,
-                    Reset(ComboBox_Location);
-                    Reset(ComboBox_Purpose);
-                    Reset(scr17_txt_Description_1);
-                    Reset(ComboBox_LegalEntity_ExpReport);
-                    //If( 
-                    //    gblIsProjectValidationFlag,
-                    //    Reset(ComboBox_ProjectId_ExpReport_odata),
-                    //    Reset(ComboBox_ProjectId_ExpReport_entity)
-                    //);
-                );
-                UpdateContext(
-                    {
-                        locReimaginedfeatureEnabled: (userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes)
-                    }
-                );
-                If(
-                    locReimaginedfeatureEnabled, 
-                    If(
-                        CountRows(gblExpenseReportFieldVisibilityReImaginedLookup) <= 0,
-                        ClearCollect(
-                            gblExpenseReportFieldVisibilityReImaginedLookup, 
-                            Filter(
-                                'Expense mobile report field visibility (mserp)', 
-                                LegalEntityId = varSelectedLegalEntity && 
-                                VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display'
-                            )
-                        )
-                    ),
-                    If(
-                        CountRows(gblExpenseReportFieldVisibilityLookup) <= 0,
-                        ClearCollect(
-                            gblExpenseReportFieldVisibilityLookup, 
-                            Filter(
-                                '@ExpenseManagement:TrvExpMobileReportAdminCustomFieldsEntity (mserp)',
-                                LegalEntityId = varSelectedLegalEntity && 
-                                Visibility <> 'Visibility (mserp)'.'Do not display'
-                            )
-                        )
+        UpdateContext({ctLabel2 : false});
+        UpdateContext({ctLabel3 : false});
+        UpdateContext({ctLabel4 : false});
+        UpdateContext({ctLabel5 : false});
+        UpdateContext({ctLabel6 : false});
+        UpdateContext({ctLabel7 : false});
+
+        UpdateContext({ctVarReportDetailsBack:false});
+        UpdateContext({isExpReportDirty : false});
+        If(
+            IsBlank(
+                LookUp(
+                    colReportPostDetails,
+                    fieldName = "Description"
+                )
+            ),
+            Reset(scr17_txt_Description_1)
+        );
+        If(
+            varIsCreateReport,
+            Reset(ComboBox_Location);
+            Reset(ComboBox_Purpose);
+            Reset(scr17_txt_Description_1);
+            Reset(ComboBox_LegalEntity_ExpReport);
+            //If( 
+            //    gblIsProjectValidationFlag,
+            //    Reset(ComboBox_ProjectId_ExpReport_odata),
+            //    Reset(ComboBox_ProjectId_ExpReport_entity)
+            //);
+        );
+        UpdateContext(
+            {
+                locReimaginedfeatureEnabled: (userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes)
+            }
+        );
+        If(
+            locReimaginedfeatureEnabled, 
+            If(
+                CountRows(gblExpenseReportFieldVisibilityReImaginedLookup) <= 0,
+                ClearCollect(
+                    gblExpenseReportFieldVisibilityReImaginedLookup, 
+                    Filter(
+                        'Expense mobile report field visibility (mserp)', 
+                        LegalEntityId = varSelectedLegalEntity && 
+                        VisibilityType <> 'ExpenseFieldVisibilityType (mserp)'.'Do not display'
                     )
-                );
+                )
+            ),
+            If(
+                CountRows(gblExpenseReportFieldVisibilityLookup) <= 0,
+                ClearCollect(
+                    gblExpenseReportFieldVisibilityLookup, 
+                    Filter(
+                        '@ExpenseManagement:TrvExpMobileReportAdminCustomFieldsEntity (mserp)',
+                        LegalEntityId = varSelectedLegalEntity && 
+                        Visibility <> 'Visibility (mserp)'.'Do not display'
+                    )
+                )
+            )
+        );
     Children:
       - Totals Buttons - Draft:
           Control: GroupContainer@1.4.0
@@ -524,6 +527,8 @@ Screens:
                           UpdateContext({ctLabel3 : true});
                           UpdateContext({ctLabel4 : false});
                           UpdateContext({ctLabel5 : false});
+                          UpdateContext({ctLabel6 : false});
+                          UpdateContext({ctLabel7 : false})
                         RadiusBottomLeft: =0
                         RadiusBottomRight: =0
                         RadiusTopLeft: =0
@@ -663,12 +668,14 @@ Screens:
                               ComboBox_Purpose.Selected.'Purpose (mserp_value)' <> varSelectedReport.Purpose,
                                   UpdateContext({isExpReportDirty : true})
                           );
-                        OnSelect: |
+                        OnSelect: |-
                           =UpdateContext({ctLabel1 : true});
                           UpdateContext({ctLabel2 : false});
                           UpdateContext({ctLabel3 : false});
                           UpdateContext({ctLabel4 : false});
-                          UpdateContext({ctLabel5: false})
+                          UpdateContext({ctLabel5: false});
+                          UpdateContext({ctLabel6: false});
+                          UpdateContext({ctLabel7: false})
                         PressedColor: =RGBA(255, 255, 255, 1)
                         PressedFill: =RGBA(0, 18, 107, 1)
                         Reset: =true
@@ -677,10 +684,290 @@ Screens:
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
                         Size: =24
-                        Width: |
-                          =Parent.Width -  Self.X*2
+                        Width: =Parent.Width -  Self.X*2
                         X: =40
                         Y: =scr17_hdr_TopHeader_1.Height + 66
+            - CashAdvance_Container_gp:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =16
+                  PaddingBottom: =8
+                  PaddingLeft: =8
+                  PaddingRight: =8
+                  PaddingTop: =8
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: |-
+                    =If(
+                        !IsBlank(varAppMode) && varAppMode = "CashAdvance",
+                        true,
+                        false
+                    )
+                  Width: =Parent.Width
+                Children:
+                  - Settlment - Draft:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =175
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =10
+                        LayoutJustifyContent: =LayoutJustifyContent.Center
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        LayoutOverflowY: =LayoutOverflow.Scroll
+                        PaddingLeft: =25
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Visible: |-
+                          =If ( locReimaginedfeatureEnabled,
+                               !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
+                               !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
+                          )
+                        Width: =Parent.Width/2
+                      Children:
+                        - SettlmentContainer_3:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              AlignInContainer: =AlignInContainer.SetByContainer
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =50
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinWidth: =Parent.Width
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width -  Self.X*2
+                            Children:
+                              - scr17_img_SettlmentSelected_2:
+                                  Control: Image@2.2.3
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =22
+                                    Image: =ShapeProjIDSelected
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    Visible: =ctLabel6
+                                    Width: =22
+                                    X: =Toggle_Settlment_1.X
+                                    Y: |-
+                                      =Toggle_Settlment_1.Y - 
+                                      (15 + Self.Height)
+                              - scr17_img_Settlment_2:
+                                  Control: Image@2.2.3
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =22
+                                    Image: =ShapeProjID
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    Visible: =!scr17_img_SettlmentSelected_2.Visible
+                                    Width: =22
+                                    X: =Toggle_Settlment_1.X
+                                    Y: |-
+                                      =Toggle_Settlment_1.Y - 
+                                      (15 + Self.Height)
+                              - scr17_lbl_Settlment_2:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    FillPortions: =1
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    LayoutMinWidth: =270
+                                    PaddingBottom: =0
+                                    PaddingTop: =0
+                                    Size: =18
+                                    Text: ="Settlement from Cash"
+                                    VerticalAlign: =VerticalAlign.Top
+                                    Width: =Parent.Width
+                                    X: |-
+                                      =scr17_img_Settlment_2.X + scr17_img_Settlment_2.Width + 
+                                      8
+                                    Y: =scr17_img_Settlment_2.Y - 5
+                        - Toggle_Settlment_1:
+                            Control: Classic/Toggle@2.1.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FalseText: ="No"
+                              Font: =Font.'Open Sans'
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              OnSelect: |-
+                                =UpdateContext({ctLabel1 : false});
+                                UpdateContext({ctLabel2 : false});
+                                UpdateContext({ctLabel3 : false});
+                                UpdateContext({ctLabel4 : false});
+                                UpdateContext({ctLabel5: false});
+                                UpdateContext({ctLabel6: true});
+                                UpdateContext({ctLabel7: false})
+                              TrueFill: =RGBA(56, 96, 178, 1)
+                              TrueText: ="Yes"
+                  - MaptoCashAdvance- Draft:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.SetByContainer
+                        DropShadow: =DropShadow.None
+                        FillPortions: =0
+                        Height: =175
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutGap: =10
+                        LayoutJustifyContent: =LayoutJustifyContent.Center
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinWidth: =Parent.Width
+                        LayoutOverflowY: =LayoutOverflow.Scroll
+                        PaddingLeft: =25
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Visible: |-
+                          =If ( locReimaginedfeatureEnabled,
+                               !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
+                               !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
+                          )
+                        Width: =Parent.Width/2
+                      Children:
+                        - MaptoCashAdvanceContainer_1:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              AlignInContainer: =AlignInContainer.SetByContainer
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =50
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              LayoutMinWidth: =Parent.Width
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width -  Self.X*2
+                            Children:
+                              - scr17_img_MaptoCashAdvanceSelected_1:
+                                  Control: Image@2.2.3
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =22
+                                    Image: =ShapeProjIDSelected
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    Visible: =ctLabel7
+                                    Width: =22
+                                    X: =ComboBox_MaptoCashAdvance.X
+                                    Y: |-
+                                      =ComboBox_MaptoCashAdvance.Y - 
+                                      (15 + Self.Height)
+                              - scr17_img_MaptoCashAdvance_1:
+                                  Control: Image@2.2.3
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =22
+                                    Image: =ShapeProjID
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    Visible: =!scr17_img_MaptoCashAdvanceSelected_1.Visible
+                                    Width: =22
+                                    X: =ComboBox_MaptoCashAdvance.X
+                                    Y: |-
+                                      =ComboBox_MaptoCashAdvance.Y - 
+                                      (15 + Self.Height)
+                              - scr17_lbl_MaptoCashAdvance_1:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    FillPortions: =1
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    LayoutMaxHeight: =
+                                    LayoutMaxWidth: =
+                                    LayoutMinWidth: =270
+                                    PaddingBottom: =0
+                                    PaddingTop: =0
+                                    Size: =18
+                                    Text: ="Map to Cash Advance"
+                                    VerticalAlign: =VerticalAlign.Top
+                                    Width: =Parent.Width
+                                    X: |-
+                                      =scr17_img_MaptoCashAdvance_1.X + scr17_img_MaptoCashAdvance_1.Width + 
+                                      8
+                                    Y: =scr17_img_MaptoCashAdvance_1.Y - 5
+                        - ComboBox_MaptoCashAdvance:
+                            Control: Classic/ComboBox@2.4.0
+                            Properties:
+                              AccessibleLabel: ="Dropdown to enter Cash Advance"
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              Default: =Blank()
+                              DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance)
+                              DisplayFields: =["mserp_cashadvancenumber","mserp_purpose"]
+                              Font: =Font.'Open Sans'
+                              Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              InputTextPlaceholder: ="Select Cash Advance"
+                              Items: |
+                                =Filter(
+                                    'DCSL TrvCash Advance Entity  (mserp)', 
+                                    'Company Code' = Lower(varSelectedLegalEntity) &&
+                                    'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
+                                    Balance <> 0 &&
+                                    Employee = userRecord.CreatingWorker &&
+                                    Purpose = "Cash Advance"
+                                )
+                              LayoutMaxHeight: =
+                              LayoutMaxWidth: =
+                              OnChange: |-
+                                =If(
+                                    ComboBox_MaptoCashAdvance.Selected.'Cash advance number' <> varSelectedReport.DEEXMapToCashAdvance,
+                                        UpdateContext({isExpReportDirty : true})
+                                );
+                              OnSelect: |-
+                                =UpdateContext({ctLabel1 : false});
+                                UpdateContext({ctLabel2 : false});
+                                UpdateContext({ctLabel3 : false});
+                                UpdateContext({ctLabel4 : false});
+                                UpdateContext({ctLabel5: false});
+                                UpdateContext({ctLabel6: false});
+                                UpdateContext({ctLabel7: true})
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              Reset: =true
+                              SearchFields: =["mserp_cashadvancenumber","mserp_purpose"]
+                              SelectMultiple: =false
+                              SelectionColor: =RGBA(255, 255, 255, 1)
+                              SelectionFill: =RGBA(56, 96, 178, 1)
+                              Width: =Parent.Width -  Self.X*2
+                              X: =40
+                              Y: =scr17_hdr_TopHeader_1.Height + 66
             - Location- Draft:
                 Control: GroupContainer@1.4.0
                 Variant: AutoLayout

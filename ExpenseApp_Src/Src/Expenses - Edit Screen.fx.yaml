@@ -1097,10 +1097,10 @@
                             ),
                             {
                                 mserp_entrecid: EntRecId,
-                                mserp_captureddocument: mserp_captureddocument,
-                                mserp_fileextension: mserp_fileextension,
-                                mserp_filename: mserp_filename,
-                                mserp_createddatetime: mserp_creatingdatetime 
+                                mserp_captureddocument: CapturedDocument,
+                                mserp_fileextension: FileExtension,
+                                mserp_filename: Description,
+                                mserp_createddatetime: CreatingDateTime 
                             }
                         )
                     );
@@ -1118,7 +1118,7 @@
                                 mserp_captureddocument: CapturedDocument,
                                 mserp_fileextension: FileExtension,
                                 mserp_filename: Coalesce(Description, Concatenate("Receipt-", Text(EntRecId))),
-                                mserp_createddatetime: mserp_creatingdatetime
+                                mserp_createddatetime: CreatingDateTime
                             }
                         )
                     );
@@ -6328,7 +6328,7 @@
                         =UpdateContext({isDirty : true});
                     Reset: =true
                     SearchFields: =["mserp_activitynumber","mserp_purpose"]
-                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,mserp_activitynumber,mserp_purpose)
+                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,'Activity number',Purpose)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -7347,7 +7347,7 @@
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_salestaxgroup","mserp_description"]
-                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,mserp_salestaxgroup,mserp_description)
+                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,'Sales tax group',Description)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
