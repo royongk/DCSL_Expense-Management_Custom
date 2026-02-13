@@ -10139,6 +10139,7 @@ Screens:
                         Height: =500
                         Required: =false
                         Update: =DataCardValue17.Text
+                        Width: =Parent.Width
                         X: =0
                         Y: =62
                       Children:
@@ -10148,7 +10149,6 @@ Screens:
                             Properties:
                               DropShadow: =DropShadow.Bold
                               Height: =500
-                              LayoutAlignItems: =LayoutAlignItems.Center
                               LayoutDirection: =LayoutDirection.Vertical
                               LayoutGap: =15
                               PaddingBottom: =5
@@ -10164,6 +10164,7 @@ Screens:
                               - DataCardKey_MySelf:
                                   Control: Label@2.5.1
                                   Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
                                     AutoHeight: =true
                                     BorderColor: =RGBA(0, 0, 0, 1)
                                     Color: =gblParams.dropDownLabelColor
@@ -10187,6 +10188,7 @@ Screens:
                               - DataCardKey_OtherStaff:
                                   Control: Label@2.5.1
                                   Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
                                     AutoHeight: =true
                                     BorderColor: =RGBA(0, 0, 0, 1)
                                     Color: =gblParams.dropDownLabelColor
@@ -10200,14 +10202,17 @@ Screens:
                               - cmb_OtherStaff:
                                   Control: Classic/ComboBox@2.4.0
                                   Properties:
-                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    AlignInContainer: =AlignInContainer.Center
+                                    BorderColor: =gblParams.dropDownBorderColor
                                     ChevronBackground: =RGBA(56, 96, 178, 1)
                                     ChevronFill: =RGBA(255, 255, 255, 1)
                                     ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                                     ChevronHoverFill: =RGBA(255, 255, 255, 1)
                                     DisplayFields: =["mserp_userid"]
+                                    FocusedBorderThickness: =2
                                     Font: =Font.'Open Sans'
-                                    HoverFill: =RGBA(186, 202, 226, 1)
+                                    Height: =gblParams.dropDownHeight
+                                    HoverFill: =gblParams.dropDownHoverFill
                                     InputTextPlaceholder: ="Select Other Staff"
                                     IsSearchable: =false
                                     Items: |-
@@ -10222,13 +10227,14 @@ Screens:
                                           SortOrder.Ascending
                                       )
                                     LayoutMinHeight: =16
-                                    LayoutMinWidth: =16
+                                    LayoutMinWidth: =400
                                     PressedColor: =RGBA(255, 255, 255, 1)
                                     PressedFill: =RGBA(0, 18, 107, 1)
                                     SearchFields: =["mserp_userid"]
-                                    SelectionColor: =RGBA(255, 255, 255, 1)
-                                    SelectionFill: =RGBA(56, 96, 178, 1)
-                                    Width: =Parent.Width
+                                    SelectionColor: =Color.Black
+                                    SelectionFill: =gblParams.dropDownBorderColor
+                                    Size: =20
+                                    Width: =Parent.Width - 60
                               - con_Student_Row:
                                   Control: GroupContainer@1.4.0
                                   Variant: AutoLayout
@@ -10247,7 +10253,7 @@ Screens:
                                     RadiusBottomRight: =0
                                     RadiusTopLeft: =0
                                     RadiusTopRight: =0
-                                    Width: =Parent.Width
+                                    Width: =Parent.Width - 60
                                     Y: =cmb_OtherStaff.Y + cmb_OtherStaff.Height
                                   Children:
                                     - con_Student_Primary:
@@ -10277,6 +10283,7 @@ Screens:
                                                 Color: =gblParams.dropDownLabelColor
                                                 Font: =Font.'Open Sans'
                                                 Height: =48
+                                                LayoutMinWidth: =100
                                                 PaddingLeft: =0
                                                 Text: ="Student(Primary)"
                                                 Width: =Parent.Width - 60
@@ -10286,7 +10293,7 @@ Screens:
                                           - txt_StudentPrimary:
                                               Control: Classic/TextInput@2.3.2
                                               Properties:
-                                                AlignInContainer: =AlignInContainer.Start
+                                                AlignInContainer: =AlignInContainer.Stretch
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 Default: ="Enter Student(Primary)"
                                                 Font: =Font.'Open Sans'
@@ -10297,6 +10304,7 @@ Screens:
                                                 LayoutMinHeight: =16
                                                 LayoutMinWidth: =16
                                                 PaddingLeft: =5
+                                                Width: =
                                     - con_Student_Senior:
                                         Control: GroupContainer@1.4.0
                                         Variant: AutoLayout
@@ -10324,6 +10332,7 @@ Screens:
                                                 Color: =gblParams.dropDownLabelColor
                                                 Font: =Font.'Open Sans'
                                                 Height: =48
+                                                LayoutMinWidth: =100
                                                 Text: ="Student(Senior)"
                                                 Width: =Parent.Width - 60
                                                 Wrap: =false
@@ -10332,7 +10341,7 @@ Screens:
                                           - txt_StudentSenior:
                                               Control: Classic/TextInput@2.3.2
                                               Properties:
-                                                AlignInContainer: =AlignInContainer.Start
+                                                AlignInContainer: =AlignInContainer.Stretch
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 Default: ="Enter Student(Primary)"
                                                 Font: =Font.'Open Sans'
@@ -10343,6 +10352,7 @@ Screens:
                                                 LayoutMinHeight: =16
                                                 LayoutMinWidth: =16
                                                 PaddingLeft: =5
+                                                Width: =
                         - DataCardKey24:
                             Control: Label@2.5.1
                             MetadataKey: FieldName
