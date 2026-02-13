@@ -3612,6 +3612,97 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =DataCardKey8_1.Y
+                  - LCY_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_deexlcy"
+                        Default: =ThisItem.LCY
+                        DisplayMode: =DisplayMode.View
+                        DisplayName: ="Accounting Amount & Currency"
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
+                        Required: =false
+                        Update: =DataCardValue18.Text
+                        WidthFit: =true
+                        X: =0
+                        Y: =transactionDateFieldOrder_Y
+                      Children:
+                        - DataCardKey25:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardValue18:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                              Color: =gblParams.dropDownLabelColor
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              FocusedBorderThickness: =gblParams.dorpDownBorderThickness
+                              Font: =Font.'Open Sans'
+                              Height: =gblParams.dropDownHeight
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =gblParams.dropDownHoverFill
+                              MaxLength: =Parent.MaxLength
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Size: =24
+                              Tooltip: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardKey25.Y + DataCardKey25.Height + 5
+                        - ErrorMessage25:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardValue18.Y + DataCardValue18.Height
+                        - StarVisible25:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey25.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey25.Y
                   - Vehicle type_DataCard1:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicTextualEdit
@@ -10138,7 +10229,17 @@ Screens:
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexexpensebeneficiary')
                         Height: =500
                         Required: =false
-                        Update: =DataCardValue17.Text
+                        Update: |-
+                          =//DataCardValue17.Text
+                          JSON(
+                              {
+                                  MySelf: Toggle_MySelf.Value,
+                                  OtherStaff: cmb_OtherStaff.SelectedItems,  // 선택된 직원 레코드 전체를 배열로 저장
+                                  StudentPrimary: Value(txt_StudentPrimary.Text),
+                                  StudentSenior: Value(txt_StudentSenior.Text)
+                              },
+                              JSONFormat.Compact
+                          )
                         Width: =Parent.Width
                         X: =0
                         Y: =62
@@ -10170,6 +10271,7 @@ Screens:
                                     Color: =gblParams.dropDownLabelColor
                                     Font: =Font.'Open Sans'
                                     Height: =48
+                                    PaddingLeft: =20
                                     Text: ="MySelf"
                                     Width: =Parent.Width - 60
                                     Wrap: =false
@@ -10182,8 +10284,10 @@ Screens:
                                     BorderColor: =RGBA(0, 18, 107, 1)
                                     FalseText: ="No"
                                     Font: =Font.'Open Sans'
+                                    LabelPaddingLeft: =10
                                     TrueFill: =RGBA(56, 96, 178, 1)
                                     TrueText: ="Yes"
+                                    X: '=10 '
                                     Y: =40
                               - DataCardKey_OtherStaff:
                                   Control: Label@2.5.1
@@ -10194,6 +10298,7 @@ Screens:
                                     Color: =gblParams.dropDownLabelColor
                                     Font: =Font.'Open Sans'
                                     Height: =48
+                                    PaddingLeft: =20
                                     Text: ="Other Staff"
                                     Width: =Parent.Width - 60
                                     Wrap: =false
@@ -10204,6 +10309,7 @@ Screens:
                                   Properties:
                                     AlignInContainer: =AlignInContainer.Center
                                     BorderColor: =gblParams.dropDownBorderColor
+                                    BorderThickness: =0
                                     ChevronBackground: =RGBA(56, 96, 178, 1)
                                     ChevronFill: =RGBA(255, 255, 255, 1)
                                     ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
@@ -10295,6 +10401,7 @@ Screens:
                                               Properties:
                                                 AlignInContainer: =AlignInContainer.Stretch
                                                 BorderColor: =RGBA(0, 18, 107, 1)
+                                                BorderThickness: =0
                                                 Default: ="Enter Student(Primary)"
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
@@ -10343,7 +10450,8 @@ Screens:
                                               Properties:
                                                 AlignInContainer: =AlignInContainer.Stretch
                                                 BorderColor: =RGBA(0, 18, 107, 1)
-                                                Default: ="Enter Student(Primary)"
+                                                BorderThickness: =0
+                                                Default: ="Enter Student(Senior)"
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
                                                 HintText: ="Student Senior Count"
@@ -10426,97 +10534,6 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =DataCardKey24.Y
-                  - LCY_DataCard1:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicTextualEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_deexlcy"
-                        Default: =ThisItem.LCY
-                        DisplayMode: =DisplayMode.View
-                        DisplayName: ="Accounting Amount & Currency"
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
-                        Required: =false
-                        Update: =DataCardValue18.Text
-                        WidthFit: =true
-                        X: =0
-                        Y: =transactionDateFieldOrder_Y
-                      Children:
-                        - DataCardKey25:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldName
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Open Sans'
-                              Height: =48
-                              Text: =Parent.DisplayName
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - DataCardValue18:
-                            Control: Classic/TextInput@2.3.2
-                            MetadataKey: FieldValue
-                            Properties:
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                              Color: =gblParams.dropDownLabelColor
-                              Default: =Parent.Default
-                              DelayOutput: =true
-                              DisplayMode: =Parent.DisplayMode
-                              FocusedBorderThickness: =gblParams.dorpDownBorderThickness
-                              Font: =Font.'Open Sans'
-                              Height: =gblParams.dropDownHeight
-                              HoverBorderColor: =RGBA(0, 18, 107, 1)
-                              HoverFill: =gblParams.dropDownHoverFill
-                              MaxLength: =Parent.MaxLength
-                              PaddingLeft: =5
-                              RadiusBottomLeft: =0
-                              RadiusBottomRight: =0
-                              RadiusTopLeft: =0
-                              RadiusTopRight: =0
-                              Size: =24
-                              Tooltip: =Parent.DisplayName
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =DataCardKey25.Y + DataCardKey25.Height + 5
-                        - ErrorMessage25:
-                            Control: Label@2.5.1
-                            MetadataKey: ErrorMessage
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(168, 0, 0, 1)
-                              Font: =Font.'Open Sans'
-                              FontWeight: =FontWeight.Semibold
-                              Height: =10
-                              Live: =Live.Assertive
-                              PaddingBottom: =0
-                              PaddingLeft: =0
-                              PaddingRight: =0
-                              PaddingTop: =0
-                              Size: =24
-                              Text: =Parent.Error
-                              Visible: =Parent.DisplayMode=DisplayMode.Edit
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =DataCardValue18.Y + DataCardValue18.Height
-                        - StarVisible25:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldRequired
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =DataCardKey25.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =DataCardKey25.Y
       - formModeRectangle:
           Control: Rectangle@2.3.0
           Properties:

@@ -11180,7 +11180,17 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =500
                 Required: =false
-                Update: =DataCardValue17.Text
+                Update: |-
+                    =//DataCardValue17.Text
+                    JSON(
+                        {
+                            MySelf: Toggle_MySelf.Value,
+                            OtherStaff: cmb_OtherStaff.SelectedItems,  // 선택된 직원 레코드 전체를 배열로 저장
+                            StudentPrimary: Value(txt_StudentPrimary.Text),
+                            StudentSenior: Value(txt_StudentSenior.Text)
+                        },
+                        JSONFormat.Compact
+                    )
                 Visible: =true
                 Width: =Parent.Width
                 X: =0
@@ -11212,6 +11222,7 @@
                         LayoutMaxWidth: =0
                         LayoutMinHeight: =70
                         LayoutMinWidth: =560
+                        PaddingLeft: =20
                         Size: =21
                         Text: ="MySelf"
                         Width: =Parent.Width - 60
@@ -11224,6 +11235,7 @@
                         AlignInContainer: =AlignInContainer.Start
                         FalseText: ="No"
                         Height: =49
+                        LabelPaddingLeft: =10
                         LayoutMaxHeight: =0
                         LayoutMaxWidth: =0
                         LayoutMinHeight: =49
@@ -11231,6 +11243,7 @@
                         Size: =21
                         TrueText: ="Yes"
                         Width: =154
+                        X: =10 
                         Y: =40
                         ZIndex: =2
 
@@ -11244,6 +11257,7 @@
                         LayoutMaxWidth: =0
                         LayoutMinHeight: =70
                         LayoutMinWidth: =560
+                        PaddingLeft: =20
                         Size: =21
                         Text: ="Other Staff"
                         Width: =Parent.Width - 60
@@ -11255,6 +11269,7 @@
                     cmb_OtherStaff As combobox:
                         AlignInContainer: =AlignInContainer.Center
                         BorderColor: =gblParams.dropDownBorderColor
+                        BorderThickness: =0
                         DisplayFields: =["mserp_userid"]
                         FocusedBorderThickness: =2
                         Height: =gblParams.dropDownHeight
@@ -11341,6 +11356,7 @@
 
                             txt_StudentPrimary As text:
                                 AlignInContainer: =AlignInContainer.Stretch
+                                BorderThickness: =0
                                 Default: ="Enter Student(Primary)"
                                 Format: =TextFormat.Number
                                 Height: =70
@@ -11393,7 +11409,8 @@
 
                             txt_StudentSenior As text:
                                 AlignInContainer: =AlignInContainer.Stretch
-                                Default: ="Enter Student(Primary)"
+                                BorderThickness: =0
+                                Default: ="Enter Student(Senior)"
                                 Format: =TextFormat.Number
                                 Height: =70
                                 HintText: ="Student Senior Count"
