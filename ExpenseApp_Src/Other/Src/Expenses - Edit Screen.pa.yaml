@@ -10136,22 +10136,224 @@ Screens:
                         DataField: ="mserp_deexexpensebeneficiary"
                         Default: =ThisItem.'Expense Beneficiary'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexexpensebeneficiary')
+                        Height: =500
                         Required: =false
                         Update: =DataCardValue17.Text
-                        Visible: =false
                         X: =0
                         Y: =62
                       Children:
+                        - con_Beneficiary_Layout:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.Bold
+                              Height: =500
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =15
+                              PaddingBottom: =5
+                              PaddingLeft: =5
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width
+                            Children:
+                              - DataCardKey_MySelf:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =gblParams.dropDownLabelColor
+                                    Font: =Font.'Open Sans'
+                                    Height: =48
+                                    Text: ="MySelf"
+                                    Width: =Parent.Width - 60
+                                    Wrap: =false
+                                    X: =30
+                                    Y: =10
+                              - Toggle_MySelf:
+                                  Control: Classic/Toggle@2.1.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Start
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    FalseText: ="No"
+                                    Font: =Font.'Open Sans'
+                                    TrueFill: =RGBA(56, 96, 178, 1)
+                                    TrueText: ="Yes"
+                                    Y: =40
+                              - DataCardKey_OtherStaff:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =gblParams.dropDownLabelColor
+                                    Font: =Font.'Open Sans'
+                                    Height: =48
+                                    Text: ="Other Staff"
+                                    Width: =Parent.Width - 60
+                                    Wrap: =false
+                                    X: =30
+                                    Y: =10
+                              - cmb_OtherStaff:
+                                  Control: Classic/ComboBox@2.4.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    ChevronBackground: =RGBA(56, 96, 178, 1)
+                                    ChevronFill: =RGBA(255, 255, 255, 1)
+                                    ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                                    ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                                    DisplayFields: =["mserp_userid"]
+                                    Font: =Font.'Open Sans'
+                                    HoverFill: =RGBA(186, 202, 226, 1)
+                                    InputTextPlaceholder: ="Select Other Staff"
+                                    IsSearchable: =false
+                                    Items: |-
+                                      =//'Expense mobile master data (mserp)'
+
+                                      SortByColumns(
+                                          Filter(
+                                              'Expense mobile master data (mserp)',
+                                              UserPreferredLegalEntity = varSelectedLegalEntity
+                                          ),
+                                          "mserp_userid",      // 정렬 기준
+                                          SortOrder.Ascending
+                                      )
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PressedColor: =RGBA(255, 255, 255, 1)
+                                    PressedFill: =RGBA(0, 18, 107, 1)
+                                    SearchFields: =["mserp_userid"]
+                                    SelectionColor: =RGBA(255, 255, 255, 1)
+                                    SelectionFill: =RGBA(56, 96, 178, 1)
+                                    Width: =Parent.Width
+                              - con_Student_Row:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingBottom: =8
+                                    PaddingLeft: =8
+                                    PaddingRight: =8
+                                    PaddingTop: =8
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                    Width: =Parent.Width
+                                    Y: =cmb_OtherStaff.Y + cmb_OtherStaff.Height
+                                  Children:
+                                    - con_Student_Primary:
+                                        Control: GroupContainer@1.4.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.None
+                                          LayoutAlignItems: =LayoutAlignItems.Center
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          PaddingBottom: =8
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PaddingTop: =8
+                                          RadiusBottomLeft: =0
+                                          RadiusBottomRight: =0
+                                          RadiusTopLeft: =0
+                                          RadiusTopRight: =0
+                                        Children:
+                                          - DataCardKey_StudentPrimary:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Start
+                                                AutoHeight: =true
+                                                BorderColor: =RGBA(0, 0, 0, 1)
+                                                Color: =gblParams.dropDownLabelColor
+                                                Font: =Font.'Open Sans'
+                                                Height: =48
+                                                PaddingLeft: =0
+                                                Text: ="Student(Primary)"
+                                                Width: =Parent.Width - 60
+                                                Wrap: =false
+                                                X: =30
+                                                Y: =10
+                                          - txt_StudentPrimary:
+                                              Control: Classic/TextInput@2.3.2
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Start
+                                                BorderColor: =RGBA(0, 18, 107, 1)
+                                                Default: ="Enter Student(Primary)"
+                                                Font: =Font.'Open Sans'
+                                                Format: =TextFormat.Number
+                                                HintText: ="Student Primary Count"
+                                                HoverBorderColor: =RGBA(0, 18, 107, 1)
+                                                HoverFill: =RGBA(186, 202, 226, 1)
+                                                LayoutMinHeight: =16
+                                                LayoutMinWidth: =16
+                                                PaddingLeft: =5
+                                    - con_Student_Senior:
+                                        Control: GroupContainer@1.4.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.None
+                                          LayoutAlignItems: =LayoutAlignItems.Center
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          PaddingBottom: =8
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PaddingTop: =8
+                                          RadiusBottomLeft: =0
+                                          RadiusBottomRight: =0
+                                          RadiusTopLeft: =0
+                                          RadiusTopRight: =0
+                                        Children:
+                                          - DataCardKey_StudentSenior:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Start
+                                                AutoHeight: =true
+                                                BorderColor: =RGBA(0, 0, 0, 1)
+                                                Color: =gblParams.dropDownLabelColor
+                                                Font: =Font.'Open Sans'
+                                                Height: =48
+                                                Text: ="Student(Senior)"
+                                                Width: =Parent.Width - 60
+                                                Wrap: =false
+                                                X: =30
+                                                Y: =10
+                                          - txt_StudentSenior:
+                                              Control: Classic/TextInput@2.3.2
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Start
+                                                BorderColor: =RGBA(0, 18, 107, 1)
+                                                Default: ="Enter Student(Primary)"
+                                                Font: =Font.'Open Sans'
+                                                Format: =TextFormat.Number
+                                                HintText: ="Student Senior Count"
+                                                HoverBorderColor: =RGBA(0, 18, 107, 1)
+                                                HoverFill: =RGBA(186, 202, 226, 1)
+                                                LayoutMinHeight: =16
+                                                LayoutMinWidth: =16
+                                                PaddingLeft: =5
                         - DataCardKey24:
                             Control: Label@2.5.1
                             MetadataKey: FieldName
                             Properties:
                               AutoHeight: =true
                               BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
+                              Color: =gblParams.dropDownLabelColor
                               Font: =Font.'Open Sans'
                               Height: =48
                               Text: =Parent.DisplayName
+                              Visible: =false
                               Width: =Parent.Width - 60
                               Wrap: =false
                               X: =30
@@ -10175,6 +10377,7 @@ Screens:
                               RadiusTopLeft: =0
                               RadiusTopRight: =0
                               Tooltip: =Parent.DisplayName
+                              Visible: =false
                               Width: =Parent.Width - 60
                               X: =30
                               Y: =DataCardKey24.Y + DataCardKey24.Height + 5

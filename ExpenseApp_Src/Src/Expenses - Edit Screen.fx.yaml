@@ -1224,85 +1224,6 @@
             Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
             ZIndex: =1
 
-            LCY_DataCard1 As typedDataCard.textualEditCard:
-                BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_deexlcy"
-                Default: =ThisItem.LCY
-                DisplayMode: =DisplayMode.View
-                DisplayName: ="Accounting Amount & Currency"
-                Fill: =RGBA(0, 0, 0, 0)
-                Height: =50
-                MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
-                Required: =false
-                Update: =DataCardValue18.Text
-                Width: =640
-                WidthFit: =true
-                X: =0
-                Y: =transactionDateFieldOrder_Y
-                ZIndex: =1
-
-                DataCardKey25 As label:
-                    AutoHeight: =true
-                    Color: =gblParams.dropDownLabelColor
-                    Height: =48
-                    Size: =21
-                    Text: =Parent.DisplayName
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =10
-                    ZIndex: =1
-
-                DataCardValue18 As text:
-                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                    Color: =gblParams.dropDownLabelColor
-                    Default: =Parent.Default
-                    DelayOutput: =true
-                    DisplayMode: =Parent.DisplayMode
-                    FocusedBorderThickness: =gblParams.dorpDownBorderThickness
-                    Height: =gblParams.dropDownHeight
-                    HoverFill: =gblParams.dropDownHoverFill
-                    MaxLength: =Parent.MaxLength
-                    PaddingLeft: =5
-                    RadiusBottomLeft: =0
-                    RadiusBottomRight: =0
-                    RadiusTopLeft: =0
-                    RadiusTopRight: =0
-                    Size: =24
-                    Tooltip: =Parent.DisplayName
-                    Width: =Parent.Width - 60
-                    X: =30
-                    Y: =DataCardKey25.Y + DataCardKey25.Height + 5
-                    ZIndex: =2
-
-                ErrorMessage25 As label:
-                    AutoHeight: =true
-                    Height: =10
-                    Live: =Live.Assertive
-                    PaddingBottom: =0
-                    PaddingLeft: =0
-                    PaddingRight: =0
-                    PaddingTop: =0
-                    Size: =24
-                    Text: =Parent.Error
-                    Visible: =Parent.DisplayMode=DisplayMode.Edit
-                    Width: =Parent.Width - 60
-                    X: =30
-                    Y: =DataCardValue18.Y + DataCardValue18.Height
-                    ZIndex: =3
-
-                StarVisible25 As label:
-                    Align: =Align.Center
-                    Height: =DataCardKey25.Height
-                    Size: =21
-                    Text: ="*"
-                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                    Width: =30
-                    Wrap: =false
-                    Y: =DataCardKey25.Y
-                    ZIndex: =4
-
             ExpenseType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =Distinct(
@@ -4590,6 +4511,85 @@
                     Width: =30
                     Wrap: =false
                     Y: =DataCardKey8_1.Y
+                    ZIndex: =4
+
+            LCY_DataCard1 As typedDataCard.textualEditCard:
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_deexlcy"
+                Default: =ThisItem.LCY
+                DisplayMode: =DisplayMode.View
+                DisplayName: ="Accounting Amount & Currency"
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
+                Required: =false
+                Update: =DataCardValue18.Text
+                Width: =640
+                WidthFit: =true
+                X: =0
+                Y: =transactionDateFieldOrder_Y
+                ZIndex: =1
+
+                DataCardKey25 As label:
+                    AutoHeight: =true
+                    Color: =gblParams.dropDownLabelColor
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                DataCardValue18 As text:
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                    Color: =gblParams.dropDownLabelColor
+                    Default: =Parent.Default
+                    DelayOutput: =true
+                    DisplayMode: =Parent.DisplayMode
+                    FocusedBorderThickness: =gblParams.dorpDownBorderThickness
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
+                    MaxLength: =Parent.MaxLength
+                    PaddingLeft: =5
+                    RadiusBottomLeft: =0
+                    RadiusBottomRight: =0
+                    RadiusTopLeft: =0
+                    RadiusTopRight: =0
+                    Size: =24
+                    Tooltip: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =DataCardKey25.Y + DataCardKey25.Height + 5
+                    ZIndex: =2
+
+                ErrorMessage25 As label:
+                    AutoHeight: =true
+                    Height: =10
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =24
+                    Text: =Parent.Error
+                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =DataCardValue18.Y + DataCardValue18.Height
+                    ZIndex: =3
+
+                StarVisible25 As label:
+                    Align: =Align.Center
+                    Height: =DataCardKey25.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =DataCardKey25.Y
                     ZIndex: =4
 
             "'Vehicle type_DataCard1' As typedDataCard.textualEditCard":
@@ -11178,25 +11178,254 @@
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexexpensebeneficiary')
                 Fill: =RGBA(0, 0, 0, 0)
-                Height: =50
+                Height: =500
                 Required: =false
                 Update: =DataCardValue17.Text
-                Visible: =false
+                Visible: =true
                 Width: =640
                 X: =0
                 Y: =62
                 ZIndex: =1
 
+                con_Beneficiary_Layout As groupContainer.verticalAutoLayoutContainer:
+                    DropShadow: =DropShadow.Bold
+                    Height: =500
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutDirection: =LayoutDirection.Vertical
+                    LayoutGap: =15
+                    LayoutGridColumns: =6
+                    LayoutGridRows: =6
+                    LayoutMode: =LayoutMode.Auto
+                    PaddingBottom: =5
+                    PaddingLeft: =5
+                    PaddingRight: =5
+                    PaddingTop: =5
+                    Width: =Parent.Width
+                    ZIndex: =2
+
+                    DataCardKey_MySelf As label:
+                        AutoHeight: =true
+                        BorderColor: =RGBA(0, 0, 0, 1)
+                        Color: =gblParams.dropDownLabelColor
+                        Height: =48
+                        LayoutMaxHeight: =0
+                        LayoutMaxWidth: =0
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        Size: =21
+                        Text: ="MySelf"
+                        Width: =Parent.Width - 60
+                        Wrap: =false
+                        X: =30
+                        Y: =10
+                        ZIndex: =1
+
+                    Toggle_MySelf As toggleSwitch:
+                        AlignInContainer: =AlignInContainer.Start
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(0, 0, 0, 1)
+                        FalseFill: =RGBA(128, 130, 133, 1)
+                        FalseText: ="No"
+                        HandleFill: =RGBA(255, 255, 255, 1)
+                        Height: =49
+                        LayoutMaxHeight: =0
+                        LayoutMaxWidth: =0
+                        LayoutMinHeight: =49
+                        LayoutMinWidth: =154
+                        Size: =21
+                        TrueFill: =RGBA(56, 96, 178, 1)
+                        TrueText: ="Yes"
+                        Width: =154
+                        Y: =40
+                        ZIndex: =2
+
+                    DataCardKey_OtherStaff As label:
+                        AutoHeight: =true
+                        BorderColor: =RGBA(0, 0, 0, 1)
+                        Color: =gblParams.dropDownLabelColor
+                        Height: =48
+                        LayoutMaxHeight: =0
+                        LayoutMaxWidth: =0
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =560
+                        Size: =21
+                        Text: ="Other Staff"
+                        Width: =Parent.Width - 60
+                        Wrap: =false
+                        X: =30
+                        Y: =10
+                        ZIndex: =18
+
+                    cmb_OtherStaff As combobox:
+                        DisplayFields: =["mserp_userid"]
+                        Height: =70
+                        InputTextPlaceholder: ="Select Other Staff"
+                        IsSearchable: =false
+                        Items: |-
+                            =//'Expense mobile master data (mserp)'
+                            
+                            SortByColumns(
+                                Filter(
+                                    'Expense mobile master data (mserp)',
+                                    UserPreferredLegalEntity = varSelectedLegalEntity
+                                ),
+                                "mserp_userid",      // 정렬 기준
+                                SortOrder.Ascending
+                            )
+                        LayoutMaxHeight: =0
+                        LayoutMaxWidth: =0
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        SearchFields: =["mserp_userid"]
+                        SearchItems: =Search(SortByColumns(Filter('Expense mobile master data (mserp)',UserPreferredLegalEntity=varSelectedLegalEntity),"mserp_userid",SortOrder.Ascending),cmb_OtherStaff.SearchText,mserp_userid)
+                        Size: =21
+                        Width: =Parent.Width
+                        ZIndex: =19
+
+                    con_Student_Row As groupContainer.horizontalAutoLayoutContainer:
+                        Height: =225
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutGap: =10
+                        LayoutGridColumns: =6
+                        LayoutGridRows: =6
+                        LayoutMaxHeight: =0
+                        LayoutMaxWidth: =0
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        LayoutMode: =LayoutMode.Auto
+                        PaddingBottom: =8
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PaddingTop: =8
+                        Width: =Parent.Width
+                        Y: =cmb_OtherStaff.Y + cmb_OtherStaff.Height
+                        ZIndex: =20
+
+                        con_Student_Primary As groupContainer.verticalAutoLayoutContainer:
+                            Height: =225
+                            LayoutAlignItems: =LayoutAlignItems.Center
+                            LayoutDirection: =LayoutDirection.Vertical
+                            LayoutGridColumns: =6
+                            LayoutGridRows: =6
+                            LayoutMaxHeight: =0
+                            LayoutMaxWidth: =0
+                            LayoutMinHeight: =16
+                            LayoutMinWidth: =16
+                            LayoutMode: =LayoutMode.Auto
+                            PaddingBottom: =8
+                            PaddingLeft: =8
+                            PaddingRight: =8
+                            PaddingTop: =8
+                            ZIndex: =1
+
+                            DataCardKey_StudentPrimary As label:
+                                AlignInContainer: =AlignInContainer.Start
+                                AutoHeight: =true
+                                BorderColor: =RGBA(0, 0, 0, 1)
+                                Color: =gblParams.dropDownLabelColor
+                                Height: =48
+                                LayoutMaxHeight: =0
+                                LayoutMaxWidth: =0
+                                LayoutMinHeight: =70
+                                LayoutMinWidth: =560
+                                PaddingLeft: =0
+                                Size: =21
+                                Text: ="Student(Primary)"
+                                Width: =Parent.Width - 60
+                                Wrap: =false
+                                X: =30
+                                Y: =10
+                                ZIndex: =21
+
+                            txt_StudentPrimary As text:
+                                AlignInContainer: =AlignInContainer.Start
+                                Default: ="Enter Student(Primary)"
+                                Format: =TextFormat.Number
+                                Height: =70
+                                HintText: ="Student Primary Count"
+                                LayoutMaxHeight: =0
+                                LayoutMaxWidth: =0
+                                LayoutMinHeight: =16
+                                LayoutMinWidth: =16
+                                PaddingLeft: =5
+                                Size: =21
+                                Width: =560
+                                ZIndex: =22
+
+                        con_Student_Senior As groupContainer.horizontalAutoLayoutContainer:
+                            Height: =225
+                            LayoutAlignItems: =LayoutAlignItems.Center
+                            LayoutDirection: =LayoutDirection.Vertical
+                            LayoutGridColumns: =6
+                            LayoutGridRows: =6
+                            LayoutMaxHeight: =0
+                            LayoutMaxWidth: =0
+                            LayoutMinHeight: =16
+                            LayoutMinWidth: =16
+                            LayoutMode: =LayoutMode.Auto
+                            maximumHeight: =11360
+                            maximumWidth: =640
+                            PaddingBottom: =8
+                            PaddingLeft: =8
+                            PaddingRight: =8
+                            PaddingTop: =8
+                            ZIndex: =23
+
+                            DataCardKey_StudentSenior As label:
+                                AlignInContainer: =AlignInContainer.Start
+                                AutoHeight: =true
+                                Color: =gblParams.dropDownLabelColor
+                                DisabledColor: =RGBA(166, 166, 166, 1)
+                                Height: =48
+                                LayoutMaxHeight: =0
+                                LayoutMaxWidth: =0
+                                LayoutMinHeight: =70
+                                LayoutMinWidth: =560
+                                Size: =21
+                                Text: ="Student(Senior)"
+                                Width: =Parent.Width - 60
+                                Wrap: =false
+                                X: =30
+                                Y: =10
+                                ZIndex: =1
+
+                            txt_StudentSenior As text:
+                                AlignInContainer: =AlignInContainer.Start
+                                BorderColor: =RGBA(0, 18, 107, 1)
+                                BorderThickness: =2
+                                Color: =RGBA(0, 0, 0, 1)
+                                Default: ="Enter Student(Primary)"
+                                DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                                DisabledColor: =RGBA(166, 166, 166, 1)
+                                DisabledFill: =RGBA(244, 244, 244, 1)
+                                FocusedBorderThickness: =4
+                                Format: =TextFormat.Number
+                                Height: =70
+                                HintText: ="Student Senior Count"
+                                HoverBorderColor: =RGBA(0, 18, 107, 1)
+                                HoverColor: =RGBA(0, 0, 0, 1)
+                                HoverFill: =RGBA(186, 202, 226, 1)
+                                LayoutMaxHeight: =0
+                                LayoutMaxWidth: =0
+                                LayoutMinHeight: =16
+                                LayoutMinWidth: =16
+                                PaddingLeft: =5
+                                Size: =21
+                                Width: =560
+                                ZIndex: =2
+
                 DataCardKey24 As label:
                     AutoHeight: =true
+                    Color: =gblParams.dropDownLabelColor
                     Height: =48
                     Size: =21
                     Text: =Parent.DisplayName
+                    Visible: =false
                     Width: =Parent.Width - 60
                     Wrap: =false
                     X: =30
                     Y: =10
-                    ZIndex: =1
+                    ZIndex: =3
 
                 DataCardValue17 As text:
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
@@ -11212,10 +11441,11 @@
                     RadiusTopRight: =0
                     Size: =21
                     Tooltip: =Parent.DisplayName
+                    Visible: =false
                     Width: =Parent.Width - 60
                     X: =30
                     Y: =DataCardKey24.Y + DataCardKey24.Height + 5
-                    ZIndex: =2
+                    ZIndex: =4
 
                 ErrorMessage24 As label:
                     AutoHeight: =true
@@ -11231,7 +11461,7 @@
                     Width: =Parent.Width - 60
                     X: =30
                     Y: =DataCardValue17.Y + DataCardValue17.Height
-                    ZIndex: =3
+                    ZIndex: =5
 
                 StarVisible24 As label:
                     Align: =Align.Center
@@ -11242,7 +11472,7 @@
                     Width: =30
                     Wrap: =false
                     Y: =DataCardKey24.Y
-                    ZIndex: =4
+                    ZIndex: =6
 
     formModeRectangle As rectangle:
         Fill: =RGBA(0, 0, 0, 0)
