@@ -99,6 +99,9 @@
                 )
             )
         );
+        // 
+        // LCY 계산 결과 저장 변수 초기화 (기존 값이 있으면 사용, 없으면 빈 값)
+        UpdateContext({ locCalculatedLCY: varSelectedExpenseDoc.LCY });
         UpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')});
         UpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.'Intercompany project category'});
         UpdateContext({curProjIdSelected: varSelectedExpenseDoc.'Project ID'});
@@ -1217,8 +1220,8 @@
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_deexlcy"
                 Default: =ThisItem.LCY
-                DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexlcy')
+                DisplayMode: =DisplayMode.View
+                DisplayName: ="Accounting Amount & Currency"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
@@ -1227,11 +1230,12 @@
                 Width: =640
                 WidthFit: =true
                 X: =0
-                Y: =63
+                Y: =transactionDateFieldOrder_Y
                 ZIndex: =1
 
                 DataCardKey25 As label:
                     AutoHeight: =true
+                    Color: =gblParams.dropDownLabelColor
                     Height: =48
                     Size: =21
                     Text: =Parent.DisplayName
@@ -1243,17 +1247,21 @@
 
                 DataCardValue18 As text:
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                    Color: =gblParams.dropDownLabelColor
                     Default: =Parent.Default
                     DelayOutput: =true
                     DisplayMode: =Parent.DisplayMode
-                    Height: =70
+                    FocusedBorderThickness: =gblParams.dorpDownBorderThickness
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
                     MaxLength: =Parent.MaxLength
                     PaddingLeft: =5
                     RadiusBottomLeft: =0
                     RadiusBottomRight: =0
                     RadiusTopLeft: =0
                     RadiusTopRight: =0
-                    Size: =21
+                    Size: =24
                     Tooltip: =Parent.DisplayName
                     Width: =Parent.Width - 60
                     X: =30
@@ -1349,6 +1357,13 @@
                             )
                         )
                     DisplayFields: =["Value"]
+                    DisplayMode: |-
+                        =// 컨트롤의 DisplayMode 속성
+                        If(
+                            varAppMode in ["ExpenseReport", "AirfareAllowance", "BillingTripSettlement", "EmployeeBenefit"],
+                            DisplayMode.View,
+                            DisplayMode.Edit // 또는 Parent.DisplayMode
+                        )
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
@@ -3806,6 +3821,41 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
+                        
+                        /*
+                        // 환율 조회 로직
+                        // 1. 필수 값(금액, 통화, 날짜)이 모두 있는지 확인
+                        If(
+                            !IsBlank(DataCardValue4_1.Text) && 
+                            !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && 
+                            !IsBlank(DatePickerCanvas1_18.SelectedDate),
+                        
+                            // 2. 환율 정보 조회 (Action 호출)
+                            // [중요] 개발자가 지정한 파라미터 이름(ExchangeCode, ExchangeRate)을 사용합니다.
+                            // 만약 'ExchangeRate' 파라미터가 날짜가 아닌 다른 유형이라면 수정이 필요할 수 있습니다.
+                            With(
+                                {
+                                    // Action이 바인딩된 경우 First()를 사용하여 첫 번째 레코드 컨텍스트에서 호출
+                                    currentRateResult: First('DCSL Apps Action Entity (mserp)').getExchangeRate(
+                                        {
+                                            ExchangeCode: ComboBox1_12.Selected.mserp_currencycode, 
+                                            ExchangeRate: DatePickerCanvas1_18.SelectedDate 
+                                        }
+                                    )
+                                },
+                        
+                                // 3. 결과값으로 LCY 계산 (환율 * 금액)
+                                // 리턴값이 레코드인 경우 .Value, .Result 또는 .return 등 실제 필드명을 확인하여 뒤에 붙여주세요.
+                                UpdateContext({ 
+                                    locCalculatedLCY: Value(DataCardValue4_1.Text) * currentRateResult.Rate 
+                                })
+                            ),
+                        
+                            // 필수 값이 하나라도 없으면 LCY 초기화
+                            UpdateContext({ locCalculatedLCY: Blank() })
+                        );
+                        */
+                        
                         /*
                         If(
                             varOnShowFields,
@@ -8568,7 +8618,9 @@
                     Font: =""
                     FontColor: =
                     FontItalic: =false
-                    FontSize: =App.Height * gblDatePickerResolutionFactor
+                    FontSize: |-
+                        =//App.Height * gblDatePickerResolutionFactor
+                        24
                     FontStrikethrough: =false
                     FontUnderline: =false
                     FontWeight: =""
@@ -11001,7 +11053,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =ComboBox_Project.Selected.mserp_projectvalue
+                Update: =ComboBox_Project.Selected.Value
                 Visible: =true
                 Width: =Parent.Width
                 X: =0
@@ -11037,7 +11089,7 @@
                             ),
                             Blank()
                         )
-                    DisplayFields: =["mserp_projectvalue","mserp_projectname"]
+                    DisplayFields: =["Value","mserp_projectname"]
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -11045,18 +11097,17 @@
                     InputTextPlaceholder: ="Select Project"
                     IsSearchable: =false
                     Items: |-
-                        =If(
-                            !IsBlank(varSelectedProjectType) && !IsBlank(varSelectedLegalEntity),
-                            SortByColumns(
+                        =SortByColumns(
+                            Distinct(
                                 Filter(
                                     'DCSL ProjectTypeProjectValue Entity (mserp)',
                                     'Project Type' = varSelectedProjectType &&
                                     'Company Code' = Lower(varSelectedLegalEntity)
                                 ),
-                                "mserp_projectvalue",
-                                SortOrder.Ascending
+                                Project
                             ),
-                            []
+                            "Value",
+                            SortOrder.Ascending
                         )
                     NoSelectionText: ="Select Project"
                     OnChange: |-
@@ -11066,8 +11117,8 @@
                                 isDirty: true
                             }
                         )
-                    SearchFields: =["mserp_projectname"]
-                    SearchItems: =[]
+                    SearchFields: =["Value"]
+                    SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),Project),"Value",SortOrder.Ascending),ComboBox_Project.SearchText,Value)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
