@@ -1108,24 +1108,32 @@
                         )
                     );
                     
-                    // [단계 2] Unattached 파일(방금 추가한 것) 추가 담기
+                    // [단계 2] Unattached 파일(방금 추가한 것) 추가 담기 - 수정 버전
                     Collect(
                         colAttachedReceipts,
                         ForAll(
-                            Filter(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                ExpTransNumber = varTargetExpTransNumber
-                            ),
-                            {
-                                mserp_entrecid: EntRecId,
-                                mserp_captureddocument: CapturedDocument,
-                                mserp_fileextension: FileExtension,
-                                mserp_filename: Coalesce(Description, Concatenate("Receipt-", Text(EntRecId))),
-                                mserp_createddatetime: CreatingDateTime
-                            }
+                            colPendingReceipts As CurrentReceipt,
+                            // 가상 필드로 전체 필터를 거는 대신, 물리 필드(EntRecId)로 개별 조회합니다.
+                            With(
+                                {
+                                    ServerRecord: LookUp(
+                                        'Expense Mobile Unattached Document Entity (mserp)', 
+                                        EntRecId = CurrentReceipt.mserp_entrecid
+                                    )
+                                },
+                                {
+                                    mserp_entrecid: ServerRecord.EntRecId,
+                                    mserp_captureddocument: ServerRecord.CapturedDocument,
+                                    mserp_fileextension: ServerRecord.FileExtension,
+                                    mserp_filename: Coalesce(
+                                        ServerRecord.Description, 
+                                        Concatenate("Receipt-", Text(ServerRecord.EntRecId))
+                                    ),
+                                    mserp_createddatetime: ServerRecord.CreatingDateTime
+                                }
+                            )
                         )
                     );
-                
                     // [단계 3] 최종 결과 정렬 (내림차순)
                     ClearCollect(
                         colAttachedReceipts,
@@ -11053,7 +11061,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =ComboBox_Project.Selected.Value
+                Update: =ComboBox_Project.Selected.mserp_projectvalue
                 Visible: =true
                 Width: =Parent.Width
                 X: =0
@@ -11080,16 +11088,15 @@
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
                         =If(
-                            !IsBlank(varSelectedExpenseDoc.Project) && !IsBlank(varSelectedProjectType) && !IsBlank(varSelectedLegalEntity),
+                            !IsBlank(varSelectedExpenseDoc.Project) && !IsBlank(varSelectedLegalEntity),
                             LookUp(
                                 'DCSL ProjectTypeProjectValue Entity (mserp)',
                                 Project = varSelectedExpenseDoc.Project &&
-                                'Company Code' = Lower(varSelectedLegalEntity) &&
-                                'Project Type' = varSelectedProjectType
+                                'Company Code' = Lower(varSelectedLegalEntity)
                             ),
                             Blank()
                         )
-                    DisplayFields: =["Value","mserp_projectname"]
+                    DisplayFields: =["mserp_projectvalue","mserp_projectname"]
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -11098,15 +11105,16 @@
                     IsSearchable: =false
                     Items: |-
                         =SortByColumns(
-                            Distinct(
+                            GroupBy(
                                 Filter(
                                     'DCSL ProjectTypeProjectValue Entity (mserp)',
                                     'Project Type' = varSelectedProjectType &&
                                     'Company Code' = Lower(varSelectedLegalEntity)
                                 ),
-                                Project
+                                mserp_projectvalue,  // 첫 번째 그룹 기준 (프로젝트 ID)
+                                mserp_projectname   // 두 번째 그룹 기준 (프로젝트 이름)
                             ),
-                            "Value",
+                            "mserp_projectvalue",      // 정렬 기준
                             SortOrder.Ascending
                         )
                     NoSelectionText: ="Select Project"
@@ -11117,8 +11125,8 @@
                                 isDirty: true
                             }
                         )
-                    SearchFields: =["Value"]
-                    SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),Project),"Value",SortOrder.Ascending),ComboBox_Project.SearchText,Value)
+                    SearchFields: =["mserp_projectvalue"]
+                    SearchItems: =Search(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),mserp_projectvalue,mserp_projectname),"mserp_projectvalue",SortOrder.Ascending),ComboBox_Project.SearchText,mserp_projectvalue)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
