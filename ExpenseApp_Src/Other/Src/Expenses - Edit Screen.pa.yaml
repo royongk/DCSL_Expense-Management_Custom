@@ -9959,7 +9959,7 @@ Screens:
                               Filter(
                                   'DCSL ProjectTypeProjectValue Entity (mserp)',
                                   'Project Type' = varSelectedProjectType &&
-                                  Company = varSelectedLegalEntity
+                                  'Company Code' = Lower(varSelectedLegalEntity)
                               ),
                               []
                           )
@@ -9968,7 +9968,7 @@ Screens:
                         Default: =varSelectedExpenseDoc.Project
                         DisplayName: ="Project"
                         Required: =false
-                        Update: =ComboBox_Project.Selected.Project
+                        Update: =ComboBox_Project.Selected.mserp_projectvalue
                         Width: =Parent.Width
                         X: =0
                         Y: =projectFieldOrder_Y
@@ -10002,7 +10002,7 @@ Screens:
                                     LookUp(
                                         'DCSL ProjectTypeProjectValue Entity (mserp)',
                                         Project = varSelectedExpenseDoc.Project &&
-                                        Company = varSelectedLegalEntity &&
+                                        'Company Code' = Lower(varSelectedLegalEntity) &&
                                         'Project Type' = varSelectedProjectType
                                     ),
                                     Blank()
@@ -10014,6 +10014,7 @@ Screens:
                               Height: =gblParams.dropDownHeight
                               HoverFill: =gblParams.dropDownHoverFill
                               InputTextPlaceholder: ="Select Project"
+                              IsSearchable: =false
                               Items: |-
                                 =If(
                                     !IsBlank(varSelectedProjectType) && !IsBlank(varSelectedLegalEntity),
@@ -10021,7 +10022,7 @@ Screens:
                                         Filter(
                                             'DCSL ProjectTypeProjectValue Entity (mserp)',
                                             'Project Type' = varSelectedProjectType &&
-                                            Company = varSelectedLegalEntity
+                                            'Company Code' = Lower(varSelectedLegalEntity)
                                         ),
                                         "mserp_projectvalue",
                                         SortOrder.Ascending
@@ -10042,7 +10043,7 @@ Screens:
                               PaddingTop: =5
                               PressedColor: =RGBA(255, 255, 255, 1)
                               PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =["mserp_projectvalue","mserp_projectname"]
+                              SearchFields: =["mserp_projectname"]
                               SelectMultiple: =false
                               SelectionColor: =Color.Black
                               SelectionFill: =gblParams.dropDownBorderColor
@@ -10169,6 +10170,91 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =DataCardKey24.Y
+                  - LCY_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_deexlcy"
+                        Default: =ThisItem.LCY
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexlcy')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
+                        Required: =false
+                        Update: =DataCardValue18.Text
+                        WidthFit: =true
+                        X: =0
+                        Y: =63
+                      Children:
+                        - DataCardKey25:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardValue18:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              MaxLength: =Parent.MaxLength
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Tooltip: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardKey25.Y + DataCardKey25.Height + 5
+                        - ErrorMessage25:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardValue18.Y + DataCardValue18.Height
+                        - StarVisible25:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey25.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey25.Y
       - formModeRectangle:
           Control: Rectangle@2.3.0
           Properties:
