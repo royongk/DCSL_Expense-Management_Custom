@@ -2043,8 +2043,17 @@ Screens:
             OnLeftButtonClick: |-
               =UpdateContext({ctVarExpenseDetailsBack: false});
             OnRightButtonClick: |-
-              =UpdateContext({ctVarExpenseDetailsBack: false});
-              Select(scr03_ico_Back_4)
+              =UpdateContext({ctVarReportDetailsBack: false});
+              Clear(colReportPostDetails);
+              Reset(ComboBox_Purpose);
+              Reset(ComboBox_Location);
+              Reset(ComboBox_LegalEntity_ExpReport);
+              If( 
+                  gblIsProjectValidationFlag,
+                  Reset(ComboBox_ProjectId_ExpReport_odata),
+                  Reset(ComboBox_ProjectId_ExpReport_entity)
+              );
+              Navigate('Reports - List Screen')
             SelectedExpense: =
             SelectedList: ="Text"
             SelectedReceiptNumber: =

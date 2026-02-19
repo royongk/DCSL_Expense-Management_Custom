@@ -2117,8 +2117,17 @@
         OnLeftButtonClick: |-
             =UpdateContext({ctVarExpenseDetailsBack: false});
         OnRightButtonClick: |-
-            =UpdateContext({ctVarExpenseDetailsBack: false});
-            Select(scr03_ico_Back_4)
+            =UpdateContext({ctVarReportDetailsBack: false});
+            Clear(colReportPostDetails);
+            Reset(ComboBox_Purpose);
+            Reset(ComboBox_Location);
+            Reset(ComboBox_LegalEntity_ExpReport);
+            If( 
+                gblIsProjectValidationFlag,
+                Reset(ComboBox_ProjectId_ExpReport_odata),
+                Reset(ComboBox_ProjectId_ExpReport_entity)
+            );
+            Navigate('Reports - List Screen')
         parmInDescriptionText: ="All unsaved changes will be lost."
         parmInHeaderText: ="Do you want to go back?"
         parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
