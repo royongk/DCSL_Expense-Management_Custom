@@ -1050,26 +1050,42 @@
                     Refresh('Expense Mobile Unattached Document Entity (mserp)');
                     
                     ForAll(
-                        colPendingReceipts As CurrentReceipt,
-                        IfError(
-                            Patch(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = CurrentReceipt.mserp_entrecid),
-                                {
-                                    // [수정] Reference record ID 라인 삭제됨 (읽기 전용 필드)
-                                    // 오직 경비 번호(ExpTransNumber)만 연결하면 됩니다.
-                                    ExpTransNumber: varTargetExpTransNumber
-                                }
-                            ),
-                            // 실패 시 에러 로그 수집
-                            Collect(
-                                colErrorLog,
-                                {
-                                    FailedRecordId: CurrentReceipt.mserp_entrecid,
-                                    ErrorMessage: FirstError.Message
-                                }
-                            );
-                            Blank()
+                        Sequence(CountRows(colPendingReceipts)),
+                        With(
+                            {
+                                // 기존: 레코드 전체를 저장
+                                CurrentReceipt: Index(colPendingReceipts, Value),
+                                
+                                // [핵심 수정] 위임 경고 우회를 위해 LookUp에 사용할 ID를 순수 숫자(Scalar)로 캐스팅하여 사전 추출
+                                TargetReceiptId: Value(Index(colPendingReceipts, Value).mserp_entrecid)
+                            },
+                            IfError(
+                                Patch(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    // 객체 속성(CurrentReceipt.mserp_entrecid) 대신 단일 숫자 변수(TargetReceiptId) 사용
+                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = TargetReceiptId),
+                                    {
+                                        ExpTransNumber: varTargetExpTransNumber
+                                    }
+                                ),
+                                // 에러 발생 시 처리 (이전 로직 동일)
+                                If(
+                                    FirstError.Kind = ErrorKind.NotFound Or 
+                                    "찾을 수 없습니다" in FirstError.Message Or 
+                                    "not found" in Lower(FirstError.Message),
+                                    
+                                    Blank(), 
+                                    
+                                    Collect(
+                                        colErrorLog,
+                                        {
+                                            FailedRecordId: TargetReceiptId,
+                                            ErrorMessage: FirstError.Message
+                                        }
+                                    ); 
+                                    Blank()
+                                )
+                            )
                         )
                     )
                 );
