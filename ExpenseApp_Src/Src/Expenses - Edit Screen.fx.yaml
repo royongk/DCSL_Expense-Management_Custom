@@ -11181,15 +11181,30 @@
                 Height: =500
                 Required: =false
                 Update: |-
-                    =//DataCardValue17.Text
-                    JSON(
+                    =With(
                         {
-                            MySelf: Toggle_MySelf.Value,
-                            OtherStaff: cmb_OtherStaff.SelectedItems,  // 선택된 직원 레코드 전체를 배열로 저장
-                            StudentPrimary: Value(txt_StudentPrimary.Text),
-                            StudentSenior: Value(txt_StudentSenior.Text)
+                            // 1. 본인 포함 여부 (true면 1, false면 0)
+                            valMySelf: If(Toggle_MySelf.Value, 1, 0),
+                            
+                            // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)
+                            valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),
+                            
+                            // 3. 학생(Primary) 수 (숫자 변환 실패 시 0)
+                            valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),
+                            
+                            // 4. 학생(Senior) 수 (숫자 변환 실패 시 0)
+                            valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)
                         },
-                        JSONFormat.Compact
+                        JSON(
+                            {
+                                TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,
+                                MySelf: Toggle_MySelf.Value,
+                                OtherStaff: Concat(cmb_OtherStaff.SelectedItems, mserp_userid, ","), 
+                                StudentPrimary: valStudentPrimary,
+                                StudentSenior: valStudentSenior
+                            },
+                            JSONFormat.Compact
+                        )
                     )
                 Visible: =true
                 Width: =Parent.Width
@@ -11235,7 +11250,7 @@
                         AlignInContainer: =AlignInContainer.Start
                         FalseText: ="No"
                         Height: =49
-                        LabelPaddingLeft: =10
+                        LabelPaddingLeft: =15
                         LayoutMaxHeight: =0
                         LayoutMaxWidth: =0
                         LayoutMinHeight: =49
@@ -11243,7 +11258,7 @@
                         Size: =21
                         TrueText: ="Yes"
                         Width: =154
-                        X: =10 
+                        X: =cmb_OtherStaff.X
                         Y: =40
                         ZIndex: =2
 
@@ -11357,10 +11372,10 @@
                             txt_StudentPrimary As text:
                                 AlignInContainer: =AlignInContainer.Stretch
                                 BorderThickness: =0
-                                Default: ="Enter Student(Primary)"
+                                Default: =""
                                 Format: =TextFormat.Number
                                 Height: =70
-                                HintText: ="Student Primary Count"
+                                HintText: ="Enter Student(Primary)"
                                 LayoutMaxHeight: =0
                                 LayoutMaxWidth: =0
                                 LayoutMinHeight: =16
@@ -11410,10 +11425,10 @@
                             txt_StudentSenior As text:
                                 AlignInContainer: =AlignInContainer.Stretch
                                 BorderThickness: =0
-                                Default: ="Enter Student(Senior)"
+                                Default: =""
                                 Format: =TextFormat.Number
                                 Height: =70
-                                HintText: ="Student Senior Count"
+                                HintText: ="Enter Student(Senior)"
                                 LayoutMaxHeight: =0
                                 LayoutMaxWidth: =0
                                 LayoutMinHeight: =16

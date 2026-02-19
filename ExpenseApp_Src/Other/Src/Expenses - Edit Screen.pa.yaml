@@ -10229,17 +10229,7 @@ Screens:
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexexpensebeneficiary')
                         Height: =500
                         Required: =false
-                        Update: |-
-                          =//DataCardValue17.Text
-                          JSON(
-                              {
-                                  MySelf: Toggle_MySelf.Value,
-                                  OtherStaff: cmb_OtherStaff.SelectedItems,  // 선택된 직원 레코드 전체를 배열로 저장
-                                  StudentPrimary: Value(txt_StudentPrimary.Text),
-                                  StudentSenior: Value(txt_StudentSenior.Text)
-                              },
-                              JSONFormat.Compact
-                          )
+                        Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n        \n        // 3. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 4. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, mserp_userid, \",\"), \n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
                         Width: =Parent.Width
                         X: =0
                         Y: =62
@@ -10284,10 +10274,10 @@ Screens:
                                     BorderColor: =RGBA(0, 18, 107, 1)
                                     FalseText: ="No"
                                     Font: =Font.'Open Sans'
-                                    LabelPaddingLeft: =10
+                                    LabelPaddingLeft: =15
                                     TrueFill: =RGBA(56, 96, 178, 1)
                                     TrueText: ="Yes"
-                                    X: '=10 '
+                                    X: =cmb_OtherStaff.X
                                     Y: =40
                               - DataCardKey_OtherStaff:
                                   Control: Label@2.5.1
@@ -10402,10 +10392,10 @@ Screens:
                                                 AlignInContainer: =AlignInContainer.Stretch
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 BorderThickness: =0
-                                                Default: ="Enter Student(Primary)"
+                                                Default: =""
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
-                                                HintText: ="Student Primary Count"
+                                                HintText: ="Enter Student(Primary)"
                                                 HoverBorderColor: =RGBA(0, 18, 107, 1)
                                                 HoverFill: =RGBA(186, 202, 226, 1)
                                                 LayoutMinHeight: =16
@@ -10451,10 +10441,10 @@ Screens:
                                                 AlignInContainer: =AlignInContainer.Stretch
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 BorderThickness: =0
-                                                Default: ="Enter Student(Senior)"
+                                                Default: =""
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
-                                                HintText: ="Student Senior Count"
+                                                HintText: ="Enter Student(Senior)"
                                                 HoverBorderColor: =RGBA(0, 18, 107, 1)
                                                 HoverFill: =RGBA(186, 202, 226, 1)
                                                 LayoutMinHeight: =16
