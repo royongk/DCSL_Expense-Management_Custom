@@ -114,32 +114,51 @@
                             ),
             
                             // CASE 2: 기존 경비 수정 (즉시 DB 연결 및 Attached 컬렉션 갱신)
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    selectedReceipt,
-                                    {
-                                        ExpTransNumber: varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
-                                    }
-                                );
-                                Collect(
-                                    colAttachedReceipts,
-                                    {
-                                        mserp_entrecid: selectedReceipt.EntRecId,
-                                        mserp_captureddocument: selectedReceipt.CapturedDocument,
-                                        mserp_fileextension: selectedReceipt.FileExtension,
-                                        mserp_filename: Coalesce(
-                                            selectedReceipt.Description,
-                                            Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
+                            // 4. 첨부 파일 연결 처리
+                            If(
+                                !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
+                                
+                                Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                                
+                                ForAll(
+                                    Sequence(CountRows(colPendingReceipts)),
+                                    With(
+                                        {
+                                            // 기존: 레코드 전체를 저장
+                                            CurrentReceipt: Index(colPendingReceipts, Value),
+                                            
+                                            // [핵심 수정] 위임 경고 우회를 위해 LookUp에 사용할 ID를 순수 숫자(Scalar)로 캐스팅하여 사전 추출
+                                            TargetReceiptId: Value(Index(colPendingReceipts, Value).mserp_entrecid)
+                                        },
+                                        IfError(
+                                            Patch(
+                                                'Expense Mobile Unattached Document Entity (mserp)',
+                                                // 객체 속성(CurrentReceipt.mserp_entrecid) 대신 단일 숫자 변수(TargetReceiptId) 사용
+                                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = TargetReceiptId),
+                                                {
+                                                    ExpTransNumber: varTargetExpTransNumber
+                                                }
+                                            ),
+                                            // 에러 발생 시 처리 (이전 로직 동일)
+                                            If(
+                                                FirstError.Kind = ErrorKind.NotFound Or 
+                                                "찾을 수 없습니다" in FirstError.Message Or 
+                                                "not found" in Lower(FirstError.Message),
+                                                
+                                                Blank(), 
+                                                
+                                                Collect(
+                                                    colErrorLog,
+                                                    {
+                                                        FailedRecordId: TargetReceiptId,
+                                                        ErrorMessage: FirstError.Message
+                                                    }
+                                                ); 
+                                                Blank()
+                                            )
                                         )
-                                    }
-                                ),
-                                // [수정 포인트] Notify 뒤에 세미콜론과 컬렉션을 추가하여 반환 타입을 Table로 맞춤
-                                Notify(
-                                    "Error attaching receipt: " & FirstError.Message,
-                                    NotificationType.Error,
-                                    3000
-                                ); colAttachedReceipts
+                                    )
+                                )
                             )
                         )
                     )

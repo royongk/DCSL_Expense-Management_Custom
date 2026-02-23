@@ -1017,20 +1017,19 @@
                 );
                 UpdateContext({msCallStartedForSalestaxCalculation: false});
             OnSuccess: |-
-                =// [EditExpenseForm > OnSuccess 최종 수정 코드]
-                
-                // 1. 새로 생성된 경비 번호(ExpTransNumber) 확보
+                =// 1. 새로 생성된 경비 번호(ExpTransNumber) 확보
                 Set(
                     varTargetExpTransNumber,
                     Self.LastSubmit.'Expense transaction number (mserp_exptransnumber)'
                 );
                 
-                // 2. RecId 확보 (저장 후 목록 갱신용으로 필요하므로 유지)
+                // 2. RecId 확보
                 UpdateContext({varSubmittedExpRecId: Self.LastSubmit.ExpenseRecId});
                 
+                // [수정됨] F&O 엔터티에 대한 무거운 Refresh() 호출 제거
+                // Self.LastSubmit에 RecId가 없다면 곧바로 LookUp만 실행하도록 최적화
                 If(
                     IsBlank(varSubmittedExpRecId) || varSubmittedExpRecId = 0,
-                    Refresh('Expense lines (mserp)');
                     UpdateContext({
                         varSubmittedExpRecId: LookUp(
                             'Expense lines (mserp)', 
@@ -1047,35 +1046,28 @@
                 If(
                     !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
                     
-                    Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                    // [수정됨] 타임아웃의 주 원인이 되는 Refresh 제거
+                    // Refresh('Expense Mobile Unattached Document Entity (mserp)'); 
                     
                     ForAll(
                         Sequence(CountRows(colPendingReceipts)),
                         With(
                             {
-                                // 기존: 레코드 전체를 저장
-                                CurrentReceipt: Index(colPendingReceipts, Value),
-                                
-                                // [핵심 수정] 위임 경고 우회를 위해 LookUp에 사용할 ID를 순수 숫자(Scalar)로 캐스팅하여 사전 추출
                                 TargetReceiptId: Value(Index(colPendingReceipts, Value).mserp_entrecid)
                             },
                             IfError(
                                 Patch(
                                     'Expense Mobile Unattached Document Entity (mserp)',
-                                    // 객체 속성(CurrentReceipt.mserp_entrecid) 대신 단일 숫자 변수(TargetReceiptId) 사용
                                     LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = TargetReceiptId),
                                     {
                                         ExpTransNumber: varTargetExpTransNumber
                                     }
                                 ),
-                                // 에러 발생 시 처리 (이전 로직 동일)
                                 If(
                                     FirstError.Kind = ErrorKind.NotFound Or 
                                     "찾을 수 없습니다" in FirstError.Message Or 
                                     "not found" in Lower(FirstError.Message),
-                                    
                                     Blank(), 
-                                    
                                     Collect(
                                         colErrorLog,
                                         {
@@ -1103,10 +1095,13 @@
                 // 6. 첨부 파일 목록 갱신 (저장 후 즉시 반영을 위해 병합 로직 개선)
                 If(
                     !IsBlank(varTargetExpTransNumber),
-                    Refresh('Expense Mobile Attached Document Entity (mserp)');
-                    Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                    
+                    // [수정됨] 대량 타임아웃을 유발하는 다중 Refresh 제거 
+                    // Power Apps의 Patch 작업 후에는 캐시가 자동 갱신되므로 Refresh를 생략하거나 최소화해야 합니다.
+                    // Refresh('Expense Mobile Attached Document Entity (mserp)');
+                    // Refresh('Expense Mobile Unattached Document Entity (mserp)');
                 
-                    // [단계 1] Attached 파일들 먼저 담기 (컬럼명 표준화: mserp_createddatetime)
+                    // [단계 1] Attached 파일들 먼저 담기
                     ClearCollect(
                         colAttachedReceipts,
                         ForAll(
@@ -1124,12 +1119,11 @@
                         )
                     );
                     
-                    // [단계 2] Unattached 파일(방금 추가한 것) 추가 담기 - 수정 버전
+                    // [단계 2] Unattached 파일(방금 추가한 것) 추가 담기
                     Collect(
                         colAttachedReceipts,
                         ForAll(
                             colPendingReceipts As CurrentReceipt,
-                            // 가상 필드로 전체 필터를 거는 대신, 물리 필드(EntRecId)로 개별 조회합니다.
                             With(
                                 {
                                     ServerRecord: LookUp(
@@ -1155,11 +1149,12 @@
                         colAttachedReceipts,
                         SortByColumns(
                             colAttachedReceipts,
-                            "mserp_createddatetime", // 위에서 통일한 컬럼명 사용
+                            "mserp_createddatetime", 
                             SortOrder.Descending
                         )
                     )
                 );
+                
                 // 7. 상태 변수 초기화
                 Set(varIsCreate, false);
                 Set(varSelectedExpenseDoc, Self.LastSubmit);
@@ -1169,7 +1164,7 @@
                 Set(OCRresponse, Blank());
                 Set(gblNavigationDrawerVisibility, false);
                 
-                // 8. 컬렉션 정리 (에러가 없을 때만 정리하는 것이 안전함)
+                // 8. 컬렉션 정리
                 If(IsEmpty(colErrorLog), Clear(colPendingReceipts));
                 Clear(colErrorLog);
                 
@@ -1193,23 +1188,21 @@
                 
                 UpdateContext({varLoadingSpinner: false});
                 
-                // 10. 성공 메시지 및 화면 이동
+                // 10. 성공 메시지 및 화면 이동 (나머지 하단 로직은 기존과 동일하게 유지)
                 If(
                     varIsCreate,
                     Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel', NotificationType.Success, gblParams.notificationTime),
                     If(isDirty || isExpenseReceiptAttached, Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', NotificationType.Success, gblParams.notificationTime))
                 );
                 
-                // Itemization 로직 (기존 유지)
                 If(
                     gblItemizeExpenseButtonClick,
                     Set(IsCreditcardTransactionInLocalCurrency, LookUp('Expense lines (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', IsCreditcardTransactionInLocalCurrency));
                     ClearCollect(dsItemizations, AddColumns(GroupBy(Filter('Expense lines (mserp)', 'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'), 'Itemization group', Itemization), StartDate, Text(Last(SortByColumns(Itemization, "mserp_transdate", SortOrder.Descending)).'Transaction date', "yyyy-mm-dd hh:mm:ssZ"), DailyRate, If(IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No, First(Itemization).'Transaction amount', First(Itemization).'Local amount'), Quantity, CountRows(Itemization), SubCategoryName, First(Itemization).'Expense subcategory name', SubCategoryRecId, First(Itemization).'Expense subcategory', ItemizationGroupId, mserp_expenseitemizationgroupid))
                 );
                 
-                // 화면 이동 (에러가 없을 때만 이동하도록 로직 보완)
                 If(
-                    locAllowNavigationBack && IsEmpty(colErrorLog), // [중요] 에러가 있으면 화면에 머무름
+                    locAllowNavigationBack && IsEmpty(colErrorLog),
                     If(
                         varIsCreate,
                         Navigate('Expenses - List Screen'),
@@ -1228,11 +1221,9 @@
                             Navigate('Expenses - List Screen')
                         )
                     ),
-                    // 에러 발생 시 화면 유지 (또는 단순 백)
                     If(locAllowNavigationBack && !IsEmpty(colErrorLog), false, Navigate('Expenses - List Screen', ScreenTransition.None))
                 );
                 
-                // 최종 정리
                 UpdateContext({dirtyTransAmount: Blank(), dirtyTransDate: Blank(), dirtyMerchant: "", varOnSelectTriggered: false, varOnShowFields: false, varOnChangeTriggered: false, varSalesTaxAmount: Blank(), msCallStartedForSalestaxCalculation: false});
                 Set(gblItemizeExpenseButtonClick, false)
             SnapToColumns: =false
