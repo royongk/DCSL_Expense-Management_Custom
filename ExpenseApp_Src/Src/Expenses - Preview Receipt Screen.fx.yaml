@@ -114,49 +114,57 @@
                             ),
             
                             // CASE 2: 기존 경비 수정 (즉시 DB 연결 및 Attached 컬렉션 갱신)
-                            // 4. 첨부 파일 연결 처리
+                            // 4. 첨부 파일 연결 처리 (일괄 패치 방식으로 우회)
                             If(
                                 !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
                                 
-                                Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                                
-                                ForAll(
-                                    Sequence(CountRows(colPendingReceipts)),
-                                    With(
-                                        {
-                                            // 기존: 레코드 전체를 저장
-                                            CurrentReceipt: Index(colPendingReceipts, Value),
+                                // 1단계: Dataverse에서 원본 레코드들을 순차적으로 조회하여 로컬 컬렉션에 담기
+                                ClearCollect(
+                                    colRecordsToUpdate,
+                                    ForAll(
+                                        colPendingReceipts As CurrentReceiptItem,
+                                        
+                                        // [수정된 부분] With 함수를 사용하여 Value() 형변환을 LookUp 외부에서 먼저 수행합니다.
+                                        With(
+                                            {
+                                                // 현재 루프의 아이디를 순수 숫자형(Scalar) 변수로 미리 치환
+                                                numReceiptId: Value(CurrentReceiptItem.mserp_entrecid)
+                                            },
                                             
-                                            // [핵심 수정] 위임 경고 우회를 위해 LookUp에 사용할 ID를 순수 숫자(Scalar)로 캐스팅하여 사전 추출
-                                            TargetReceiptId: Value(Index(colPendingReceipts, Value).mserp_entrecid)
-                                        },
-                                        IfError(
-                                            Patch(
+                                            // LookUp 조건에는 어떠한 함수도 없이 [필드 = 순수 변수] 형태만 남깁니다.
+                                            LookUp(
                                                 'Expense Mobile Unattached Document Entity (mserp)',
-                                                // 객체 속성(CurrentReceipt.mserp_entrecid) 대신 단일 숫자 변수(TargetReceiptId) 사용
-                                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = TargetReceiptId),
-                                                {
-                                                    ExpTransNumber: varTargetExpTransNumber
-                                                }
-                                            ),
-                                            // 에러 발생 시 처리 (이전 로직 동일)
-                                            If(
-                                                FirstError.Kind = ErrorKind.NotFound Or 
-                                                "찾을 수 없습니다" in FirstError.Message Or 
-                                                "not found" in Lower(FirstError.Message),
-                                                
-                                                Blank(), 
-                                                
-                                                Collect(
-                                                    colErrorLog,
-                                                    {
-                                                        FailedRecordId: TargetReceiptId,
-                                                        ErrorMessage: FirstError.Message
-                                                    }
-                                                ); 
-                                                Blank()
+                                                EntRecId = numReceiptId
                                             )
                                         )
+                                    )
+                                );
+                                
+                                // 조회가 실패한(Blank) 데이터가 있다면 안전을 위해 제거
+                                RemoveIf(colRecordsToUpdate, IsBlank(EntRecId));
+            
+                                // 2단계: 로컬 컬렉션 데이터의 경비 번호를 메모리 상에서 일괄 변경
+                                UpdateIf(
+                                    colRecordsToUpdate,
+                                    true, // 컬렉션 내의 모든 레코드에 적용
+                                    {
+                                        ExpTransNumber: varTargetExpTransNumber
+                                    }
+                                );
+                                
+                                // 3단계: 단 한 번의 Patch 호출로 Dataverse에 일괄(Batch) 저장
+                                IfError(
+                                    Patch(
+                                        'Expense Mobile Unattached Document Entity (mserp)',
+                                        colRecordsToUpdate
+                                    ),
+                                    // 일괄 업데이트 실패 시 에러 로깅
+                                    Collect(
+                                        colErrorLog,
+                                        {
+                                            FailedRecordId: "BulkPatchError",
+                                            ErrorMessage: FirstError.Message
+                                        }
                                     )
                                 )
                             )

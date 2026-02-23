@@ -517,7 +517,6 @@
         */
         
         // 에러 로그 컬렉션 스키마 초기화
-        ClearCollect(colErrorLog, {FailedRecordId: 0, ErrorMessage: ""});
         Clear(colErrorLog);
 
     scr03_ico_Back_4 As icon.ChevronLeft:
@@ -1050,42 +1049,36 @@
                 UpdateContext({varLoadingSpinner: true});
                 Clear(colErrorLog);
                 
-                // 4. 첨부 파일 연결 처리
+                // 4. 첨부 파일 연결 처리 (Power Automate 순차 처리 방식 - 법인 코드 추가)
                 If(
                     !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
                     
-                    // [수정됨] 타임아웃의 주 원인이 되는 Refresh 제거
-                    // Refresh('Expense Mobile Unattached Document Entity (mserp)'); 
-                    
-                    ForAll(
-                        Sequence(CountRows(colPendingReceipts)),
-                        With(
-                            {
-                                TargetReceiptId: Value(Index(colPendingReceipts, Value).mserp_entrecid)
-                            },
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = TargetReceiptId),
-                                    {
-                                        ExpTransNumber: varTargetExpTransNumber
-                                    }
-                                ),
-                                If(
-                                    FirstError.Kind = ErrorKind.NotFound Or 
-                                    "찾을 수 없습니다" in FirstError.Message Or 
-                                    "not found" in Lower(FirstError.Message),
-                                    Blank(), 
-                                    Collect(
-                                        colErrorLog,
-                                        {
-                                            FailedRecordId: TargetReceiptId,
-                                            ErrorMessage: FirstError.Message
-                                        }
-                                    ); 
-                                    Blank()
-                                )
+                    With(
+                        {
+                            strReceiptIds: Concat(
+                                colPendingReceipts, 
+                                Text(Value(mserp_entrecid)), 
+                                ","
                             )
+                        },
+                        
+                        IfError(
+                            // 1. 흐름 호출 (경비번호, 영수증ID목록, [추가]현재법인코드)
+                            UpdateExpenseReceiptsFlow.Run(
+                                varTargetExpTransNumber, 
+                                strReceiptIds,
+                                varSelectedLegalEntity // <--- 새로 추가된 매개변수
+                            ),
+                            
+                            // 2. 에러 발생 시 처리
+                            Collect(
+                                colErrorLog, 
+                                { 
+                                    FailedRecordId: "FlowError", 
+                                    ErrorMessage: "영수증 연결 흐름 호출에 실패했습니다." 
+                                }
+                            ); 
+                            false
                         )
                     )
                 );
@@ -12375,4 +12368,58 @@
         Visible: =varShowDeleteReceiptDialog
         Y: =0
         ZIndex: =23
+
+    Timer1 As timer:
+        Duration: =2000
+        Height: =70
+        OnTimerEnd: |-
+            =If(
+                // 1. 연결할 영수증이 남아 있다면
+                CountRows(colPendingReceipts) > 0,
+                
+                With(
+                    {
+                        // 가장 첫 번째 영수증 하나만 선택
+                        CurrentReceipt: First(colPendingReceipts),
+                        numReceiptId: Value(First(colPendingReceipts).mserp_entrecid)
+                    },
+                    
+                    // F&O에 해당 영수증 1개만 업데이트 (법인 코드 등 불필요한 매핑 제거)
+                    IfError(
+                        Patch(
+                            'Expense Mobile Unattached Document Entity (mserp)',
+                            LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = numReceiptId),
+                            {
+                                ExpTransNumber: varTargetExpTransNumber
+                            }
+                        ),
+                        // 에러 시 로그 기록 (선택 사항)
+                        Collect(colErrorLog, { FailedRecordId: Text(numReceiptId), ErrorMessage: FirstError.Message })
+                    );
+                    
+                    // ★ 중요: 방금 업데이트한 영수증을 대기열(컬렉션)에서 제거합니다.
+                    // 그래야 다음 2초 뒤에 타이머가 돌 때 그 다음 영수증을 처리합니다.
+                    Remove(colPendingReceipts, CurrentReceipt);
+                )
+            );
+            
+            // 2. 대기열(컬렉션)이 텅 비었다면 (모든 작업 완료)
+            If(
+                CountRows(colPendingReceipts) == 0,
+                
+                // 타이머 반복을 중지시킵니다.
+                UpdateContext({varStartReceiptUpload: false});
+                
+                // 성공 메시지를 띄우고 다음 동작을 수행합니다.
+                Notify("모든 첨부파일이 성공적으로 연결되었습니다.", NotificationType.Success);
+                
+                // (필요 시 이전 화면으로 돌아가거나 새로고침 하는 코드를 여기에 추가하세요)
+                // Back();
+            )
+        Repeat: =varStartReceiptUpload
+        Start: =varStartReceiptUpload
+        Width: =280
+        X: =331
+        Y: =305
+        ZIndex: =24
 
