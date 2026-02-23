@@ -1049,57 +1049,42 @@
                 UpdateContext({varLoadingSpinner: true});
                 Clear(colErrorLog);
                 
-                // 4. 첨부 파일 연결 처리 (일괄 패치 방식으로 우회)
+                // 4. 첨부 파일 연결 처리 (가상 엔터티에 안전한 개별 Patch 순회 방식)
                 If(
                     !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
                     
-                    // 1단계: Dataverse에서 원본 레코드들을 순차적으로 조회하여 로컬 컬렉션에 담기
-                    ClearCollect(
-                        colRecordsToUpdate,
-                        ForAll(
-                            colPendingReceipts As CurrentReceiptItem,
-                            
-                            // [수정된 부분] With 함수를 사용하여 Value() 형변환을 LookUp 외부에서 먼저 수행합니다.
-                            With(
-                                {
-                                    // 현재 루프의 아이디를 순수 숫자형(Scalar) 변수로 미리 치환
-                                    numReceiptId: Value(CurrentReceiptItem.mserp_entrecid)
-                                },
-                                
-                                // LookUp 조건에는 어떠한 함수도 없이 [필드 = 순수 변수] 형태만 남깁니다.
-                                LookUp(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    EntRecId = numReceiptId
-                                )
-                            )
-                        )
-                    );
-                    
-                    // 조회가 실패한(Blank) 데이터가 있다면 안전을 위해 제거
-                    RemoveIf(colRecordsToUpdate, IsBlank(EntRecId));
-                
-                    // 2단계: 로컬 컬렉션 데이터의 경비 번호를 메모리 상에서 일괄 변경
-                    UpdateIf(
-                        colRecordsToUpdate,
-                        true, // 컬렉션 내의 모든 레코드에 적용
-                        {
-                            ExpTransNumber: varTargetExpTransNumber
-                        }
-                    );
-                    
-                    // 3단계: 단 한 번의 Patch 호출로 Dataverse에 일괄(Batch) 저장
-                    IfError(
-                        Patch(
-                            'Expense Mobile Unattached Document Entity (mserp)',
-                            colRecordsToUpdate
-                        ),
-                        // 일괄 업데이트 실패 시 에러 로깅
-                        Collect(
-                            colErrorLog,
+                    ForAll(
+                        colPendingReceipts As CurrentReceiptItem,
+                        
+                        With(
                             {
-                                FailedRecordId: "BulkPatchError",
-                                ErrorMessage: FirstError.Message
-                            }
+                                numReceiptId: Value(CurrentReceiptItem.mserp_entrecid)
+                            },
+                            
+                            // IfError의 첫 번째 인수(Patch)가 Record를 반환하므로,
+                            // 두 번째 인수(에러 처리 로직)도 Record 타입(혹은 Blank)을 반환해야 합니다.
+                            IfError(
+                                Patch(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    LookUp(
+                                        'Expense Mobile Unattached Document Entity (mserp)',
+                                        EntRecId = numReceiptId
+                                    ),
+                                    {
+                                        ExpTransNumber: varTargetExpTransNumber
+                                    }
+                                ),
+                                // 에러 발생 시 로그 기록 후,
+                                Collect(
+                                    colErrorLog,
+                                    {
+                                        FailedRecordId: Text(numReceiptId),
+                                        ErrorMessage: FirstError.Message
+                                    }
+                                );
+                                // 강제로 Blank()를 반환하여 Record 타입 불일치 오류를 해결합니다.
+                                Blank()
+                            )
                         )
                     )
                 );
