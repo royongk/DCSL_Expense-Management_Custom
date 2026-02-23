@@ -1049,36 +1049,57 @@
                 UpdateContext({varLoadingSpinner: true});
                 Clear(colErrorLog);
                 
-                // 4. 첨부 파일 연결 처리 (Power Automate 순차 처리 방식 - 법인 코드 추가)
+                // 4. 첨부 파일 연결 처리 (일괄 패치 방식으로 우회)
                 If(
                     !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
                     
-                    With(
-                        {
-                            strReceiptIds: Concat(
-                                colPendingReceipts, 
-                                Text(Value(mserp_entrecid)), 
-                                ","
-                            )
-                        },
-                        
-                        IfError(
-                            // 1. 흐름 호출 (경비번호, 영수증ID목록, [추가]현재법인코드)
-                            UpdateExpenseReceiptsFlow.Run(
-                                varTargetExpTransNumber, 
-                                strReceiptIds,
-                                varSelectedLegalEntity // <--- 새로 추가된 매개변수
-                            ),
+                    // 1단계: Dataverse에서 원본 레코드들을 순차적으로 조회하여 로컬 컬렉션에 담기
+                    ClearCollect(
+                        colRecordsToUpdate,
+                        ForAll(
+                            colPendingReceipts As CurrentReceiptItem,
                             
-                            // 2. 에러 발생 시 처리
-                            Collect(
-                                colErrorLog, 
-                                { 
-                                    FailedRecordId: "FlowError", 
-                                    ErrorMessage: "영수증 연결 흐름 호출에 실패했습니다." 
-                                }
-                            ); 
-                            false
+                            // [수정된 부분] With 함수를 사용하여 Value() 형변환을 LookUp 외부에서 먼저 수행합니다.
+                            With(
+                                {
+                                    // 현재 루프의 아이디를 순수 숫자형(Scalar) 변수로 미리 치환
+                                    numReceiptId: Value(CurrentReceiptItem.mserp_entrecid)
+                                },
+                                
+                                // LookUp 조건에는 어떠한 함수도 없이 [필드 = 순수 변수] 형태만 남깁니다.
+                                LookUp(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    EntRecId = numReceiptId
+                                )
+                            )
+                        )
+                    );
+                    
+                    // 조회가 실패한(Blank) 데이터가 있다면 안전을 위해 제거
+                    RemoveIf(colRecordsToUpdate, IsBlank(EntRecId));
+                
+                    // 2단계: 로컬 컬렉션 데이터의 경비 번호를 메모리 상에서 일괄 변경
+                    UpdateIf(
+                        colRecordsToUpdate,
+                        true, // 컬렉션 내의 모든 레코드에 적용
+                        {
+                            ExpTransNumber: varTargetExpTransNumber
+                        }
+                    );
+                    
+                    // 3단계: 단 한 번의 Patch 호출로 Dataverse에 일괄(Batch) 저장
+                    IfError(
+                        Patch(
+                            'Expense Mobile Unattached Document Entity (mserp)',
+                            colRecordsToUpdate
+                        ),
+                        // 일괄 업데이트 실패 시 에러 로깅
+                        Collect(
+                            colErrorLog,
+                            {
+                                FailedRecordId: "BulkPatchError",
+                                ErrorMessage: FirstError.Message
+                            }
                         )
                     )
                 );
@@ -12368,58 +12389,4 @@
         Visible: =varShowDeleteReceiptDialog
         Y: =0
         ZIndex: =23
-
-    Timer1 As timer:
-        Duration: =2000
-        Height: =70
-        OnTimerEnd: |-
-            =If(
-                // 1. 연결할 영수증이 남아 있다면
-                CountRows(colPendingReceipts) > 0,
-                
-                With(
-                    {
-                        // 가장 첫 번째 영수증 하나만 선택
-                        CurrentReceipt: First(colPendingReceipts),
-                        numReceiptId: Value(First(colPendingReceipts).mserp_entrecid)
-                    },
-                    
-                    // F&O에 해당 영수증 1개만 업데이트 (법인 코드 등 불필요한 매핑 제거)
-                    IfError(
-                        Patch(
-                            'Expense Mobile Unattached Document Entity (mserp)',
-                            LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = numReceiptId),
-                            {
-                                ExpTransNumber: varTargetExpTransNumber
-                            }
-                        ),
-                        // 에러 시 로그 기록 (선택 사항)
-                        Collect(colErrorLog, { FailedRecordId: Text(numReceiptId), ErrorMessage: FirstError.Message })
-                    );
-                    
-                    // ★ 중요: 방금 업데이트한 영수증을 대기열(컬렉션)에서 제거합니다.
-                    // 그래야 다음 2초 뒤에 타이머가 돌 때 그 다음 영수증을 처리합니다.
-                    Remove(colPendingReceipts, CurrentReceipt);
-                )
-            );
-            
-            // 2. 대기열(컬렉션)이 텅 비었다면 (모든 작업 완료)
-            If(
-                CountRows(colPendingReceipts) == 0,
-                
-                // 타이머 반복을 중지시킵니다.
-                UpdateContext({varStartReceiptUpload: false});
-                
-                // 성공 메시지를 띄우고 다음 동작을 수행합니다.
-                Notify("모든 첨부파일이 성공적으로 연결되었습니다.", NotificationType.Success);
-                
-                // (필요 시 이전 화면으로 돌아가거나 새로고침 하는 코드를 여기에 추가하세요)
-                // Back();
-            )
-        Repeat: =varStartReceiptUpload
-        Start: =varStartReceiptUpload
-        Width: =280
-        X: =331
-        Y: =305
-        ZIndex: =24
 
