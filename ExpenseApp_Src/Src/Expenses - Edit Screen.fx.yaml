@@ -76,13 +76,20 @@
             })
         );
         // Load existing Department and Benefit Type from Expense Category (reverse lookup)
+        // [수정됨] 이미 Dataverse에서 올바른 3단계 카테고리 값(Expense Type, Purchase Category 등)을
+        // 성공적으로 불러왔다면, 부정확한 Reverse Lookup으로 덮어쓰지 않도록 방어 로직 추가
         If(
-            !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
+            !varIsCreate && 
+            !IsBlank(varSelectedExpenseDoc.'Expense Type') &&
+            (IsBlank(varSelectedExpenseType) || IsBlank(varSelectedPurchaseCategory) || IsBlank(varSelectedItemOrService)),
+            
             With(
                 {
                     mappingRecord: LookUp(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                        'Expense category' = varSelectedExpenseDoc.'Expense category (mserp_costtype)'
+                        'Expense Type' = varSelectedExpenseDoc.'Expense Type' &&
+                        'Purchase Category' = varSelectedExpenseDoc.'Purchase Category' &&
+                        'Item or Service' = varSelectedExpenseDoc.'Item or Service'
                     )
                 },
                 If(
@@ -99,6 +106,7 @@
                 )
             )
         );
+        
         // 
         // LCY 계산 결과 저장 변수 초기화 (기존 값이 있으면 사용, 없으면 빈 값)
         UpdateContext({ locCalculatedLCY: varSelectedExpenseDoc.LCY });
