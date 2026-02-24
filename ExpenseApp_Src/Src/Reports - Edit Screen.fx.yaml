@@ -1041,7 +1041,7 @@
                     AccessibleLabel: ="Dropdown to enter Cash Advance"
                     Default: =Blank()
                     DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance)
-                    DisplayFields: =["mserp_cashadvancenumber","mserp_purpose"]
+                    DisplayFields: =["mserp_cashadvancenumber"]
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     InputTextPlaceholder: ="Select Cash Advance"
                     Items: |
@@ -1049,9 +1049,8 @@
                             'DCSL TrvCash Advance Entity  (mserp)', 
                             'Company Code' = Lower(varSelectedLegalEntity) &&
                             'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
-                            Balance <> 0 &&
-                            Employee = userRecord.CreatingWorker &&
-                            Purpose = "Cash Advance"
+                            Balance > 0 &&
+                            Employee = userRecord.CreatingWorker
                         )
                     LayoutMaxHeight: =
                     LayoutMaxWidth: =
@@ -1075,8 +1074,8 @@
                     PaddingRight: =10
                     PaddingTop: =10
                     Reset: =true
-                    SearchFields: =["mserp_cashadvancenumber","mserp_purpose"]
-                    SearchItems: =Search(Filter('DCSL TrvCash Advance Entity  (mserp)','Company Code'=Lower(varSelectedLegalEntity)&&'Cash advance status'='Cash advance status (mserp)'.Paid&&Balance<>0&&Employee=userRecord.CreatingWorker&&Purpose="Cash Advance"),ComboBox_MaptoCashAdvance.SearchText,mserp_cashadvancenumber)
+                    SearchFields: =["mserp_cashadvancenumber"]
+                    SearchItems: =Search(Filter('DCSL TrvCash Advance Entity  (mserp)','Company Code'=Lower(varSelectedLegalEntity)&&'Cash advance status'='Cash advance status (mserp)'.Paid&&Balance>0&&Employee=userRecord.CreatingWorker),ComboBox_MaptoCashAdvance.SearchText,mserp_cashadvancenumber)
                     SelectMultiple: =false
                     Size: =21
                     Width: =Parent.Width -  Self.X*2

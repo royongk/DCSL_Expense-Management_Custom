@@ -929,7 +929,7 @@ Screens:
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
                               Default: =Blank()
                               DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance)
-                              DisplayFields: =["mserp_cashadvancenumber","mserp_purpose"]
+                              DisplayFields: =["mserp_cashadvancenumber"]
                               Font: =Font.'Open Sans'
                               Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                               HoverFill: =RGBA(186, 202, 226, 1)
@@ -939,9 +939,8 @@ Screens:
                                     'DCSL TrvCash Advance Entity  (mserp)', 
                                     'Company Code' = Lower(varSelectedLegalEntity) &&
                                     'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
-                                    Balance <> 0 &&
-                                    Employee = userRecord.CreatingWorker &&
-                                    Purpose = "Cash Advance"
+                                    Balance > 0 &&
+                                    Employee = userRecord.CreatingWorker
                                 )
                               LayoutMaxHeight: =
                               LayoutMaxWidth: =
@@ -961,7 +960,7 @@ Screens:
                               PressedColor: =RGBA(255, 255, 255, 1)
                               PressedFill: =RGBA(0, 18, 107, 1)
                               Reset: =true
-                              SearchFields: =["mserp_cashadvancenumber","mserp_purpose"]
+                              SearchFields: =["mserp_cashadvancenumber"]
                               SelectMultiple: =false
                               SelectionColor: =RGBA(255, 255, 255, 1)
                               SelectionFill: =RGBA(56, 96, 178, 1)

@@ -340,19 +340,32 @@
                     IsBlank(dtp_RequestedDate.SelectedDate) || IsBlank(txt_RequestedAmount.Text),
                     Notify("Please fill in all required fields (Requested Date, Amount)", NotificationType.Error, gblParams.notificationTime),
                     
+                    // 1단계: 기존 데이터를 생성하거나 수정하고, 그 결과를 'ctxSavedRecord' 변수에 저장합니다.
+                    // (이때 mserp_workflowaction 필드는 업데이트하지 않습니다.)
+                    UpdateContext({
+                        ctxSavedRecord: Patch(
+                            'DCSL TrvCash Advance Entity  (mserp)',
+                            If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),
+                            {
+                                mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
+                                mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
+                                mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
+                                mserp_requestedamount: Value(txt_RequestedAmount.Text),
+                                mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode)
+                            }
+                        )
+                    });
+                    
+                    // 2단계: 위에서 저장된 레코드(ctxSavedRecord)를 타겟으로 WorkflowAction을 "Submit"으로 업데이트합니다.
                     Patch(
                         'DCSL TrvCash Advance Entity  (mserp)',
-                        If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),
+                        ctxSavedRecord,
                         {
-                            mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
-                            mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
-                            mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
-                            mserp_requestedamount: Value(txt_RequestedAmount.Text),
-                            mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode),
                             mserp_workflowaction: "Submit"
                         }
                     );
                     
+                    // 3단계: 성공 알림 및 화면 이동
                     Notify("Cash Advance submitted successfully", NotificationType.Success, gblParams.notificationTime);
                     Navigate('Cash Advance - List Screen', ScreenTransition.None)
                 )

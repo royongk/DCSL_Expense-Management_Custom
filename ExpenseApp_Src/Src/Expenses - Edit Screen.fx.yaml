@@ -6474,7 +6474,7 @@
                         =UpdateContext({isDirty : true});
                     Reset: =true
                     SearchFields: =["mserp_activitynumber","mserp_purpose"]
-                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,mserp_activitynumber,mserp_purpose)
+                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,'Activity number',Purpose)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -7493,7 +7493,7 @@
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_salestaxgroup","mserp_description"]
-                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,mserp_salestaxgroup,mserp_description)
+                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,'Sales tax group',Description)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -11125,8 +11125,8 @@
                                     'Project Type' = varSelectedProjectType &&
                                     'Company Code' = Lower(varSelectedLegalEntity)
                                 ),
-                                mserp_projectvalue,  // 첫 번째 그룹 기준 (프로젝트 ID)
-                                mserp_projectname   // 두 번째 그룹 기준 (프로젝트 이름)
+                                Project,  // 첫 번째 그룹 기준 (프로젝트 ID)
+                                Description   // 두 번째 그룹 기준 (프로젝트 이름)
                             ),
                             "mserp_projectvalue",      // 정렬 기준
                             SortOrder.Ascending
@@ -11140,7 +11140,7 @@
                             }
                         )
                     SearchFields: =["mserp_projectvalue"]
-                    SearchItems: =Search(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),mserp_projectvalue,mserp_projectname),"mserp_projectvalue",SortOrder.Ascending),ComboBox_Project.SearchText,mserp_projectvalue)
+                    SearchItems: =Search(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),Project,Description),"mserp_projectvalue",SortOrder.Ascending),ComboBox_Project.SearchText,mserp_projectvalue)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -11213,7 +11213,7 @@
                             {
                                 TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,
                                 MySelf: Toggle_MySelf.Value,
-                                OtherStaff: Concat(cmb_OtherStaff.SelectedItems, mserp_userid, ","), 
+                                OtherStaff: Concat(cmb_OtherStaff.SelectedItems, ID, ","), 
                                 StudentPrimary: valStudentPrimary,
                                 StudentSenior: valStudentSenior
                             },
@@ -11321,7 +11321,7 @@
                         LayoutMinHeight: =16
                         LayoutMinWidth: =400
                         SearchFields: =["mserp_userid"]
-                        SearchItems: =Search(SortByColumns(Filter('Expense mobile master data (mserp)',UserPreferredLegalEntity=varSelectedLegalEntity),"mserp_userid",SortOrder.Ascending),cmb_OtherStaff.SearchText,mserp_userid)
+                        SearchItems: =Search(SortByColumns(Filter('Expense mobile master data (mserp)',UserPreferredLegalEntity=varSelectedLegalEntity),"mserp_userid",SortOrder.Ascending),cmb_OtherStaff.SearchText,ID)
                         SelectionColor: =Color.Black
                         SelectionFill: =gblParams.dropDownBorderColor
                         Size: =20
