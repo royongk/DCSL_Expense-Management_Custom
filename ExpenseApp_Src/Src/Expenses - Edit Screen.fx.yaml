@@ -1642,7 +1642,19 @@
                                         'Project Type'
                                     )
                             }
-                        )
+                        );
+                        // cmbItemOrService 컨트롤의 OnChange 속성
+                        UpdateContext({
+                            locCurrentSetup: LookUp(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                mserp_expensetype = ComboBox_ExpenseType.Selected.Value && 
+                                mserp_purchasecategory = ComboBox_PurchaseCategory.Selected.Value && 
+                                mserp_itemorservice = Self.Selected.Value
+                            )
+                        });
+                        
+                        // 금액 필드 초기화 (선택 사항)
+                        Reset(DataCardValue4_1)
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank('Expense category')&&!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType&&!IsBlank(varSelectedPurchaseCategory)&&'Purchase Category'=varSelectedPurchaseCategory),'Item or Service'),"Value",SortOrder.Ascending),ComboBox_ItemOrService.SearchText,Value)
                     SelectionColor: =Color.Black
@@ -3877,8 +3889,17 @@
                     PaddingRight: =0
                     PaddingTop: =0
                     Size: =gblParams.errorMessageSize
-                    Text: =Parent.Error
-                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Text: |-
+                        =//Parent.Error
+                        If(
+                            !IsBlank(Parent.Error), 
+                            Parent.Error, 
+                            "입력하신 금액이 최대 한도액(" & Text(locCurrentSetup.mserp_maxamount, "[$-ko-KR]#,##0") & ")을 초과했습니다."
+                        )
+                    Visible: |-
+                        =//Parent.DisplayMode=DisplayMode.Edit
+                        Parent.Error <> "" || 
+                        (!IsBlank(locCurrentSetup.'Max Amount') && locCurrentSetup.'Max Amount' > 0 && Value(DataCardValue4_1.Text) > locCurrentSetup.'Max Amount')
                     Width: =Parent.Width - 60
                     X: =30
                     Y: =DataCardValue4_1.Y + DataCardValue4_1.Height
@@ -8692,7 +8713,24 @@
                     Font: =Font.'Segoe UI'
                     Height: =48
                     Size: =21
-                    Text: =LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName) 
+                    Text: |-
+                        =//LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName) 
+                        With(
+                            {
+                                // 1. 세 가지 조건이 모두 일치하는 레코드를 찾습니다.
+                                MatchedRecord: LookUp(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    'Expense Type' = ComboBox_ExpenseType.Selected.Value And
+                                    'Purchase Category' = ComboBox_PurchaseCategory.Selected.Value And
+                                    'Item or Service' = ComboBox_ItemOrService.Selected.Value
+                                )
+                            },
+                            // 2. 일치하는 값이 있으면 해당 필드값을, 없거나 빈 값이면 기본 텍스트를 출력합니다.
+                            Coalesce(
+                                MatchedRecord.'Additional information', 
+                                "Additional information"
+                            )
+                        )
                     Width: =Parent.Width - 60
                     Wrap: =false
                     X: =30
