@@ -1,13 +1,13 @@
 "'Main Screen' As screen":
-    Fill: =RGBA(248, 248, 248, 1)
+    Fill: =RGBA(245, 246, 248, 1)
     OnVisible: =
 
     MainScreen_Logo As image:
-        Height: =120
+        Height: =If(App.Width >= 1024, 150, 100)
         Image: =DCSL_Logo
-        Width: =Parent.Width - 80
+        Width: =If(App.Width >= 1024, 450, Parent.Width - 80)
         X: =(Parent.Width - Self.Width) / 2
-        Y: =Parent.Height / 4
+        Y: =If(App.Width >= 1024, Parent.Height * 0.15, Parent.Height * 0.2)
         ZIndex: =1
 
     MainScreen_TitleLabel As label:
@@ -15,8 +15,8 @@
         Color: =RGBA(30, 30, 30, 1)
         Font: =Font.'Segoe UI'
         FontWeight: =FontWeight.Bold
-        Height: =50
-        Size: =28
+        Height: =If(App.Width >= 1024, 60, 50)
+        Size: =If(App.Width >= 1024, 36, 28)
         Text: ="Expense Management"
         Width: =Parent.Width - 40
         X: =(Parent.Width - Self.Width) / 2
@@ -28,148 +28,259 @@
         Color: =RGBA(80, 80, 80, 1)
         Font: =Font.'Segoe UI'
         Height: =35
-        Size: =18
-        Text: ="Welcome, " & Coalesce(User().FullName, "User")
+        Size: =If(App.Width >= 1024, 22, 16)
+        Text: ="Welcome back, " & First(Split(User().FullName, " ")).Value & " 👋"
         Width: =Parent.Width - 40
         X: =(Parent.Width - Self.Width) / 2
         Y: =MainScreen_TitleLabel.Y + MainScreen_TitleLabel.Height + 10
         ZIndex: =5
 
-    MainScreen_ExpenseReportBtn As button:
-        BorderColor: =RGBA(163, 32, 53, 1)
-        Color: =Color.White
-        Fill: =RGBA(163, 32, 53, 1)
-        Font: =Font.'Segoe UI'
-        Height: =60
-        HoverFill: =RGBA(123, 12, 33, 1)
-        OnSelect: |-
-            =Set(varAppMode, "ExpenseReport");
-            Set(varSelectedTab, 2);
-            Navigate('Expenses - List Screen', ScreenTransition.Fade)
-        PressedFill: =RGBA(123, 12, 33, 1)
-        RadiusBottomLeft: =8
-        RadiusBottomRight: =8
-        RadiusTopLeft: =8
-        RadiusTopRight: =8
-        Size: =18
-        Text: ="Expense Report"
-        Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
-        X: =If(App.Width > 640, 20, (Parent.Width - Self.Width) / 2)
-        Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + 50
+    conMainLayout As groupContainer.horizontalAutoLayoutContainer:
+        Height: =conFinanceSection.Height
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutGridColumns: =6
+        LayoutGridRows: =6
+        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+        LayoutMode: =LayoutMode.Auto
+        PaddingBottom: =8
+        PaddingLeft: =8
+        PaddingRight: =8
+        PaddingTop: =8
+        Width: =Parent.Width - 40
+        X: =20
+        Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + 100
         ZIndex: =6
 
-    MainScreen_AirfareAllowanceBtn As button:
-        BorderColor: =RGBA(163, 32, 53, 1)
-        Color: =RGBA(163, 32, 53, 1)
-        Fill: =Color.White
-        Font: =Font.'Segoe UI'
-        Height: =60
-        HoverFill: =RGBA(184, 0, 0, 1)
-        OnSelect: |-
-            =Set(varAppMode, "AirfareAllowance");
-            Set(varSelectedTab, 2);
-            Navigate('Expenses - List Screen', ScreenTransition.Fade)
-        PressedFill: =RGBA(240, 230, 230, 1)
-        RadiusBottomLeft: =8
-        RadiusBottomRight: =8
-        RadiusTopLeft: =8
-        RadiusTopRight: =8
-        Size: =18
-        Text: ="Airfare/Shipping Allowance"
-        Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
-        X: =If(App.Width > 640, MainScreen_ExpenseReportBtn.X + MainScreen_ExpenseReportBtn.Width + 20, (Parent.Width - Self.Width) / 2)
-        Y: =If(App.Width > 640, MainScreen_ExpenseReportBtn.Y, MainScreen_ExpenseReportBtn.Y + MainScreen_ExpenseReportBtn.Height + 20)
-        ZIndex: =7
+        conFinanceSection As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Start
+            BorderColor: =RGBA(0,0,0,0.05)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =conFinanceHeader.Height + galFinanceMenu.Height + 40
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =16
+            LayoutMinWidth: =16
+            LayoutMode: =LayoutMode.Auto
+            PaddingBottom: =8
+            PaddingLeft: =8
+            PaddingRight: =8
+            PaddingTop: =8
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
+            Width: =Parent.Width/2
+            ZIndex: =1
 
-    MainScreen_BillingTripSettlementBtn As button:
-        BorderColor: =RGBA(163, 32, 53, 1)
-        Color: =RGBA(163, 32, 53, 1)
-        Fill: =Color.White
-        Font: =Font.'Segoe UI'
-        Height: =60
-        HoverFill: =RGBA(184, 0, 0, 1)
-        OnSelect: |-
-            =Set(varAppMode, "BillingTripSettlement");
-            Set(varSelectedTab, 2);
-            Navigate('Expenses - List Screen', ScreenTransition.Fade)
-        PressedFill: =RGBA(240, 230, 230, 1)
-        RadiusBottomLeft: =8
-        RadiusBottomRight: =8
-        RadiusTopLeft: =8
-        RadiusTopRight: =8
-        Size: =18
-        Text: ="Billing Trip Settlement"
-        Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
-        X: =If(App.Width > 640, 20, (Parent.Width - Self.Width) / 2)
-        Y: =If(App.Width > 640, MainScreen_ExpenseReportBtn.Y + MainScreen_ExpenseReportBtn.Height + 20, MainScreen_AirfareAllowanceBtn.Y + MainScreen_AirfareAllowanceBtn.Height + 20)
-        ZIndex: =8
+            conFinanceHeader As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =40
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =10
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.Center
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                LayoutMode: =LayoutMode.Auto
+                PaddingBottom: =8
+                PaddingLeft: =8
+                PaddingRight: =8
+                PaddingTop: =8
+                Width: =Parent.Width
+                X: =40
+                Y: =40
+                ZIndex: =1
 
-    MainScreen_EmployeeBenefitBtn As button:
-        BorderColor: =RGBA(163, 32, 53, 1)
-        Color: =RGBA(163, 32, 53, 1)
-        Fill: =Color.White
-        Font: =Font.'Segoe UI'
-        Height: =60
-        HoverFill: =RGBA(184, 0, 0, 1)
-        OnSelect: |-
-            =Set(varAppMode, "EmployeeBenefit");
-            Set(varSelectedTab, 2);
-            Navigate('Expenses - List Screen', ScreenTransition.Fade)
-        PressedFill: =RGBA(240, 230, 230, 1)
-        RadiusBottomLeft: =8
-        RadiusBottomRight: =8
-        RadiusTopLeft: =8
-        RadiusTopRight: =8
-        Size: =18
-        Text: ="Employee Benefit"
-        Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
-        X: =If(App.Width > 640, MainScreen_BillingTripSettlementBtn.X + MainScreen_BillingTripSettlementBtn.Width + 20, (Parent.Width - Self.Width) / 2)
-        Y: =If(App.Width > 640, MainScreen_BillingTripSettlementBtn.Y, MainScreen_BillingTripSettlementBtn.Y + MainScreen_BillingTripSettlementBtn.Height + 20)
-        ZIndex: =9
+                imgFinanceHeader As image:
+                    Height: =24
+                    Image: ='Receipt--Streamline-Core'
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Width: =24
+                    ZIndex: =1
 
-    MainScreen_SalaryAdvanceBtn As button:
-        BorderColor: =RGBA(163, 32, 53, 1)
-        Color: =RGBA(163, 32, 53, 1)
-        Fill: =Color.White
-        Font: =Font.'Segoe UI'
-        Height: =60
-        HoverFill: =RGBA(184, 0, 0, 1)
-        OnSelect: |-
-            =Set(varAppMode, "SalaryAdvance");
-            Set(varSelectedTab, 2);
-            Navigate('Expenses - List Screen', ScreenTransition.Fade)
-        PressedFill: =RGBA(240, 230, 230, 1)
-        RadiusBottomLeft: =8
-        RadiusBottomRight: =8
-        RadiusTopLeft: =8
-        RadiusTopRight: =8
-        Size: =18
-        Text: ="Salary Advance"
-        Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
-        X: =If(App.Width > 640, 20, (Parent.Width - Self.Width) / 2)
-        Y: =If(App.Width > 640, MainScreen_BillingTripSettlementBtn.Y + MainScreen_BillingTripSettlementBtn.Height + 20, MainScreen_EmployeeBenefitBtn.Y + MainScreen_EmployeeBenefitBtn.Height + 20)
-        ZIndex: =10
+                lblFinance As label:
+                    Color: =RGBA(30, 30, 30, 1)
+                    FontWeight: =FontWeight.Bold
+                    Height: =Parent.Height
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Size: =18
+                    Text: ="Finance"
+                    Width: =110
+                    ZIndex: =2
 
-    MainScreen_CashAdvanceBtn As button:
-        BorderColor: =RGBA(163, 32, 53, 1)
-        Color: =RGBA(163, 32, 53, 1)
-        Fill: =Color.White
-        Font: =Font.'Segoe UI'
-        Height: =60
-        HoverFill: =RGBA(184, 0, 0, 1)
-        OnSelect: |-
-            =Set(varAppMode, "CashAdvance");
-            Set(varSelectedTab, 2);
-            Navigate('Expenses - List Screen', ScreenTransition.Fade)
-        PressedFill: =RGBA(240, 230, 230, 1)
-        RadiusBottomLeft: =8
-        RadiusBottomRight: =8
-        RadiusTopLeft: =8
-        RadiusTopRight: =8
-        Size: =18
-        Text: ="Cash Advance Request / Settlment"
-        Width: =If(App.Width > 640, (Parent.Width - 60) / 2, Parent.Width - 240)
-        X: =If(App.Width > 640, MainScreen_SalaryAdvanceBtn.X + MainScreen_SalaryAdvanceBtn.Width + 20, (Parent.Width - Self.Width) / 2)
-        Y: =If(App.Width > 640, MainScreen_SalaryAdvanceBtn.Y, MainScreen_SalaryAdvanceBtn.Y + MainScreen_SalaryAdvanceBtn.Height + 20)
-        ZIndex: =11
+            galFinanceMenu As gallery.galleryVertical:
+                DelayItemLoading: =true
+                FillPortions: =0
+                Height: =CountRows(Self.AllItems) * Self.TemplateHeight
+                Items: =Filter(colLandingMenu, Category = "Finance")
+                Layout: =Layout.Vertical
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                LoadingSpinner: =LoadingSpinner.Data
+                TemplatePadding: =0
+                TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 24, 16)
+                ZIndex: =2
+
+                btnFinance As button:
+                    Align: =Align.Left
+                    BorderColor: =RGBA(163, 32, 53, 0.3)
+                    BorderThickness: =1.5
+                    Color: =RGBA(163, 32, 53, 1)
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: =If(App.Width >= 1024, 80, 60)
+                    HoverColor: =RGBA(163, 32, 53, 1)
+                    HoverFill: =RGBA(163, 32, 53, 0.08)
+                    OnSelect: |-
+                        =Set(varAppMode, ThisItem.AppMode);
+                        Set(varSelectedTab, 2);
+                        Navigate('Expenses - List Screen', ScreenTransition.Fade)
+                    PaddingLeft: =20
+                    PressedColor: =RGBA(255, 255, 255, 1)
+                    PressedFill: =RGBA(163, 32, 53, 1)
+                    RadiusBottomLeft: =12
+                    RadiusBottomRight: =12
+                    RadiusTopLeft: =12
+                    RadiusTopRight: =12
+                    Size: =If(App.Width >= 1024, 18, 14)
+                    Text: =ThisItem.DisplayName
+                    Width: =If(App.Width >= 1024, Parent.TemplateWidth * 0.7, Parent.TemplateWidth - 40)
+                    X: =(Parent.TemplateWidth - Self.Width) / 2
+                    Y: =(Parent.TemplateHeight - Self.Height) / 2
+                    ZIndex: =1
+
+        conHRSection As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Start
+            BorderColor: =RGBA(0,0,0,0.05)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =conHRHeader.Height + galHRMenu.Height + 40
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =16
+            LayoutMinWidth: =16
+            LayoutMode: =LayoutMode.Auto
+            PaddingBottom: =8
+            PaddingLeft: =8
+            PaddingRight: =8
+            PaddingTop: =8
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
+            Width: =Parent.Width/2
+            ZIndex: =2
+
+            conHRHeader As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =40
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =10
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.Center
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                PaddingBottom: =8
+                PaddingLeft: =8
+                PaddingRight: =8
+                PaddingTop: =8
+                Width: =Parent.Width
+                X: =40
+                Y: =40
+                ZIndex: =2
+
+                imgHRHeader As image:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                    DisabledFill: =RGBA(244, 244, 244, 1)
+                    Height: =24
+                    Image: ='User-Multiple-Group--Streamline-Core'
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Width: =24
+                    ZIndex: =1
+
+                lblHR As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(30, 30, 30, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FontWeight: =FontWeight.Bold
+                    Height: =Parent.Height
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Size: =18
+                    Text: ="HR"
+                    Width: =80
+                    ZIndex: =2
+
+            galHRMenu As gallery.galleryVertical:
+                DelayItemLoading: =true
+                FillPortions: =0
+                Height: =CountRows(Self.AllItems) * Self.TemplateHeight
+                Items: =Filter(colLandingMenu, Category = "HR")
+                Layout: =Layout.Vertical
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                LoadingSpinner: =LoadingSpinner.Data
+                TemplatePadding: =0
+                TemplateSize: =btnHR.Height + If(App.Width >= 1024, 24, 16)
+                ZIndex: =3
+
+                btnHR As button:
+                    Align: =Align.Left
+                    BorderColor: =RGBA(163, 32, 53, 0.3)
+                    BorderThickness: =1.5
+                    Color: =RGBA(163, 32, 53, 1)
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: =If(App.Width >= 1024, 80, 60)
+                    HoverColor: =RGBA(163, 32, 53, 1)
+                    HoverFill: =RGBA(163, 32, 53, 0.08)
+                    OnSelect: |-
+                        =Set(varAppMode, ThisItem.AppMode);
+                        Set(varSelectedTab, 2);
+                        Navigate('Expenses - List Screen', ScreenTransition.Fade)
+                    PaddingLeft: =20
+                    PressedColor: =RGBA(255, 255, 255, 1)
+                    PressedFill: =RGBA(163, 32, 53, 1)
+                    RadiusBottomLeft: =12
+                    RadiusBottomRight: =12
+                    RadiusTopLeft: =12
+                    RadiusTopRight: =12
+                    Size: =If(App.Width >= 1024, 18, 14)
+                    Text: =ThisItem.DisplayName
+                    Width: =If(App.Width >= 1024, Parent.TemplateWidth * 0.7, Parent.TemplateWidth - 40)
+                    X: =(Parent.TemplateWidth - Self.Width) / 2
+                    Y: =(Parent.TemplateHeight - Self.Height) / 2
+                    ZIndex: =1
 

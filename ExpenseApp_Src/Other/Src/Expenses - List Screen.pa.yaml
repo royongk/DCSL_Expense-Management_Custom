@@ -12,7 +12,30 @@ Screens:
       Fill: =RGBA(0 ,0, 0, 0)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
       OnVisible: |-
-        =Set(
+        =// 1. 현재 선택된 메뉴(AppMode)에 맞는 D365 Expense Type 텍스트 결정
+        Set(
+            varTargetExpenseType,
+            Switch(
+                varAppMode,
+                "BillingTripSettlement", "Billing Trip Settlement",
+                "AirfareAllowance", "Allowance",
+                "CashAdvance", "Cash Advance",
+                "SalaryAdvance", "Salary Advance",
+                "ExpenseReport", "Expense Report", // 일반 재무 경비일 경우의 기본값
+                Blank()
+            )
+        );
+
+        // 2. 해당 Type에 매핑된 카테고리(Expense category) 목록을 로컬 컬렉션에 저장
+        ClearCollect(
+            colMappedCategories,
+            Filter(
+                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                'Expense Type' = varTargetExpenseType
+            )
+        );
+
+        Set(
             gblParams,
             {
                 dropDownHeight : 60,
@@ -197,16 +220,7 @@ Screens:
             BorderColor: =RGBA(0, 18, 107, 1)
             Default: ={}
             Height: "=If(\n    varCntSelect,\n    Min(Parent.Height - scr01_hdr_TopHeader.Height - scr01_shp_BaseRectangle.Height-scr01_shp_Rectangle.Height, Self.TemplateHeight * CountRows(Self.AllItems)),\n    Min(Parent.Height - scr01_hdr_TopHeader.Height - scr01_cmp_Footer.Height,Self.TemplateHeight * CountRows(Self.AllItems)) \n    \n)"
-            Items: |+
-              =Filter(
-                  SortByColumns('Expense lines (mserp)', "mserp_transdate", SortOrder.Descending),
-                  'Company (mserp_company)' = varSelectedLegalEntity && 
-                  'Approval status' = 'Document status (mserp)'.Draft && 
-                  IsBlank('Expense report number (mserp_expnumber)') && 
-                  ('Expense line type' = 'Expense line type (mserp)'.Default 
-                  || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header')
-              )
-
+            Items: "=Filter(\n    SortByColumns('Expense lines (mserp)', \"mserp_transdate\", SortOrder.Descending),\n    'Company (mserp_company)' = varSelectedLegalEntity && \n    'Approval status' = 'Document status (mserp)'.Draft && \n    IsBlank('Expense report number (mserp_expnumber)') && \n    ('Expense line type' = 'Expense line type (mserp)'.Default \n    || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&\n    \n    // [수정된 로직] 라인의 카테고리가 미리 저장해둔 컬렉션의 카테고리 목록에 포함되는지 확인\n    (\n        IsEmpty(colMappedCategories) || \n        'Expense Type' in colMappedCategories.'Expense Type'\n    )\n)"
             OnSelect: |-
               =
               //set details for the next screen 

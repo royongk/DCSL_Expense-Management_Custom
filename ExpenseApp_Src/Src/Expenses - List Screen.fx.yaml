@@ -1,7 +1,30 @@
 "'Expenses - List Screen' As screen.'phoneBrowseLayout_ver3.0'":
     Fill: =RGBA(0 ,0, 0, 0)
     OnVisible: |-
-        =Set(
+        =// 1. 현재 선택된 메뉴(AppMode)에 맞는 D365 Expense Type 텍스트 결정
+        Set(
+            varTargetExpenseType,
+            Switch(
+                varAppMode,
+                "BillingTripSettlement", "Billing Trip Settlement",
+                "AirfareAllowance", "Allowance",
+                "CashAdvance", "Cash Advance",
+                "SalaryAdvance", "Salary Advance",
+                "ExpenseReport", "Expense Report", // 일반 재무 경비일 경우의 기본값
+                Blank()
+            )
+        );
+        
+        // 2. 해당 Type에 매핑된 카테고리(Expense category) 목록을 로컬 컬렉션에 저장
+        ClearCollect(
+            colMappedCategories,
+            Filter(
+                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                'Expense Type' = varTargetExpenseType
+            )
+        );
+        
+        Set(
             gblParams,
             {
                 dropDownHeight : 60,
@@ -175,16 +198,21 @@
                 Min(Parent.Height - scr01_hdr_TopHeader.Height - scr01_cmp_Footer.Height,Self.TemplateHeight * CountRows(Self.AllItems)) 
                 
             )
-        Items: |+
+        Items: |-
             =Filter(
                 SortByColumns('Expense lines (mserp)', "mserp_transdate", SortOrder.Descending),
                 'Company (mserp_company)' = varSelectedLegalEntity && 
                 'Approval status' = 'Document status (mserp)'.Draft && 
                 IsBlank('Expense report number (mserp_expnumber)') && 
                 ('Expense line type' = 'Expense line type (mserp)'.Default 
-                || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header')
+                || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&
+                
+                // [수정된 로직] 라인의 카테고리가 미리 저장해둔 컬렉션의 카테고리 목록에 포함되는지 확인
+                (
+                    IsEmpty(colMappedCategories) || 
+                    'Expense Type' in colMappedCategories.'Expense Type'
+                )
             )
-            
         Layout: =Layout.Vertical
         LoadingSpinner: =LoadingSpinner.Data
         OnSelect: |-
