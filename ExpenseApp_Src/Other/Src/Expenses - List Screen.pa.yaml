@@ -17,11 +17,12 @@ Screens:
             varTargetExpenseType,
             Switch(
                 varAppMode,
-                "BillingTripSettlement", "Billing Trip Settlement",
                 "AirfareAllowance", "Allowance",
+                "BillingTripSettlement", "Billing Trip Settlement",
                 "CashAdvance", "Cash Advance",
+                "EmployeeBenefit", "Employee Benefit",
                 "SalaryAdvance", "Salary Advance",
-                "ExpenseReport", "Expense Report", // 일반 재무 경비일 경우의 기본값
+                "ExpenseReport", "Expense Reimbursement", // 일반 재무 경비일 경우의 기본값
                 Blank()
             )
         );
@@ -220,7 +221,16 @@ Screens:
             BorderColor: =RGBA(0, 18, 107, 1)
             Default: ={}
             Height: "=If(\n    varCntSelect,\n    Min(Parent.Height - scr01_hdr_TopHeader.Height - scr01_shp_BaseRectangle.Height-scr01_shp_Rectangle.Height, Self.TemplateHeight * CountRows(Self.AllItems)),\n    Min(Parent.Height - scr01_hdr_TopHeader.Height - scr01_cmp_Footer.Height,Self.TemplateHeight * CountRows(Self.AllItems)) \n    \n)"
-            Items: "=Filter(\n    SortByColumns('Expense lines (mserp)', \"mserp_transdate\", SortOrder.Descending),\n    'Company (mserp_company)' = varSelectedLegalEntity && \n    'Approval status' = 'Document status (mserp)'.Draft && \n    IsBlank('Expense report number (mserp_expnumber)') && \n    ('Expense line type' = 'Expense line type (mserp)'.Default \n    || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&\n    \n    // [수정된 로직] 라인의 카테고리가 미리 저장해둔 컬렉션의 카테고리 목록에 포함되는지 확인\n    (\n        IsEmpty(colMappedCategories) || \n        'Expense Type' in colMappedCategories.'Expense Type'\n    )\n)"
+            Items: |-
+              =Filter(
+                  SortByColumns('Expense lines (mserp)', "mserp_transdate", SortOrder.Descending),
+                  'Company (mserp_company)' = varSelectedLegalEntity && 
+                  'Approval status' = 'Document status (mserp)'.Draft && 
+                  IsBlank('Expense report number (mserp_expnumber)') && 
+                  ('Expense line type' = 'Expense line type (mserp)'.Default 
+                  || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&
+                  'Expense Type' = varTargetExpenseType
+              )
             OnSelect: |-
               =
               //set details for the next screen 

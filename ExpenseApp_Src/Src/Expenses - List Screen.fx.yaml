@@ -6,11 +6,12 @@
             varTargetExpenseType,
             Switch(
                 varAppMode,
-                "BillingTripSettlement", "Billing Trip Settlement",
                 "AirfareAllowance", "Allowance",
+                "BillingTripSettlement", "Billing Trip Settlement",
                 "CashAdvance", "Cash Advance",
+                "EmployeeBenefit", "Employee Benefit",
                 "SalaryAdvance", "Salary Advance",
-                "ExpenseReport", "Expense Report", // 일반 재무 경비일 경우의 기본값
+                "ExpenseReport", "Expense Reimbursement", // 일반 재무 경비일 경우의 기본값
                 Blank()
             )
         );
@@ -206,12 +207,7 @@
                 IsBlank('Expense report number (mserp_expnumber)') && 
                 ('Expense line type' = 'Expense line type (mserp)'.Default 
                 || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&
-                
-                // [수정된 로직] 라인의 카테고리가 미리 저장해둔 컬렉션의 카테고리 목록에 포함되는지 확인
-                (
-                    IsEmpty(colMappedCategories) || 
-                    'Expense Type' in colMappedCategories.'Expense Type'
-                )
+                'Expense Type' = varTargetExpenseType
             )
         Layout: =Layout.Vertical
         LoadingSpinner: =LoadingSpinner.Data

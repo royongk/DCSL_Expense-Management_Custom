@@ -3793,6 +3793,29 @@
                         // 3. 실제 저장될 변수(dirtyTransAmount)에 '순수 숫자'만 업데이트
                         UpdateContext({ dirtyTransAmount: locTempAmount });
                         
+                        // --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---
+                        If(
+                            !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locTempAmount),
+                            
+                            // 1. D365 액션 호출하여 환율 받아오기
+                            With(
+                                {
+                                    // 1. Power Automate 흐름 호출
+                                    fetchedRateResult: GetExchangeRateFlow.Run(
+                                        ComboBox1_12.Selected.mserp_currencycode,
+                                        varSelectedLegalEntity
+                                    ).rateresult
+                                },
+                                
+                                // 2. LCY 계산 및 문자열(Text) 변환 변수 저장
+                                UpdateContext({ 
+                                    // 💡 주의: D365 환율 단위가 100이라면 뒤에 / 100 을 추가해야 정상 금액이 나옵니다.
+                                    // 예: Text( (Value(locTempAmount) * Value(fetchedRateResult)) / 100 )
+                                    locCalculatedLCY: Value(locTempAmount) * Value(fetchedRateResult) / 100
+                                })
+                            )
+                        );
+                        
                         // 4. 편집 모드 종료
                         UpdateContext({ locIsEditingAmount: false });
                         
@@ -4044,6 +4067,27 @@
                         If(
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
+                        );
+                        // --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---
+                        If(
+                            !IsBlank(Self.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity),
+                            
+                            With(
+                                {
+                                    // 1. Power Automate 흐름 호출
+                                    fetchedRateResult: GetExchangeRateFlow.Run(
+                                        ComboBox1_12.Selected.mserp_currencycode,
+                                        varSelectedLegalEntity
+                                    ).rateresult
+                                },
+                                
+                                // 2. LCY 계산 및 문자열(Text) 변환 변수 저장
+                                UpdateContext({ 
+                                    // 💡 주의: D365 환율 단위가 100이라면 뒤에 / 100 을 추가해야 정상 금액이 나옵니다.
+                                    // 예: Text( (Value(locTempAmount) * Value(fetchedRateResult)) / 100 )
+                                    locCalculatedLCY: Value(locTempAmount) * Value(fetchedRateResult) / 100
+                                })
+                            )
                         );
                         /*
                         If(
@@ -4519,7 +4563,9 @@
                 Height: =50
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
                 Required: =false
-                Update: =DataCardValue18.Text
+                Update: |-
+                    =// 화면의 텍스트 값에서 혹시 모를 콤마(,)를 모두 제거한 뒤, 완벽한 숫자(Number)로 강제 변환하여 전송합니다.
+                    Value(Substitute(DataCardValue18.Text, ",", ""))
                 Width: =640
                 WidthFit: =true
                 X: =0
@@ -4542,7 +4588,12 @@
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     Color: =gblParams.dropDownLabelColor
-                    Default: =Parent.Default
+                    Default: |-
+                        =If(
+                            !IsBlank(locCalculatedLCY), 
+                            locCalculatedLCY, 
+                            Parent.Default
+                        )
                     DelayOutput: =true
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =gblParams.dorpDownBorderThickness
@@ -10880,7 +10931,16 @@
                 Height: =50
                 Required: =false
                 Update: =ComboBox_CostCenter.Selected.'Combination display'
-                Visible: =true
+                Visible: |-
+                    =// 기존 =true 를 아래 코드로 변경합니다.
+                    If(
+                        // Salary Advance (가불/급여 선지급) 유형이면 Cost Center 숨김
+                        varAppMode = "SalaryAdvance" || varAppMode = "AirfareAllowance" || varAppMode = "EmployeeBenefit",
+                        false,
+                        
+                        // 그 외의 경우는 정상 표시 (이후 필요에 따라 Visible 조건을 더 추가할 수 있습니다)
+                        true
+                    )
                 Width: =Parent.Width
                 X: =0
                 Y: =costCenterFieldOrder_Y
@@ -10905,10 +10965,30 @@
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
-                        =If(
-                            !IsBlank(varSelectedCostCenter),
-                            varSelectedCostCenter,
-                            Blank()
+                        =Switch(
+                            // 조건: 현재 선택된 경비 유형 (varSelectedExpenseType 또는 varAppMode 활용)
+                            varAppMode,
+                            
+                            // 1. Employee Benefits Claim
+                            "EmployeeBenefit",
+                            LookUp('DCSL Financial Dimension CostCenter (mserp)', mserp_dimensionvalue = "6104"),
+                            
+                            // 2. Airfare & Shipping Allowance Claim
+                            // (출장 신청서 데이터가 현재 컨텍스트에 없는 경우, 임시로 varSelectedExpenseDoc의 기존 CostCenter를 유지하거나, 출장 신청서 테이블을 직접 LookUp 해야 합니다. 
+                            // 아래는 varSelectedCostCenter나 문서의 기존 값을 가져오는 방어적 코드입니다.)
+                            "AirfareAllowance",
+                            If(
+                                !IsBlank(varSelectedCostCenter),
+                                varSelectedCostCenter,
+                                Blank() // *만약 Travel Requisition을 별도 테이블에서 가져와야 한다면 이 부분을 수정해야 합니다.*
+                            ),
+                            
+                            // 3. 기본값 (일반적인 경우)
+                            If(
+                                !IsBlank(varSelectedCostCenter),
+                                varSelectedCostCenter,
+                                Blank()
+                            )
                         )
                     DisplayFields: =["mserp_dimensionvalue","mserp_description"]
                     DisplayMode: =Parent.DisplayMode
@@ -11074,8 +11154,28 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =ComboBox_Project.Selected.mserp_projectvalue
-                Visible: =true
+                Update: |-
+                    =If(
+                        Self.Visible, 
+                        ComboBox_Project.Selected.mserp_projectvalue, // 보일 때는 콤보박스의 선택된 값 전송
+                        Blank()                                       // 숨겨졌을 때는 무조건 빈 값(Null) 전송
+                    )
+                Visible: |-
+                    =If(
+                        // HR 경비 3가지 유형 중 하나라도 해당되면
+                        varAppMode in ["AirfareAllowance", "EmployeeBenefit", "SalaryAdvance"] || 
+                        varSelectedExpenseType in [
+                            "Airfare & Shipping Allowance Claim", 
+                            "Employee Benefits Claim", 
+                            "Employee Benefit", 
+                            "Salary Advance", 
+                            "Airfare Allowance"
+                        ],
+                        false, // 숨김 처리
+                        
+                        // 그 외 일반 경비 유형은 표시
+                        true
+                    )
                 Width: =Parent.Width
                 X: =0
                 Y: =projectFieldOrder_Y
