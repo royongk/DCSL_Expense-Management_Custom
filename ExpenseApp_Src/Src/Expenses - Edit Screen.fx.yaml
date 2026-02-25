@@ -3802,16 +3802,17 @@
                                 {
                                     // 1. Power Automate 흐름 호출
                                     fetchedRateResult: GetExchangeRateFlow.Run(
-                                        ComboBox1_12.Selected.mserp_currencycode,
+                                        Self.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경
                                         varSelectedLegalEntity
-                                    ).rateresult
+                                    ).rateresult,
+                                    
+                                    // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환
+                                    currentAmount: Value(Substitute(DataCardValue4_1.Text, ",", ""))
                                 },
                                 
-                                // 2. LCY 계산 및 문자열(Text) 변환 변수 저장
+                                // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 2자리까지만 남김)
                                 UpdateContext({ 
-                                    // 💡 주의: D365 환율 단위가 100이라면 뒤에 / 100 을 추가해야 정상 금액이 나옵니다.
-                                    // 예: Text( (Value(locTempAmount) * Value(fetchedRateResult)) / 100 )
-                                    locCalculatedLCY: Value(locTempAmount) * Value(fetchedRateResult) / 100
+                                    locCalculatedLCY: Text(Round( (currentAmount * Value(fetchedRateResult)) / 100, 2 ))
                                 })
                             )
                         );
@@ -4076,16 +4077,17 @@
                                 {
                                     // 1. Power Automate 흐름 호출
                                     fetchedRateResult: GetExchangeRateFlow.Run(
-                                        ComboBox1_12.Selected.mserp_currencycode,
+                                        Self.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경
                                         varSelectedLegalEntity
-                                    ).rateresult
+                                    ).rateresult,
+                                    
+                                    // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환
+                                    currentAmount: Value(Substitute(DataCardValue4_1.Text, ",", ""))
                                 },
                                 
-                                // 2. LCY 계산 및 문자열(Text) 변환 변수 저장
+                                // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 2자리까지만 남김)
                                 UpdateContext({ 
-                                    // 💡 주의: D365 환율 단위가 100이라면 뒤에 / 100 을 추가해야 정상 금액이 나옵니다.
-                                    // 예: Text( (Value(locTempAmount) * Value(fetchedRateResult)) / 100 )
-                                    locCalculatedLCY: Value(locTempAmount) * Value(fetchedRateResult) / 100
+                                    locCalculatedLCY: Text(Round((currentAmount * Value(fetchedRateResult)) / 100, 2))
                                 })
                             )
                         );
@@ -4564,8 +4566,11 @@
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
                 Required: =false
                 Update: |-
-                    =// 화면의 텍스트 값에서 혹시 모를 콤마(,)를 모두 제거한 뒤, 완벽한 숫자(Number)로 강제 변환하여 전송합니다.
-                    Value(Substitute(DataCardValue18.Text, ",", ""))
+                    =If(
+                        !IsBlank(locCalculatedLCY),
+                        locCalculatedLCY,                 // 새로 계산된 순수 숫자 전송
+                        Value(varSelectedExpenseDoc.LCY)  // 새로 계산된 적이 없다면 기존 문서의 순수 숫자 전송
+                    )
                 Width: =640
                 WidthFit: =true
                 X: =0
@@ -4589,10 +4594,24 @@
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     Color: =gblParams.dropDownLabelColor
                     Default: |-
-                        =If(
-                            !IsBlank(locCalculatedLCY), 
-                            locCalculatedLCY, 
-                            Parent.Default
+                        =With(
+                            {
+                                // 1. 표시할 LCY 숫자 결정 (새로 계산된 값이 있으면 쓰고, 없으면 기존 문서 값)
+                                displayNumber: If(
+                                    !IsBlank(locCalculatedLCY), 
+                                    locCalculatedLCY, 
+                                    Value(Parent.Default)
+                                ),
+                                
+                                // 2. 요청하신 기본 Currency 조회 로직
+                                currencyRecord: If(
+                                    currExpenseType = 'TrvExpType (mserp)'.'Per diem',
+                                    LookUp('Currencies (mserp)','Currency code'= Coalesce(cmbPerdiemLocation.Selected.Currency, varDefaultCurrency)),
+                                    LookUp('Currencies (mserp)','Currency code'= Coalesce(Parent.Default, varDefaultCurrency))
+                                )
+                            },
+                            // 3. 숫자 포맷팅 + 공백 + 통화 코드 결합 (예: "1,376,012.35 KRW")
+                            Text(displayNumber, "#,##0.00") & " " & currencyRecord.'Currency code'
                         )
                     DelayOutput: =true
                     DisplayMode: =Parent.DisplayMode
