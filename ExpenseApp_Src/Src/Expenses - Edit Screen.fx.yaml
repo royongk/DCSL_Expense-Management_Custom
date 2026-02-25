@@ -3802,7 +3802,7 @@
                                 {
                                     // 1. Power Automate 흐름 호출
                                     fetchedRateResult: GetExchangeRateFlow.Run(
-                                        Self.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경
+                                        ComboBox1_12.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경
                                         varSelectedLegalEntity
                                     ).rateresult,
                                     
@@ -4596,22 +4596,19 @@
                     Default: |-
                         =With(
                             {
-                                // 1. 표시할 LCY 숫자 결정 (새로 계산된 값이 있으면 쓰고, 없으면 기존 문서 값)
                                 displayNumber: If(
                                     !IsBlank(locCalculatedLCY), 
-                                    locCalculatedLCY, 
+                                    Value(locCalculatedLCY), 
                                     Value(Parent.Default)
                                 ),
                                 
-                                // 2. 요청하신 기본 Currency 조회 로직
-                                currencyRecord: If(
-                                    currExpenseType = 'TrvExpType (mserp)'.'Per diem',
-                                    LookUp('Currencies (mserp)','Currency code'= Coalesce(cmbPerdiemLocation.Selected.Currency, varDefaultCurrency)),
-                                    LookUp('Currencies (mserp)','Currency code'= Coalesce(Parent.Default, varDefaultCurrency))
+                                localCurrencyCode: If(
+                                    currExpenseType = 'TrvExpType (mserp)'.'Per diem' && !IsBlank(cmbPerdiemLocation.Selected.Currency),
+                                    cmbPerdiemLocation.Selected.Currency,
+                                    varDefaultCurrency // 이미 텍스트("KRW" 등)를 가지고 있으므로 바로 사용
                                 )
                             },
-                            // 3. 숫자 포맷팅 + 공백 + 통화 코드 결합 (예: "1,376,012.35 KRW")
-                            Text(displayNumber, "#,##0.00") & " " & currencyRecord.'Currency code'
+                            Text(displayNumber, "#,##0.00") & " " & Text(localCurrencyCode)
                         )
                     DelayOutput: =true
                     DisplayMode: =Parent.DisplayMode
