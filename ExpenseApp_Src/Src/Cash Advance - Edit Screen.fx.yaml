@@ -133,7 +133,7 @@
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
                 SearchFields: =["mserp_destination"]
-                SearchItems: =Search(Filter('Travel locations (mserp)','Company Code'=varSelectedLegalEntity),cb_Location.SearchText,mserp_destination)
+                SearchItems: =Search(Filter('Travel locations (mserp)','Company Code'=varSelectedLegalEntity),cb_Location.SearchText,Location)
                 SelectMultiple: =false
                 Size: =21
                 Width: =Parent.Width - Self.X*2
@@ -183,7 +183,7 @@
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
                 SearchFields: =["mserp_value"]
-                SearchItems: =Search(Filter('DimAttributeTrvTravelTxtEntity (mserp)','Company Code'=varSelectedLegalEntity),cb_Purpose.SearchText,mserp_value)
+                SearchItems: =Search(Filter('DimAttributeTrvTravelTxtEntity (mserp)','Company Code'=varSelectedLegalEntity),cb_Purpose.SearchText,'Purpose (mserp_value)')
                 SelectMultiple: =false
                 Size: =21
                 Width: =Parent.Width - Self.X*2
@@ -308,11 +308,11 @@
                         'DCSL TrvCash Advance Entity  (mserp)',
                         If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),
                         {
-                            mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
-                            mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
-                            mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
-                            mserp_requestedamount: Value(txt_RequestedAmount.Text),
-                            mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode)
+                            'Requested date': DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
+                            Location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
+                            Purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
+                            'Requested amount': Value(txt_RequestedAmount.Text),
+                            Currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode)
                         }
                     );
                     Notify("Cash Advance saved successfully", NotificationType.Success, gblParams.notificationTime);
@@ -347,11 +347,11 @@
                             'DCSL TrvCash Advance Entity  (mserp)',
                             If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),
                             {
-                                mserp_requesteddate: DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
-                                mserp_location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
-                                mserp_purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
-                                mserp_requestedamount: Value(txt_RequestedAmount.Text),
-                                mserp_currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode)
+                                'Requested date': DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
+                                Location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
+                                Purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
+                                'Requested amount': Value(txt_RequestedAmount.Text),
+                                Currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode)
                             }
                         )
                     });
@@ -361,7 +361,7 @@
                         'DCSL TrvCash Advance Entity  (mserp)',
                         ctxSavedRecord,
                         {
-                            mserp_workflowaction: "Submit"
+                            WorkflowAction: "Submit"
                         }
                     );
                     
