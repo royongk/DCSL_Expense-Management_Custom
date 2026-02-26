@@ -3810,9 +3810,9 @@
                                     currentAmount: Value(Substitute(DataCardValue4_1.Text, ",", ""))
                                 },
                                 
-                                // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 2자리까지만 남김)
+                                // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 0자리까지만 남김)
                                 UpdateContext({ 
-                                    locCalculatedLCY: Text(Round( (currentAmount * Value(fetchedRateResult)) / 100, 2 ))
+                                    locCalculatedLCY: Text(Round( (currentAmount * Value(fetchedRateResult)) / 100, 0 ))
                                 })
                             )
                         );
@@ -4087,7 +4087,7 @@
                                 
                                 // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 2자리까지만 남김)
                                 UpdateContext({ 
-                                    locCalculatedLCY: Text(Round((currentAmount * Value(fetchedRateResult)) / 100, 2))
+                                    locCalculatedLCY: Text(Round((currentAmount * Value(fetchedRateResult)) / 100, 0))
                                 })
                             )
                         );
@@ -4608,7 +4608,11 @@
                                     varDefaultCurrency // 이미 텍스트("KRW" 등)를 가지고 있으므로 바로 사용
                                 )
                             },
-                            Text(displayNumber, "#,##0.00") & " " & Text(localCurrencyCode)
+                            If(
+                                !IsBlank(displayNumber),
+                                Text(displayNumber, "#,##0.00") & " " & Text(localCurrencyCode),
+                                Blank()
+                            )
                         )
                     DelayOutput: =true
                     DisplayMode: =Parent.DisplayMode
