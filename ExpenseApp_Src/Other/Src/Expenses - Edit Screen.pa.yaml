@@ -7506,7 +7506,9 @@ Screens:
                         Default: =ThisItem.'Additional information'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Additional information')
                         MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Additional information')
-                        Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                        Required: |-
+                          =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
+                          true
                         Update: =DataCardValue11_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -10079,6 +10081,12 @@ Screens:
                         Height: =500
                         Required: =false
                         Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n        \n        // 3. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 4. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, ID, \",\"), \n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
+                        Visible: |-
+                          =If(
+                              varAppMode <> "EmployeeBenefit",
+                              true,
+                              false
+                          )
                         Width: =Parent.Width
                         X: =0
                         Y: =62
@@ -10088,7 +10096,7 @@ Screens:
                             Variant: AutoLayout
                             Properties:
                               DropShadow: =DropShadow.Bold
-                              Height: =500
+                              Height: =DataCardKey_MySelf.Height + Toggle_MySelf.Height + DataCardKey_OtherStaff.Height + cmb_OtherStaff.Height + DataCardKey_NoOfOtherStaff.Height + txt_NoOfOtherStaff.Height + con_Student_Row.Height
                               LayoutDirection: =LayoutDirection.Vertical
                               LayoutGap: =15
                               PaddingBottom: =5
@@ -10099,6 +10107,7 @@ Screens:
                               RadiusBottomRight: =0
                               RadiusTopLeft: =0
                               RadiusTopRight: =0
+                              Visible: =Parent.Visible
                               Width: =Parent.Width
                             Children:
                               - DataCardKey_MySelf:
@@ -10180,6 +10189,41 @@ Screens:
                                     SelectionFill: =gblParams.dropDownBorderColor
                                     Size: =20
                                     Width: =Parent.Width - 60
+                              - DataCardKey_NoOfOtherStaff:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =gblParams.dropDownLabelColor
+                                    Font: =Font.'Open Sans'
+                                    Height: =48
+                                    PaddingLeft: =20
+                                    Text: ="Number of Other Staff"
+                                    Width: =Parent.Width - 60
+                                    Wrap: =false
+                                    X: =30
+                                    Y: =10
+                              - txt_NoOfOtherStaff:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Center
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    BorderThickness: =0
+                                    Default: =""
+                                    Font: =Font.'Open Sans'
+                                    Format: =TextFormat.Number
+                                    HintText: ="Enter Number of Other Staff"
+                                    HoverBorderColor: =RGBA(0, 18, 107, 1)
+                                    HoverFill: =RGBA(186, 202, 226, 1)
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =400
+                                    PaddingBottom: =10
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =10
+                                    VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
+                                    Width: =Parent.Width - 60
                               - con_Student_Row:
                                   Control: GroupContainer@1.4.0
                                   Variant: AutoLayout
@@ -10250,6 +10294,7 @@ Screens:
                                                 LayoutMinHeight: =16
                                                 LayoutMinWidth: =16
                                                 PaddingLeft: =5
+                                                VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
                                                 Width: =
                                     - con_Student_Senior:
                                         Control: GroupContainer@1.4.0
@@ -10299,6 +10344,7 @@ Screens:
                                                 LayoutMinHeight: =16
                                                 LayoutMinWidth: =16
                                                 PaddingLeft: =5
+                                                VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
                                                 Width: =
                         - DataCardKey24:
                             Control: Label@2.5.1
