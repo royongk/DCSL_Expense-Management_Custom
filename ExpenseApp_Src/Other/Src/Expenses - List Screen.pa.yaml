@@ -479,28 +479,14 @@ Screens:
                                     PaddingLeft: =15
                                     PaddingRight: =0
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                                    Text: |-
-                                      =If(
-                                          ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
-                                          Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
-                                          ThisItem.Merchant
-                                      )
+                                    Text: =Coalesce(ThisItem.'Item or Service', "")
                                     Width: =Parent.Width
                               - Label6:
                                   Control: Label@2.5.1
                                   Properties:
                                     AutoHeight: =true
                                     BorderColor: =RGBA(0, 18, 107, 1)
-                                    Color: |-
-                                      =If(
-                                          Value(ThisItem.PolicyViolationCount) > 0,
-                                          If(
-                                              Value(ThisItem.PolicyViolationsLevel) <= 2,
-                                              RGBA(152, 111, 11, 1),
-                                              RGBA(217, 44, 44, 1)
-                                          ),
-                                          RGBA(102, 102, 102, 1)
-                                      )
+                                    Color: =RGBA(102, 102, 102, 1)
                                     Font: =Font.'Segoe UI'
                                     LayoutMaxHeight: =
                                     LayoutMaxWidth: =
@@ -508,12 +494,7 @@ Screens:
                                     PaddingLeft: =15
                                     PaddingRight: =0
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                                    Text: |-
-                                      =If(
-                                          Value(ThisItem.PolicyViolationCount) > 0,
-                                          Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_FoundPolicyViolationLabel', "$", Text(ThisItem.PolicyViolationCount)),
-                                          ThisItem.ProjectName
-                                      )
+                                    Text: =ThisItem.'Additional information'
                                     Width: =Parent.Width
                         - Container9:
                             Control: GroupContainer@1.4.0

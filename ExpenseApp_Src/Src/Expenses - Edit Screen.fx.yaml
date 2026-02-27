@@ -1654,9 +1654,9 @@
                         UpdateContext({
                             locCurrentSetup: LookUp(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                mserp_expensetype = ComboBox_ExpenseType.Selected.Value && 
-                                mserp_purchasecategory = ComboBox_PurchaseCategory.Selected.Value && 
-                                mserp_itemorservice = Self.Selected.Value
+                                'Expense Type' = ComboBox_ExpenseType.Selected.Value && 
+                                'Purchase Category' = ComboBox_PurchaseCategory.Selected.Value && 
+                                'Item or Service' = Self.Selected.Value
                             )
                         });
                         
@@ -3655,8 +3655,8 @@
                         currExpenseType = 'TrvExpType (mserp)'.'Per diem' || 
                         
                         // 2. 🚀 [신규 추가] 고정 금액이 설정된 카테고리인 경우
-                        !IsBlank(locCurrentSetup.mserp_amount) && 
-                        locCurrentSetup.mserp_fixedamount = 'NoYes (mserp)'.Yes,
+                        !IsBlank(locCurrentSetup.Amount) && 
+                        locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,
                         
                         // 위 조건 중 하나라도 맞으면 읽기 전용(수정 불가)
                         DisplayMode.View,
@@ -3753,8 +3753,8 @@
                                 // 1. 기준 금액(baseAmount) 결정 로직
                                 baseAmount: If(
                                     // 고정 금액 체크박스가 활성화(Yes 또는 true) 되어 있다면
-                                    !IsBlank(locCurrentSetup.mserp_amount) && locCurrentSetup.mserp_fixedamount = 'NoYes (mserp)'.Yes,
-                                    locCurrentSetup.mserp_amount, // D365에 설정된 고정 금액을 가져옴
+                                    !IsBlank(locCurrentSetup.Amount) && locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,
+                                    locCurrentSetup.Amount, // D365에 설정된 고정 금액을 가져옴
                                     
                                     // 고정 금액이 아니라면 기존처럼 사용자 입력값이나 기존 저장값을 가져옴
                                     Value(Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'))
@@ -3784,9 +3784,9 @@
                         
                         // 2. 최대 금액 초과 여부 체크 및 알림
                         If(
-                            !IsBlank(locCurrentSetup.mserp_maxamount) && 
-                            locCurrentSetup.mserp_maxamount > 0 && 
-                            Value(locTempAmount) > locCurrentSetup.mserp_maxamount,
+                            !IsBlank(locCurrentSetup.'Max Amount') && 
+                            locCurrentSetup.'Max Amount' > 0 && 
+                            Value(locTempAmount) > locCurrentSetup.'Max Amount',
                             Notify("입력한 금액이 최대 허용 금액을 초과했습니다. 금액을 다시 확인해주세요.", NotificationType.Error, 4000)
                         );
                         
@@ -3876,14 +3876,14 @@
                         =If(
                             !IsBlank(Parent.Error) && Len(Parent.Error) > 0, 
                             Parent.Error, 
-                            "입력하신 금액이 최대 한도액(" & Text(locCurrentSetup.mserp_maxamount, "[$-ko-KR]₩#,##0") & ")을 초과했습니다."
+                            "입력하신 금액이 최대 한도액(" & Text(locCurrentSetup.'Max Amount', "[$-ko-KR]₩#,##0") & ")을 초과했습니다."
                         )
                     Visible: |-
                         =( !IsBlank(Parent.Error) && Len(Parent.Error) > 0 ) || 
                         (
-                            !IsBlank(locCurrentSetup.mserp_maxamount) && 
-                            locCurrentSetup.mserp_maxamount > 0 && 
-                            Value(Substitute(Coalesce(DataCardValue4_1.Text, "0"), ",", "")) > locCurrentSetup.mserp_maxamount
+                            !IsBlank(locCurrentSetup.'Max Amount') && 
+                            locCurrentSetup.'Max Amount' > 0 && 
+                            Value(Substitute(Coalesce(DataCardValue4_1.Text, "0"), ",", "")) > locCurrentSetup.'Max Amount'
                         )
                     Width: =Parent.Width - 60
                     X: =30
@@ -4028,7 +4028,7 @@
                     HoverFill: =
                     Items: |-
                         =ShowColumns(
-                        'Currencies (mserp)',mserp_currencycode)
+                        'Currencies (mserp)','Currency code')
                     PressedBorderColor: =
                     PressedFill: =
                     SelectionColor: =Self.Color
@@ -4563,7 +4563,7 @@
                 DisplayName: ="Accounting Amount & Currency"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
+                MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, LCY)
                 Required: =false
                 Update: |-
                     =If(
@@ -6527,7 +6527,7 @@
                         =UpdateContext({isDirty : true});
                     Reset: =true
                     SearchFields: =["mserp_activitynumber","mserp_purpose"]
-                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,mserp_activitynumber,mserp_purpose)
+                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,'Activity number',Purpose)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -7546,7 +7546,7 @@
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_salestaxgroup","mserp_description"]
-                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,mserp_salestaxgroup,mserp_description)
+                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,'Sales tax group',Description)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -10991,7 +10991,7 @@
                             
                             // 1. Employee Benefits Claim
                             "EmployeeBenefit",
-                            LookUp('DCSL Financial Dimension CostCenter (mserp)', mserp_dimensionvalue = "6104"),
+                            LookUp('DCSL Financial Dimension CostCenter (mserp)', 'Combination display' = "6104"),
                             
                             // 2. Airfare & Shipping Allowance Claim
                             // (출장 신청서 데이터가 현재 컨텍스트에 없는 경우, 임시로 varSelectedExpenseDoc의 기존 CostCenter를 유지하거나, 출장 신청서 테이블을 직접 LookUp 해야 합니다. 
@@ -11309,7 +11309,7 @@
                 DataField: ="mserp_deexexpensebeneficiary"
                 Default: =ThisItem.'Expense Beneficiary'
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexexpensebeneficiary')
+                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =500
                 Required: =false
@@ -12283,9 +12283,9 @@
                     (btnEditRefreshExpense.Visible && (featureEnabled = "False" || perdiemFeatureEnabled = "False")) ||
                     
                     // 3. 🚀 [신규 추가] 최대 허용 금액 초과 시
-                    (!IsBlank(locCurrentSetup.mserp_maxamount) && 
-                     locCurrentSetup.mserp_maxamount > 0 && 
-                     Value(Substitute(DataCardValue4_1.Text, ",", "")) > locCurrentSetup.mserp_maxamount),
+                    (!IsBlank(locCurrentSetup.'Max Amount') && 
+                     locCurrentSetup.'Max Amount' > 0 && 
+                     Value(Substitute(DataCardValue4_1.Text, ",", "")) > locCurrentSetup.'Max Amount'),
                      
                     // 위 세 가지 조건 중 하나라도 해당하면 버튼을 비활성화(클릭 불가 & 회색 처리)
                     DisplayMode.Disabled,

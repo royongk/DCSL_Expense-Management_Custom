@@ -953,9 +953,9 @@ Screens:
                                 UpdateContext({
                                     locCurrentSetup: LookUp(
                                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        mserp_expensetype = ComboBox_ExpenseType.Selected.Value && 
-                                        mserp_purchasecategory = ComboBox_PurchaseCategory.Selected.Value && 
-                                        mserp_itemorservice = Self.Selected.Value
+                                        'Expense Type' = ComboBox_ExpenseType.Selected.Value && 
+                                        'Purchase Category' = ComboBox_PurchaseCategory.Selected.Value && 
+                                        'Item or Service' = Self.Selected.Value
                                     )
                                 });
 
@@ -2701,7 +2701,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_amountcurr"
                         Default: =ThisItem.'Transaction amount'
-                        DisplayMode: "=If(\n    // 1. 기존 조건: 일당(Per diem) 경비인 경우\n    currExpenseType = 'TrvExpType (mserp)'.'Per diem' || \n    \n    // 2. \U0001F680 [신규 추가] 고정 금액이 설정된 카테고리인 경우\n    !IsBlank(locCurrentSetup.mserp_amount) && \n    locCurrentSetup.mserp_fixedamount = 'NoYes (mserp)'.Yes,\n    \n    // 위 조건 중 하나라도 맞으면 읽기 전용(수정 불가)\n    DisplayMode.View,\n    \n    // 일반적인 상황에서는 편집 가능\n    DisplayMode.Edit\n)"
+                        DisplayMode: "=If(\n    // 1. 기존 조건: 일당(Per diem) 경비인 경우\n    currExpenseType = 'TrvExpType (mserp)'.'Per diem' || \n    \n    // 2. \U0001F680 [신규 추가] 고정 금액이 설정된 카테고리인 경우\n    !IsBlank(locCurrentSetup.Amount) && \n    locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,\n    \n    // 위 조건 중 하나라도 맞으면 읽기 전용(수정 불가)\n    DisplayMode.View,\n    \n    // 일반적인 상황에서는 편집 가능\n    DisplayMode.Edit\n)"
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Transaction amount')
                         Required: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
                         Update: |-
@@ -2759,7 +2759,7 @@ Screens:
                               AccessibleLabel: =Concatenate("Enter ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
                               BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                               BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
-                              Default: "=/*\nText(If(\n    varIsCreate && !IsBlank(OCRresponse) && !onReloadButtonClick && IsBlank(dirtyTransAmount),    \n    Value(\n        Text(OCRresponse.amountCurr),\n        \"en-US\"\n    ),\n    Switch(\n        currExpenseType,\n        'TrvExpType (mserp)'.'Per diem',\n        If(\n            !IsBlank(locPerdiemAmountCurr),\n            locPerdiemAmountCurr,\n            Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))\n        ),\n        'TrvExpType (mserp)'.Mileage,\n        If(\n            !IsBlank(varMileageTotal),\n            Value(varMileageTotal,\"en-US\"),\n            Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))\n        ),\n        Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))\n    )\n), \"#,#0.00\",varDefaultLanguage)\n*/\n// 천단위 구분 기호 로직 수정\nWith(\n    {\n        // 1. 기준 금액(baseAmount) 결정 로직\n        baseAmount: If(\n            // 고정 금액 체크박스가 활성화(Yes 또는 true) 되어 있다면\n            !IsBlank(locCurrentSetup.mserp_amount) && locCurrentSetup.mserp_fixedamount = 'NoYes (mserp)'.Yes,\n            locCurrentSetup.mserp_amount, // D365에 설정된 고정 금액을 가져옴\n            \n            // 고정 금액이 아니라면 기존처럼 사용자 입력값이나 기존 저장값을 가져옴\n            Value(Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'))\n        )\n    },\n    // 2. 결정된 기준 금액에 콤마 포맷 적용\n    If(\n        locIsEditingAmount, \n        Text(baseAmount, \"#\"),                   // 편집 중: 콤마 없음\n        Text(baseAmount, \"#,##0.00\", varDefaultLanguage) // 평상시: 천 단위 콤마 포함\n    )\n)"
+                              Default: "=/*\nText(If(\n    varIsCreate && !IsBlank(OCRresponse) && !onReloadButtonClick && IsBlank(dirtyTransAmount),    \n    Value(\n        Text(OCRresponse.amountCurr),\n        \"en-US\"\n    ),\n    Switch(\n        currExpenseType,\n        'TrvExpType (mserp)'.'Per diem',\n        If(\n            !IsBlank(locPerdiemAmountCurr),\n            locPerdiemAmountCurr,\n            Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))\n        ),\n        'TrvExpType (mserp)'.Mileage,\n        If(\n            !IsBlank(varMileageTotal),\n            Value(varMileageTotal,\"en-US\"),\n            Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))\n        ),\n        Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))\n    )\n), \"#,#0.00\",varDefaultLanguage)\n*/\n// 천단위 구분 기호 로직 수정\nWith(\n    {\n        // 1. 기준 금액(baseAmount) 결정 로직\n        baseAmount: If(\n            // 고정 금액 체크박스가 활성화(Yes 또는 true) 되어 있다면\n            !IsBlank(locCurrentSetup.Amount) && locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,\n            locCurrentSetup.Amount, // D365에 설정된 고정 금액을 가져옴\n            \n            // 고정 금액이 아니라면 기존처럼 사용자 입력값이나 기존 저장값을 가져옴\n            Value(Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'))\n        )\n    },\n    // 2. 결정된 기준 금액에 콤마 포맷 적용\n    If(\n        locIsEditingAmount, \n        Text(baseAmount, \"#\"),                   // 편집 중: 콤마 없음\n        Text(baseAmount, \"#,##0.00\", varDefaultLanguage) // 평상시: 천 단위 콤마 포함\n    )\n)"
                               DelayOutput: =true
                               DisplayMode: =Parent.DisplayMode
                               FocusedBorderThickness: =gblParams.dorpDownBorderThickness
@@ -2771,7 +2771,7 @@ Screens:
                               HintText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionAmountLabel'
                               HoverBorderColor: =
                               HoverFill: =gblParams.dropDownHoverFill
-                              OnChange: "=// 1. 입력값에서 콤마를 제거한 '순수 숫자'를 임시 변수에 저장\nUpdateContext({ locTempAmount: Substitute(Self.Text, \",\", \"\") });\n\n// 2. 최대 금액 초과 여부 체크 및 알림\nIf(\n    !IsBlank(locCurrentSetup.mserp_maxamount) && \n    locCurrentSetup.mserp_maxamount > 0 && \n    Value(locTempAmount) > locCurrentSetup.mserp_maxamount,\n    Notify(\"입력한 금액이 최대 허용 금액을 초과했습니다. 금액을 다시 확인해주세요.\", NotificationType.Error, 4000)\n);\n\n// 3. 실제 저장될 변수(dirtyTransAmount)에 '순수 숫자'만 업데이트\nUpdateContext({ dirtyTransAmount: locTempAmount });\n\n// --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---\nIf(\n    !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locTempAmount),\n    \n    // 1. D365 액션 호출하여 환율 받아오기\n    With(\n        {\n            // 1. Power Automate 흐름 호출\n            fetchedRateResult: GetExchangeRateFlow.Run(\n                ComboBox1_12.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경\n                varSelectedLegalEntity\n            ).rateresult,\n            \n            // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환\n            currentAmount: Value(Substitute(DataCardValue4_1.Text, \",\", \"\"))\n        },\n        \n        // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 0자리까지만 남김)\n        UpdateContext({ \n            locCalculatedLCY: Text(Round( (currentAmount * Value(fetchedRateResult)) / 100, 0 ))\n        })\n    )\n);\n\n// 4. 편집 모드 종료\nUpdateContext({ locIsEditingAmount: false });\n\n// 5. 컨트롤 리셋 (이때 Default 로직이 돌아가며 천 단위 콤마가 예쁘게 적용됨)\nReset(Self);\n\n// 6. 기타 필수 상태 업데이트\nUpdateContext({isDirty : true});\nUpdateContext({varOnChangeTriggered : true});\n\n// \U0001F680 [가장 중요한 수정] 기존에 있던 아래 코드는 절대 사용하면 안 됩니다. 삭제했습니다.\n// UpdateContext({dirtyTransAmount : Self.Text}); \n\nUpdateContext({taxModifiedByUser:false});\nUpdateContext({msCallStartedForSalestaxCalculation : true});\n\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\n\nReset(DataCardValue25_1);\nUpdateContext({msCallStartedForSalestaxCalculation : false});"
+                              OnChange: "=// 1. 입력값에서 콤마를 제거한 '순수 숫자'를 임시 변수에 저장\nUpdateContext({ locTempAmount: Substitute(Self.Text, \",\", \"\") });\n\n// 2. 최대 금액 초과 여부 체크 및 알림\nIf(\n    !IsBlank(locCurrentSetup.'Max Amount') && \n    locCurrentSetup.'Max Amount' > 0 && \n    Value(locTempAmount) > locCurrentSetup.'Max Amount',\n    Notify(\"입력한 금액이 최대 허용 금액을 초과했습니다. 금액을 다시 확인해주세요.\", NotificationType.Error, 4000)\n);\n\n// 3. 실제 저장될 변수(dirtyTransAmount)에 '순수 숫자'만 업데이트\nUpdateContext({ dirtyTransAmount: locTempAmount });\n\n// --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---\nIf(\n    !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locTempAmount),\n    \n    // 1. D365 액션 호출하여 환율 받아오기\n    With(\n        {\n            // 1. Power Automate 흐름 호출\n            fetchedRateResult: GetExchangeRateFlow.Run(\n                ComboBox1_12.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경\n                varSelectedLegalEntity\n            ).rateresult,\n            \n            // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환\n            currentAmount: Value(Substitute(DataCardValue4_1.Text, \",\", \"\"))\n        },\n        \n        // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 0자리까지만 남김)\n        UpdateContext({ \n            locCalculatedLCY: Text(Round( (currentAmount * Value(fetchedRateResult)) / 100, 0 ))\n        })\n    )\n);\n\n// 4. 편집 모드 종료\nUpdateContext({ locIsEditingAmount: false });\n\n// 5. 컨트롤 리셋 (이때 Default 로직이 돌아가며 천 단위 콤마가 예쁘게 적용됨)\nReset(Self);\n\n// 6. 기타 필수 상태 업데이트\nUpdateContext({isDirty : true});\nUpdateContext({varOnChangeTriggered : true});\n\n// \U0001F680 [가장 중요한 수정] 기존에 있던 아래 코드는 절대 사용하면 안 됩니다. 삭제했습니다.\n// UpdateContext({dirtyTransAmount : Self.Text}); \n\nUpdateContext({taxModifiedByUser:false});\nUpdateContext({msCallStartedForSalestaxCalculation : true});\n\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\n\nReset(DataCardValue25_1);\nUpdateContext({msCallStartedForSalestaxCalculation : false});"
                               OnSelect: |-
                                 =UpdateContext({ locIsEditingAmount: true }); // 편집 모드 시작
                                 UpdateContext({varOnSelectTriggered: true})
@@ -2809,14 +2809,14 @@ Screens:
                                 =If(
                                     !IsBlank(Parent.Error) && Len(Parent.Error) > 0, 
                                     Parent.Error, 
-                                    "입력하신 금액이 최대 한도액(" & Text(locCurrentSetup.mserp_maxamount, "[$-ko-KR]₩#,##0") & ")을 초과했습니다."
+                                    "입력하신 금액이 최대 한도액(" & Text(locCurrentSetup.'Max Amount', "[$-ko-KR]₩#,##0") & ")을 초과했습니다."
                                 )
                               Visible: |-
                                 =( !IsBlank(Parent.Error) && Len(Parent.Error) > 0 ) || 
                                 (
-                                    !IsBlank(locCurrentSetup.mserp_maxamount) && 
-                                    locCurrentSetup.mserp_maxamount > 0 && 
-                                    Value(Substitute(Coalesce(DataCardValue4_1.Text, "0"), ",", "")) > locCurrentSetup.mserp_maxamount
+                                    !IsBlank(locCurrentSetup.'Max Amount') && 
+                                    locCurrentSetup.'Max Amount' > 0 && 
+                                    Value(Substitute(Coalesce(DataCardValue4_1.Text, "0"), ",", "")) > locCurrentSetup.'Max Amount'
                                 )
                               Width: =Parent.Width - 60
                               X: =30
@@ -2971,7 +2971,7 @@ Screens:
                               HoverFill: =
                               Items: |-
                                 =ShowColumns(
-                                'Currencies (mserp)',mserp_currencycode)
+                                'Currencies (mserp)','Currency code')
                               Items.Value: =mserp_currencycode
                               PressedBorderColor: =
                               PressedColor: =RGBA(255, 255, 255, 1)
@@ -3446,7 +3446,7 @@ Screens:
                         Default: =ThisItem.LCY
                         DisplayMode: =DisplayMode.View
                         DisplayName: ="Accounting Amount & Currency"
-                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'mserp_deexlcy')
+                        MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, LCY)
                         Required: =false
                         Update: |-
                           =If(
@@ -9776,7 +9776,7 @@ Screens:
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: "=Switch(\n    // 조건: 현재 선택된 경비 유형 (varSelectedExpenseType 또는 varAppMode 활용)\n    varAppMode,\n    \n    // 1. Employee Benefits Claim\n    \"EmployeeBenefit\",\n    LookUp('DCSL Financial Dimension CostCenter (mserp)', mserp_dimensionvalue = \"6104\"),\n    \n    // 2. Airfare & Shipping Allowance Claim\n    // (출장 신청서 데이터가 현재 컨텍스트에 없는 경우, 임시로 varSelectedExpenseDoc의 기존 CostCenter를 유지하거나, 출장 신청서 테이블을 직접 LookUp 해야 합니다. \n    // 아래는 varSelectedCostCenter나 문서의 기존 값을 가져오는 방어적 코드입니다.)\n    \"AirfareAllowance\",\n    If(\n        !IsBlank(varSelectedCostCenter),\n        varSelectedCostCenter,\n        Blank() // *만약 Travel Requisition을 별도 테이블에서 가져와야 한다면 이 부분을 수정해야 합니다.*\n    ),\n    \n    // 3. 기본값 (일반적인 경우)\n    If(\n        !IsBlank(varSelectedCostCenter),\n        varSelectedCostCenter,\n        Blank()\n    )\n)"
+                              DefaultSelectedItems: "=Switch(\n    // 조건: 현재 선택된 경비 유형 (varSelectedExpenseType 또는 varAppMode 활용)\n    varAppMode,\n    \n    // 1. Employee Benefits Claim\n    \"EmployeeBenefit\",\n    LookUp('DCSL Financial Dimension CostCenter (mserp)', 'Combination display' = \"6104\"),\n    \n    // 2. Airfare & Shipping Allowance Claim\n    // (출장 신청서 데이터가 현재 컨텍스트에 없는 경우, 임시로 varSelectedExpenseDoc의 기존 CostCenter를 유지하거나, 출장 신청서 테이블을 직접 LookUp 해야 합니다. \n    // 아래는 varSelectedCostCenter나 문서의 기존 값을 가져오는 방어적 코드입니다.)\n    \"AirfareAllowance\",\n    If(\n        !IsBlank(varSelectedCostCenter),\n        varSelectedCostCenter,\n        Blank() // *만약 Travel Requisition을 별도 테이블에서 가져와야 한다면 이 부분을 수정해야 합니다.*\n    ),\n    \n    // 3. 기본값 (일반적인 경우)\n    If(\n        !IsBlank(varSelectedCostCenter),\n        varSelectedCostCenter,\n        Blank()\n    )\n)"
                               DisplayFields: =["mserp_dimensionvalue","mserp_description"]
                               DisplayMode: =Parent.DisplayMode
                               FocusedBorderThickness: =2
@@ -10075,7 +10075,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deexexpensebeneficiary"
                         Default: =ThisItem.'Expense Beneficiary'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_deexexpensebeneficiary')
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
                         Height: =500
                         Required: =false
                         Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n        \n        // 3. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 4. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, ID, \",\"), \n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
@@ -10736,7 +10736,7 @@ Screens:
                   BorderColor: =ColorFade(Self.Fill, -15%)
                   Color: =RGBA(255, 255, 255, 1)
                   DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                  DisplayMode: "=If(\n    // 1. 기존 방어 로직: 세금 계산 중이거나 각종 타이머가 동작 중일 때\n    (msCallStartedForSalestaxCalculation  || timerProj || timerCostType || timerHBIT || timerCountry || timerState) ||\n    \n    // 2. 기존 방어 로직: 필수 기능이 비활성화된 상태일 때\n    (btnEditRefreshExpense.Visible && (featureEnabled = \"False\" || perdiemFeatureEnabled = \"False\")) ||\n    \n    // 3. \U0001F680 [신규 추가] 최대 허용 금액 초과 시\n    (!IsBlank(locCurrentSetup.mserp_maxamount) && \n     locCurrentSetup.mserp_maxamount > 0 && \n     Value(Substitute(DataCardValue4_1.Text, \",\", \"\")) > locCurrentSetup.mserp_maxamount),\n     \n    // 위 세 가지 조건 중 하나라도 해당하면 버튼을 비활성화(클릭 불가 & 회색 처리)\n    DisplayMode.Disabled,\n    \n    // 모두 통과하면 편집(클릭 가능) 상태로 변경\n    DisplayMode.Edit\n)"
+                  DisplayMode: "=If(\n    // 1. 기존 방어 로직: 세금 계산 중이거나 각종 타이머가 동작 중일 때\n    (msCallStartedForSalestaxCalculation  || timerProj || timerCostType || timerHBIT || timerCountry || timerState) ||\n    \n    // 2. 기존 방어 로직: 필수 기능이 비활성화된 상태일 때\n    (btnEditRefreshExpense.Visible && (featureEnabled = \"False\" || perdiemFeatureEnabled = \"False\")) ||\n    \n    // 3. \U0001F680 [신규 추가] 최대 허용 금액 초과 시\n    (!IsBlank(locCurrentSetup.'Max Amount') && \n     locCurrentSetup.'Max Amount' > 0 && \n     Value(Substitute(DataCardValue4_1.Text, \",\", \"\")) > locCurrentSetup.'Max Amount'),\n     \n    // 위 세 가지 조건 중 하나라도 해당하면 버튼을 비활성화(클릭 불가 & 회색 처리)\n    DisplayMode.Disabled,\n    \n    // 모두 통과하면 편집(클릭 가능) 상태로 변경\n    DisplayMode.Edit\n)"
                   Fill: =RGBA(34, 102, 227, 1)
                   Font: =Font.'Segoe UI'
                   Height: =87
