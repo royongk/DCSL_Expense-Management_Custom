@@ -461,13 +461,9 @@ Screens:
               =Parent.Width
             Y: |-
               =If(
-                  !IsEmpty(colAttachedReceipts),
-                  scr03_btn_AddReceipt_Always.Y + scr03_btn_AddReceipt_Always.Height,
-                  If(
-                      IsEmpty(colAttachedReceipts) && !IsBlank(varReceiptImage),
-                      scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30,
-                      scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
-                  )
+                  !IsEmpty(colAttachedReceipts) || !IsEmpty(colPendingReceipts), // 수정됨: 임시 영수증(colPendingReceipts) 조건 추가
+                  scr03_btn_AddReceipt_Always.Y + scr03_btn_AddReceipt_Always.Height + 15, // 15는 버튼과 폼 사이의 적절한 여백(Margin)
+                  scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
               )
           Children:
             - EditExpenseForm:
@@ -10078,9 +10074,9 @@ Screens:
                         DataField: ="mserp_deexexpensebeneficiary"
                         Default: =ThisItem.'Expense Beneficiary'
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
-                        Height: =500
+                        Height: =ErrorMessage24.Y + ErrorMessage24.Height + 5
                         Required: =false
-                        Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n        \n        // 3. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 4. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, ID, \",\"), \n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
+                        Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n\n        // 3. 다른 직원 숫자 선택 (숫자 변환 실패 시 0)\n        valNoOfOtherStaff: IfError(Value(txt_NoOfOtherStaff.Text), 0),\n        \n        // 4. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 5. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, ID, \",\"), \n            NumberOfOtherStaff: valNoOfOtherStaff,\n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
                         Visible: |-
                           =If(
                               varAppMode <> "EmployeeBenefit",
@@ -10096,7 +10092,7 @@ Screens:
                             Variant: AutoLayout
                             Properties:
                               DropShadow: =DropShadow.Bold
-                              Height: =DataCardKey_MySelf.Height + Toggle_MySelf.Height + DataCardKey_OtherStaff.Height + cmb_OtherStaff.Height + DataCardKey_NoOfOtherStaff.Height + txt_NoOfOtherStaff.Height + con_Student_Row.Height
+                              Height: "=With({\r\n    _gap: 15,\r\n    _padding: 10, // con_Beneficiary_Layout 자체의 위아래 패딩(5 + 5)\r\n    c1: If(DataCardKey_MySelf.Visible, DataCardKey_MySelf.Height, 0),\r\n    c2: If(Toggle_MySelf.Visible, Toggle_MySelf.Height, 0),\r\n    c3: If(DataCardKey_OtherStaff.Visible, DataCardKey_OtherStaff.Height, 0),\r\n    c4: If(cmb_OtherStaff.Visible, cmb_OtherStaff.Height, 0),\r\n    c5: If(DataCardKey_NoOfOtherStaff.Visible, DataCardKey_NoOfOtherStaff.Height, 0),\r\n    c6: If(txt_NoOfOtherStaff.Visible, txt_NoOfOtherStaff.Height, 0),\r\n    \r\n    // 핵심 수정: 하위 컨테이너의 Height 속성을 믿지 않고, 실제 컨트롤(Label, TextInput) 높이를 직접 계산\r\n    c7: If(con_Student_Row.Visible, \r\n           Max(\r\n               DataCardKey_StudentPrimary.Height + txt_StudentPrimary.Height + 16, // 16은 Primary 컨테이너 자체 패딩\r\n               DataCardKey_StudentSenior.Height + txt_StudentSenior.Height + 16    // 16은 Senior 컨테이너 자체 패딩\r\n           ) + 16, // 16은 con_Student_Row 자체의 상하 패딩 (8 + 8)\r\n           0)\r\n},\r\n    // 모든 컨트롤의 높이 합산\r\n    c1 + c2 + c3 + c4 + c5 + c6 + c7 + \r\n    // 보여지는 컨트롤 개수에 따른 Gap 정확히 계산\r\n    (Max(0, (If(c1>0, 1, 0) + If(c2>0, 1, 0) + If(c3>0, 1, 0) + If(c4>0, 1, 0) + If(c5>0, 1, 0) + If(c6>0, 1, 0) + If(c7>0, 1, 0)) - 1) * _gap) + \r\n    // 메인 컨테이너 위아래 여백\r\n    _padding\r\n)"
                               LayoutDirection: =LayoutDirection.Vertical
                               LayoutGap: =15
                               PaddingBottom: =5
@@ -10229,6 +10225,7 @@ Screens:
                                   Variant: AutoLayout
                                   Properties:
                                     DropShadow: =DropShadow.None
+                                    Height: =If(Self.Visible, Max(con_Student_Primary.Height, con_Student_Senior.Height) + 16, 0)
                                     LayoutAlignItems: =LayoutAlignItems.Center
                                     LayoutDirection: =LayoutDirection.Horizontal
                                     LayoutGap: =10
@@ -10250,6 +10247,7 @@ Screens:
                                         Variant: AutoLayout
                                         Properties:
                                           DropShadow: =DropShadow.None
+                                          Height: =If(Self.Visible, DataCardKey_StudentPrimary.Height + txt_StudentPrimary.Height + 16, 0)
                                           LayoutAlignItems: =LayoutAlignItems.Center
                                           LayoutDirection: =LayoutDirection.Vertical
                                           LayoutMinHeight: =16
@@ -10295,12 +10293,13 @@ Screens:
                                                 LayoutMinWidth: =16
                                                 PaddingLeft: =5
                                                 VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
-                                                Width: =
+                                                Width: =Parent.Width - 60
                                     - con_Student_Senior:
                                         Control: GroupContainer@1.4.0
                                         Variant: AutoLayout
                                         Properties:
                                           DropShadow: =DropShadow.None
+                                          Height: =If(Self.Visible, DataCardKey_StudentSenior.Height + txt_StudentSenior.Height + 16, 0)
                                           LayoutAlignItems: =LayoutAlignItems.Center
                                           LayoutDirection: =LayoutDirection.Vertical
                                           LayoutMinHeight: =16
@@ -10345,7 +10344,7 @@ Screens:
                                                 LayoutMinWidth: =16
                                                 PaddingLeft: =5
                                                 VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
-                                                Width: =
+                                                Width: =Parent.Width - 60
                         - DataCardKey24:
                             Control: Label@2.5.1
                             MetadataKey: FieldName
@@ -10404,7 +10403,7 @@ Screens:
                               Visible: =Parent.DisplayMode=DisplayMode.Edit
                               Width: =Parent.Width - 60
                               X: =30
-                              Y: =DataCardValue17.Y + DataCardValue17.Height
+                              Y: =con_Beneficiary_Layout.Y + con_Beneficiary_Layout.Height
                         - StarVisible24:
                             Control: Label@2.5.1
                             MetadataKey: FieldRequired
