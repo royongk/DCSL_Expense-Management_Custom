@@ -46,6 +46,206 @@
         Y: =CashAdvanceEdit_Header.Height
         ZIndex: =3
 
+        CollectionMethod_Container As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =LblContainer_CollectionMethod.Height + cb_CollectionMethod.Height + 20
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Width: =Parent.Width
+            ZIndex: =1
+
+            LblContainer_CollectionMethod As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =35
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =Parent.Width
+                ZIndex: =1
+
+                lbl_CollectionMethod As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    Size: =18
+                    Text: ="Collection Method"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+            cb_CollectionMethod As combobox:
+                DefaultSelectedItems: =If(!varIsCreateCashAdvance, [varSelectedCashAdvance.'Collection method'])
+                DisplayFields: =["Value"]
+                FillPortions: =1
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                InputTextPlaceholder: ="Select method"
+                Items: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection method')
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                SearchFields: =["Value"]
+                SearchItems: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection method',cb_CollectionMethod.SearchText)
+                SelectMultiple: =false
+                Size: =21
+                Width: =Parent.Width - Self.X*2
+                X: =40
+                ZIndex: =2
+
+        CollectionTransferDate_Container As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =LblContainer_CollectionTrasferDate.Height + dtp_CollectionTrasferDate.Height + 20
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Width: =Parent.Width
+            ZIndex: =2
+
+            LblContainer_CollectionTrasferDate As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =Parent.Width
+                ZIndex: =1
+
+                lbl_CollectionTrasferDate As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    Size: =18
+                    Text: ="Collection/Transfer Date"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+            dtp_CollectionTrasferDate As datepicker:
+                CalendarHeaderFill: =App.Theme.Colors.Primary
+                DefaultDate: |-
+                    =If(
+                        varIsCreateCashAdvance, Today(), 
+                        varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexcollectiontransferdate)'
+                    )
+                FillPortions: =1
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                HoverDateFill: =App.Theme.Colors.Lighter70
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                maximumHeight: =1136
+                maximumWidth: =640
+                SelectedDateFill: =App.Theme.Colors.Primary
+                Size: =21
+                Width: =Parent.Width - Self.X*2
+                X: =40
+                ZIndex: =2
+
+        SalaryDeductionPeriod_Container As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =LblContainer_SalaryDeductionPeriod.Height + cb_SalaryDeductionPeriod.Height + 20
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Visible: |-
+                =If(
+                    varAppMode = "SalaryAdvance",
+                    true,
+                    false
+                )
+            Width: =Parent.Width
+            ZIndex: =3
+
+            LblContainer_SalaryDeductionPeriod As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =35
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =Parent.Width
+                ZIndex: =1
+
+                lbl_SalaryDeductionPeriod As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    Size: =18
+                    Text: ="Salary deduction period"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+            cb_SalaryDeductionPeriod As combobox:
+                BorderColor: =RGBA(0, 18, 107, 1)
+                ChevronBackground: =RGBA(56, 96, 178, 1)
+                ChevronDisabledBackground: =RGBA(166, 166, 166, 1)
+                ChevronDisabledFill: =RGBA(244, 244, 244, 1)
+                ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                DefaultSelectedItems: =If(!varIsCreateCashAdvance, [varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexsalarydeductionperiod)'])
+                DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                DisabledColor: =RGBA(166, 166, 166, 1)
+                DisabledFill: =RGBA(244, 244, 244, 1)
+                DisplayFields: =["Value"]
+                FillPortions: =1
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                HoverColor: =RGBA(0, 0, 0, 1)
+                HoverFill: =RGBA(186, 202, 226, 1)
+                InputTextPlaceholder: ="Select Salary deduction period"
+                Items: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection/Transfer Date (mserp_deexsalarydeductionperiod)')
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedFill: =RGBA(0, 18, 107, 1)
+                SearchFields: =["Value"]
+                SearchItems: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection/Transfer Date (mserp_deexsalarydeductionperiod)',cb_SalaryDeductionPeriod.SearchText)
+                SelectionFill: =RGBA(56, 96, 178, 1)
+                SelectMultiple: =false
+                Size: =21
+                Width: =Parent.Width - Self.X*2
+                X: =40
+                ZIndex: =2
+
         RequestedDate_Container As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
             Height: =LblContainer_RequestedDate.Height + dtp_RequestedDate.Height + 20
@@ -56,7 +256,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =1
+            ZIndex: =4
 
             LblContainer_RequestedDate As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -100,7 +300,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =2
+            ZIndex: =5
 
             LblContainer_Location As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -150,7 +350,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =3
+            ZIndex: =6
 
             LblContainer_Purpose As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -200,7 +400,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =4
+            ZIndex: =7
 
             LblContainer_RequestedAmount As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -246,7 +446,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =5
+            ZIndex: =8
 
             LblContainer_Currency As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -286,6 +486,172 @@
                 X: =40
                 ZIndex: =2
 
+        CostCenter_Container As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =LblContainer_CostCenter.Height + cb_CostCenter.Height + 20
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Visible: |-
+                =If(
+                    varAppMode = "CashAdvance",
+                    true,
+                    false
+                )
+            Width: =Parent.Width
+            ZIndex: =9
+
+            LblContainer_CostCenter As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =35
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =Parent.Width
+                ZIndex: =1
+
+                lbl_CostCenter As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    Size: =18
+                    Text: ="* Cost Center"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+            cb_CostCenter As combobox:
+                DefaultSelectedItems: =LookUp('DCSL Financial Dimension CostCenter (mserp)', 'Combination display' = varSelectedCashAdvance.CostCenter)
+                DisplayFields: =["mserp_dimensionvalue","mserp_description"]
+                FillPortions: =1
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                InputTextPlaceholder: ="Select Cost Cencter"
+                Items: =ShowColumns('DCSL Financial Dimension CostCenter (mserp)','Combination display',Name)
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                SearchFields: =["mserp_dimensionvalue","mserp_description"]
+                SearchItems: =Search(ShowColumns('DCSL Financial Dimension CostCenter (mserp)','Combination display',Name),cb_CostCenter.SearchText,mserp_dimensionvalue,mserp_description)
+                SelectMultiple: =false
+                Size: =21
+                Width: =Parent.Width - Self.X*2
+                X: =40
+                ZIndex: =2
+
+        ProjectCode_Container As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =LblContainer_ProjectCode.Height + cb_ProjectCode.Height + 20
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumns: =6
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Visible: |-
+                =If(
+                    varAppMode = "CashAdvance",
+                    true,
+                    false
+                )
+            Width: =Parent.Width
+            ZIndex: =10
+
+            LblContainer_ProjectCode As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =35
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumns: =6
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =Parent.Width
+                ZIndex: =1
+
+                lbl_ProjectCode As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    Size: =18
+                    Text: ="Project Code"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+            cb_ProjectCode As combobox:
+                BorderColor: =RGBA(0, 18, 107, 1)
+                ChevronBackground: =RGBA(56, 96, 178, 1)
+                ChevronDisabledBackground: =RGBA(166, 166, 166, 1)
+                ChevronDisabledFill: =RGBA(244, 244, 244, 1)
+                ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                DefaultSelectedItems: |-
+                    =If(
+                        !IsBlank(varSelectedCashAdvance.Project) && !IsBlank(varSelectedLegalEntity),
+                        LookUp(
+                            'DCSL ProjectTypeProjectValue Entity (mserp)',
+                            Project = varSelectedCashAdvance.Project &&
+                            'Company Code' = Lower(varSelectedLegalEntity)
+                        ),
+                        Blank()
+                    )
+                DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                DisabledColor: =RGBA(166, 166, 166, 1)
+                DisabledFill: =RGBA(244, 244, 244, 1)
+                DisplayFields: =["mserp_projectvalue","mserp_projectname"]
+                FillPortions: =1
+                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                HoverColor: =RGBA(0, 0, 0, 1)
+                HoverFill: =RGBA(186, 202, 226, 1)
+                InputTextPlaceholder: ="Select Project Code"
+                Items: |-
+                    =SortByColumns(
+                        GroupBy(
+                            Filter(
+                                'DCSL ProjectTypeProjectValue Entity (mserp)',
+                                'Company Code' = Lower(varSelectedLegalEntity)
+                            ),
+                            Project,  // 첫 번째 그룹 기준 (프로젝트 ID)
+                            Description   // 두 번째 그룹 기준 (프로젝트 이름)
+                        ),
+                        "mserp_projectvalue",      // 정렬 기준
+                        SortOrder.Ascending
+                    )
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedFill: =RGBA(0, 18, 107, 1)
+                SearchFields: =["mserp_projectvalue"]
+                SearchItems: =Search(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Company Code'=Lower(varSelectedLegalEntity)),Project,Description),"mserp_projectvalue",SortOrder.Ascending),cb_ProjectCode.SearchText,mserp_projectvalue)
+                SelectionFill: =RGBA(56, 96, 178, 1)
+                SelectMultiple: =false
+                Size: =21
+                Width: =Parent.Width - Self.X*2
+                X: =40
+                ZIndex: =2
+
     CashAdvanceEdit_ButtonsButtonsContainer As groupContainer.manualLayoutContainer:
         Fill: =RGBA(250, 249, 248, 1)
         Height: =225
@@ -301,7 +667,7 @@
             Height: =76
             OnSelect: |-
                 =If(
-                    IsBlank(dtp_RequestedDate.SelectedDate) || IsBlank(txt_RequestedAmount.Text),
+                    IsBlank(dtp_RequestedDate.SelectedDate) || IsBlank(txt_RequestedAmount.Text) || IsEmpty(cb_CostCenter.SelectedItems),
                     Notify("Please fill in all required fields (Requested Date, Amount)", NotificationType.Error, gblParams.notificationTime),
                     
                     Patch(
@@ -312,7 +678,12 @@
                             Location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
                             Purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
                             'Requested amount': Value(txt_RequestedAmount.Text),
-                            Currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode)
+                            Currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode),
+                            'Collection method': cb_CollectionMethod.Selected.Value,
+                            'Collection/Transfer Date (mserp_deexcollectiontransferdate)': DateTime(Year(dtp_CollectionTrasferDate.SelectedDate), Month(dtp_CollectionTrasferDate.SelectedDate), Day(dtp_CollectionTrasferDate.SelectedDate), 0, 0, 0),
+                            'Collection/Transfer Date (mserp_deexsalarydeductionperiod)': cb_SalaryDeductionPeriod.Selected.Value,
+                            CostCenter: cb_CostCenter.Selected.mserp_dimensionvalue,
+                            Project: cb_ProjectCode.Selected.mserp_projectvalue
                         }
                     );
                     Notify("Cash Advance saved successfully", NotificationType.Success, gblParams.notificationTime);
@@ -337,7 +708,7 @@
             Height: =76
             OnSelect: |-
                 =If(
-                    IsBlank(dtp_RequestedDate.SelectedDate) || IsBlank(txt_RequestedAmount.Text),
+                    IsBlank(dtp_RequestedDate.SelectedDate) || IsBlank(txt_RequestedAmount.Text) || IsEmpty(cb_CostCenter.SelectedItems),
                     Notify("Please fill in all required fields (Requested Date, Amount)", NotificationType.Error, gblParams.notificationTime),
                     
                     // 1단계: 기존 데이터를 생성하거나 수정하고, 그 결과를 'ctxSavedRecord' 변수에 저장합니다.
@@ -351,7 +722,12 @@
                                 Location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
                                 Purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
                                 'Requested amount': Value(txt_RequestedAmount.Text),
-                                Currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode)
+                                Currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode),
+                                'Collection method': cb_CollectionMethod.Selected.Value,
+                                'Collection/Transfer Date (mserp_deexcollectiontransferdate)': DateTime(Year(dtp_CollectionTrasferDate.SelectedDate), Month(dtp_CollectionTrasferDate.SelectedDate), Day(dtp_CollectionTrasferDate.SelectedDate), 0, 0, 0),
+                                'Collection/Transfer Date (mserp_deexsalarydeductionperiod)': cb_SalaryDeductionPeriod.Selected.Value,
+                                CostCenter: cb_CostCenter.Selected.mserp_dimensionvalue,
+                                Project: cb_ProjectCode.Selected.mserp_projectvalue
                             }
                         )
                     });
