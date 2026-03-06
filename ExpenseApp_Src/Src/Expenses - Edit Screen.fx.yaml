@@ -1,7 +1,26 @@
 "'Expenses - Edit Screen' As screen.'phoneDetailEditLayout_ver3.0'":
     Fill: =RGBA(248, 248, 248, 1)
     OnVisible: |-
-        =// --- [신규 추가] 고정 금액/최대 금액 관련 상태 및 컨트롤 초기화 ---
+        =// 통화 데이터를 가져와서 미리 정렬한 뒤 'colSortedCurrencies'라는 컬렉션에 저장합니다.
+        ClearCollect(
+            colCurrencies,
+            'Currencies (mserp)'
+        );
+        
+        ClearCollect(
+            colSortedCurrencies,
+            Sort(
+                colCurrencies,
+                If(
+                    IsBlank('Sort Order') Or 'Sort Order' = 0, 
+                    999999, 
+                    'Sort Order'
+                ),
+                SortOrder.Ascending
+            )
+        );
+        
+        // --- [신규 추가] 고정 금액/최대 금액 관련 상태 및 컨트롤 초기화 ---
         UpdateContext({ 
             locCurrentSetup: Blank(),     // 카테고리 설정 정보(고정 금액/한도) 비우기
             dirtyTransAmount: Blank(),    // 사용자가 입력하던 임시 금액 비우기
@@ -1657,7 +1676,13 @@
                         });
                         
                         // 금액 필드 초기화 (선택 사항)
-                        Reset(DataCardValue4_1)
+                        Reset(DataCardValue4_1);
+                        
+                        // Fixed Amount가 Yes(true)로 바뀌었을 때만 통화 콤보박스를 초기화
+                        If(
+                            locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,
+                            Reset(ComboBox1_12)
+                        )
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank('Expense category')&&!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType&&!IsBlank(varSelectedPurchaseCategory)&&'Purchase Category'=varSelectedPurchaseCategory),'Item or Service'),"Value",SortOrder.Ascending),ComboBox_ItemOrService.SearchText,Value)
                     SelectionColor: =Color.Black
@@ -4042,20 +4067,28 @@
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
-                        =If(
-                            currExpenseType = 'TrvExpType (mserp)'.'Per diem',
-                            LookUp('Currencies (mserp)','Currency code'= Coalesce(cmbPerdiemLocation.Selected.Currency, varDefaultCurrency)),
-                            LookUp('Currencies (mserp)','Currency code'= Coalesce(Parent.Default, varDefaultCurrency))
-                        )
+                        =[
+                            LookUp(
+                                colSortedCurrencies, 
+                                'Currency code' = Coalesce(Parent.Default, varDefaultCurrency)
+                            )
+                        ]
                     DisplayFields: =["mserp_currencycode"]
+                    DisplayMode: |-
+                        =If(
+                            locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes, 
+                            DisplayMode.View,   // Fixed Amount가 Yes이면 수정 불가(읽기 전용)
+                            DisplayMode.Edit   // 그 외의 경우 정상적으로 수정 가능
+                        )
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
                     InputTextPlaceholder: ="Find items"
                     Items: |-
                         =ShowColumns(
-                            'Currencies (mserp)',
-                            'Currency code',Name
+                            colSortedCurrencies,
+                            'Currency code',
+                            Name
                         )
                     OnChange: |-
                         =UpdateContext({taxModifiedByUser:false});
@@ -4067,7 +4100,7 @@
                         );
                         // --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---
                         If(
-                            !IsBlank(Self.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity),
+                            !IsBlank(DataCardValue4_1.Text) && !IsBlank(Self.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity),
                             
                             With(
                                 {
@@ -4132,12 +4165,12 @@
                         Reset(DataCardValue25_1);
                         UpdateContext({isDirty : true});
                         );
-                        UpdateContext({msCallStartedForSalestaxCalculation : false})
                         */
+                        UpdateContext({msCallStartedForSalestaxCalculation : false})
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_currencycode"]
-                    SearchItems: =Search(ShowColumns('Currencies (mserp)','Currency code',Name),ComboBox1_12.SearchText,mserp_currencycode)
+                    SearchItems: =Search(ShowColumns(colSortedCurrencies,'Currency code',Name),ComboBox1_12.SearchText,mserp_currencycode)
                     SelectionColor: =
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
                     SelectionTagFill: =
