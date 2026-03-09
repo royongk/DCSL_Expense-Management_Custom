@@ -774,7 +774,9 @@
             Fill: =Color.White
             Height: =70
             LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
             LayoutGridRows: =6
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =15
@@ -980,7 +982,9 @@
                     Value(Parent.Height - Self.Y - 5 - ExpenseInfo_1.Height)
             )
         LayoutDirection: =LayoutDirection.Vertical
+        LayoutGridColumnMinWidth: =0
         LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
         LayoutGridRows: =6
         LayoutMode: =LayoutMode.Auto
         LayoutOverflowY: =LayoutOverflow.Scroll
@@ -1681,7 +1685,30 @@
                         // Fixed Amount가 Yes(true)로 바뀌었을 때만 통화 콤보박스를 초기화
                         If(
                             locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,
-                            Reset(ComboBox1_12)
+                            Reset(ComboBox1_12);
+                            // --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---
+                            If(
+                                !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locCurrentSetup.Amount),
+                                
+                                // 1. D365 액션 호출하여 환율 받아오기
+                                With(
+                                    {
+                                        // 1. Power Automate 흐름 호출
+                                        fetchedRateResult: GetExchangeRateFlow.Run(
+                                            ComboBox1_12.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경
+                                            varSelectedLegalEntity
+                                        ).rateresult,
+                                        
+                                        // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환
+                                        currentAmount: Value(locCurrentSetup.Amount)
+                                    },
+                                    
+                                    // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 0자리까지만 남김)
+                                    UpdateContext({ 
+                                        locCalculatedLCY: Text(Round( (currentAmount * Value(fetchedRateResult)) / 100, 0 ))
+                                    })
+                                )
+                            );
                         )
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank('Expense category')&&!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType&&!IsBlank(varSelectedPurchaseCategory)&&'Purchase Category'=varSelectedPurchaseCategory),'Item or Service'),"Value",SortOrder.Ascending),ComboBox_ItemOrService.SearchText,Value)
@@ -11415,7 +11442,9 @@
                         )
                     LayoutDirection: =LayoutDirection.Vertical
                     LayoutGap: =15
+                    LayoutGridColumnMinWidth: =0
                     LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
                     LayoutGridRows: =6
                     LayoutMode: =LayoutMode.Auto
                     PaddingBottom: =5
@@ -11556,7 +11585,9 @@
                         Height: =If(Self.Visible, Max(con_Student_Primary.Height, con_Student_Senior.Height) + 16, 0)
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutGap: =10
+                        LayoutGridColumnMinWidth: =0
                         LayoutGridColumns: =6
+                        LayoutGridRowMinHeight: =0
                         LayoutGridRows: =6
                         LayoutMaxHeight: =0
                         LayoutMaxWidth: =0
@@ -11575,7 +11606,9 @@
                             Height: =If(Self.Visible, DataCardKey_StudentPrimary.Height + txt_StudentPrimary.Height + 16, 0)
                             LayoutAlignItems: =LayoutAlignItems.Center
                             LayoutDirection: =LayoutDirection.Vertical
+                            LayoutGridColumnMinWidth: =0
                             LayoutGridColumns: =6
+                            LayoutGridRowMinHeight: =0
                             LayoutGridRows: =6
                             LayoutMaxHeight: =0
                             LayoutMaxWidth: =0
@@ -11628,7 +11661,9 @@
                             Height: =If(Self.Visible, DataCardKey_StudentSenior.Height + txt_StudentSenior.Height + 16, 0)
                             LayoutAlignItems: =LayoutAlignItems.Center
                             LayoutDirection: =LayoutDirection.Vertical
+                            LayoutGridColumnMinWidth: =0
                             LayoutGridColumns: =6
+                            LayoutGridRowMinHeight: =0
                             LayoutGridRows: =6
                             LayoutMaxHeight: =0
                             LayoutMaxWidth: =0
@@ -11860,7 +11895,9 @@
             )
         LayoutDirection: =LayoutDirection.Vertical
         LayoutGap: =10
+        LayoutGridColumnMinWidth: =0
         LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
         LayoutGridRows: =6
         LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
         LayoutMode: =LayoutMode.Auto
@@ -11877,7 +11914,9 @@
             FillPortions: =0
             Height: =75
             LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
             LayoutGridRows: =6
             LayoutMaxHeight: =
             LayoutMaxWidth: =
@@ -12041,7 +12080,9 @@
         GuestItemizationContainer As groupContainer.horizontalAutoLayoutContainer:
             FillPortions: =0
             Height: =87
+            LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
             LayoutGridRows: =6
             LayoutMaxHeight: =
             LayoutMaxWidth: =

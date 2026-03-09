@@ -238,7 +238,7 @@ Screens:
               )
           Children:
             - Container_ReceiptItem:
-                Control: GroupContainer@1.4.0
+                Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   DropShadow: =DropShadow.None
@@ -441,7 +441,7 @@ Screens:
               =Parent.Width
             Y: =scr03_hdr_TopHeader_1.Height
       - Expense Entr Container:
-          Control: GroupContainer@1.4.0
+          Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
             DropShadow: =DropShadow.None
@@ -930,39 +930,7 @@ Screens:
                                     SortOrder.Ascending
                                 )
                               NoSelectionText: ="Select Item or Service"
-                              OnChange: |-
-                                =UpdateContext({varSelectedItemOrService: Parent.Update});
-                                // Derive project type from 3-level category selection
-                                UpdateContext(
-                                    {
-                                        varSelectedProjectType: 
-                                            LookUp(
-                                                'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                                'Expense Type' = varSelectedExpenseType &&
-                                                'Purchase Category' = varSelectedPurchaseCategory &&
-                                                'Item or Service' = Parent.Update,
-                                                'Project Type'
-                                            )
-                                    }
-                                );
-                                // cmbItemOrService 컨트롤의 OnChange 속성
-                                UpdateContext({
-                                    locCurrentSetup: LookUp(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        'Expense Type' = ComboBox_ExpenseType.Selected.Value && 
-                                        'Purchase Category' = ComboBox_PurchaseCategory.Selected.Value && 
-                                        'Item or Service' = Self.Selected.Value
-                                    )
-                                });
-
-                                // 금액 필드 초기화 (선택 사항)
-                                Reset(DataCardValue4_1);
-
-                                // Fixed Amount가 Yes(true)로 바뀌었을 때만 통화 콤보박스를 초기화
-                                If(
-                                    locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,
-                                    Reset(ComboBox1_12)
-                                )
+                              OnChange: "=UpdateContext({varSelectedItemOrService: Parent.Update});\n// Derive project type from 3-level category selection\nUpdateContext(\n    {\n        varSelectedProjectType: \n            LookUp(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                'Expense Type' = varSelectedExpenseType &&\n                'Purchase Category' = varSelectedPurchaseCategory &&\n                'Item or Service' = Parent.Update,\n                'Project Type'\n            )\n    }\n);\n// cmbItemOrService 컨트롤의 OnChange 속성\nUpdateContext({\n    locCurrentSetup: LookUp(\n        'DCSL Expense Category Mapping Setup Entity (mserp)',\n        'Expense Type' = ComboBox_ExpenseType.Selected.Value && \n        'Purchase Category' = ComboBox_PurchaseCategory.Selected.Value && \n        'Item or Service' = Self.Selected.Value\n    )\n});\n\n// 금액 필드 초기화 (선택 사항)\nReset(DataCardValue4_1);\n\n// Fixed Amount가 Yes(true)로 바뀌었을 때만 통화 콤보박스를 초기화\nIf(\n    locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,\n    Reset(ComboBox1_12);\n    // --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---\n    If(\n        !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locCurrentSetup.Amount),\n        \n        // 1. D365 액션 호출하여 환율 받아오기\n        With(\n            {\n                // 1. Power Automate 흐름 호출\n                fetchedRateResult: GetExchangeRateFlow.Run(\n                    ComboBox1_12.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경\n                    varSelectedLegalEntity\n                ).rateresult,\n                \n                // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환\n                currentAmount: Value(locCurrentSetup.Amount)\n            },\n            \n            // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 0자리까지만 남김)\n            UpdateContext({ \n                locCalculatedLCY: Text(Round( (currentAmount * Value(fetchedRateResult)) / 100, 0 ))\n            })\n        )\n    );\n)"
                               PaddingBottom: =5
                               PaddingLeft: =5
                               PaddingRight: =5
@@ -10102,7 +10070,7 @@ Screens:
                         Y: =62
                       Children:
                         - con_Beneficiary_Layout:
-                            Control: GroupContainer@1.4.0
+                            Control: GroupContainer@1.5.0
                             Variant: AutoLayout
                             Properties:
                               DropShadow: =DropShadow.Bold
@@ -10235,7 +10203,7 @@ Screens:
                                     VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
                                     Width: =Parent.Width - 60
                               - con_Student_Row:
-                                  Control: GroupContainer@1.4.0
+                                  Control: GroupContainer@1.5.0
                                   Variant: AutoLayout
                                   Properties:
                                     DropShadow: =DropShadow.None
@@ -10257,7 +10225,7 @@ Screens:
                                     Y: =cmb_OtherStaff.Y + cmb_OtherStaff.Height
                                   Children:
                                     - con_Student_Primary:
-                                        Control: GroupContainer@1.4.0
+                                        Control: GroupContainer@1.5.0
                                         Variant: AutoLayout
                                         Properties:
                                           DropShadow: =DropShadow.None
@@ -10309,7 +10277,7 @@ Screens:
                                                 VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
                                                 Width: =Parent.Width - 60
                                     - con_Student_Senior:
-                                        Control: GroupContainer@1.4.0
+                                        Control: GroupContainer@1.5.0
                                         Variant: AutoLayout
                                         Properties:
                                           DropShadow: =DropShadow.None
@@ -10548,7 +10516,7 @@ Screens:
             Width: =Max(App.Width, App.MinScreenWidth)
             Y: =(Parent.Height - Self.Height)
       - footerButtonsContainer - ExpenseEditScreen:
-          Control: GroupContainer@1.4.0
+          Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
             DropShadow: =DropShadow.ExtraBold
@@ -10574,7 +10542,7 @@ Screens:
             Y: =Parent.Height - Self.Height
           Children:
             - transAmountContainer:
-                Control: GroupContainer@1.4.0
+                Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   DropShadow: =DropShadow.None
@@ -10630,7 +10598,7 @@ Screens:
                           =Concatenate(Text(Value(Coalesce(DataCardValue4_1.Text, "0")), "#,#0.00", varDefaultLanguage), " ", ComboBox1_12.Selected.mserp_currencycode)
                         Width: =100
             - GuestItemizationContainer:
-                Control: GroupContainer@1.4.0
+                Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   DropShadow: =DropShadow.None
