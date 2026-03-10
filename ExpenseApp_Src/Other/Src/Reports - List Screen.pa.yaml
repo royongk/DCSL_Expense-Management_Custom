@@ -146,77 +146,7 @@ Screens:
                   scr16_cmp_Footer_1.Y - Self.Y,
                   Self.TemplateHeight * CountRows(Self.AllItems)
               )
-            Items: |-
-              =SortByColumns(
-                  Filter(
-                      Switch(
-                          varcntSelectedStatus,
-                          1,
-                          Filter(
-                              'Expense reports (mserp)_1',
-                              'Document Status' = 'Document Status (mserp)'.Draft
-                          ),
-                          2,
-                          Filter(
-                              'Expense reports (mserp)_1',
-                              'Document Status' = 'Document Status (mserp)'.Submitted
-                          ),
-                          3,
-                          Search(
-                              Switch(
-                                  scr16_btn_DateFilter.Selected.number,
-                                  1,
-                                  Filter(
-                                      'Expense reports (mserp)_1',
-                                      'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 7, TimeUnit.Days) >= Today()
-                                  ),
-                                  2,
-                                  Filter(
-                                      'Expense reports (mserp)_1',
-                                      'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 30, TimeUnit.Days) >= Today()
-                                  ),
-                                  3,
-                                  Filter(
-                                      'Expense reports (mserp)_1',
-                                      'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 180, TimeUnit.Days) >= Today()
-                                  ),
-                                  4,
-                                  Filter(
-                                      'Expense reports (mserp)_1',
-                                      'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 365, TimeUnit.Days) >= Today()
-                                  ),
-                                  Filter(
-                                      'Expense reports (mserp)_1',
-                                      'Document Status' = 'Document Status (mserp)'.Approved
-                                  )
-                              ),
-                              scr16_txt_SearchBox.Text,
-                              'Purpose (mserp_purpose)'
-                          ),
-                          4,
-                          Filter(
-                              'Expense reports (mserp)_1',
-                              'Document Status' = 'Document Status (mserp)'.Rejected
-                          )
-                      ),
-                      Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity),
-                      If(
-                          varIsDelegateSelected,
-                          'Employee (mserp_creatingworker)' in 
-                              Distinct(
-                                  Filter(
-                                      '@DEEX:DEEX_20316 (mserp)',
-                                      DelegatedUserInfoRecId = userRecord.CreatingWorker &&
-                                      'Start date' <= Today() &&
-                                      'End date' >= Today() 
-                                  ),
-                                  Employee
-                              ),
-                          'Employee (mserp_creatingworker)' = userRecord.CreatingWorker
-                      )
-                  ), 
-                  "mserp_createddate", SortOrder.Descending
-              )
+            Items: "=With(\n    {\n        // 1. varAppMode에 매핑되는 Purpose 값을 사전에 정의합니다.\n        mappedPurpose: Switch(\n            varAppMode,\n            \"ExpenseReport\", \"Expense reimbursement\",\n            \"BillingTripSettlement\", \"Billing Trip Settlement\",\n            \"CashAdvance\", \"Cash Advance\",\n            \"EmployeeBenefit\", \"Employee Benefit\",\n            \"SalaryAdvance\", \"Salary Advance\",\n            Blank() // 매핑되지 않은 AppMode일 경우 Blank\n        )\n    },\n    SortByColumns(\n        Filter(\n            // 기존 Document Status 필터링 유지\n            Switch(\n                varcntSelectedStatus,\n                1,\n                Filter(\n                    'Expense reports (mserp)_1',\n                    'Document Status' = 'Document Status (mserp)'.Draft\n                ),\n                2,\n                Filter(\n                    'Expense reports (mserp)_1',\n                    'Document Status' = 'Document Status (mserp)'.Submitted\n                ),\n                3,\n                Search(\n                    Switch(\n                        scr16_btn_DateFilter.Selected.number,\n                        1,\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 7, TimeUnit.Days) >= Today()\n                        ),\n                        2,\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 30, TimeUnit.Days) >= Today()\n                        ),\n                        3,\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 180, TimeUnit.Days) >= Today()\n                        ),\n                        4,\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 365, TimeUnit.Days) >= Today()\n                        ),\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved\n                        )\n                    ),\n                    scr16_txt_SearchBox.Text,\n                    'Purpose (mserp_purpose)'\n                ),\n                4,\n                Filter(\n                    'Expense reports (mserp)_1',\n                    'Document Status' = 'Document Status (mserp)'.Rejected\n                )\n            ),\n            \n            // 기존 법인(Legal Entity) 및 대리인(Delegate) 필터링 유지\n            Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity),\n            If(\n                varIsDelegateSelected,\n                'Employee (mserp_creatingworker)' in \n                    Distinct(\n                        Filter(\n                            '@DEEX:DEEX_20316 (mserp)',\n                            DelegatedUserInfoRecId = userRecord.CreatingWorker &&\n                            'Start date' <= Today() &&\n                            'End date' >= Today() \n                        ),\n                        Employee\n                    ),\n                'Employee (mserp_creatingworker)' = userRecord.CreatingWorker\n            ),\n            \n            // \U0001F4A1 2. 추가된 로직: AppMode에 따른 Purpose 자동 필터링\n            IsBlank(mappedPurpose) || 'Purpose (mserp_purpose)' = mappedPurpose\n        ), \n        \"mserp_createddate\", SortOrder.Descending\n    )\n)"
             OnSelect: |-
               =UpdateContext({varcntShowFilter:false});
               // ⚠️ LookUp from original data source FIRST to ensure field name compatibility
