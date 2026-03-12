@@ -10108,6 +10108,12 @@ Screens:
                                   Properties:
                                     AlignInContainer: =AlignInContainer.Start
                                     BorderColor: =RGBA(0, 18, 107, 1)
+                                    Default: |-
+                                      =If(
+                                          !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                          IfError(Boolean(ParseJSON('Expense Beneficiary_DataCard1'.Default).MySelf), false),
+                                          true
+                                      )
                                     FalseText: ="No"
                                     Font: =Font.'Open Sans'
                                     LabelPaddingLeft: =15
@@ -10140,6 +10146,18 @@ Screens:
                                     ChevronFill: =RGBA(255, 255, 255, 1)
                                     ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                                     ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                                    DefaultSelectedItems: |-
+                                      =If(
+                                          !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                          LookUp(
+                                              'Expense mobile master data (mserp)',
+                                              // 1. Items에 적용했던 필터 조건을 그대로 유지
+                                              UserPreferredLegalEntity = varSelectedLegalEntity && 
+                                              // 2. JSON에 저장된 텍스트와 원본 테이블의 고유 키(mserp_userid 등)를 비교
+                                              mserp_userid = Text(ParseJSON('Expense Beneficiary_DataCard1'.Default).OtherStaff)
+                                          ),
+                                          Blank()
+                                      )
                                     DisplayFields: =["mserp_userid"]
                                     FocusedBorderThickness: =2
                                     Font: =Font.'Open Sans'
@@ -10188,7 +10206,12 @@ Screens:
                                     AlignInContainer: =AlignInContainer.Center
                                     BorderColor: =RGBA(0, 18, 107, 1)
                                     BorderThickness: =0
-                                    Default: =""
+                                    Default: |-
+                                      =If(
+                                          !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                          IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).NoOfOtherStaff)), ""),
+                                          ""
+                                      )
                                     Font: =Font.'Open Sans'
                                     Format: =TextFormat.Number
                                     HintText: ="Enter Number of Other Staff"
@@ -10265,7 +10288,12 @@ Screens:
                                                 AlignInContainer: =AlignInContainer.Stretch
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 BorderThickness: =0
-                                                Default: =""
+                                                Default: |-
+                                                  =If(
+                                                      !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                                      IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).StudentPrimary)), ""),
+                                                      ""
+                                                  )
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
                                                 HintText: ="Enter Student(Primary)"
@@ -10316,7 +10344,12 @@ Screens:
                                                 AlignInContainer: =AlignInContainer.Stretch
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 BorderThickness: =0
-                                                Default: =""
+                                                Default: |-
+                                                  =If(
+                                                      !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                                      IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).StudentSenior)), ""),
+                                                      ""
+                                                  )
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
                                                 HintText: ="Enter Student(Senior)"

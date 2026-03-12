@@ -294,12 +294,7 @@
                         PaddingRight: =0
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                        Text: |-
-                            =If(
-                                ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
-                                Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
-                                ThisItem.Merchant
-                            )
+                        Text: =Coalesce(ThisItem.'Item or Service', "")
                         Width: =Parent.Width
                         ZIndex: =1
 
@@ -326,12 +321,7 @@
                         PaddingRight: =0
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                        Text: |-
-                            =If(
-                                Value(ThisItem.PolicyViolationCount) > 0,
-                                Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_FoundPolicyViolationLabel', "$", Text(ThisItem.PolicyViolationCount)),
-                                ThisItem.ProjectName
-                            )
+                        Text: =ThisItem.'Additional information'
                         Width: =Parent.Width
                         ZIndex: =2
 

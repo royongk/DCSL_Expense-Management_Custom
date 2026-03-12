@@ -11476,6 +11476,12 @@
 
                     Toggle_MySelf As toggleSwitch:
                         AlignInContainer: =AlignInContainer.Start
+                        Default: |-
+                            =If(
+                                !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                IfError(Boolean(ParseJSON('Expense Beneficiary_DataCard1'.Default).MySelf), false),
+                                true
+                            )
                         FalseText: ="No"
                         Height: =49
                         LabelPaddingLeft: =15
@@ -11513,6 +11519,18 @@
                         AlignInContainer: =AlignInContainer.Center
                         BorderColor: =gblParams.dropDownBorderColor
                         BorderThickness: =0
+                        DefaultSelectedItems: |-
+                            =If(
+                                !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                LookUp(
+                                    'Expense mobile master data (mserp)',
+                                    // 1. Items에 적용했던 필터 조건을 그대로 유지
+                                    UserPreferredLegalEntity = varSelectedLegalEntity && 
+                                    // 2. JSON에 저장된 텍스트와 원본 테이블의 고유 키(mserp_userid 등)를 비교
+                                    mserp_userid = Text(ParseJSON('Expense Beneficiary_DataCard1'.Default).OtherStaff)
+                                ),
+                                Blank()
+                            )
                         DisplayFields: =["mserp_userid"]
                         FocusedBorderThickness: =2
                         Height: =gblParams.dropDownHeight
@@ -11564,7 +11582,12 @@
                     txt_NoOfOtherStaff As text:
                         AlignInContainer: =AlignInContainer.Center
                         BorderThickness: =0
-                        Default: =""
+                        Default: |-
+                            =If(
+                                !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).NoOfOtherStaff)), ""),
+                                ""
+                            )
                         Format: =TextFormat.Number
                         Height: =70
                         HintText: ="Enter Number of Other Staff"
@@ -11643,7 +11666,12 @@
                             txt_StudentPrimary As text:
                                 AlignInContainer: =AlignInContainer.Stretch
                                 BorderThickness: =0
-                                Default: =""
+                                Default: |-
+                                    =If(
+                                        !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                        IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).StudentPrimary)), ""),
+                                        ""
+                                    )
                                 Format: =TextFormat.Number
                                 Height: =70
                                 HintText: ="Enter Student(Primary)"
@@ -11699,7 +11727,12 @@
                             txt_StudentSenior As text:
                                 AlignInContainer: =AlignInContainer.Stretch
                                 BorderThickness: =0
-                                Default: =""
+                                Default: |-
+                                    =If(
+                                        !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                        IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).StudentSenior)), ""),
+                                        ""
+                                    )
                                 Format: =TextFormat.Number
                                 Height: =70
                                 HintText: ="Enter Student(Senior)"
