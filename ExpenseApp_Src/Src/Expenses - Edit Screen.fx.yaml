@@ -20,6 +20,9 @@
             )
         );
         
+        // 환율 정보 조회
+        ClearCollect(colExchangeRates, 'Currency table (mserp)');
+        
         // --- [신규 추가] 고정 금액/최대 금액 관련 상태 및 컨트롤 초기화 ---
         UpdateContext({ 
             locCurrentSetup: Blank(),     // 카테고리 설정 정보(고정 금액/한도) 비우기
@@ -1686,30 +1689,33 @@
                         If(
                             locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,
                             Reset(ComboBox1_12);
-                            // --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---
+                            
+                            // --- [수정] 환율 조회 및 LCY(KRW) 계산 로직 (캐싱된 컬렉션 활용) ---
                             If(
                                 !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locCurrentSetup.Amount),
                                 
-                                // 1. D365 액션 호출하여 환율 받아오기
                                 With(
                                     {
-                                        // 1. Power Automate 흐름 호출
-                                        fetchedRateResult: GetExchangeRateFlow.Run(
-                                            ComboBox1_12.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경
-                                            varSelectedLegalEntity
-                                        ).rateresult,
+                                        // 1. 메모리에 캐싱된 컬렉션(colExchangeRates)에서 환율 즉시 조회
+                                        fetchedRate: LookUp(
+                                            colExchangeRates,
+                                            Currency = ComboBox1_12.Selected.mserp_currencycode
+                                        ).'Exchange rate',
                                         
-                                        // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환
+                                        // 2. locCurrentSetup(설정 정보)의 Amount 값을 숫자로 변환
                                         currentAmount: Value(locCurrentSetup.Amount)
                                     },
                                     
-                                    // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 0자리까지만 남김)
+                                    // 3. KRW 환산 금액 계산 및 로컬 변수(locCalculatedLCY) 저장
+                                    // [안전장치] Coalesce를 사용하여 환율 누락 시 계산식 오류 방지 및 반올림(Round) 적용
                                     UpdateContext({ 
-                                        locCalculatedLCY: Text(Round( (currentAmount * Value(fetchedRateResult)) / 100, 0 ))
+                                        locCalculatedLCY: Text(
+                                            Round((currentAmount * Value(Coalesce(fetchedRate, 100))) / 100, 0)
+                                        )
                                     })
                                 )
-                            );
-                        )
+                            )
+                        );
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank('Expense category')&&!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType&&!IsBlank(varSelectedPurchaseCategory)&&'Purchase Category'=varSelectedPurchaseCategory),'Item or Service'),"Value",SortOrder.Ascending),ComboBox_ItemOrService.SearchText,Value)
                     SelectionColor: =Color.Black
@@ -3841,26 +3847,28 @@
                         // 3. 실제 저장될 변수(dirtyTransAmount)에 '순수 숫자'만 업데이트
                         UpdateContext({ dirtyTransAmount: locTempAmount });
                         
-                        // --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---
+                        // --- [수정] 환율 조회 및 LCY(KRW) 계산 로직 (캐싱된 컬렉션 활용) ---
                         If(
                             !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locTempAmount),
                             
-                            // 1. D365 액션 호출하여 환율 받아오기
                             With(
                                 {
-                                    // 1. Power Automate 흐름 호출
-                                    fetchedRateResult: GetExchangeRateFlow.Run(
-                                        ComboBox1_12.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경
-                                        varSelectedLegalEntity
-                                    ).rateresult,
+                                    // 1. 메모리에 캐싱된 컬렉션(colExchangeRates)에서 환율 즉시 조회
+                                    fetchedRate: LookUp(
+                                        colExchangeRates,
+                                        Currency = ComboBox1_12.Selected.mserp_currencycode
+                                    ).'Exchange rate',
                                     
                                     // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환
                                     currentAmount: Value(Substitute(DataCardValue4_1.Text, ",", ""))
                                 },
                                 
                                 // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 0자리까지만 남김)
+                                // [안전장치] Coalesce를 사용하여 환율 누락 시 계산식 오류 방지
                                 UpdateContext({ 
-                                    locCalculatedLCY: Text(Round( (currentAmount * Value(fetchedRateResult)) / 100, 0 ))
+                                    locCalculatedLCY: Text(
+                                        Round((currentAmount * Value(Coalesce(fetchedRate, 100))) / 100, 0)
+                                    )
                                 })
                             )
                         );
@@ -4125,25 +4133,28 @@
                             varOnChangeTriggered && varOnSelectTriggered,
                             UpdateContext({varOnShowFields : true})
                         );
-                        // --- [신규 추가] 환율 조회 및 LCY 계산 로직 ---
+                        // --- [수정] 환율 조회 및 LCY(KRW) 계산 로직 (직접 조회 방식) ---
                         If(
-                            !IsBlank(DataCardValue4_1.Text) && !IsBlank(Self.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity),
+                            !IsBlank(DataCardValue4_1.Text) && !IsBlank(Self.Selected.mserp_currencycode),
                             
                             With(
                                 {
-                                    // 1. Power Automate 흐름 호출
-                                    fetchedRateResult: GetExchangeRateFlow.Run(
-                                        Self.Selected.mserp_currencycode, // 금액칸 OnChange에서는 ComboBox1_12.Selected.mserp_currencycode 로 변경
-                                        varSelectedLegalEntity
-                                    ).rateresult,
+                                    // 1. 'Currency table (mserp)' 테이블에서 선택한 통화 코드(Currency)로 환율(Exchange rate) 조회
+                                    fetchedRate: LookUp(
+                                        colExchangeRates,
+                                        Currency = Self.Selected.mserp_currencycode
+                                    ).'Exchange rate',
                                     
-                                    // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환
+                                    // 2. 화면에 입력된 외화 금액의 콤마(,)를 제거하고 숫자로 변환
                                     currentAmount: Value(Substitute(DataCardValue4_1.Text, ",", ""))
                                 },
                                 
-                                // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 2자리까지만 남김)
+                                // 3. KRW 환산 금액 계산 및 로컬 변수(locCalculatedLCY)에 저장
+                                // 참고: 조회된 환율이 없을 경우(Blank) 수식 오류를 방지하기 위해 Coalesce로 기본값(100) 처리
                                 UpdateContext({ 
-                                    locCalculatedLCY: Text(Round((currentAmount * Value(fetchedRateResult)) / 100, 0))
+                                    locCalculatedLCY: Text(
+                                        Round((currentAmount * Value(Coalesce(fetchedRate, 100))) / 100, 0)
+                                    )
                                 })
                             )
                         );
