@@ -10149,12 +10149,18 @@ Screens:
                                     DefaultSelectedItems: |-
                                       =If(
                                           !IsBlank('Expense Beneficiary_DataCard1'.Default),
-                                          LookUp(
-                                              'Expense mobile master data (mserp)',
-                                              // 1. Items에 적용했던 필터 조건을 그대로 유지
-                                              UserPreferredLegalEntity = varSelectedLegalEntity && 
-                                              // 2. JSON에 저장된 텍스트와 원본 테이블의 고유 키(mserp_userid 등)를 비교
-                                              mserp_userid = Text(ParseJSON('Expense Beneficiary_DataCard1'.Default).OtherStaff)
+                                          ForAll(
+                                              Split(Text(ParseJSON('Expense Beneficiary_DataCard1'.Default).OtherStaff), ",") As StaffData,
+                                              // 1. With 함수를 사용하여 Trim 연산을 먼저 수행하고 그 결과를 'CleanID'에 저장
+                                              With(
+                                                  { CleanID: Trim(StaffData.Value) },
+                                                  // 2. LookUp 조건에서는 함수 없이 순수한 텍스트 값인 'CleanID'와 비교
+                                                  LookUp(
+                                                      'Expense mobile master data (mserp)',
+                                                      UserPreferredLegalEntity = varSelectedLegalEntity && 
+                                                      mserp_userid = CleanID
+                                                  )
+                                              )
                                           ),
                                           Blank()
                                       )
@@ -10178,6 +10184,16 @@ Screens:
                                       )
                                     LayoutMinHeight: =16
                                     LayoutMinWidth: =400
+                                    OnChange: |-
+                                      =// 기존에 OnChange에 수식이 있다면 그 뒤에 세미콜론(;)을 붙이고 아래 코드를 추가하세요.
+                                      If(
+                                          CountRows(Self.SelectedItems) > 10,
+                                          Notify(
+                                              "You can select a maximum of 10 other staff members.", 
+                                              NotificationType.Warning, 
+                                              3000 // 3초간 표시
+                                          )
+                                      )
                                     PressedColor: =RGBA(255, 255, 255, 1)
                                     PressedFill: =RGBA(0, 18, 107, 1)
                                     SearchFields: =["mserp_userid"]
@@ -10209,7 +10225,7 @@ Screens:
                                     Default: |-
                                       =If(
                                           !IsBlank('Expense Beneficiary_DataCard1'.Default),
-                                          IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).NoOfOtherStaff)), ""),
+                                          IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).NumberOfOtherStaff)), ""),
                                           ""
                                       )
                                     Font: =Font.'Open Sans'
@@ -10796,7 +10812,7 @@ Screens:
                   BorderColor: =ColorFade(Self.Fill, -15%)
                   Color: =RGBA(255, 255, 255, 1)
                   DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                  DisplayMode: "=If(\n    // 1. 기존 방어 로직: 세금 계산 중이거나 각종 타이머가 동작 중일 때\n    (msCallStartedForSalestaxCalculation  || timerProj || timerCostType || timerHBIT || timerCountry || timerState) ||\n    \n    // 2. 기존 방어 로직: 필수 기능이 비활성화된 상태일 때\n    (btnEditRefreshExpense.Visible && (featureEnabled = \"False\" || perdiemFeatureEnabled = \"False\")) ||\n    \n    // 3. \U0001F680 [신규 추가] 최대 허용 금액 초과 시\n    (!IsBlank(locCurrentSetup.'Max Amount') && \n     locCurrentSetup.'Max Amount' > 0 && \n     Value(Substitute(DataCardValue4_1.Text, \",\", \"\")) > locCurrentSetup.'Max Amount'),\n     \n    // 위 세 가지 조건 중 하나라도 해당하면 버튼을 비활성화(클릭 불가 & 회색 처리)\n    DisplayMode.Disabled,\n    \n    // 모두 통과하면 편집(클릭 가능) 상태로 변경\n    DisplayMode.Edit\n)"
+                  DisplayMode: "=If(\n    // 1. 기존 방어 로직: 세금 계산 중이거나 각종 타이머가 동작 중일 때\n    (msCallStartedForSalestaxCalculation  || timerProj || timerCostType || timerHBIT || timerCountry || timerState) ||\n    \n    // 2. 기존 방어 로직: 필수 기능이 비활성화된 상태일 때\n    (btnEditRefreshExpense.Visible && (featureEnabled = \"False\" || perdiemFeatureEnabled = \"False\")) ||\n    \n    // 3. 기존 방어 로직: 최대 허용 금액 초과 시\n    (!IsBlank(locCurrentSetup.'Max Amount') && \n     locCurrentSetup.'Max Amount' > 0 && \n     Value(Substitute(DataCardValue4_1.Text, \",\", \"\")) > locCurrentSetup.'Max Amount') ||\n     \n    // 4. \U0001F680 [신규 추가] 동승자(Other Staff) 10명 초과 선택 시\n    (CountRows(cmb_OtherStaff.SelectedItems) > 10),\n     \n    // 위 네 가지 조건 중 하나라도 해당하면 버튼을 비활성화(클릭 불가 & 회색 처리)\n    DisplayMode.Disabled,\n    \n    // 모두 통과하면 편집(클릭 가능) 상태로 변경\n    DisplayMode.Edit\n)"
                   Fill: =RGBA(34, 102, 227, 1)
                   Font: =Font.'Segoe UI'
                   Height: =87
