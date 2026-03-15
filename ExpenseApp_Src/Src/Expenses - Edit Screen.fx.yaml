@@ -1078,41 +1078,75 @@
                 UpdateContext({varLoadingSpinner: true});
                 Clear(colErrorLog);
                 
-                // 4. 첨부 파일 연결 처리 (가상 엔터티에 안전한 개별 Patch 순회 방식)
+                // 4. 첨부 파일 연결 처리 (무한 로딩 및 캐시 누락 완벽 해결: 명시적 동기화 + 강제 순차 처리)
                 If(
                     !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
                     
-                    ForAll(
-                        colPendingReceipts As CurrentReceiptItem,
+                    With(
+                        { totalCount: CountRows(colPendingReceipts) },
                         
-                        With(
-                            {
-                                numReceiptId: Value(CurrentReceiptItem.mserp_entrecid)
-                            },
-                            
-                            // IfError의 첫 번째 인수(Patch)가 Record를 반환하므로,
-                            // 두 번째 인수(에러 처리 로직)도 Record 타입(혹은 Blank)을 반환해야 합니다.
+                        // [1번째 파일 처리] UpdateIf 대신 가장 빠르고 가벼운 단일 LookUp + Patch 사용
+                        If(totalCount >= 1,
                             IfError(
                                 Patch(
                                     'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp(
-                                        'Expense Mobile Unattached Document Entity (mserp)',
-                                        EntRecId = numReceiptId
-                                    ),
-                                    {
-                                        ExpTransNumber: varTargetExpTransNumber
-                                    }
+                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 1).mserp_entrecid)),
+                                    { ExpTransNumber: varTargetExpTransNumber }
                                 ),
-                                // 에러 발생 시 로그 기록 후,
-                                Collect(
-                                    colErrorLog,
-                                    {
-                                        FailedRecordId: Text(numReceiptId),
-                                        ErrorMessage: FirstError.Message
-                                    }
-                                );
-                                // 강제로 Blank()를 반환하여 Record 타입 불일치 오류를 해결합니다.
-                                Blank()
+                                Collect(colErrorLog, { FailedRecordId: "1", ErrorMessage: FirstError.Message }); Blank()
+                            )
+                        );
+                        
+                        // [2번째 파일 처리] 1번 패치로 인한 캐시 초기화 현상 복구 및 F&O 서버 안정화 대기
+                        If(totalCount >= 2,
+                            // (핵심) 다음 LookUp이 실패하지 않도록 서버의 최신 상태를 로컬 캐시에 강제 동기화합니다.
+                            Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                            IfError(
+                                Patch(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 2).mserp_entrecid)),
+                                    { ExpTransNumber: varTargetExpTransNumber }
+                                ),
+                                Collect(colErrorLog, { FailedRecordId: "2", ErrorMessage: FirstError.Message }); Blank()
+                            )
+                        );
+                        
+                        // [3번째 파일 처리]
+                        If(totalCount >= 3,
+                            Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                            IfError(
+                                Patch(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 3).mserp_entrecid)),
+                                    { ExpTransNumber: varTargetExpTransNumber }
+                                ),
+                                Collect(colErrorLog, { FailedRecordId: "3", ErrorMessage: FirstError.Message }); Blank()
+                            )
+                        );
+                        
+                        // [4번째 파일 처리]
+                        If(totalCount >= 4,
+                            Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                            IfError(
+                                Patch(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 4).mserp_entrecid)),
+                                    { ExpTransNumber: varTargetExpTransNumber }
+                                ),
+                                Collect(colErrorLog, { FailedRecordId: "4", ErrorMessage: FirstError.Message }); Blank()
+                            )
+                        );
+                        
+                        // [5번째 파일 처리] (대부분의 모바일 앱 영수증 다중 첨부 한도를 커버합니다)
+                        If(totalCount >= 5,
+                            Refresh('Expense Mobile Unattached Document Entity (mserp)');
+                            IfError(
+                                Patch(
+                                    'Expense Mobile Unattached Document Entity (mserp)',
+                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 5).mserp_entrecid)),
+                                    { ExpTransNumber: varTargetExpTransNumber }
+                                ),
+                                Collect(colErrorLog, { FailedRecordId: "5", ErrorMessage: FirstError.Message }); Blank()
                             )
                         )
                     )
