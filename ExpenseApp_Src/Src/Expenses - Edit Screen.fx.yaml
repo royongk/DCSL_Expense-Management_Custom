@@ -4688,15 +4688,23 @@
                         =With(
                             {
                                 displayNumber: If(
+                                    // 1순위: [신규 추가] 신규 모드이면서 복사된 원본 레코드가 있는 경우, 복사된 LCY 금액 사용
+                                    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                                    Value(varSelectedExpenseDoc.LCY), // ※ 실제 Dataverse/F&O 필드명에 맞게 선택
+                                    
+                                    // 2순위: 화면 내에서 환율/금액 변경으로 인해 새로 계산된 LCY 값이 있는 경우
                                     !IsBlank(locCalculatedLCY), 
                                     Value(locCalculatedLCY), 
+                                    
+                                    // 3순위: 그 외의 경우 (기존 저장된 데이터 불러오기 등)
                                     Value(Parent.Default)
                                 ),
                                 
                                 localCurrencyCode: If(
+                                    // 현지 통화(LCY) 코드는 보통 법인과 동일하게 가므로 기존 로직 유지
                                     currExpenseType = 'TrvExpType (mserp)'.'Per diem' && !IsBlank(cmbPerdiemLocation.Selected.Currency),
                                     cmbPerdiemLocation.Selected.Currency,
-                                    varDefaultCurrency // 이미 텍스트("KRW" 등)를 가지고 있으므로 바로 사용
+                                    varDefaultCurrency
                                 )
                             },
                             If(
@@ -8721,7 +8729,12 @@
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =0
                     Color: =gblParams.dropDownLabelColor
-                    DefaultDate: =DatePickerCanvas_PurchaseDate.SelectedDate
+                    DefaultDate: |-
+                        =If(
+                            varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                            varSelectedExpenseDoc.'Purchase Date', // 실제 구매일자 필드명으로 변경
+                            Parent.Default
+                        )
                     DisplayMode: =Parent.DisplayMode
                     EndYear: =Year(Today())+100
                     FocusedBorderThickness: =
@@ -8800,9 +8813,9 @@
                     Required: =false
                     SelectedDate: |-
                         =If(
-                            varIsCreate,
-                            Blank(),
-                            varSelectedExpenseDoc.'Purchase Date'
+                            varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                            varSelectedExpenseDoc.'Purchase Date', // 실제 구매일자 필드명으로 변경
+                            Parent.Default
                         )
                     ValidationState: ="None"
                     Width: =Parent.Width - 2 * Self.X
@@ -8867,7 +8880,12 @@
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =0
                     Color: =gblParams.dropDownLabelColor
-                    Default: =Parent.Default
+                    Default: |-
+                        =If(
+                            varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                            varSelectedExpenseDoc.'Additional information', // 실제 추가 정보 필드명으로 변경
+                            Parent.Default
+                        )
                     DelayOutput: =true
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =
@@ -11078,29 +11096,38 @@
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     DefaultSelectedItems: |-
-                        =Switch(
-                            // 조건: 현재 선택된 경비 유형 (varSelectedExpenseType 또는 varAppMode 활용)
-                            varAppMode,
+                        =If(
+                            // [1순위] 신규 생성 모드이면서, 복사된 원본 데이터(Copy)가 존재하는 경우
+                            varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
                             
-                            // 1. Employee Benefits Claim
-                            "EmployeeBenefit",
-                            LookUp('DCSL Financial Dimension CostCenter (mserp)', 'Combination display' = "6104"),
-                            
-                            // 2. Airfare & Shipping Allowance Claim
-                            // (출장 신청서 데이터가 현재 컨텍스트에 없는 경우, 임시로 varSelectedExpenseDoc의 기존 CostCenter를 유지하거나, 출장 신청서 테이블을 직접 LookUp 해야 합니다. 
-                            // 아래는 varSelectedCostCenter나 문서의 기존 값을 가져오는 방어적 코드입니다.)
-                            "AirfareAllowance",
-                            If(
-                                !IsBlank(varSelectedCostCenter),
-                                varSelectedCostCenter,
-                                Blank() // *만약 Travel Requisition을 별도 테이블에서 가져와야 한다면 이 부분을 수정해야 합니다.*
+                            // 원본 문서의 CostCenter 텍스트 값을 이용하여 마스터 데이터에서 정확한 레코드를 찾아 반환합니다.
+                            LookUp(
+                                'DCSL Financial Dimension CostCenter (mserp)', 
+                                'Combination display' = varSelectedExpenseDoc.CostCenter // ※ 실제 필드명 확인 필요
                             ),
                             
-                            // 3. 기본값 (일반적인 경우)
-                            If(
-                                !IsBlank(varSelectedCostCenter),
-                                varSelectedCostCenter,
-                                Blank()
+                            // [2순위] 복사 모드가 아닌 일반 신규 작성(New)이거나 수정(Edit) 모드인 경우 (기존 로직 유지)
+                            Switch(
+                                varAppMode,
+                                
+                                // 1. Employee Benefits Claim
+                                "EmployeeBenefit",
+                                LookUp('DCSL Financial Dimension CostCenter (mserp)', 'Combination display' = "6104"),
+                                
+                                // 2. Airfare & Shipping Allowance Claim
+                                "AirfareAllowance",
+                                If(
+                                    !IsBlank(varSelectedCostCenter),
+                                    varSelectedCostCenter,
+                                    Blank()
+                                ),
+                                
+                                // 3. 기본값 (일반적인 경우)
+                                If(
+                                    !IsBlank(varSelectedCostCenter),
+                                    varSelectedCostCenter,
+                                    Blank()
+                                )
                             )
                         )
                     DisplayFields: =["mserp_dimensionvalue","mserp_description"]
@@ -11400,7 +11427,15 @@
             "'Expense Beneficiary_DataCard1' As typedDataCard.textualMultiLineEditCard":
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_deexexpensebeneficiary"
-                Default: =ThisItem.'Expense Beneficiary'
+                Default: |-
+                    =If(
+                        // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용
+                        varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+                        varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.
+                        
+                        // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지
+                        ThisItem.'Expense Beneficiary'
+                    )
                 DisplayMode: =Parent.DisplayMode
                 DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
                 Fill: =RGBA(0, 0, 0, 0)
@@ -12800,8 +12835,8 @@
                     SortByColumns(
                         Filter(
                             'Expense lines (mserp)', 
-                            'Company (mserp_company)' = varSelectedLegalEntity 
-                            //&& 'Worker' = userRecord.Worker (필요시 추가)
+                            'Company (mserp_company)' = varSelectedLegalEntity &&
+                            'Expense Type' = varTargetExpenseType
                         ),
                         "mserp_transdate", 
                         SortOrder.Descending
@@ -12849,10 +12884,11 @@
                     Size: =14
                     Text: =ThisItem.'Item or Service'
                     VerticalAlign: =VerticalAlign.Top
-                    Width: =Parent.TemplateWidth - 86
+                    Width: =Parent.TemplateWidth - lbl_Amount.Width - NextArrow3.Width - 20
+                    Wrap: =false
                     X: =16
                     Y: =(Parent.TemplateHeight - (Self.Size*1.8 + Subtitle2.Size*1.8 + 2 + Body1.Size*1.8)) / 2
-                    ZIndex: =1
+                    ZIndex: =2
 
                 Subtitle2 As label:
                     BorderColor: =RGBA(0, 0, 0, 1)
@@ -12870,7 +12906,7 @@
                     Width: =Title3.Width
                     X: =Title3.X
                     Y: =Title3.Y + Title3.Height
-                    ZIndex: =2
+                    ZIndex: =3
 
                 Body1 As label:
                     BorderColor: =RGBA(0, 0, 0, 1)
@@ -12883,13 +12919,25 @@
                     PaddingLeft: =0
                     PaddingRight: =0
                     PaddingTop: =0
-                    Text: |-
-                        =Text(ThisItem.'Transaction amount', "[$-ko-KR]#,##0") & " " & ThisItem.'Currency (mserp_exchangecode)'
+                    Text: =ThisItem.'Additional information'
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Title3.Width
                     X: =Title3.X
                     Y: =Subtitle2.Y + Subtitle2.Height
-                    ZIndex: =3
+                    ZIndex: =4
+
+                lbl_Amount As label:
+                    Align: =Align.Right
+                    FontWeight: =FontWeight.Semibold
+                    Height: =Parent.TemplateHeight
+                    OnSelect: =Select(Parent)
+                    PaddingRight: =10
+                    Size: =15
+                    Text: |-
+                        =Text(ThisItem.'Transaction amount', "[$-ko-KR]#,##0") & " " & ThisItem.'Currency (mserp_exchangecode)'
+                    Width: =130
+                    X: =NextArrow3.X - Self.Width - 5
+                    ZIndex: =5
 
                 NextArrow3 As icon.ChevronRight:
                     AccessibleLabel: =Self.Tooltip
@@ -12905,7 +12953,7 @@
                     Width: =50
                     X: =Parent.TemplateWidth - Self.Width - 12
                     Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
-                    ZIndex: =4
+                    ZIndex: =6
 
                 Separator11 As rectangle:
                     BorderColor: =RGBA(0, 0, 255, 1)
@@ -12914,14 +12962,14 @@
                     OnSelect: =Select(Parent)
                     Width: =Parent.TemplateWidth
                     Y: =Parent.TemplateHeight - Self.Height
-                    ZIndex: =5
+                    ZIndex: =7
 
                 Rectangle3 As rectangle:
                     Height: =Parent.TemplateHeight - Separator11.Height
                     OnSelect: =Select(Parent)
                     Visible: =ThisItem.IsSelected
                     Width: =4
-                    ZIndex: =6
+                    ZIndex: =8
 
             Icon5 As icon.Cancel:
                 Icon: =Icon.Cancel
