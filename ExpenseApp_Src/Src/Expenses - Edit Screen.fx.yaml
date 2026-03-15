@@ -1078,81 +1078,77 @@
                 UpdateContext({varLoadingSpinner: true});
                 Clear(colErrorLog);
                 
-                // 4. 첨부 파일 연결 처리 (무한 로딩 및 캐시 누락 완벽 해결: 명시적 동기화 + 강제 순차 처리)
+                // 4. 첨부 파일 연결 처리 (네트워크 취소 방지 및 완벽한 순차 동기화 아키텍처)
                 If(
                     !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
                     
-                    With(
-                        { totalCount: CountRows(colPendingReceipts) },
-                        
-                        // [1번째 파일 처리] UpdateIf 대신 가장 빠르고 가벼운 단일 LookUp + Patch 사용
-                        If(totalCount >= 1,
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 1).mserp_entrecid)),
-                                    { ExpTransNumber: varTargetExpTransNumber }
-                                ),
-                                Collect(colErrorLog, { FailedRecordId: "1", ErrorMessage: FirstError.Message }); Blank()
+                    // 총 첨부 파일 개수를 미리 계산
+                    UpdateContext({ locTotalCount: CountRows(colPendingReceipts) });
+                    
+                    // [1번째 파일] UpdateContext를 사용하여 서버 응답이 완전히 끝날 때까지 대기 강제
+                    If(locTotalCount >= 1,
+                        UpdateContext({
+                            locPatchRes1: Patch(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 1).mserp_entrecid)),
+                                { ExpTransNumber: varTargetExpTransNumber }
                             )
-                        );
-                        
-                        // [2번째 파일 처리] 1번 패치로 인한 캐시 초기화 현상 복구 및 F&O 서버 안정화 대기
-                        If(totalCount >= 2,
-                            // (핵심) 다음 LookUp이 실패하지 않도록 서버의 최신 상태를 로컬 캐시에 강제 동기화합니다.
-                            Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 2).mserp_entrecid)),
-                                    { ExpTransNumber: varTargetExpTransNumber }
-                                ),
-                                Collect(colErrorLog, { FailedRecordId: "2", ErrorMessage: FirstError.Message }); Blank()
+                        })
+                    );
+                    
+                    // [2번째 파일] 1번 패치의 결과가 locPatchRes1에 담기고, 내부 캐시가 안정화된 후 실행됨
+                    If(locTotalCount >= 2,
+                        UpdateContext({
+                            locPatchRes2: Patch(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 2).mserp_entrecid)),
+                                { ExpTransNumber: varTargetExpTransNumber }
                             )
-                        );
-                        
-                        // [3번째 파일 처리]
-                        If(totalCount >= 3,
-                            Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 3).mserp_entrecid)),
-                                    { ExpTransNumber: varTargetExpTransNumber }
-                                ),
-                                Collect(colErrorLog, { FailedRecordId: "3", ErrorMessage: FirstError.Message }); Blank()
+                        })
+                    );
+                    
+                    // [3번째 파일]
+                    If(locTotalCount >= 3,
+                        UpdateContext({
+                            locPatchRes3: Patch(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 3).mserp_entrecid)),
+                                { ExpTransNumber: varTargetExpTransNumber }
                             )
-                        );
-                        
-                        // [4번째 파일 처리]
-                        If(totalCount >= 4,
-                            Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 4).mserp_entrecid)),
-                                    { ExpTransNumber: varTargetExpTransNumber }
-                                ),
-                                Collect(colErrorLog, { FailedRecordId: "4", ErrorMessage: FirstError.Message }); Blank()
+                        })
+                    );
+                    
+                    // [4번째 파일] (필요 시 확장)
+                    If(locTotalCount >= 4,
+                        UpdateContext({
+                            locPatchRes4: Patch(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 4).mserp_entrecid)),
+                                { ExpTransNumber: varTargetExpTransNumber }
                             )
-                        );
-                        
-                        // [5번째 파일 처리] (대부분의 모바일 앱 영수증 다중 첨부 한도를 커버합니다)
-                        If(totalCount >= 5,
-                            Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                            IfError(
-                                Patch(
-                                    'Expense Mobile Unattached Document Entity (mserp)',
-                                    LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 5).mserp_entrecid)),
-                                    { ExpTransNumber: varTargetExpTransNumber }
-                                ),
-                                Collect(colErrorLog, { FailedRecordId: "5", ErrorMessage: FirstError.Message }); Blank()
+                        })
+                    );
+                    
+                    // [5번째 파일] (필요 시 확장)
+                    If(locTotalCount >= 5,
+                        UpdateContext({
+                            locPatchRes5: Patch(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 5).mserp_entrecid)),
+                                { ExpTransNumber: varTargetExpTransNumber }
                             )
-                        )
+                        })
+                    );
+                
+                    // 모든 순차 처리가 끝난 후, 데이터 소스에 에러가 남아있는지 일괄 체크
+                    If(
+                        !IsEmpty(Errors('Expense Mobile Unattached Document Entity (mserp)')),
+                        Notify("일부 첨부 파일 연결 중 네트워크 오류가 발생했습니다. 다시 시도해 주세요.", NotificationType.Error)
                     )
                 );
                 
                 // 5. 에러 처리 및 알림
+                /*
                 If(
                     !IsEmpty(colErrorLog),
                     Notify(
@@ -1161,17 +1157,13 @@
                         5000
                     )
                 );
+                */
                 
-                // 6. 첨부 파일 목록 갱신 (저장 후 즉시 반영을 위해 병합 로직 개선)
+                // 6. 첨부 파일 목록 갱신 (서버 조회를 생략하여 무한 로딩 및 에러 원천 차단)
                 If(
                     !IsBlank(varTargetExpTransNumber),
-                    
-                    // [수정됨] 대량 타임아웃을 유발하는 다중 Refresh 제거 
-                    // Power Apps의 Patch 작업 후에는 캐시가 자동 갱신되므로 Refresh를 생략하거나 최소화해야 합니다.
-                    // Refresh('Expense Mobile Attached Document Entity (mserp)');
-                    // Refresh('Expense Mobile Unattached Document Entity (mserp)');
                 
-                    // [단계 1] Attached 파일들 먼저 담기
+                    // [단계 1] Attached 파일들 먼저 담기 (기존과 동일)
                     ClearCollect(
                         colAttachedReceipts,
                         ForAll(
@@ -1189,31 +1181,24 @@
                         )
                     );
                     
-                    // [단계 2] Unattached 파일(방금 추가한 것) 추가 담기
+                    // [단계 2] Unattached 파일(방금 추가한 것) 메모리에서 바로 추가 (LookUp 제거로 성능 극대화)
                     Collect(
                         colAttachedReceipts,
                         ForAll(
                             colPendingReceipts As CurrentReceipt,
-                            With(
-                                {
-                                    ServerRecord: LookUp(
-                                        'Expense Mobile Unattached Document Entity (mserp)', 
-                                        EntRecId = CurrentReceipt.mserp_entrecid
-                                    )
-                                },
-                                {
-                                    mserp_entrecid: ServerRecord.EntRecId,
-                                    mserp_captureddocument: ServerRecord.CapturedDocument,
-                                    mserp_fileextension: ServerRecord.FileExtension,
-                                    mserp_filename: Coalesce(
-                                        ServerRecord.Description, 
-                                        Concatenate("Receipt-", Text(ServerRecord.EntRecId))
-                                    ),
-                                    mserp_createddatetime: ServerRecord.CreatingDateTime
-                                }
-                            )
+                            {
+                                mserp_entrecid: CurrentReceipt.mserp_entrecid,
+                                mserp_captureddocument: CurrentReceipt.mserp_captureddocument,
+                                mserp_fileextension: CurrentReceipt.mserp_fileextension,
+                                mserp_filename: Coalesce(
+                                    CurrentReceipt.mserp_filename, 
+                                    Concatenate("Receipt-", Text(CurrentReceipt.mserp_entrecid))
+                                ),
+                                mserp_createddatetime: Now()
+                            }
                         )
                     );
+                    
                     // [단계 3] 최종 결과 정렬 (내림차순)
                     ClearCollect(
                         colAttachedReceipts,
