@@ -1,0 +1,732 @@
+<application xmlns:xml="http://www.w3.org/XML/1998/namespace" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:service="https://d772562f-55bc-e4a8-b115-a8ff07546d86.17.common.asia.azure-apihub.net/apim/office365groups" xmlns:siena="http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11" siena:serviceId="Office365그룹" xmlns="http://wadl.dev.java.net/2009/02">
+  <doc title="Office 365 그룹">Office 365 그룹을 사용하면 Office 365 계정을 이용하여 조직의 그룹 구성원 및 일정 이벤트를 관리할 수 있습니다. 그룹 명단 가져오기, 구성원 추가 또는 제거 및 그룹 이벤트 만들기와 같은 다양한 작업을 수행할 수 있습니다.</doc>
+  <grammars>
+    <jsonTypes targetNamespace="https://d772562f-55bc-e4a8-b115-a8ff07546d86.17.common.asia.azure-apihub.net/apim/office365groups" xmlns="http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11">
+      <string name="SensitivityLabelMetadata_sensitivityLabelId_def" />
+      <string name="SensitivityLabelMetadata_name_def" />
+      <string name="SensitivityLabelMetadata_displayName_def" />
+      <string name="SensitivityLabelMetadata_tooltip_def" />
+      <integer name="SensitivityLabelMetadata_priority_def" />
+      <string name="SensitivityLabelMetadata_color_def" />
+      <boolean name="SensitivityLabelMetadata_isEncrypted_def" />
+      <boolean name="SensitivityLabelMetadata_isEnabled_def" />
+      <boolean name="SensitivityLabelMetadata_isParent_def" />
+      <string name="SensitivityLabelMetadata_parentSensitivityLabelId_def" />
+      <object name="SensitivityLabelMetadata">
+        <property name="sensitivityLabelId" type="string" />
+        <property name="name" type="string" />
+        <property name="displayName" type="string" />
+        <property name="tooltip" type="string" />
+        <property name="priority" type="integer" />
+        <property name="color" type="string" />
+        <property name="isEncrypted" type="boolean" />
+        <property name="isEnabled" type="boolean" />
+        <property name="isParent" type="boolean" />
+        <property name="parentSensitivityLabelId" type="string" />
+      </object>
+      <string name="ListGroupMembers_Response__ux40_odata_context_def" />
+      <string name="ListGroupMembers_Response__ux40_odata_nextLink_def" />
+      <string name="ListGroupMembers_Response_value_def_items_def_id_def" />
+      <string name="ListGroupMembers_Response_value_def_items_def_displayName_def" />
+      <string name="ListGroupMembers_Response_value_def_items_def_givenName_def" />
+      <string name="ListGroupMembers_Response_value_def_items_def_jobTitle_def" />
+      <string name="ListGroupMembers_Response_value_def_items_def_mail_def" />
+      <string name="ListGroupMembers_Response_value_def_items_def_mobilePhone_def" />
+      <string name="ListGroupMembers_Response_value_def_items_def_officeLocation_def" />
+      <string name="ListGroupMembers_Response_value_def_items_def_surname_def" />
+      <string name="ListGroupMembers_Response_value_def_items_def_userPrincipalName_def" />
+      <object name="ListGroupMembers_Response_value_def_items_def">
+        <property name="id" type="string" />
+        <property name="displayName" type="string" />
+        <property name="givenName" type="string" />
+        <property name="jobTitle" type="string" />
+        <property name="mail" type="string" />
+        <property name="mobilePhone" type="string" />
+        <property name="officeLocation" type="string" />
+        <property name="surname" type="string" />
+        <property name="userPrincipalName" type="string" />
+      </object>
+      <array typeRef="ListGroupMembers_Response_value_def_items_def" name="ListGroupMembers_Response_value_def" />
+      <object name="ListGroupMembers_Response">
+        <property name="@odata.context" type="string" />
+        <property name="@odata.nextLink" type="string" />
+        <property name="value" typeRef="ListGroupMembers_Response_value_def" />
+      </object>
+      <string name="OnGroupMemberAddedOrRemoved_Response_items_def_id_def" />
+      <string name="OnGroupMemberAddedOrRemoved_Response_items_def__ux40_removed_def_reason_def" />
+      <object name="OnGroupMemberAddedOrRemoved_Response_items_def__ux40_removed_def">
+        <property name="reason" type="string" />
+      </object>
+      <object name="OnGroupMemberAddedOrRemoved_Response_items_def">
+        <property name="id" type="string" />
+        <property name="@removed" typeRef="OnGroupMemberAddedOrRemoved_Response_items_def__ux40_removed_def" />
+      </object>
+      <array typeRef="OnGroupMemberAddedOrRemoved_Response_items_def" name="OnGroupMemberAddedOrRemoved_Response" />
+      <string name="ListOwnedGroups_Response__ux40_odata_context_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_classification_def" />
+      <dateTimeString name="ListOwnedGroups_Response_value_def_items_def_createdDateTime_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_deletedDateTime_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_description_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_displayName_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_id_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_mail_def" />
+      <boolean name="ListOwnedGroups_Response_value_def_items_def_mailEnabled_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_mailNickname_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_onPremisesLastSyncDateTime_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_onPremisesSecurityIdentifier_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_onPremisesSyncEnabled_def" />
+      <dateTimeString name="ListOwnedGroups_Response_value_def_items_def_renewedDateTime_def" />
+      <boolean name="ListOwnedGroups_Response_value_def_items_def_securityEnabled_def" />
+      <string name="ListOwnedGroups_Response_value_def_items_def_visibility_def" />
+      <array typeRef="SensitivityLabelMetadata" name="ListOwnedGroups_Response_value_def_items_def_sensitivityLabelInfo_def" />
+      <object name="ListOwnedGroups_Response_value_def_items_def">
+        <property name="classification" type="string" />
+        <property name="createdDateTime" typeRef="ListOwnedGroups_Response_value_def_items_def_createdDateTime_def" />
+        <property name="deletedDateTime" type="string" />
+        <property name="description" type="string" />
+        <property name="displayName" type="string" />
+        <property name="id" type="string" />
+        <property name="mail" type="string" />
+        <property name="mailEnabled" type="boolean" />
+        <property name="mailNickname" type="string" />
+        <property name="onPremisesLastSyncDateTime" type="string" />
+        <property name="onPremisesSecurityIdentifier" type="string" />
+        <property name="onPremisesSyncEnabled" type="string" />
+        <property name="renewedDateTime" typeRef="ListOwnedGroups_Response_value_def_items_def_renewedDateTime_def" />
+        <property name="securityEnabled" type="boolean" />
+        <property name="visibility" type="string" />
+        <property name="sensitivityLabelInfo" typeRef="ListOwnedGroups_Response_value_def_items_def_sensitivityLabelInfo_def" />
+      </object>
+      <array typeRef="ListOwnedGroups_Response_value_def_items_def" name="ListOwnedGroups_Response_value_def" />
+      <object name="ListOwnedGroups_Response">
+        <property name="@odata.context" type="string" />
+        <property name="value" typeRef="ListOwnedGroups_Response_value_def" />
+      </object>
+      <string name="ListOwnedGroups_V2_Response__ux40_odata_context_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_classification_def" />
+      <dateTimeString name="ListOwnedGroups_V2_Response_value_def_items_def_createdDateTime_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_description_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_displayName_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_id_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_mail_def" />
+      <boolean name="ListOwnedGroups_V2_Response_value_def_items_def_mailEnabled_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_mailNickname_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_onPremisesLastSyncDateTime_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_onPremisesSecurityIdentifier_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_onPremisesSyncEnabled_def" />
+      <dateTimeString name="ListOwnedGroups_V2_Response_value_def_items_def_renewedDateTime_def" />
+      <boolean name="ListOwnedGroups_V2_Response_value_def_items_def_securityEnabled_def" />
+      <string name="ListOwnedGroups_V2_Response_value_def_items_def_visibility_def" />
+      <array typeRef="SensitivityLabelMetadata" name="ListOwnedGroups_V2_Response_value_def_items_def_sensitivityLabelInfo_def" />
+      <object name="ListOwnedGroups_V2_Response_value_def_items_def">
+        <property name="classification" type="string" />
+        <property name="createdDateTime" typeRef="ListOwnedGroups_V2_Response_value_def_items_def_createdDateTime_def" />
+        <property name="description" type="string" />
+        <property name="displayName" type="string" />
+        <property name="id" type="string" />
+        <property name="mail" type="string" />
+        <property name="mailEnabled" type="boolean" />
+        <property name="mailNickname" type="string" />
+        <property name="onPremisesLastSyncDateTime" type="string" />
+        <property name="onPremisesSecurityIdentifier" type="string" />
+        <property name="onPremisesSyncEnabled" type="string" />
+        <property name="renewedDateTime" typeRef="ListOwnedGroups_V2_Response_value_def_items_def_renewedDateTime_def" />
+        <property name="securityEnabled" type="boolean" />
+        <property name="visibility" type="string" />
+        <property name="sensitivityLabelInfo" typeRef="ListOwnedGroups_V2_Response_value_def_items_def_sensitivityLabelInfo_def" />
+      </object>
+      <array typeRef="ListOwnedGroups_V2_Response_value_def_items_def" name="ListOwnedGroups_V2_Response_value_def" />
+      <object name="ListOwnedGroups_V2_Response">
+        <property name="@odata.context" type="string" />
+        <property name="value" typeRef="ListOwnedGroups_V2_Response_value_def" />
+      </object>
+      <string name="ListGroups_Response__ux40_odata_context_def" />
+      <string name="ListGroups_Response__ux40_odata_nextLink_def" />
+      <string name="ListGroups_Response_value_def_items_def_classification_def" />
+      <dateTimeString name="ListGroups_Response_value_def_items_def_createdDateTime_def" />
+      <string name="ListGroups_Response_value_def_items_def_description_def" />
+      <string name="ListGroups_Response_value_def_items_def_displayName_def" />
+      <string name="ListGroups_Response_value_def_items_def_id_def" />
+      <string name="ListGroups_Response_value_def_items_def_mail_def" />
+      <boolean name="ListGroups_Response_value_def_items_def_mailEnabled_def" />
+      <string name="ListGroups_Response_value_def_items_def_mailNickname_def" />
+      <string name="ListGroups_Response_value_def_items_def_onPremisesLastSyncDateTime_def" />
+      <string name="ListGroups_Response_value_def_items_def_onPremisesSecurityIdentifier_def" />
+      <boolean name="ListGroups_Response_value_def_items_def_onPremisesSyncEnabled_def" />
+      <dateTimeString name="ListGroups_Response_value_def_items_def_renewedDateTime_def" />
+      <boolean name="ListGroups_Response_value_def_items_def_securityEnabled_def" />
+      <string name="ListGroups_Response_value_def_items_def_visibility_def" />
+      <array typeRef="SensitivityLabelMetadata" name="ListGroups_Response_value_def_items_def_sensitivityLabelInfo_def" />
+      <object name="ListGroups_Response_value_def_items_def">
+        <property name="classification" type="string" />
+        <property name="createdDateTime" typeRef="ListGroups_Response_value_def_items_def_createdDateTime_def" />
+        <property name="description" type="string" />
+        <property name="displayName" type="string" />
+        <property name="id" type="string" />
+        <property name="mail" type="string" />
+        <property name="mailEnabled" type="boolean" />
+        <property name="mailNickname" type="string" />
+        <property name="onPremisesLastSyncDateTime" type="string" />
+        <property name="onPremisesSecurityIdentifier" type="string" />
+        <property name="onPremisesSyncEnabled" type="boolean" />
+        <property name="renewedDateTime" typeRef="ListGroups_Response_value_def_items_def_renewedDateTime_def" />
+        <property name="securityEnabled" type="boolean" />
+        <property name="visibility" type="string" />
+        <property name="sensitivityLabelInfo" typeRef="ListGroups_Response_value_def_items_def_sensitivityLabelInfo_def" />
+      </object>
+      <array typeRef="ListGroups_Response_value_def_items_def" name="ListGroups_Response_value_def" />
+      <object name="ListGroups_Response">
+        <property name="@odata.context" type="string" />
+        <property name="@odata.nextLink" type="string" />
+        <property name="value" typeRef="ListGroups_Response_value_def" />
+      </object>
+      <string name="CreateCalendarEvent_Response_id_def" />
+      <integer name="CreateCalendarEvent_Response_reminderMinutesBeforeStart_def" />
+      <boolean name="CreateCalendarEvent_Response_isReminderOn_def" />
+      <string name="CreateCalendarEvent_Response_subject_def" />
+      <string name="CreateCalendarEvent_Response_importance_def" />
+      <boolean name="CreateCalendarEvent_Response_isAllDay_def" />
+      <boolean name="CreateCalendarEvent_Response_responseRequested_def" />
+      <string name="CreateCalendarEvent_Response_showAs_def" />
+      <string name="CreateCalendarEvent_Response_body_def_contentType_def" />
+      <string name="CreateCalendarEvent_Response_body_def_content_def" />
+      <object name="CreateCalendarEvent_Response_body_def">
+        <property name="contentType" type="string" />
+        <property name="content" type="string" />
+      </object>
+      <dateTimeString name="CreateCalendarEvent_Response_start_def_dateTime_def" />
+      <string name="CreateCalendarEvent_Response_start_def_timeZone_def" />
+      <object name="CreateCalendarEvent_Response_start_def">
+        <property name="dateTime" typeRef="CreateCalendarEvent_Response_start_def_dateTime_def" />
+        <property name="timeZone" type="string" />
+      </object>
+      <dateTimeString name="CreateCalendarEvent_Response_end_def_dateTime_def" />
+      <string name="CreateCalendarEvent_Response_end_def_timeZone_def" />
+      <object name="CreateCalendarEvent_Response_end_def">
+        <property name="dateTime" typeRef="CreateCalendarEvent_Response_end_def_dateTime_def" />
+        <property name="timeZone" type="string" />
+      </object>
+      <string name="CreateCalendarEvent_Response_location_def_displayName_def" />
+      <object name="CreateCalendarEvent_Response_location_def">
+        <property name="displayName" type="string" />
+      </object>
+      <object name="CreateCalendarEvent_Response">
+        <property name="id" type="string" />
+        <property name="reminderMinutesBeforeStart" type="integer" />
+        <property name="isReminderOn" type="boolean" />
+        <property name="subject" type="string" />
+        <property name="importance" type="string" />
+        <property name="isAllDay" type="boolean" />
+        <property name="responseRequested" type="boolean" />
+        <property name="showAs" type="string" />
+        <property name="body" typeRef="CreateCalendarEvent_Response_body_def" />
+        <property name="start" typeRef="CreateCalendarEvent_Response_start_def" />
+        <property name="end" typeRef="CreateCalendarEvent_Response_end_def" />
+        <property name="location" typeRef="CreateCalendarEvent_Response_location_def" />
+      </object>
+      <string name="UpdateCalendarEvent_Request_subject_def" />
+      <dateTimeString name="UpdateCalendarEvent_Request_start_def_dateTime_def" />
+      <string name="UpdateCalendarEvent_Request_start_def_timeZone_def" />
+      <object name="UpdateCalendarEvent_Request_start_def">
+        <property name="dateTime" typeRef="UpdateCalendarEvent_Request_start_def_dateTime_def" />
+        <property name="timeZone" type="string" />
+      </object>
+      <dateTimeString name="UpdateCalendarEvent_Request_end_def_dateTime_def" />
+      <string name="UpdateCalendarEvent_Request_end_def_timeZone_def" />
+      <object name="UpdateCalendarEvent_Request_end_def">
+        <property name="dateTime" typeRef="UpdateCalendarEvent_Request_end_def_dateTime_def" />
+        <property name="timeZone" type="string" />
+      </object>
+      <string name="UpdateCalendarEvent_Request_body_def_content_def" />
+      <string name="UpdateCalendarEvent_Request_body_def_contentType_def" />
+      <object name="UpdateCalendarEvent_Request_body_def">
+        <property name="content" type="string" />
+        <property name="contentType" type="string" />
+      </object>
+      <string name="UpdateCalendarEvent_Request_location_def_displayName_def" />
+      <object name="UpdateCalendarEvent_Request_location_def">
+        <property name="displayName" type="string" />
+      </object>
+      <string name="UpdateCalendarEvent_Request_importance_def" />
+      <boolean name="UpdateCalendarEvent_Request_isAllDay_def" />
+      <boolean name="UpdateCalendarEvent_Request_isReminderOn_def" />
+      <integer name="UpdateCalendarEvent_Request_reminderMinutesBeforeStart_def" />
+      <string name="UpdateCalendarEvent_Request_showAs_def" />
+      <boolean name="UpdateCalendarEvent_Request_responseRequested_def" />
+      <object name="UpdateCalendarEvent_Request">
+        <property name="subject" type="string" />
+        <property name="start" typeRef="UpdateCalendarEvent_Request_start_def" />
+        <property name="end" typeRef="UpdateCalendarEvent_Request_end_def" />
+        <property name="body" typeRef="UpdateCalendarEvent_Request_body_def" />
+        <property name="location" typeRef="UpdateCalendarEvent_Request_location_def" />
+        <property name="importance" type="string" />
+        <property name="isAllDay" type="boolean" />
+        <property name="isReminderOn" type="boolean" />
+        <property name="reminderMinutesBeforeStart" type="integer" />
+        <property name="showAs" type="string" />
+        <property name="responseRequested" type="boolean" />
+      </object>
+      <string name="UpdateCalendarEvent_HTMLRequest_subject_def" />
+      <dateTimeString name="UpdateCalendarEvent_HTMLRequest_start_def_dateTime_def" />
+      <string name="UpdateCalendarEvent_HTMLRequest_start_def_timeZone_def" />
+      <object name="UpdateCalendarEvent_HTMLRequest_start_def">
+        <property name="dateTime" typeRef="UpdateCalendarEvent_HTMLRequest_start_def_dateTime_def" />
+        <property name="timeZone" type="string" />
+      </object>
+      <dateTimeString name="UpdateCalendarEvent_HTMLRequest_end_def_dateTime_def" />
+      <string name="UpdateCalendarEvent_HTMLRequest_end_def_timeZone_def" />
+      <object name="UpdateCalendarEvent_HTMLRequest_end_def">
+        <property name="dateTime" typeRef="UpdateCalendarEvent_HTMLRequest_end_def_dateTime_def" />
+        <property name="timeZone" type="string" />
+      </object>
+      <string name="UpdateCalendarEvent_HTMLRequest_body_def_content_def" />
+      <string name="UpdateCalendarEvent_HTMLRequest_body_def_contentType_def" />
+      <object name="UpdateCalendarEvent_HTMLRequest_body_def">
+        <property name="content" type="string" />
+        <property name="contentType" type="string" />
+      </object>
+      <string name="UpdateCalendarEvent_HTMLRequest_location_def_displayName_def" />
+      <object name="UpdateCalendarEvent_HTMLRequest_location_def">
+        <property name="displayName" type="string" />
+      </object>
+      <string name="UpdateCalendarEvent_HTMLRequest_importance_def" />
+      <boolean name="UpdateCalendarEvent_HTMLRequest_isAllDay_def" />
+      <boolean name="UpdateCalendarEvent_HTMLRequest_isReminderOn_def" />
+      <integer name="UpdateCalendarEvent_HTMLRequest_reminderMinutesBeforeStart_def" />
+      <string name="UpdateCalendarEvent_HTMLRequest_showAs_def" />
+      <boolean name="UpdateCalendarEvent_HTMLRequest_responseRequested_def" />
+      <object name="UpdateCalendarEvent_HTMLRequest">
+        <property name="subject" type="string" />
+        <property name="start" typeRef="UpdateCalendarEvent_HTMLRequest_start_def" />
+        <property name="end" typeRef="UpdateCalendarEvent_HTMLRequest_end_def" />
+        <property name="body" typeRef="UpdateCalendarEvent_HTMLRequest_body_def" />
+        <property name="location" typeRef="UpdateCalendarEvent_HTMLRequest_location_def" />
+        <property name="importance" type="string" />
+        <property name="isAllDay" type="boolean" />
+        <property name="isReminderOn" type="boolean" />
+        <property name="reminderMinutesBeforeStart" type="integer" />
+        <property name="showAs" type="string" />
+        <property name="responseRequested" type="boolean" />
+      </object>
+      <string name="OnNewEvent_Response_items_def_id_def" />
+      <integer name="OnNewEvent_Response_items_def_reminderMinutesBeforeStart_def" />
+      <boolean name="OnNewEvent_Response_items_def_isReminderOn_def" />
+      <string name="OnNewEvent_Response_items_def_subject_def" />
+      <string name="OnNewEvent_Response_items_def_importance_def" />
+      <boolean name="OnNewEvent_Response_items_def_isAllDay_def" />
+      <boolean name="OnNewEvent_Response_items_def_responseRequested_def" />
+      <string name="OnNewEvent_Response_items_def_showAs_def" />
+      <string name="OnNewEvent_Response_items_def_body_def_contentType_def" />
+      <string name="OnNewEvent_Response_items_def_body_def_content_def" />
+      <object name="OnNewEvent_Response_items_def_body_def">
+        <property name="contentType" type="string" />
+        <property name="content" type="string" />
+      </object>
+      <dateTimeString name="OnNewEvent_Response_items_def_start_def_dateTime_def" />
+      <string name="OnNewEvent_Response_items_def_start_def_timeZone_def" />
+      <object name="OnNewEvent_Response_items_def_start_def">
+        <property name="dateTime" typeRef="OnNewEvent_Response_items_def_start_def_dateTime_def" />
+        <property name="timeZone" type="string" />
+      </object>
+      <dateTimeString name="OnNewEvent_Response_items_def_end_def_dateTime_def" />
+      <string name="OnNewEvent_Response_items_def_end_def_timeZone_def" />
+      <object name="OnNewEvent_Response_items_def_end_def">
+        <property name="dateTime" typeRef="OnNewEvent_Response_items_def_end_def_dateTime_def" />
+        <property name="timeZone" type="string" />
+      </object>
+      <string name="OnNewEvent_Response_items_def_location_def_displayName_def" />
+      <object name="OnNewEvent_Response_items_def_location_def">
+        <property name="displayName" type="string" />
+      </object>
+      <object name="OnNewEvent_Response_items_def">
+        <property name="id" type="string" />
+        <property name="reminderMinutesBeforeStart" type="integer" />
+        <property name="isReminderOn" type="boolean" />
+        <property name="subject" type="string" />
+        <property name="importance" type="string" />
+        <property name="isAllDay" type="boolean" />
+        <property name="responseRequested" type="boolean" />
+        <property name="showAs" type="string" />
+        <property name="body" typeRef="OnNewEvent_Response_items_def_body_def" />
+        <property name="start" typeRef="OnNewEvent_Response_items_def_start_def" />
+        <property name="end" typeRef="OnNewEvent_Response_items_def_end_def" />
+        <property name="location" typeRef="OnNewEvent_Response_items_def_location_def" />
+      </object>
+      <array typeRef="OnNewEvent_Response_items_def" name="OnNewEvent_Response" />
+      <untypedObject name="ObjectWithoutType" />
+      <string name="HttpRequestV2_param_Body_def" />
+      <string name="HttpRequest_param_Body_def" />
+    </jsonTypes>
+  </grammars>
+  <resources siena:authenticationProviderHref="#PowerAppAuth" base="https://d772562f-55bc-e4a8-b115-a8ff07546d86.17.common.asia.azure-apihub.net/apim/office365groups">
+    <resource path="/{connectionId}/v1.0/groups/{groupId}/members">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <param style="template" name="groupId" type="xs:string" required="true">
+        <doc title="드롭다운에서 그룹을 선택하거나 그룹 ID를 입력하세요." />
+      </param>
+      <method siena:requiresAuthentication="true" name="GET" id="ListGroupMembers" actionName="ListGroupMembers" visibility="advanced" siena:isDeprecated="false">
+        <doc title="그룹 구성원 나열&#xA;이 작업은 지정된 그룹의 모든 구성원 목록과 이름, 직위, 이메일 등의 정보를 반환합니다. Top 매개 변수를 사용하여 최대 1,000개까지 항목을 쿼리할 수 있습니다. 1,000 개 이상의 값을 검색해야 하는 경우 설정에서 페이지 매김 기능을 켜고 임계값 제한을 제공하세요." />
+        <request>
+          <param style="query" name="$top" type="xs:int">
+            <doc title="검색할 그룹 구성원 수(1~999, 기본값은 100)입니다." />
+          </param>
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:ListGroupMembers_Response" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/groups/{groupId}/members/$ref">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <param style="template" name="groupId" type="xs:string" required="true">
+        <doc title="드롭다운에서 그룹을 선택하거나 그룹 ID를 입력하세요." />
+      </param>
+      <method siena:requiresAuthentication="true" name="POST" id="AddMemberToGroup" actionName="AddMemberToGroup" visibility="important" siena:isDeprecated="false">
+        <doc title="그룹에 구성원 추가&#xA;이 작업은 UPN을 사용하여 O365 그룹에 구성원을 추가하는 데 사용됩니다." />
+        <request>
+          <param style="query" name="userUpn" type="xs:string" required="true">
+            <doc title="사용자의 UPN(사용자 계정 이름)입니다." />
+          </param>
+        </request>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/me/memberOf/$/microsoft.graph.group">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <method siena:requiresAuthentication="true" name="GET" id="ListOwnedGroups" actionName="ListOwnedGroups" visibility="advanced" siena:isDeprecated="false">
+        <doc title="내가 소유하는 그룹 나열&#xA;이 작업은 사용자가 소유하는 모든 그룹의 목록을 반환합니다." />
+        <request />
+        <response>
+          <representation mediaType="application/json" element="service:ListOwnedGroups_Response" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/me/ownedObjects/$/microsoft.graph.group">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <method siena:requiresAuthentication="true" name="GET" id="ListOwnedGroupsV2" actionName="ListOwnedGroups_V2" visibility="advanced" siena:isDeprecated="false">
+        <doc title="내가 소유하는 그룹 나열(V2)&#xA;이 작업은 소유한 모든 그룹의 목록을 반환합니다." />
+        <request>
+          <param style="query" name="extractSensitivityLabel" type="xs:boolean">
+            <doc title="연관된 아티팩트에 대한 민감도 레이블 ID를 추출할지 여부를 나타내는 부울 값입니다." />
+          </param>
+          <param style="query" name="fetchSensitivityLabelMetadata" type="xs:boolean">
+            <doc title="연관된 LabelId에 대한 민감도 레이블 메타데이터를 가져올지 여부를 나타내는 부울입니다." />
+          </param>
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:ListOwnedGroups_V2_Response" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v2/v1.0/me/memberOf/$/microsoft.graph.group">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <method siena:requiresAuthentication="true" name="GET" id="ListOwnedGroupsV3" actionName="ListOwnedGroups_V3" visibility="advanced" siena:isDeprecated="false">
+        <doc title="내가 소유하고 속하는 그룹 나열&#xA;이 작업은 사용자가 소유하고 속해 있는 모든 그룹의 목록을 반환합니다." />
+        <request>
+          <param style="query" name="extractSensitivityLabel" type="xs:boolean">
+            <doc title="연관된 아티팩트에 대한 민감도 레이블 ID를 추출할지 여부를 나타내는 부울 값입니다." />
+          </param>
+          <param style="query" name="fetchSensitivityLabelMetadata" type="xs:boolean">
+            <doc title="연관된 LabelId에 대한 민감도 레이블 메타데이터를 가져올지 여부를 나타내는 부울입니다." />
+          </param>
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:ListOwnedGroups_Response" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/groups">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <method siena:requiresAuthentication="true" name="GET" id="ListGroups" actionName="ListGroups" visibility="advanced" siena:isDeprecated="false">
+        <doc title="그룹 나열&#xA;이 작업은 조직의 모든 그룹 목록을 반환합니다." />
+        <request>
+          <param style="query" name="extractSensitivityLabel" type="xs:boolean">
+            <doc title="연관된 아티팩트에 대한 민감도 레이블 ID를 추출할지 여부를 나타내는 부울 값입니다." />
+          </param>
+          <param style="query" name="fetchSensitivityLabelMetadata" type="xs:boolean">
+            <doc title="연관된 LabelId에 대한 민감도 레이블 메타데이터를 가져올지 여부를 나타내는 부울입니다." />
+          </param>
+          <param style="query" name="$filter" type="xs:string">
+            <doc title="나열된 행을 제한하는 OData 스타일 필터 식을 입력합니다." />
+          </param>
+          <param style="query" name="$top" type="xs:long">
+            <doc title="결과의 페이지 크기를 설정합니다." />
+          </param>
+          <param style="query" name="$skiptoken" type="xs:string">
+            <doc title="결과의 다음 페이지를 참조하고 응답의 @odata.nextLink 속성에 반환되는 토큰입니다." />
+          </param>
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:ListGroups_Response" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/groups/{groupId}/events">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <param style="template" name="groupId" type="xs:string" required="true">
+        <doc title="드롭다운에서 그룹을 선택하거나 그룹 ID를 입력하세요." />
+      </param>
+      <method siena:requiresAuthentication="true" name="POST" id="CreateCalendarEvent" actionName="CreateCalendarEvent" siena:isDeprecated="true" siena:family="CreateCalendarEvent" siena:revision="1" siena:status="Production">
+        <doc title="그룹 이벤트 만들기&#xA;이 작업은 그룹 일정에서 새 이벤트를 만드는 데 사용됩니다." />
+        <request>
+          <representation mediaType="application/json">
+            <param style="plain" name="subject" path="/subject" type="xs:string" required="true" />
+            <param style="plain" name="start" path="/start" type="service:UpdateCalendarEvent_Request_start_def" required="true" />
+            <param style="plain" name="end" path="/end" type="service:UpdateCalendarEvent_Request_end_def" required="true" />
+            <param style="plain" name="body" path="/body" type="service:UpdateCalendarEvent_Request_body_def" />
+            <param style="plain" name="location" path="/location" type="service:UpdateCalendarEvent_Request_location_def" />
+            <param style="plain" name="importance" path="/importance" type="xs:string">
+              <option value="Low" />
+              <option value="Normal" />
+              <option value="High" />
+            </param>
+            <param style="plain" name="isAllDay" path="/isAllDay" type="xs:boolean" />
+            <param style="plain" name="isReminderOn" path="/isReminderOn" type="xs:boolean" />
+            <param style="plain" name="reminderMinutesBeforeStart" path="/reminderMinutesBeforeStart" type="xs:int" />
+            <param style="plain" name="showAs" path="/showAs" type="xs:string">
+              <option value="Free" />
+              <option value="Tentative" />
+              <option value="Busy" />
+              <option value="Oof" />
+              <option value="WorkingElsewhere" />
+              <option value="Unknown" />
+            </param>
+            <param style="plain" name="responseRequested" path="/responseRequested" type="xs:boolean" />
+          </representation>
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:CreateCalendarEvent_Response" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v2/v1.0/groups/{groupId}/events">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <param style="template" name="groupId" type="xs:string" required="true">
+        <doc title="드롭다운에서 그룹을 선택하거나 그룹 ID를 입력하세요." />
+      </param>
+      <method siena:requiresAuthentication="true" name="POST" id="CreateCalendarEventV2" actionName="CreateCalendarEventV2" siena:isDeprecated="false" siena:family="CreateCalendarEvent" siena:revision="2" siena:status="Production">
+        <doc title="그룹 이벤트 만들기(V2)&#xA;이 작업은 그룹 일정에서 새 이벤트를 만드는 데 사용됩니다." />
+        <request>
+          <representation mediaType="application/json">
+            <param style="plain" name="subject" path="/subject" type="xs:string" required="true" />
+            <param style="plain" name="start" path="/start" type="service:UpdateCalendarEvent_HTMLRequest_start_def" required="true" />
+            <param style="plain" name="end" path="/end" type="service:UpdateCalendarEvent_HTMLRequest_end_def" required="true" />
+            <param style="plain" name="body" path="/body" type="service:UpdateCalendarEvent_HTMLRequest_body_def" />
+            <param style="plain" name="location" path="/location" type="service:UpdateCalendarEvent_HTMLRequest_location_def" />
+            <param style="plain" name="importance" path="/importance" type="xs:string">
+              <option value="Low" />
+              <option value="Normal" />
+              <option value="High" />
+            </param>
+            <param style="plain" name="isAllDay" path="/isAllDay" type="xs:boolean" />
+            <param style="plain" name="isReminderOn" path="/isReminderOn" type="xs:boolean" />
+            <param style="plain" name="reminderMinutesBeforeStart" path="/reminderMinutesBeforeStart" type="xs:int" />
+            <param style="plain" name="showAs" path="/showAs" type="xs:string">
+              <option value="Free" />
+              <option value="Tentative" />
+              <option value="Busy" />
+              <option value="Oof" />
+              <option value="WorkingElsewhere" />
+              <option value="Unknown" />
+            </param>
+            <param style="plain" name="responseRequested" path="/responseRequested" type="xs:boolean" />
+          </representation>
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:CreateCalendarEvent_Response" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/groups/{groupId}/events/{event}">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <param style="template" name="groupId" type="xs:string" required="true">
+        <doc title="드롭다운에서 그룹을 선택하거나 그룹 ID를 입력하세요." />
+      </param>
+      <param style="template" name="event" type="xs:string" required="true">
+        <doc title="이벤트 선택" />
+      </param>
+      <method siena:requiresAuthentication="true" name="DELETE" id="CalendarDeleteItemV2" actionName="CalendarDeleteItem_V2" visibility="important" siena:isDeprecated="false">
+        <doc title="이벤트 삭제(V2)&#xA;이 작업을 수행하면 일정에서 이벤트가 삭제됩니다." />
+        <request />
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/groups/{groupId}/events/{event}">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <param style="template" name="groupId" type="xs:string" required="true">
+        <doc title="드롭다운에서 그룹을 선택하거나 그룹 ID를 입력하세요." />
+      </param>
+      <param style="template" name="event" type="xs:string" required="true">
+        <doc title="이벤트 선택" />
+      </param>
+      <method siena:requiresAuthentication="true" name="PATCH" id="UpdateCalendarEvent" actionName="UpdateCalendarEvent" visibility="important" siena:isDeprecated="false">
+        <doc title="그룹 이벤트 업데이트&#xA;이 작업은 그룹 일정에서 새 이벤트를 만드는 데 사용됩니다." />
+        <request>
+          <representation mediaType="application/json">
+            <param style="plain" name="subject" path="/subject" type="xs:string" required="true" />
+            <param style="plain" name="start" path="/start" type="service:UpdateCalendarEvent_HTMLRequest_start_def" required="true" />
+            <param style="plain" name="end" path="/end" type="service:UpdateCalendarEvent_HTMLRequest_end_def" required="true" />
+            <param style="plain" name="body" path="/body" type="service:UpdateCalendarEvent_HTMLRequest_body_def" />
+            <param style="plain" name="location" path="/location" type="service:UpdateCalendarEvent_HTMLRequest_location_def" />
+            <param style="plain" name="importance" path="/importance" type="xs:string">
+              <option value="Low" />
+              <option value="Normal" />
+              <option value="High" />
+            </param>
+            <param style="plain" name="isAllDay" path="/isAllDay" type="xs:boolean" />
+            <param style="plain" name="isReminderOn" path="/isReminderOn" type="xs:boolean" />
+            <param style="plain" name="reminderMinutesBeforeStart" path="/reminderMinutesBeforeStart" type="xs:int" />
+            <param style="plain" name="showAs" path="/showAs" type="xs:string">
+              <option value="Free" />
+              <option value="Tentative" />
+              <option value="Busy" />
+              <option value="Oof" />
+              <option value="WorkingElsewhere" />
+              <option value="Unknown" />
+            </param>
+            <param style="plain" name="responseRequested" path="/responseRequested" type="xs:boolean" />
+          </representation>
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:CreateCalendarEvent_Response" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/groups/{groupId}/members/memberId/$ref">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <param style="template" name="groupId" type="xs:string" required="true">
+        <doc title="드롭다운에서 그룹을 선택하거나 그룹 ID를 입력하세요." />
+      </param>
+      <method siena:requiresAuthentication="true" name="DELETE" id="RemoveMemberFromGroup" actionName="RemoveMemberFromGroup" visibility="important" siena:isDeprecated="false">
+        <doc title="그룹에서 구성원 제거&#xA;이 작업은 UPN을 사용하여 O365 그룹에서 구성원을 제거하는 데 사용됩니다." />
+        <request>
+          <param style="query" name="userUpn" type="xs:string" required="true">
+            <doc title="사용자의 UPN(사용자 계정 이름)입니다." />
+          </param>
+        </request>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v2/httprequest">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <method siena:requiresAuthentication="true" name="POST" id="HttpRequestV2" actionName="HttpRequestV2" visibility="important" siena:isDeprecated="false" siena:family="HttpRequest" siena:revision="2" siena:status="Production">
+        <doc title="HTTP 요청 V2 보내기&#xA;호출할 Microsoft Graph REST API 요청을 구성합니다. 지원되는 세그먼트가 하나 있습니다. https://docs.microsoft.com/en-us/graph/use-the-api." />
+        <request>
+          <param style="header" name="Uri" type="xs:string" required="true">
+            <doc title="전체 또는 상대 URI입니다. 예: https://graph.microsoft.com/{version}/{resource}." />
+          </param>
+          <param style="header" name="Method" type="xs:string" required="true" default="GET">
+            <doc title="HTTP 메서드(기본값은 GET)입니다." />
+            <option value="GET" />
+            <option value="POST" />
+            <option value="PUT" />
+            <option value="PATCH" />
+            <option value="DELETE" />
+          </param>
+          <param style="header" name="ContentType" type="xs:string" default="application/json">
+            <doc title="본문의 콘텐츠 형식 헤더(기본값은 응용 프로그램/json)입니다." />
+          </param>
+          <param style="header" name="CustomHeader1" type="xs:string">
+            <doc title="사용자 지정 헤더 1입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <param style="header" name="CustomHeader2" type="xs:string">
+            <doc title="사용자 지정 헤더 2입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <param style="header" name="CustomHeader3" type="xs:string">
+            <doc title="사용자 지정 헤더 3입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <param style="header" name="CustomHeader4" type="xs:string">
+            <doc title="사용자 지정 헤더 4입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <param style="header" name="CustomHeader5" type="xs:string">
+            <doc title="사용자 지정 헤더 5입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <representation mediaType="application/octet-stream" />
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:ObjectWithoutType" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/httprequest">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <method siena:requiresAuthentication="true" name="POST" id="HttpRequest" actionName="HttpRequest" visibility="important" siena:isDeprecated="true" siena:family="HttpRequest" siena:revision="1" siena:status="Production">
+        <doc title="HTTP 요청 보내기&#xA;호출할 Microsoft Graph REST API 요청을 생성합니다. 자세히 알아보기: https://docs.microsoft.com/en-us/graph/use-the-api" />
+        <request>
+          <param style="header" name="Uri" type="xs:string" required="true">
+            <doc title="전체 또는 상대 URI입니다. 예: https://graph.microsoft.com/{version}/{resource}." />
+          </param>
+          <param style="header" name="Method" type="xs:string" required="true" default="GET">
+            <doc title="HTTP 메서드(기본값은 GET)입니다." />
+            <option value="GET" />
+            <option value="POST" />
+            <option value="PUT" />
+            <option value="PATCH" />
+            <option value="DELETE" />
+          </param>
+          <param style="header" name="ContentType" type="xs:string" default="application/json">
+            <doc title="본문의 콘텐츠 형식 헤더(기본값은 응용 프로그램/json)입니다." />
+          </param>
+          <param style="header" name="CustomHeader1" type="xs:string">
+            <doc title="사용자 지정 헤더 1입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <param style="header" name="CustomHeader2" type="xs:string">
+            <doc title="사용자 지정 헤더 2입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <param style="header" name="CustomHeader3" type="xs:string">
+            <doc title="사용자 지정 헤더 3입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <param style="header" name="CustomHeader4" type="xs:string">
+            <doc title="사용자 지정 헤더 4입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <param style="header" name="CustomHeader5" type="xs:string">
+            <doc title="사용자 지정 헤더 5입니다. 형식 지정: 헤더 이름: 헤더 값" />
+          </param>
+          <representation mediaType="application/octet-stream" />
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:ObjectWithoutType" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/directory/deletedItems/microsoft.graph.group">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <method siena:requiresAuthentication="true" name="GET" id="ListDeletedGroups" actionName="ListDeletedGroups" visibility="advanced" siena:isDeprecated="false">
+        <doc title="삭제된 그룹 나열&#xA;복원할 수 있는 삭제된 그룹을 나열합니다." />
+        <request />
+        <response>
+          <representation mediaType="application/json" element="service:ListGroups_Response" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/directory/deletedItems/{groupId}/restore">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <param style="template" name="groupId" type="xs:string" required="true">
+        <doc title="드롭다운에서 그룹을 선택하거나 그룹 ID를 입력하세요." />
+      </param>
+      <method siena:requiresAuthentication="true" name="POST" id="RestoreDeletedGroup" actionName="RestoreDeletedGroup" visibility="advanced" siena:isDeprecated="false">
+        <doc title="삭제된 그룹 복원&#xA;최근에 삭제된 그룹 복원" />
+        <request />
+      </method>
+    </resource>
+    <resource path="/{connectionId}/v1.0/directory/deletedItems/getUserOwnedObjects">
+      <param style="template" name="connectionId" type="xs:string" required="true" />
+      <method siena:requiresAuthentication="true" name="POST" id="ListDeletedGroupsByOwner" actionName="ListDeletedGroupsByOwner" visibility="advanced" siena:isDeprecated="false">
+        <doc title="담당자별로 삭제된 그룹 나열&#xA;담당자가 복원할 수 있는 삭제된 그룹 나열" />
+        <request>
+          <param style="header" name="userId" type="xs:string" required="true">
+            <doc title="사용자 ID를 입력하세요." />
+          </param>
+        </request>
+        <response>
+          <representation mediaType="application/json" element="service:ListGroups_Response" />
+        </response>
+      </method>
+    </resource>
+  </resources>
+  <authenticationProviders xmlns="http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11">
+    <connectionProvider id="PowerAppAuth" siena:connectionProviderId="shared_office365groups" />
+  </authenticationProviders>
+  <template xmlns="http://schemas.microsoft.com/MicrosoftProjectSiena/WADL/2014/11">
+    <variable name="connectionId">
+      <modifyParams style="template" name="connectionId" attribute="fixed" />
+    </variable>
+  </template>
+</application>
