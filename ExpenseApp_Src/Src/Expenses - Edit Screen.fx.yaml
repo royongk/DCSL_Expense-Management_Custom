@@ -138,7 +138,28 @@
         
         // 
         // LCY 계산 결과 저장 변수 초기화 (기존 값이 있으면 사용, 없으면 빈 값)
-        UpdateContext({ locCalculatedLCY: varSelectedExpenseDoc.LCY });
+        // 1. 기존 LCY에 문자열로 저장된 값("100.00 USD")에서 공백(" ")을 기준으로 금액과 통화를 분리
+        UpdateContext({
+            locOriginalAmount: If(
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
+                Left(varSelectedExpenseDoc.LCY, Find(" ", varSelectedExpenseDoc.LCY) - 1),
+                Blank()
+            ),
+            locOriginalCurrency: If(
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
+                Right(varSelectedExpenseDoc.LCY, Len(varSelectedExpenseDoc.LCY) - Find(" ", varSelectedExpenseDoc.LCY)),
+                Blank()
+            )
+        });
+        
+        // 2. locCalculatedLCY에는 Value() 오류 방지를 위해, 실제로 환산된 '숫자'인 Transaction amount(예: 137601)를 저장
+        UpdateContext({ 
+            locCalculatedLCY: If(
+                !varIsCreate, 
+                Text(varSelectedExpenseDoc.'Transaction amount'), 
+                Blank()
+            ) 
+        });
         UpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')});
         UpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.'Intercompany project category'});
         UpdateContext({curProjIdSelected: varSelectedExpenseDoc.'Project ID'});
@@ -3747,27 +3768,29 @@
                 Height: =50
                 Required: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
                 Update: |-
-                    =/*
-                    Value(If(
-                        currExpenseType = 'TrvExpType (mserp)'.Mileage,
-                        If(
-                            IsBlank(varMileageTotal),
-                            varSelectedExpenseDoc.'Transaction amount',
-                            Value(varMileageTotal,"en-US")
-                        ),
-                        If(Value(DataCardValue4_1.Text) = 0,
-                            Blank(),
-                            Value(DataCardValue4_1.Text)
-                        )
-                    ),varDefaultLanguage)
-                    */
-                    // 천단위 구분 기호 해제 로직 포함
+                    =// 천단위 구분 기호 해제 로직 포함
+                    /*
                     Value(
                         // 일반 경비인 경우 입력된 텍스트 사용
                         If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,
                             Blank(),
                             // [중요] 텍스트 입력값("1,000")을 숫자(1000)로 변환
                             Substitute(DataCardValue4_1.Text, ",", "") // 입력된 텍스트에서 쉼표(,)를 모두 빈값으로 치환
+                        ),
+                        varDefaultLanguage
+                    )
+                    */
+                    Value(
+                        If(
+                            // 계산된 LCY 값(locCalculatedLCY)이 존재하면 해당 환산 금액을 우선 저장
+                            !IsBlank(locCalculatedLCY),
+                            locCalculatedLCY,
+                            
+                            // 계산된 값이 없다면 기존처럼 텍스트 박스에 입력된 값을 숫자로 변환하여 저장
+                            If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,
+                                Blank(),
+                                Substitute(DataCardValue4_1.Text, ",", "")
+                            )
                         ),
                         varDefaultLanguage
                     )
@@ -3800,49 +3823,21 @@
                     BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
                     BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
                     Default: |-
-                        =/*
-                        Text(If(
-                            varIsCreate && !IsBlank(OCRresponse) && !onReloadButtonClick && IsBlank(dirtyTransAmount),    
-                            Value(
-                                Text(OCRresponse.amountCurr),
-                                "en-US"
-                            ),
-                            Switch(
-                                currExpenseType,
-                                'TrvExpType (mserp)'.'Per diem',
-                                If(
-                                    !IsBlank(locPerdiemAmountCurr),
-                                    locPerdiemAmountCurr,
-                                    Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))
-                                ),
-                                'TrvExpType (mserp)'.Mileage,
-                                If(
-                                    !IsBlank(varMileageTotal),
-                                    Value(varMileageTotal,"en-US"),
-                                    Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))
-                                ),
-                                Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount'))
-                            )
-                        ), "#,#0.00",varDefaultLanguage)
-                        */
-                        // 천단위 구분 기호 로직 수정
+                        =// 천단위 구분 기호 로직 수정
                         With(
                             {
-                                // 1. 기준 금액(baseAmount) 결정 로직
                                 baseAmount: If(
-                                    // 고정 금액 체크박스가 활성화(Yes 또는 true) 되어 있다면
                                     !IsBlank(locCurrentSetup.Amount) && locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,
-                                    locCurrentSetup.Amount, // D365에 설정된 고정 금액을 가져옴
+                                    locCurrentSetup.Amount, 
                                     
-                                    // 고정 금액이 아니라면 기존처럼 사용자 입력값이나 기존 저장값을 가져옴
-                                    Value(Coalesce(dirtyTransAmount, varSelectedExpenseDoc.'Transaction amount'))
+                                    // 핵심 변경: varSelectedExpenseDoc.'Transaction amount' 보다 파싱된 locOriginalAmount(100)를 우선 사용
+                                    Value(Coalesce(dirtyTransAmount, locOriginalAmount, Text(varSelectedExpenseDoc.'Transaction amount')))
                                 )
                             },
-                            // 2. 결정된 기준 금액에 콤마 포맷 적용
                             If(
                                 locIsEditingAmount, 
-                                Text(baseAmount, "#"),                   // 편집 중: 콤마 없음
-                                Text(baseAmount, "#,##0.00", varDefaultLanguage) // 평상시: 천 단위 콤마 포함
+                                Text(baseAmount, "#"),                   
+                                Text(baseAmount, "#,##0.00", varDefaultLanguage) 
                             )
                         )
                     DelayOutput: =true
@@ -4012,7 +4007,9 @@
                 Height: =50
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, 'Currency (mserp_exchangecode)')
                 Required: =true
-                Update: =ComboBox1_12.Selected.mserp_currencycode
+                Update: |-
+                    =//ComboBox1_12.Selected.mserp_currencycode
+                    "KRW"
                 Visible: =true && currExpenseType <> 'TrvExpType (mserp)'.Mileage && !(Breakfast_DataCard1.Visible)
                 Width: =Parent.Width/2
                 X: =
@@ -4129,7 +4126,8 @@
                         =[
                             LookUp(
                                 colSortedCurrencies, 
-                                'Currency code' = Coalesce(Parent.Default, varDefaultCurrency)
+                                // 파싱된 원래 통화코드(locOriginalCurrency)를 최우선적으로 선택하도록 추가
+                                'Currency code' = Coalesce(locOriginalCurrency, Parent.Default, varDefaultCurrency)
                             )
                         ]
                     DisplayFields: =["mserp_currencycode"]
@@ -4657,10 +4655,21 @@
                 MaxLength: =DataSourceInfo([@'Expense lines (mserp)'], DataSourceInfo.MaxLength, LCY)
                 Required: =false
                 Update: |-
-                    =If(
+                    =/*
+                    If(
                         !IsBlank(locCalculatedLCY),
                         locCalculatedLCY,                 // 새로 계산된 순수 숫자 전송
                         Value(varSelectedExpenseDoc.LCY)  // 새로 계산된 적이 없다면 기존 문서의 순수 숫자 전송
+                    )
+                    */
+                    If(
+                        // 사용자가 금액과 통화를 모두 입력/선택한 상태라면
+                        !IsBlank(DataCardValue4_1.Text) && !IsBlank(ComboBox1_12.Selected.mserp_currencycode),
+                        // "입력금액 통화코드" 형태로 결합하여 텍스트로 저장 (예: "100 USD")
+                        DataCardValue4_1.Text & " " & ComboBox1_12.Selected.mserp_currencycode,
+                        
+                        // 신규 작성이 아니거나 값이 비어있는 경우 기존 문서의 LCY 값 유지
+                        varSelectedExpenseDoc.LCY
                     )
                 Width: =640
                 WidthFit: =true
@@ -4687,29 +4696,18 @@
                     Default: |-
                         =With(
                             {
+                                // 오류 없이 안전한 숫자 데이터만 추출
                                 displayNumber: If(
-                                    // 1순위: [신규 추가] 신규 모드이면서 복사된 원본 레코드가 있는 경우, 복사된 LCY 금액 사용
-                                    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                                    Value(varSelectedExpenseDoc.LCY), // ※ 실제 Dataverse/F&O 필드명에 맞게 선택
-                                    
-                                    // 2순위: 화면 내에서 환율/금액 변경으로 인해 새로 계산된 LCY 값이 있는 경우
                                     !IsBlank(locCalculatedLCY), 
-                                    Value(locCalculatedLCY), 
-                                    
-                                    // 3순위: 그 외의 경우 (기존 저장된 데이터 불러오기 등)
-                                    Value(Parent.Default)
+                                    Value(locCalculatedLCY),
+                                    // Fallback: 계산값이 없으면 저장된 Transaction amount를 직접 가져옴
+                                    Value(varSelectedExpenseDoc.'Transaction amount')
                                 ),
-                                
-                                localCurrencyCode: If(
-                                    // 현지 통화(LCY) 코드는 보통 법인과 동일하게 가므로 기존 로직 유지
-                                    currExpenseType = 'TrvExpType (mserp)'.'Per diem' && !IsBlank(cmbPerdiemLocation.Selected.Currency),
-                                    cmbPerdiemLocation.Selected.Currency,
-                                    varDefaultCurrency
-                                )
+                                localCurrencyCode: "KRW" // 환산된 LCY 금액의 통화는 항상 KRW로 고정
                             },
                             If(
                                 !IsBlank(displayNumber),
-                                Text(displayNumber, "#,##0.00") & " " & Text(localCurrencyCode),
+                                Text(displayNumber, "#,##0.00") & " " & localCurrencyCode,
                                 Blank()
                             )
                         )
