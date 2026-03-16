@@ -7461,9 +7461,8 @@ Screens:
                             Control: DatePicker@0.0.46
                             Properties:
                               AccessibleLabel: =Concatenate("Select ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
-                              FontSize: |-
-                                =//App.Height * gblDatePickerResolutionFactor
-                                24
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FontSize: =24
                               Height: =gblParams.dropDownHeight
                               IsEditable: =true
                               OnChange: |-
@@ -10064,7 +10063,7 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deexexpensebeneficiary"
-                        Default: "=If(\r\n    // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용\r\n    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\r\n    varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.\r\n    \r\n    // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지\r\n    ThisItem.'Expense Beneficiary'\r\n)"
+                        Default: "=If(\n    // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용\n    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.\n    \n    // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지\n    ThisItem.'Expense Beneficiary'\n)"
                         DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
                         Height: =ErrorMessage24.Y + ErrorMessage24.Height + 5
                         Required: =false
