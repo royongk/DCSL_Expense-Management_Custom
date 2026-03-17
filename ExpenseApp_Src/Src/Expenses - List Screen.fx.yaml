@@ -244,14 +244,22 @@
                 )
             );
             
-            // 2. Unattached Entity 조회 (수정됨)
-            // [변경점] 서버에 필터를 걸지 않고 내 목록을 먼저 다 가져옴 (Virtual Field 오류 방지)
-            ClearCollect(colAllMyUnattached, 'Expense Mobile Unattached Document Entity (mserp)');
-            
-            // [변경점] 앱 내부(Local)에서 ExpTransNumber로 필터링 수행
-            ClearCollect(colFromUnattached,
+            // 2. Unattached Entity 조회 (서버 직접 쿼리로 성능 최적화)
+            // 1. [1차 필터링 - 서버 사이드] 전체가 아닌 "최소한의 물리적 조건"으로 데이터 다운로드 (성능 대폭 개선)
+            // 주의: 아래 'Worker'나 'Personnel number', 'Legal entity' 등 실제 해당 엔터티에 존재하는 '물리적 필드'를 사용해야 합니다.
+            ClearCollect(
+                colMyUnattachedTemp,
                 Filter(
-                    colAllMyUnattached,
+                    'Expense Mobile Unattached Document Entity (mserp)',
+                    'Company accounts' = varSelectedLegalEntity
+                )
+            );
+            
+            // 2. [2차 필터링 - 앱 로컬 메모리] 소량으로 좁혀진 임시 컬렉션에서 가상 필드(ExpTransNumber) 필터링 수행
+            ClearCollect(
+                colFromUnattached,
+                Filter(
+                    colMyUnattachedTemp,
                     ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                 )
             );
