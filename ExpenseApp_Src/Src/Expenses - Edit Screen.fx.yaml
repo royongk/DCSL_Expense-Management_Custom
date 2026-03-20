@@ -1366,14 +1366,22 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
-                Update: =Value(DataCardValue19.Text)
-                Width: =640
-                X: =0
-                Y: =63
+                Update: |-
+                    =If(
+                        !IsEmpty(colActiveDelegations),
+                        cmbEmployee.Selected.WorkerID,  // ⚠️주의: PersonnelNumber 대신 실제 직원ID나 이메일 필드명을 넣으세요.
+                        ""  // Blank() 대신 빈 문자열을 사용합니다.
+                    )
+                Visible: =!IsEmpty(colActiveDelegations)
+                Width: =Parent.Width
+                X: =1
+                Y: =61
                 ZIndex: =1
 
                 DataCardKey26 As label:
                     AutoHeight: =true
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
                     Height: =48
                     Size: =21
                     Text: =Parent.DisplayName
@@ -1383,40 +1391,40 @@
                     Y: =10
                     ZIndex: =1
 
-                DataCardValue19 As text:
-                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                    Default: =Parent.Default
-                    DelayOutput: =true
-                    DisplayMode: =Parent.DisplayMode
-                    Format: =TextFormat.Number
-                    Height: =70
-                    PaddingLeft: =5
-                    RadiusBottomLeft: =0
-                    RadiusBottomRight: =0
-                    RadiusTopLeft: =0
-                    RadiusTopRight: =0
-                    Size: =21
-                    Tooltip: =Parent.DisplayName
-                    Width: =Parent.Width - 60
-                    X: =30
-                    Y: =DataCardKey26.Y + DataCardKey26.Height + 5
+                cmb_Employee As combobox:
+                    BorderThickness: =0
+                    Color: =gblParams.dropDownLabelColor
+                    DefaultSelectedItems: =LookUp(colCreatingWorkerOptions, WorkerID = userRecord.CreatingWorker)
+                    DisplayFields: =["WorkerName"]
+                    Font: =Font.'Segoe UI'
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
+                    Items: =colCreatingWorkerOptions
+                    SearchFields: =["WorkerName"]
+                    SearchItems: =Search(colCreatingWorkerOptions,cmb_Employee.SearchText,WorkerName)
+                    SelectMultiple: =false
+                    Size: =24
+                    Width: =575
+                    X: =DataCardKey26.X
+                    Y: =DataCardKey26.Y + DataCardKey26.Height
                     ZIndex: =2
 
                 ErrorMessage26 As label:
                     AutoHeight: =true
+                    Font: =Font.'Segoe UI'
                     Height: =10
                     Live: =Live.Assertive
                     PaddingBottom: =0
                     PaddingLeft: =0
                     PaddingRight: =0
                     PaddingTop: =0
-                    Size: =24
+                    Size: =gblParams.errorMessageSize
                     Text: =Parent.Error
                     Visible: =Parent.DisplayMode=DisplayMode.Edit
                     Width: =Parent.Width - 60
                     X: =30
-                    Y: =DataCardValue19.Y + DataCardValue19.Height
-                    ZIndex: =3
+                    Y: =cmb_Employee.Y + cmb_Employee.Height
+                    ZIndex: =4
 
                 StarVisible26 As label:
                     Align: =Align.Center
@@ -1427,7 +1435,7 @@
                     Width: =30
                     Wrap: =false
                     Y: =DataCardKey26.Y
-                    ZIndex: =4
+                    ZIndex: =5
 
             ExpenseType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-

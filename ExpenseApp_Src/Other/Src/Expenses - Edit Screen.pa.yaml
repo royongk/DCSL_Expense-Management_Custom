@@ -525,6 +525,100 @@ Screens:
                   Width: =Parent.Width
                   Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
                 Children:
+                  - Employee_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicNumberEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_creatingworker"
+                        Default: =ThisItem.'Employee (mserp_creatingworker)'
+                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_creatingworker')
+                        Required: =false
+                        Update: |-
+                          =If(
+                              !IsEmpty(colActiveDelegations),
+                              cmbEmployee.Selected.WorkerID,  // ⚠️주의: PersonnelNumber 대신 실제 직원ID나 이메일 필드명을 넣으세요.
+                              ""  // Blank() 대신 빈 문자열을 사용합니다.
+                          )
+                        Visible: =!IsEmpty(colActiveDelegations)
+                        Width: =Parent.Width
+                        X: =1
+                        Y: =61
+                      Children:
+                        - DataCardKey26:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              Font: =Font.'Segoe UI'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - cmb_Employee:
+                            Control: Classic/ComboBox@2.4.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              BorderThickness: =0
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              DefaultSelectedItems: =LookUp(colCreatingWorkerOptions, WorkerID = userRecord.CreatingWorker)
+                              DisplayFields: =["WorkerName"]
+                              Font: =Font.'Segoe UI'
+                              Height: =gblParams.dropDownHeight
+                              HoverFill: =gblParams.dropDownHoverFill
+                              Items: =colCreatingWorkerOptions
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SearchFields: =["WorkerName"]
+                              SelectMultiple: =false
+                              SelectionColor: =RGBA(255, 255, 255, 1)
+                              SelectionFill: =RGBA(56, 96, 178, 1)
+                              Size: =24
+                              X: =DataCardKey26.X
+                              Y: =DataCardKey26.Y + DataCardKey26.Height
+                        - ErrorMessage26:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =gblParams.errorMessageSize
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =cmb_Employee.Y + cmb_Employee.Height
+                        - StarVisible26:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey26.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey26.Y
                   - ExpenseType_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
@@ -10445,89 +10539,6 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =DataCardKey24.Y
-                  - Employee_DataCard1:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicNumberEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_creatingworker"
-                        Default: =ThisItem.'Employee (mserp_creatingworker)'
-                        DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_creatingworker')
-                        Required: =false
-                        Update: =Value(DataCardValue19.Text)
-                        X: =0
-                        Y: =63
-                      Children:
-                        - DataCardKey26:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldName
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =48
-                              Text: =Parent.DisplayName
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - DataCardValue19:
-                            Control: Classic/TextInput@2.3.2
-                            MetadataKey: FieldValue
-                            Properties:
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              Default: =Parent.Default
-                              DelayOutput: =true
-                              DisplayMode: =Parent.DisplayMode
-                              Font: =Font.'Open Sans'
-                              Format: =TextFormat.Number
-                              HoverBorderColor: =RGBA(0, 18, 107, 1)
-                              HoverFill: =RGBA(186, 202, 226, 1)
-                              PaddingLeft: =5
-                              RadiusBottomLeft: =0
-                              RadiusBottomRight: =0
-                              RadiusTopLeft: =0
-                              RadiusTopRight: =0
-                              Tooltip: =Parent.DisplayName
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =DataCardKey26.Y + DataCardKey26.Height + 5
-                        - ErrorMessage26:
-                            Control: Label@2.5.1
-                            MetadataKey: ErrorMessage
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(168, 0, 0, 1)
-                              Font: =Font.'Open Sans'
-                              FontWeight: =FontWeight.Semibold
-                              Height: =10
-                              Live: =Live.Assertive
-                              PaddingBottom: =0
-                              PaddingLeft: =0
-                              PaddingRight: =0
-                              PaddingTop: =0
-                              Size: =24
-                              Text: =Parent.Error
-                              Visible: =Parent.DisplayMode=DisplayMode.Edit
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =DataCardValue19.Y + DataCardValue19.Height
-                        - StarVisible26:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldRequired
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =DataCardKey26.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =DataCardKey26.Y
       - formModeRectangle:
           Control: Rectangle@2.3.0
           Properties:
