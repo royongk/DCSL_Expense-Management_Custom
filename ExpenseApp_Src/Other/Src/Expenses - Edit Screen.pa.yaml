@@ -536,9 +536,9 @@ Screens:
                         Required: =false
                         Update: |-
                           =If(
-                              !IsEmpty(colActiveDelegations),
-                              cmbEmployee.Selected.WorkerID,  // ⚠️주의: PersonnelNumber 대신 실제 직원ID나 이메일 필드명을 넣으세요.
-                              ""  // Blank() 대신 빈 문자열을 사용합니다.
+                              !IsEmpty(colActiveDelegations) && !IsBlank(cmbEmployee.Selected),
+                              Text(cmbEmployee.Selected.WorkerID), 
+                              Blank() 
                           )
                         Visible: =!IsEmpty(colActiveDelegations)
                         Width: =Parent.Width
@@ -574,6 +574,8 @@ Screens:
                               Font: =Font.'Segoe UI'
                               Height: =gblParams.dropDownHeight
                               HoverFill: =gblParams.dropDownHoverFill
+                              InputTextPlaceholder: |-
+                                ="Select an agent's name. (Default: Myself)"
                               Items: =colCreatingWorkerOptions
                               PressedColor: =RGBA(255, 255, 255, 1)
                               PressedFill: =RGBA(0, 18, 107, 1)
