@@ -569,46 +569,47 @@
         // 복사 팝업창 가시성 제어 변수
         UpdateContext({ locShowCopyPopup: false });
         
-        // 대리인 기능 사용을 위한 조회 값
-        // 1. 접속한 Power Apps 사용자의 D365 정보를 가져옵니다.
+        // 1. 접속한 사용자의 마스터 정보 가져오기 (화면에 '본인' 이름을 표시하기 위함)
         Set(
             varCurrentD365User,
             LookUp('Expense mobile master data (mserp)', mserp_usernetworkalias = User().Email)
         );
         
-        // 2. 현재 사용자가 대리인으로 지정된 유효한(날짜 기준) 데이터를 필터링하여 컬렉션에 저장합니다.
+        // 2. [변경됨] 가상 필드 대신, 물리적 텍스트 필드(mserp_delegateduser)로 서버에서 직접 필터링합니다.
         ClearCollect(
             colActiveDelegations,
             Filter(
                 '@DEEX:DEEX_20316 (mserp)',
-                mserp_delegateduser = varCurrentD365User.mserp_userid &&
+                // 텍스트 ID 끼리 비교합니다. (varCurrentD365User.mserp_userid 가 "DEEX1.ERP" 형태)
+                mserp_delegateduser = varCurrentD365User.mserp_userid && 
                 mserp_fromdateutc <= Today() &&
                 mserp_todateutc >= Today()
             )
         );
         
-        // 3. 콤보박스에 바인딩할 선택지(본인 + 대리할 직원들) 목록을 만듭니다.
-        // 첫 번째로 '본인'을 리스트에 추가합니다.
+        // 3. 콤보박스 선택지 생성 (첫 번째: 접속자 본인)
         ClearCollect(
             colCreatingWorkerOptions,
             {
-                WorkerID: userRecord.CreatingWorker, // mserp_creatingworker에 들어갈 실제 값 (ID 또는 사번)
-                WorkerName: varCurrentD365User.mserp_username & " (본인)"
+                WorkerID: userRecord.CreatingWorker, // 저장용 내 숫자 ID
+                WorkerName: varCurrentD365User.mserp_username & " (본인)" // 화면 표시용 내 이름
             }
         );
         
-        // 두 번째로 '위임자(Employee)'들을 HR 데이터에서 찾아 이름을 매핑하여 리스트에 추가합니다.
+        // 4. 콤보박스 선택지 추가 (대리 신청 대상자)
         ForAll(
             colActiveDelegations,
             Collect(
                 colCreatingWorkerOptions,
                 {
-                    WorkerID: ThisRecord.mserp_delegatingworker,
+                    // [저장용] Expense Line 테이블에 넘겨줄 위임자의 고유 숫자 ID
+                    WorkerID: ThisRecord.mserp_delegatingworker, 
+                    
+                    // [표시용] 새로 추가된 텍스트 'ID' 필드를 이용해 마스터 테이블에서 이름을 찾아옴!
                     WorkerName: LookUp(
                         'Expense mobile master data (mserp)', 
-                        mserp_delegateduser = ThisRecord.ID, // 엔티티 조인 키 (사번 또는 ID 일치 확인 필요)
-                        mserp_name
-                    ) & " (대리 신청)"
+                        mserp_userid = ThisRecord.ID 
+                    ).mserp_username & " (대리 신청)"
                 }
             )
         );
@@ -1355,6 +1356,78 @@
             Width: =Parent.Width
             Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
             ZIndex: =1
+
+            Employee_DataCard1 As typedDataCard.numberEditCard:
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_creatingworker"
+                Default: =ThisItem.'Employee (mserp_creatingworker)'
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: =DataSourceInfo([@'Expense lines (mserp)'],DataSourceInfo.DisplayName,'mserp_creatingworker')
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =Value(DataCardValue19.Text)
+                Width: =640
+                X: =0
+                Y: =63
+                ZIndex: =1
+
+                DataCardKey26 As label:
+                    AutoHeight: =true
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                DataCardValue19 As text:
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    Default: =Parent.Default
+                    DelayOutput: =true
+                    DisplayMode: =Parent.DisplayMode
+                    Format: =TextFormat.Number
+                    Height: =70
+                    PaddingLeft: =5
+                    RadiusBottomLeft: =0
+                    RadiusBottomRight: =0
+                    RadiusTopLeft: =0
+                    RadiusTopRight: =0
+                    Size: =21
+                    Tooltip: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =DataCardKey26.Y + DataCardKey26.Height + 5
+                    ZIndex: =2
+
+                ErrorMessage26 As label:
+                    AutoHeight: =true
+                    Height: =10
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =24
+                    Text: =Parent.Error
+                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =DataCardValue19.Y + DataCardValue19.Height
+                    ZIndex: =3
+
+                StarVisible26 As label:
+                    Align: =Align.Center
+                    Height: =DataCardKey26.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =DataCardKey26.Y
+                    ZIndex: =4
 
             ExpenseType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
