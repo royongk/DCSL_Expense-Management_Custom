@@ -606,10 +606,7 @@
                     WorkerID: ThisRecord.mserp_delegatingworker, 
                     
                     // [표시용] 새로 추가된 텍스트 'ID' 필드를 이용해 마스터 테이블에서 이름을 찾아옴!
-                    WorkerName: LookUp(
-                        'Expense mobile master data (mserp)', 
-                        mserp_userid = ThisRecord.ID 
-                    ).mserp_username & " (대리 신청)"
+                    WorkerName: ThisRecord.mserp_delegateduser & " (대리 신청)"
                 }
             )
         );
@@ -7326,7 +7323,8 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: |-
-                    =If(
+                    =/*
+                    If(
                         featureEnabled = "True",
                         LookUp(
                             '@ExpenseManagement:ExpenseMobileFieldVisibilityEntity (mserp)',
@@ -7334,6 +7332,8 @@
                         ).VisibilityType = 'ExpenseFieldVisibilityType (mserp)'.Required,
                         false
                     )
+                    */
+                    false
                 Update: =ComboBox1_19.Selected.City
                 Visible: |
                     =If(
