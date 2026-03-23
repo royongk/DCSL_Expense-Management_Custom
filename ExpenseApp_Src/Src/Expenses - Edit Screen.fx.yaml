@@ -592,7 +592,7 @@
             colCreatingWorkerOptions,
             {
                 WorkerID: userRecord.CreatingWorker, // 저장용 내 숫자 ID
-                WorkerName: varCurrentD365User.mserp_username & " (본인)" // 화면 표시용 내 이름
+                WorkerName: varCurrentD365User.ID & " (MySelf)" // 화면 표시용 내 이름
             }
         );
         
@@ -603,10 +603,10 @@
                 colCreatingWorkerOptions,
                 {
                     // [저장용] Expense Line 테이블에 넘겨줄 위임자의 고유 숫자 ID
-                    WorkerID: ThisRecord.mserp_delegatingworker, 
+                    WorkerID: ThisRecord.Employee, 
                     
                     // [표시용] 새로 추가된 텍스트 'ID' 필드를 이용해 마스터 테이블에서 이름을 찾아옴!
-                    WorkerName: ThisRecord.mserp_delegateduser & " (대리 신청)"
+                    WorkerName: ThisRecord.ID & " (Delegate)"
                 }
             )
         );
@@ -1391,8 +1391,21 @@
                 cmb_Employee As combobox:
                     BorderThickness: =0
                     Color: =gblParams.dropDownLabelColor
-                    DefaultSelectedItems: =LookUp(colCreatingWorkerOptions, WorkerID = userRecord.CreatingWorker)
-                    DisplayFields: =["WorkerName"]
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),
+                            // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
+                            LookUp(
+                                colCreatingWorkerOptions, 
+                                WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'
+                            ),
+                            // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
+                            LookUp(
+                                colCreatingWorkerOptions, 
+                                WorkerID = userRecord.CreatingWorker
+                            )
+                        )
+                    DisplayFields: =["WorkerName","WorkerName"]
                     Font: =Font.'Segoe UI'
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
@@ -1403,7 +1416,7 @@
                     SearchItems: =Search(colCreatingWorkerOptions,cmb_Employee.SearchText,WorkerName)
                     SelectMultiple: =false
                     Size: =24
-                    Width: =575
+                    Width: =Parent.Width - 2 * Self.X
                     X: =DataCardKey26.X
                     Y: =DataCardKey26.Y + DataCardKey26.Height
                     ZIndex: =2
