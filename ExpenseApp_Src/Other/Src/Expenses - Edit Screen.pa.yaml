@@ -536,9 +536,9 @@ Screens:
                         Required: =false
                         Update: |-
                           =If(
-                              !IsEmpty(colActiveDelegations) && !IsBlank(cmbEmployee.Selected),
-                              Text(cmbEmployee.Selected.WorkerID), 
-                              Blank() 
+                              !IsBlank(cmb_Employee.Selected),
+                              Value(cmb_Employee.Selected.WorkerID), // 언더바를 포함한 올바른 컨트롤 이름 사용, Value()로 숫자 변환
+                              userRecord.CreatingWorker // 만약 선택된 값이 풀리더라도 본인을 기본값으로 안전하게 세팅
                           )
                         Visible: =!IsEmpty(colActiveDelegations)
                         Width: =Parent.Width
