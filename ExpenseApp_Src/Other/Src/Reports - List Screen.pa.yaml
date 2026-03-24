@@ -12,7 +12,7 @@ Screens:
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
       OnVisible: |+
         =UpdateContext({varCntSelect: false});
-        UpdateContext({varIsDelegateSelected: false});
+        //UpdateContext({varIsDelegateSelected: false});
         UpdateContext({isExpReportDirty : false});
         Concurrent(
         Set(
@@ -60,44 +60,47 @@ Screens:
         Clear(colAttachedExpenses);
         Reset(scr16_Reports_1);
         Reset(scr16_txt_SearchBox);
+        // 기존 OnVisible 코드 하단에 아래 내용 추가
+
+        // 1. 접속한 사용자의 마스터 정보 가져오기
+        Set(
+            varCurrentD365User,
+            LookUp('Expense mobile master data (mserp)', mserp_usernetworkalias = User().Email)
+        );
+
+        // 2. 물리적 텍스트 필드(mserp_delegateduser)로 서버에서 직접 필터링
+        ClearCollect(
+            colActiveDelegations,
+            Filter(
+                '@DEEX:DEEX_20316 (mserp)',
+                mserp_delegateduser = varCurrentD365User.mserp_userid && 
+                mserp_fromdateutc <= Today() &&
+                mserp_todateutc >= Today()
+            )
+        );
+
+        // 3. 콤보박스 및 갤러리 필터링용 컬렉션 생성 (첫 번째: 접속자 본인)
+        ClearCollect(
+            colCreatingWorkerOptions,
+            {
+                WorkerID: userRecord.CreatingWorker, 
+                WorkerName: varCurrentD365User.ID & " (MySelf)" 
+            }
+        );
+
+        // 4. 대리 신청 대상자 컬렉션에 추가 (본인 + 대리인 데이터 통합 완료)
+        ForAll(
+            colActiveDelegations,
+            Collect(
+                colCreatingWorkerOptions,
+                {
+                    WorkerID: ThisRecord.Employee, 
+                    WorkerName: ThisRecord.ID & " (Delegate)"
+                }
+            )
+        );
 
     Children:
-      - scr16_btn_Delegate:
-          Control: Classic/Button@2.2.0
-          Properties:
-            BorderColor: =ColorFade(Self.Fill, -15%)
-            BorderStyle: =BorderStyle.None
-            Color: =If(varIsDelegateSelected, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
-            DisabledBorderColor: =RGBA(166, 166, 166, 1)
-            Fill: =If(varIsDelegateSelected, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
-            Font: =Font.'Open Sans'
-            Height: =44
-            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-            HoverColor: =Self.Color
-            HoverFill: =Self.Fill
-            OnSelect: |-
-              =UpdateContext({varIsDelegateSelected: !varIsDelegateSelected});
-              UpdateContext({varcntShowFilter: false})
-            PressedBorderColor: =Self.Fill
-            PressedFill: =Self.Fill
-            RadiusBottomLeft: =50
-            RadiusBottomRight: =50
-            RadiusTopLeft: =50
-            RadiusTopRight: =50
-            Size: =13.5
-            Text: ="Delegate"
-            Visible: |-
-              =CountRows(
-                  Filter(
-                      '@DEEX:DEEX_20316 (mserp)',
-                      DelegatedUserInfoRecId = userRecord.CreatingWorker &&
-                      'Start date' <= Today() &&
-                      'End date' >= Today() 
-                  )
-              ) > 0
-            Width: =103
-            X: =40
-            Y: =scr16_btn_FakeButton.Y
       - emptyStateComponent_4:
           Control: CanvasComponent
           ComponentName: emptyStateComponent
@@ -111,16 +114,15 @@ Screens:
             Y: |
               =scr16_Reports_1.Y + (Parent.Height - scr16_hdr_TopHeader.Height - scr16_cmp_Footer_1.Height - Self.Height)/2 - scr16_lbl_DummyLabel.Height
             subTitle: |-
-              =Switch(
+              =Switch
+              (
                   varcntSelectedStatus,
-                  1,
-                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateReportToGetPaidLabel',
-                  2,
-                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubmitReportToGetPaidLabel',
-                  3,
-                  GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateAndSubmitReportToGetPaidLabel',
-                  4,
-                  "No rejected reports"
+                  1, GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateReportToGetPaidLabel',
+                  2, GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubmitReportToGetPaidLabel',
+                  3, "No Finance Approved reports",
+                  4, "No Budget holder Approved reports",
+                  5, "No Finance Rejected reports",
+                  6, "No Budget holder Rejected reports"
               )
             title: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
       - scr16_Reports_1:
@@ -146,7 +148,7 @@ Screens:
                   scr16_cmp_Footer_1.Y - Self.Y,
                   Self.TemplateHeight * CountRows(Self.AllItems)
               )
-            Items: "=With(\n    {\n        // 1. varAppMode에 매핑되는 Purpose 값을 사전에 정의합니다.\n        mappedPurpose: Switch(\n            varAppMode,\n            \"ExpenseReport\", \"Expense reimbursement\",\n            \"BillingTripSettlement\", \"Billing Trip Settlement\",\n            \"CashAdvance\", \"Cash Advance\",\n            \"EmployeeBenefit\", \"Employee Benefit\",\n            \"SalaryAdvance\", \"Salary Advance\",\n            Blank() // 매핑되지 않은 AppMode일 경우 Blank\n        )\n    },\n    SortByColumns(\n        Filter(\n            // 기존 Document Status 필터링 유지\n            Switch(\n                varcntSelectedStatus,\n                1,\n                Filter(\n                    'Expense reports (mserp)_1',\n                    'Document Status' = 'Document Status (mserp)'.Draft\n                ),\n                2,\n                Filter(\n                    'Expense reports (mserp)_1',\n                    'Document Status' = 'Document Status (mserp)'.Submitted\n                ),\n                3,\n                Search(\n                    Switch(\n                        scr16_btn_DateFilter.Selected.number,\n                        1,\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 7, TimeUnit.Days) >= Today()\n                        ),\n                        2,\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 30, TimeUnit.Days) >= Today()\n                        ),\n                        3,\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 180, TimeUnit.Days) >= Today()\n                        ),\n                        4,\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved && DateAdd(DateValue(CreatedDate), 365, TimeUnit.Days) >= Today()\n                        ),\n                        Filter(\n                            'Expense reports (mserp)_1',\n                            'Document Status' = 'Document Status (mserp)'.Approved\n                        )\n                    ),\n                    scr16_txt_SearchBox.Text,\n                    'Purpose (mserp_purpose)'\n                ),\n                4,\n                Filter(\n                    'Expense reports (mserp)_1',\n                    'Document Status' = 'Document Status (mserp)'.Rejected\n                )\n            ),\n            \n            // 기존 법인(Legal Entity) 및 대리인(Delegate) 필터링 유지\n            Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity),\n            If(\n                varIsDelegateSelected,\n                'Employee (mserp_creatingworker)' in \n                    Distinct(\n                        Filter(\n                            '@DEEX:DEEX_20316 (mserp)',\n                            DelegatedUserInfoRecId = userRecord.CreatingWorker &&\n                            'Start date' <= Today() &&\n                            'End date' >= Today() \n                        ),\n                        Employee\n                    ),\n                'Employee (mserp_creatingworker)' = userRecord.CreatingWorker\n            ),\n            \n            // \U0001F4A1 2. 추가된 로직: AppMode에 따른 Purpose 자동 필터링\n            IsBlank(mappedPurpose) || 'Purpose (mserp_purpose)' = mappedPurpose\n        ), \n        \"mserp_createddate\", SortOrder.Descending\n    )\n)"
+            Items: "=With(\n    {\n        // 1. varAppMode에 매핑되는 Purpose 값을 사전에 정의합니다.\n        mappedPurpose: Switch(\n            varAppMode,\n            \"ExpenseReport\", \"Expense reimbursement\",\n            \"BillingTripSettlement\", \"Billing Trip Settlement\",\n            \"CashAdvance\", \"Cash Advance\",\n            \"EmployeeBenefit\", \"Employee Benefit\",\n            \"SalaryAdvance\", \"Salary Advance\",\n            Blank()\n        ),\n        \n        // 2. 기준 과거 날짜 상수 (DateTime 형식 일치)\n        dtOneWeekAgo: DateAdd(Now(), -7, TimeUnit.Days),\n        dtOneMonthAgo: DateAdd(Now(), -30, TimeUnit.Days),\n        dtSixMonthsAgo: DateAdd(Now(), -180, TimeUnit.Days),\n        dtOneYearAgo: DateAdd(Now(), -365, TimeUnit.Days)\n    },\n    SortByColumns(\n        Filter(\n            // 상태별 필터링\n            Switch(\n                varcntSelectedStatus,\n                1, Filter('Expense reports (mserp)_1', 'Document Status' = 'Document Status (mserp)'.Draft),\n                2, Filter('Expense reports (mserp)_1', 'Document Status' = 'Document Status (mserp)'.Submitted),\n                // \U0001F4A1 상태 3: Finance Approved\n                3, Filter('Expense reports (mserp)_1', \n                        'Document Status' = 'Document Status (mserp)'.Approved && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        ('Document status' = 'Document status (mserp)'.Draft || 'Document status' = 'Document status (mserp)'.Submitted || 'Document status' = 'Document status (mserp)'.'In review')\n                    ),\n                // \U0001F4A1 상태 4: Budget holder Approved\n                4, Filter('Expense reports (mserp)_1', \n                        'Document Status' = 'Document Status (mserp)'.Approved && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        'Document status' = 'Document status (mserp)'.Approved\n                    ),\n                // \U0001F4A1 상태 5: Finance Rejected\n                5, Filter('Expense reports (mserp)_1', \n                        'Document Status' = 'Document Status (mserp)'.Rejected && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        'Document status' = 'Document status (mserp)'.Draft\n                    ),\n                // \U0001F4A1 상태 6: Budget holder Rejected\n                6, Filter('Expense reports (mserp)_1', \n                        'Document Status' = 'Document Status (mserp)'.Rejected && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        'Document status' = 'Document status (mserp)'.Rejected\n                    )\n            ),\n            \n            // 법인(Legal Entity) 필터링\n            Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity),\n            \n            // \U0001F4A1 3. [수정됨] 대리인/본인 상시 조회 필터링\n            // If문 없이 무조건 컬렉션 배열에 포함된 WorkerID를 조회합니다.\n            // 대리인이 없으면 본인 ID만 1개 있으므로 본인 데이터만 나오고,\n            // 대리인이 있으면 본인+대리인 ID가 모두 있으므로 통합되어 출력됩니다.\n            'Employee (mserp_creatingworker)' in colCreatingWorkerOptions.WorkerID,\n            \n            // AppMode에 따른 Purpose 필터링\n            IsBlank(mappedPurpose) || 'Purpose (mserp_purpose)' = mappedPurpose\n        ), \n        \"mserp_createddate\", SortOrder.Descending\n    )\n)"
             OnSelect: |-
               =UpdateContext({varcntShowFilter:false});
               // ⚠️ LookUp from original data source FIRST to ensure field name compatibility
@@ -260,7 +262,7 @@ Screens:
                                 =If(
                                     ThisItem.'Purpose (mserp_purpose)' <> "" || !IsBlank(ThisItem.'Purpose (mserp_purpose)'),
                                     Concatenate("Report bearing title ", ThisItem.'Purpose (mserp_purpose)', If(Self.Value, " selected", " unselected")),
-                                    Concatenate("Report bearing amount ", Concatenate(Text(Value(ThisItem.Amount),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency), If(Self.Value, " selected", " unselected"))
+                                    Concatenate("Report bearing amount ", Concatenate(Text(Value(ThisItem.'Amount (mserp_amounttotal)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency), If(Self.Value, " selected", " unselected"))
                                 )
                               VerticalAlign: =VerticalAlign.Bottom
                               Visible: =varCntSelect
@@ -532,118 +534,60 @@ Screens:
             Width: =478
             X: =(Parent.Width - Self.Width)/2
             Y: =scr16_rct_seprator.Y - scr16_shp_Rectangle.Y
-      - scr16_btn_Draft:
-          Control: Classic/Button@2.2.0
+      - scr16_drp_StatusFilter:
+          Control: Classic/DropDown@2.3.1
           Properties:
-            BorderColor: =ColorFade(Self.Fill, -15%)
-            BorderStyle: =BorderStyle.None
-            Color: =If(varcntSelectedStatus=1, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
-            DisabledBorderColor: =RGBA(166, 166, 166, 1)
-            Fill: =If(varcntSelectedStatus=1, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
+            BorderColor: =RGBA(0, 18, 107, 1)
+            ChevronBackground: =RGBA(56, 96, 178, 1)
+            ChevronFill: =RGBA(255, 255, 255, 1)
+            ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            ChevronHoverFill: =RGBA(255, 255, 255, 1)
+            Default: |-
+              =Switch(
+                  varcntSelectedStatus,
+                  1, "Draft",
+                  2, "Submitted",
+                  3, "Finance Approved",
+                  4, "Budget holder Approved",
+                  5, "Finance Rejected",
+                  6, "Budget holder Rejected",
+                  "Draft" // 매칭되는 값이 없을 경우의 기본값
+              )
             Font: =Font.'Open Sans'
             Height: =44
-            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-            HoverColor: =Self.Color
-            HoverFill: =Self.Fill
-            OnSelect: =UpdateContext({varcntSelectedStatus:1});UpdateContext({varcntShowFilter:false});
-            PressedBorderColor: =Self.Fill
-            PressedFill: =Self.Fill
-            RadiusBottomLeft: =50
-            RadiusBottomRight: =50
-            RadiusTopLeft: =50
-            RadiusTopRight: =50
-            Size: =13.5
-            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DraftStatusLabel'
-            Width: =103
-            X: =scr16_btn_FakeButton.X
-            Y: =scr16_btn_FakeButton.Y
-      - scr16_btn_Submitted:
-          Control: Classic/Button@2.2.0
-          Properties:
-            BorderColor: =ColorFade(Self.Fill, -15%)
-            BorderStyle: =BorderStyle.None
-            Color: =If(varcntSelectedStatus=2, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
-            DisabledBorderColor: =RGBA(166, 166, 166, 1)
-            Fill: =If(varcntSelectedStatus=2, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
-            Font: =Font.'Open Sans'
-            Height: =44
-            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-            HoverColor: =Self.Color
-            HoverFill: =Self.Fill
-            OnSelect: |-
-              =UpdateContext({varcntSelectedStatus:2});
-              UpdateContext({varCntSelect:false});
-              UpdateContext({varcntShowFilter:false});
+            HoverFill: =RGBA(186, 202, 226, 1)
+            Items: |-
+              =Table(
+                  { ID: 1, StatusName: "Draft" },
+                  { ID: 2, StatusName: "Submitted" },
+                  { ID: 3, StatusName: "Finance Approved" },
+                  { ID: 4, StatusName: "Budget holder Approved" },
+                  { ID: 5, StatusName: "Finance Rejected" },
+                  { ID: 6, StatusName: "Budget holder Rejected" }
+              )
+            Items.Value: =StatusName
+            OnChange: |-
+              =// 1. 선택한 항목의 ID로 상태 변수를 업데이트합니다.
+              UpdateContext({varcntSelectedStatus: Self.Selected.ID});
+
+              // 2. 다른 상태로 넘어갈 때 공통적으로 필터 및 다중 선택 모드를 초기화합니다.
+              UpdateContext({varCntSelect: false});
+              UpdateContext({varcntShowFilter: false});
               Clear(colSelectedReportIds);
-            PressedBorderColor: =Self.Fill
-            PressedFill: =Self.Fill
-            RadiusBottomLeft: =50
-            RadiusBottomRight: =50
-            RadiusTopLeft: =50
-            RadiusTopRight: =50
-            Size: =13.5
-            Text: ="Submitted"
-            Width: =103
-            X: =scr16_btn_Draft.X + scr16_btn_Draft.Width + 22
-            Y: =scr16_btn_FakeButton.Y
-      - scr16_btn_Approve:
-          Control: Classic/Button@2.2.0
-          Properties:
-            BorderColor: =ColorFade(Self.Fill, -15%)
-            BorderStyle: =BorderStyle.None
-            Color: =If(varcntSelectedStatus=3, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
-            DisabledBorderColor: =RGBA(166, 166, 166, 1)
-            Fill: =If(varcntSelectedStatus=3, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
-            Font: =Font.'Open Sans'
-            Height: =44
-            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-            HoverColor: =Self.Color
-            HoverFill: =Self.Fill
-            OnSelect: |-
-              =UpdateContext({varcntSelectedStatus:3});
-              UpdateContext({varCntSelect:false});
-              Clear(colSelectedReportIds);
-              Reset(scr16_btn_DateFilter);
-              Reset(scr16_txt_SearchBox);
-            PressedBorderColor: =Self.Fill
-            PressedFill: =Self.Fill
-            RadiusBottomLeft: =50
-            RadiusBottomRight: =50
-            RadiusTopLeft: =50
-            RadiusTopRight: =50
-            Size: =13.5
-            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovedStatusLabel'
-            Width: =103
-            X: =scr16_btn_Submitted.X + scr16_btn_Submitted.Width + 22
-            Y: =scr16_btn_FakeButton.Y
-      - scr16_btn_Rejected:
-          Control: Classic/Button@2.2.0
-          Properties:
-            BorderColor: =ColorFade(Self.Fill, -15%)
-            BorderStyle: =BorderStyle.None
-            Color: =If(varcntSelectedStatus=4, RGBA(255, 255, 255, 1),RGBA(64, 64, 64, 1))
-            DisabledBorderColor: =RGBA(166, 166, 166, 1)
-            Fill: =If(varcntSelectedStatus=4, RGBA(34, 102, 227, 1),scr16_btn_FakeButton.Fill)
-            Font: =Font.'Open Sans'
-            Height: =44
-            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-            HoverColor: =Self.Color
-            HoverFill: =Self.Fill
-            OnSelect: |-
-              =UpdateContext({varcntSelectedStatus:4});
-              UpdateContext({varCntSelect:false});
-              Clear(colSelectedReportIds);
-            PressedBorderColor: =Self.Fill
-            PressedFill: =Self.Fill
-            RadiusBottomLeft: =50
-            RadiusBottomRight: =50
-            RadiusTopLeft: =50
-            RadiusTopRight: =50
-            Size: =13.5
-            Text: ="Rejected"
-            Width: =103
-            X: =scr16_btn_Approve.X + scr16_btn_Approve.Width + 22
-            Y: =scr16_btn_FakeButton.Y
+
+              // 3. Approved(3, 4번) 상태로 이동할 때만 날짜 필터와 검색 박스를 초기화합니다.
+              If(
+                  Self.Selected.ID = 3 || Self.Selected.ID = 4,
+                  Reset(scr16_btn_DateFilter);
+                  Reset(scr16_txt_SearchBox)
+              )
+            PressedColor: =RGBA(255, 255, 255, 1)
+            PressedFill: =RGBA(0, 18, 107, 1)
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =RGBA(56, 96, 178, 1)
+            Width: =Parent.Width
+            X: =(Parent.Width - Self.Width)/2
+            Y: =scr16_rct_seprator.Y - scr16_shp_Rectangle.Y - 5
       - scr16_rct_seprator:
           Control: Rectangle@2.3.0
           Properties:
