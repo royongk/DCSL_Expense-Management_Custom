@@ -204,7 +204,7 @@
                             'Expense reports (mserp)',
                             LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
                             {
-                                //WorkflowAction: "Recall"
+                                WorkflowAction: "Recall",
                                 'Document Status': 'Document Status (mserp)'.Draft
                             }
                         ),
@@ -231,7 +231,9 @@
                 Visible: |-
                     =//!(varSelectedReport.'Document Status' in dsApproved)
                     
-                    !(varSelectedReport.'Document Status' in dsApproved) && !(varSelectedReport.'Document Status' in dsInReview)
+                    //!(varSelectedReport.'Document Status' in dsApproved) && !(varSelectedReport.'Document Status' in dsInReview)
+                    (varSelectedReport.'Document Status' = 'Document Status (mserp)'.Rejected && varSelectedReport.'Document status' = 'Document status (mserp)'.Draft) ||
+                    (varSelectedReport.'Document Status' = 'Document Status (mserp)'.Approved && varSelectedReport.'Document status' = 'Document status (mserp)'.Rejected)
                 Width: |
                     =Parent.Width -  Self.X*2
                 X: =scr20_btn_Done_1.X
