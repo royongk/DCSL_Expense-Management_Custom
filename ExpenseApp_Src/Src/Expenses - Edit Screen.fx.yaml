@@ -3424,8 +3424,13 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
-                Update: =Coalesce(Value(DataCardValue1_1.Text), Blank())
-                Visible: =false
+                Update: |-
+                    =If(
+                        !IsBlank(cmb_Employee_1.Selected),
+                        Value(cmb_Employee_1.Selected.WorkerID),
+                        userRecord.CreatingWorker
+                    )
+                Visible: =!IsEmpty(colActiveDelegations)
                 Width: =Parent.Width
                 X: |
                     =1
@@ -3440,36 +3445,61 @@
                     Font: =Font.'Segoe UI'
                     Height: =48
                     Size: =21
-                    Text: =LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName) 
+                    Text: ="Delegate Employee"
                     Width: =Parent.Width - 60
                     Wrap: =false
                     X: =30
                     Y: =10
                     ZIndex: =1
 
-                DataCardValue1_1 As text:
-                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                cmb_Employee_1 As combobox:
+                    BorderColor: =RGBA(0, 18, 107, 1)
                     BorderThickness: =0
+                    ChevronBackground: =RGBA(56, 96, 178, 1)
+                    ChevronDisabledBackground: =RGBA(166, 166, 166, 1)
+                    ChevronDisabledFill: =RGBA(244, 244, 244, 1)
+                    ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                    ChevronHoverFill: =RGBA(255, 255, 255, 1)
                     Color: =gblParams.dropDownLabelColor
-                    Default: =Parent.Default
-                    DelayOutput: =true
-                    DisplayMode: =Parent.DisplayMode
-                    FocusedBorderThickness: =
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),
+                            // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
+                            LookUp(
+                                colCreatingWorkerOptions, 
+                                WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'
+                            ),
+                            // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
+                            LookUp(
+                                colCreatingWorkerOptions, 
+                                WorkerID = userRecord.CreatingWorker
+                            )
+                        )
+                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    DisabledFill: =RGBA(244, 244, 244, 1)
+                    DisplayFields: =["WorkerName","WorkerName"]
                     Font: =Font.'Segoe UI'
-                    Format: =TextFormat.Number
                     Height: =gblParams.dropDownHeight
-                    HintText: =Concatenate("Enter ", Lower(Parent.DisplayName))
+                    HoverColor: =RGBA(0, 0, 0, 1)
                     HoverFill: =gblParams.dropDownHoverFill
-                    PaddingLeft: =5
-                    RadiusBottomLeft: =0
-                    RadiusBottomRight: =0
-                    RadiusTopLeft: =0
-                    RadiusTopRight: =0
+                    InputTextPlaceholder: |-
+                        ="Select an agent's name. (Default: Myself)"
+                    Items: =colCreatingWorkerOptions
+                    PaddingBottom: =10
+                    PaddingLeft: =10
+                    PaddingRight: =10
+                    PaddingTop: =10
+                    PressedColor: =RGBA(255, 255, 255, 1)
+                    PressedFill: =RGBA(0, 18, 107, 1)
+                    SearchFields: =["WorkerName"]
+                    SearchItems: =Search(colCreatingWorkerOptions,cmb_Employee_1.SearchText,WorkerName)
+                    SelectionFill: =RGBA(56, 96, 178, 1)
+                    SelectMultiple: =false
                     Size: =24
-                    Tooltip: =Parent.DisplayName
-                    Width: =Parent.Width - 60
-                    X: =30
-                    Y: =DataCardKey1_1.Y + DataCardKey1_1.Height + 5
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =DataCardKey26.X
+                    Y: =DataCardKey26.Y + DataCardKey26.Height
                     ZIndex: =2
 
                 ErrorMessage1_1 As label:
@@ -3488,7 +3518,7 @@
                     Visible: =Parent.DisplayMode=DisplayMode.Edit
                     Width: =Parent.Width - 60
                     X: =30
-                    Y: =DataCardValue1_1.Y + DataCardValue1_1.Height
+                    Y: =cmb_Employee_1.Y + cmb_Employee_1.Height
                     ZIndex: =3
 
                 StarVisible1_1 As label:
