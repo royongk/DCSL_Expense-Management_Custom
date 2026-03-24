@@ -537,8 +537,8 @@ Screens:
                         Update: |-
                           =If(
                               !IsBlank(cmb_Employee.Selected),
-                              Value(cmb_Employee.Selected.WorkerID), // 언더바를 포함한 올바른 컨트롤 이름 사용, Value()로 숫자 변환
-                              userRecord.CreatingWorker // 만약 선택된 값이 풀리더라도 본인을 기본값으로 안전하게 세팅
+                              Text(cmb_Employee.Selected.WorkerID),  // Value() 제거, 확실한 텍스트 전달을 위해 Text() 사용 권장
+                              Text(userRecord.CreatingWorker)
                           )
                         Visible: =!IsEmpty(colActiveDelegations)
                         Width: =Parent.Width
@@ -2297,8 +2297,8 @@ Screens:
                         Update: |-
                           =If(
                               !IsBlank(cmb_Employee_1.Selected),
-                              Value(cmb_Employee_1.Selected.WorkerID),
-                              userRecord.CreatingWorker
+                              Text(cmb_Employee_1.Selected.WorkerID),  // Value() 제거, 확실한 텍스트 전달을 위해 Text() 사용 권장
+                              Text(userRecord.CreatingWorker)
                           )
                         Visible: =!IsEmpty(colActiveDelegations)
                         Width: =Parent.Width
@@ -2333,11 +2333,11 @@ Screens:
                               Color: =gblParams.dropDownLabelColor
                               DefaultSelectedItems: |-
                                 =If(
-                                    !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),
+                                    !IsBlank(varSelectedExpenseDoc.'Employee (mserp_justifyingworker)'),
                                     // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
                                     LookUp(
                                         colCreatingWorkerOptions, 
-                                        WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'
+                                        WorkerID = varSelectedExpenseDoc.'Employee (mserp_justifyingworker)'
                                     ),
                                     // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
                                     LookUp(

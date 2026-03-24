@@ -8,6 +8,7 @@
         UpdateContext({ctLabel5 : false});
         UpdateContext({ctLabel6 : false});
         UpdateContext({ctLabel7 : false});
+        UpdateContext({ctLabel8 : false});
         
         UpdateContext({ctVarReportDetailsBack:false});
         UpdateContext({isExpReportDirty : false});
@@ -37,6 +38,49 @@
                 locReimaginedfeatureEnabled: (userRecord.IsReimaginedUIEnabled = 'NoYes (mserp)'.Yes)
             }
         );
+        
+        // 1. 접속한 사용자의 마스터 정보 가져오기 (화면에 '본인' 이름을 표시하기 위함)
+        Set(
+            varCurrentD365User,
+            LookUp('Expense mobile master data (mserp)', mserp_usernetworkalias = User().Email)
+        );
+        
+        // 2. [변경됨] 가상 필드 대신, 물리적 텍스트 필드(mserp_delegateduser)로 서버에서 직접 필터링합니다.
+        ClearCollect(
+            colActiveDelegations,
+            Filter(
+                '@DEEX:DEEX_20316 (mserp)',
+                // 텍스트 ID 끼리 비교합니다. (varCurrentD365User.mserp_userid 가 "DEEX1.ERP" 형태)
+                mserp_delegateduser = varCurrentD365User.mserp_userid && 
+                mserp_fromdateutc <= Today() &&
+                mserp_todateutc >= Today()
+            )
+        );
+        
+        // 3. 콤보박스 선택지 생성 (첫 번째: 접속자 본인)
+        ClearCollect(
+            colCreatingWorkerOptions,
+            {
+                WorkerID: userRecord.CreatingWorker, // 저장용 내 숫자 ID
+                WorkerName: varCurrentD365User.ID & " (MySelf)" // 화면 표시용 내 이름
+            }
+        );
+        
+        // 4. 콤보박스 선택지 추가 (대리 신청 대상자)
+        ForAll(
+            colActiveDelegations,
+            Collect(
+                colCreatingWorkerOptions,
+                {
+                    // [저장용] Expense Line 테이블에 넘겨줄 위임자의 고유 숫자 ID
+                    WorkerID: ThisRecord.Employee, 
+                    
+                    // [표시용] 새로 추가된 텍스트 'ID' 필드를 이용해 마스터 테이블에서 이름을 찾아옴!
+                    WorkerName: ThisRecord.ID & " (Delegate)"
+                }
+            )
+        );
+        
         If(
             locReimaginedfeatureEnabled, 
             If(
@@ -230,6 +274,16 @@
                             gblParams.notificationTime
                         )
                     );
+                    // ✅ Delegate Employee 필수 필드 유효성 검사
+                    If(
+                        !IsEmpty(colActiveDelegations) &&
+                        IsBlank(ComboBox_Employee.Selected.WorkerID), 
+                        Notify(
+                            "Delegate Employee field is required.",
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        )
+                    );
                     // 기존 유효성 검사 및 제출 로직 (Purpose 유효성 검사 통과 시에만 실행)
                     If(
                         !varPurposeValidationFailed,
@@ -260,7 +314,8 @@
                                             Description: scr17_txt_Description_1.Text,
                                             'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
                                             'Document Status': 'Document Status (mserp)'.Submitted,
-                                            'Created in Apps': 'NoYes (mserp)'.Yes
+                                            'Created in Apps': 'NoYes (mserp)'.Yes,
+                                            Employee: If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
                                             // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
                                             // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                                         }
@@ -360,6 +415,16 @@
                             gblParams.notificationTime
                         )
                     );
+                    // ✅ Delegate Employee 필수 필드 유효성 검사
+                    If(
+                        !IsEmpty(colActiveDelegations) &&
+                        IsBlank(ComboBox_Employee.Selected.WorkerID), 
+                        Notify(
+                            "Delegate Employee field is required.",
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        )
+                    );
                     // 기존 유효성 검사 및 저장 로직 (Purpose 유효성 검사 통과 시에만 실행)
                     If(
                         !varPurposeValidationFailed,
@@ -400,7 +465,8 @@
                                                     Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),
                                                     Description: scr17_txt_Description_1.Text,
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
-                                                    'Created in Apps': 'NoYes (mserp)'.Yes
+                                                    'Created in Apps': 'NoYes (mserp)'.Yes,
+                                                    Employee: If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
                                                 }
                                             ),
                                             First(
@@ -435,7 +501,8 @@
                                                     Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location, ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                                     Description: scr17_txt_Description_1.Text,
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
-                                                    'Created in Apps': 'NoYes (mserp)'.Yes
+                                                    'Created in Apps': 'NoYes (mserp)'.Yes,
+                                                    Employee: If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
                                                 }
                                             ),
                                             First(
@@ -749,14 +816,15 @@
                             fieldType: "String"
                         }
                     )
-                OnSelect: |
+                OnSelect: |-
                     =UpdateContext({ctLabel1 : false});
                     UpdateContext({ctLabel2 : false});
                     UpdateContext({ctLabel3 : true});
                     UpdateContext({ctLabel4 : false});
                     UpdateContext({ctLabel5 : false});
                     UpdateContext({ctLabel6 : false});
-                    UpdateContext({ctLabel7 : false})
+                    UpdateContext({ctLabel7 : false});
+                    UpdateContext({ctLabel8 : false})
                 RadiusBottomLeft: =0
                 RadiusBottomRight: =0
                 RadiusTopLeft: =0
@@ -930,7 +998,8 @@
                     UpdateContext({ctLabel4 : false});
                     UpdateContext({ctLabel5: false});
                     UpdateContext({ctLabel6: false});
-                    UpdateContext({ctLabel7: false})
+                    UpdateContext({ctLabel7: false});
+                    UpdateContext({ctLabel8 : false})
                 PaddingTop: =10
                 Reset: =true
                 SearchFields: =["mserp_value"]
@@ -941,6 +1010,176 @@
                 X: =40
                 Y: =scr17_hdr_TopHeader_1.Height + 66
                 ZIndex: =3
+
+        "'Employee - Draft' As groupContainer.horizontalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =175
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Visible: =!IsEmpty(colActiveDelegations)
+            Width: =Parent.Width
+            ZIndex: =3
+
+            EmployeeContainer As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =ComboBox_Employee.Width
+                ZIndex: =1
+
+                scr17_img_EmployeeSelected As image:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                    DisabledFill: =RGBA(244, 244, 244, 1)
+                    Height: =22
+                    Image: =ShapeTitleSelected
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =ctLabel8
+                    Width: =22
+                    X: =ComboBox_Employee.X
+                    Y: |-
+                        =ComboBox_Employee.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =1
+
+                scr17_img_Employee As image:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                    DisabledFill: =RGBA(244, 244, 244, 1)
+                    Height: =22
+                    Image: =ShapeTitle
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =!scr17_img_EmployeeSelected.Visible
+                    Width: =22
+                    X: =ComboBox_Employee.X
+                    Y: |-
+                        =ComboBox_Employee.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =2
+
+                scr17_lbl_Employee As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: ="Delegate Employee"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =121 
+                    X: |-
+                        =scr17_img_Employee.X + scr17_img_Employee.Width + 
+                        8
+                    Y: =scr17_img_Employee.Y - 5
+                    ZIndex: =3
+
+            ComboBox_Employee As combobox:
+                AccessibleLabel: ="Dropdown to enter delegate Employee"
+                BorderColor: =RGBA(0, 18, 107, 1)
+                ChevronBackground: =RGBA(56, 96, 178, 1)
+                ChevronDisabledBackground: =RGBA(166, 166, 166, 1)
+                ChevronDisabledFill: =RGBA(244, 244, 244, 1)
+                ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                Default: =Blank()
+                DefaultSelectedItems: |-
+                    =If(
+                        !IsBlank(varSelectedReport.Employee),
+                        // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
+                        LookUp(
+                            colCreatingWorkerOptions, 
+                            WorkerID = varSelectedReport.Employee
+                        ),
+                        // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
+                        LookUp(
+                            colCreatingWorkerOptions, 
+                            WorkerID = userRecord.CreatingWorker
+                        )
+                    )
+                DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                DisabledColor: =RGBA(166, 166, 166, 1)
+                DisabledFill: =RGBA(244, 244, 244, 1)
+                DisplayFields: =["WorkerName"]
+                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                HoverColor: =RGBA(0, 0, 0, 1)
+                HoverFill: =RGBA(186, 202, 226, 1)
+                InputTextPlaceholder: |-
+                    ="Select Employee (Default: Myself)"
+                Items: =colCreatingWorkerOptions
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =575
+                OnChange: |-
+                    =If(
+                        ComboBox_Employee.Selected.WorkerID <> varSelectedReport.Employee,
+                            UpdateContext({isExpReportDirty : true})
+                    );
+                OnSelect: |-
+                    =UpdateContext({ctLabel1 : false});
+                    UpdateContext({ctLabel2 : false});
+                    UpdateContext({ctLabel3 : false});
+                    UpdateContext({ctLabel4 : false});
+                    UpdateContext({ctLabel5: false});
+                    UpdateContext({ctLabel6: false});
+                    UpdateContext({ctLabel7: false});
+                    UpdateContext({ctLabel8 : true})
+                PaddingBottom: =10
+                PaddingLeft: =10
+                PaddingRight: =10
+                PaddingTop: =10
+                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedFill: =RGBA(0, 18, 107, 1)
+                Reset: =true
+                SearchFields: =["WorkerName"]
+                SearchItems: =Search(colCreatingWorkerOptions,ComboBox_Employee.SearchText,WorkerName)
+                SelectionFill: =RGBA(56, 96, 178, 1)
+                SelectMultiple: =false
+                Size: =24
+                Width: =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr17_hdr_TopHeader_1.Height + 66
+                ZIndex: =2
 
         CashAdvance_Container_gp As groupContainer.horizontalAutoLayoutContainer:
             Height: =225
@@ -965,7 +1204,7 @@
                     false
                 )
             Width: =Parent.Width
-            ZIndex: =3
+            ZIndex: =4
 
             "'Settlment - Draft' As groupContainer.horizontalAutoLayoutContainer":
                 AlignInContainer: =AlignInContainer.SetByContainer

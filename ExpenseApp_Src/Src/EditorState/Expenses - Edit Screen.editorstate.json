@@ -6023,7 +6023,14 @@
         "InputTextPlaceholder",
         "NoSelectionText",
         "SelectMultiple",
-        "DefaultSelectedItems",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "If(\n    !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),\n    // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기\n    LookUp(\n        colCreatingWorkerOptions, \n        WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'\n    ),\n    // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기\n    LookUp(\n        colCreatingWorkerOptions, \n        WorkerID = userRecord.CreatingWorker\n    )\n)",
+          "InvariantPropertyName": "DefaultSelectedItems",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "Reset",
         "IsSearchable",
         "SelectionColor",
@@ -6453,7 +6460,7 @@
           "RuleProviderType": "Unknown"
         }
       ],
-      "StyleName": "",
+      "StyleName": "defaultComboBoxStyle",
       "Type": "ControlInfo"
     },
     "cmb_OtherStaff": {
