@@ -1410,7 +1410,7 @@
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
                     InputTextPlaceholder: |-
-                        ="Select an agent's name. (Default: Myself)"
+                        ="Select Dlegate Employee. (Default: Myself)"
                     Items: =colCreatingWorkerOptions
                     SearchFields: =["WorkerName"]
                     SearchItems: =Search(colCreatingWorkerOptions,cmb_Employee.SearchText,WorkerName)
@@ -3430,7 +3430,9 @@
                         Text(cmb_Employee_1.Selected.WorkerID),  // Value() 제거, 확실한 텍스트 전달을 위해 Text() 사용 권장
                         Text(userRecord.CreatingWorker)
                     )
-                Visible: =!IsEmpty(colActiveDelegations)
+                Visible: |-
+                    =//!IsEmpty(colActiveDelegations)
+                    false
                 Width: =Parent.Width
                 X: |
                     =1
@@ -3456,7 +3458,8 @@
                     BorderThickness: =0
                     Color: =gblParams.dropDownLabelColor
                     DefaultSelectedItems: |-
-                        =If(
+                        =/*
+                        If(
                             !IsBlank(varSelectedExpenseDoc.'Employee (mserp_justifyingworker)'),
                             // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
                             LookUp(
@@ -3469,6 +3472,7 @@
                                 WorkerID = userRecord.CreatingWorker
                             )
                         )
+                        */
                     DisplayFields: =["WorkerName","WorkerName"]
                     Font: =Font.'Segoe UI'
                     Height: =gblParams.dropDownHeight
