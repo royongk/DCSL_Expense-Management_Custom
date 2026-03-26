@@ -198,7 +198,7 @@
             ClearCollect(
                 colAttachedExpensesForReport,
                 Filter(
-                    'Expense lines (mserp)',
+                    'Expense Line Expense Mobile Entity (mserp)',
                     'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
                     && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
                 )
@@ -366,11 +366,11 @@
             // assign the expense to a varSelectedExpenseDoc
             Set(
                 varSelectedExpenseDoc,
-                LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number' && 'Company Code' = varSelectedLegalEntity)
+                LookUp('Expense Line Expense Mobile Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number' && 'Company Code' = varSelectedLegalEntity)
             );
             If(
                 IsBlank(varSelectedExpenseDoc),
-                UpdateContext({locSelectedExpenseDiffLE : LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number')});
+                UpdateContext({locSelectedExpenseDiffLE : LookUp('Expense Line Expense Mobile Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number')});
                 If(
                     !IsBlank(locSelectedExpenseDiffLE),
                     Notify(

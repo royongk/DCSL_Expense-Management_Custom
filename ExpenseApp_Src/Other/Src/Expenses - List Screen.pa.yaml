@@ -253,7 +253,7 @@ Screens:
               // assign the expense to a varSelectedExpenseDoc
               Set(
                   varSelectedExpenseDoc,
-                  LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                  LookUp('Expense Line Expense Mobile Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
               );
 
               // 1. [Attached Entity] 조회 (이미 완전히 연결된 파일)
@@ -792,7 +792,7 @@ Screens:
                   ClearCollect(
                       colAttachedExpensesForReport,
                       Filter(
-                          'Expense lines (mserp)',
+                          'Expense Line Expense Mobile Entity (mserp)',
                           'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
                           && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
                       )
@@ -801,7 +801,7 @@ Screens:
                       colAttachedExpenses,
                       colAttachedExpensesForReport
                   );
-                  Refresh('Expense lines (mserp)');
+                  Refresh('Expense Line Expense Mobile Entity (mserp)');
                   Navigate('Reports - Edit Screen', ScreenTransition.None),
                   Notify(
                       Substitute(varCreateReportError, """", ""),
@@ -975,7 +975,7 @@ Screens:
                       LookUp('Legal entities (mserp)',Company = varSelectedLegalEntity, Currency)
                   )
               );
-              Refresh('Expense lines (mserp)');
+              Refresh('Expense Line Expense Mobile Entity (mserp)');
               Refresh('Expense management parameters (mserp)');
             secondIcon: =If(CountRows(collSelectedExpenseIds)=0, DeleteIconDisabled,DeleteIconEnabled)
             secondIconAccessibleLabel: =If(Self.secondIcon = DeleteIconEnabled, "Delete expenses", "Disabled delete")

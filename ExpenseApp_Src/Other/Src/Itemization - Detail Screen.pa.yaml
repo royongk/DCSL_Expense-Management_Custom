@@ -23,7 +23,7 @@ Screens:
             Fill: =Color.White
             Height: =App.Height * 0.2377
             ItemizedAmountLabel: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ItemizedAmountLabel'
-            OnButtonClick: "=UpdateContext({locItemizationError: Blank()});\nIf(\n    isDirtyItemization,\n    'Expense lines (mserp)'.mserp_trvexpmobileexpenseentity_itemizeexpensequickly(\n        LookUp(\n            'Expense lines (mserp)',\n            'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)' && 'Company (mserp_company)' = varSelectedLegalEntity,\n            'Expense Line Expense Mobile Entity (mserp)'\n        ),\n        {itemizations: Text(JSON(dsItemizations))}\n    )\n);\n\nSet(isDirtyItemization, false);\n\n// To get the refreshed values from the entity\nSet(\n    varSelectedExpenseDoc,\n    LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')\n);\n\n// populating base64 to show image on selection of expense\n    Set(\n        varReceiptImage,\n        LookUp(\n            'Expense Mobile Attached Document Entity (mserp)',\n            EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),\n            CapturedDocument\n        )\n    );\n    \n// collect policy violations\nIf(\n    varSelectedExpenseDoc.PolicyViolationCount,\n    ClearCollect(\n        colPolViolations,\n        Split(\n            varSelectedExpenseDoc.PolicyViolationErrorMessage,\n            \"~|~\"\n        )\n    );\n    UpdateContext({varMaxViolationLevel: varSelectedExpenseDoc.PolicyViolationsLevel});\n    UpdateContext({varNumViolation: varSelectedExpenseDoc.PolicyViolationCount}),\n    Clear(colPolViolations);\n    UpdateContext({varMaxViolationLevel: 0});\n    UpdateContext({varNumViolation: 0})\n);\nNavigate(\n    'Expenses - Edit Screen',\n    ScreenTransition.None,\n    {\n        varNavigatedFrom : varNavigatedFrom,\n        varMaxViolationLevel: varMaxViolationLevel,\n        varNumViolation: varNumViolation,\n        varRemainingAmount: \n        If( \n            varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,\n            Value(\n                varSelectedExpenseDoc.'Transaction amount' - Sum(\n                    dsItemizations,\n                    DailyRate * Quantity\n                )\n            ),\n            Value(\n                varSelectedExpenseDoc.'Local amount' - Sum(\n                    dsItemizations,\n                    DailyRate * Quantity\n                )\n            )\n        )\n    }\n);\n"
+            OnButtonClick: "=UpdateContext({locItemizationError: Blank()});\nIf(\n    isDirtyItemization,\n    'Expense Line Expense Mobile Entity (mserp)'.mserp_trvexpmobileexpenseentity_itemizeexpensequickly(\n        LookUp(\n            'Expense Line Expense Mobile Entity (mserp)',\n            'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)' && 'Company (mserp_company)' = varSelectedLegalEntity,\n            'Expense Line Expense Mobile Entity (mserp)'\n        ),\n        {itemizations: Text(JSON(dsItemizations))}\n    )\n);\n\nSet(isDirtyItemization, false);\n\n// To get the refreshed values from the entity\nSet(\n    varSelectedExpenseDoc,\n    LookUp('Expense Line Expense Mobile Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')\n);\n\n// populating base64 to show image on selection of expense\n    Set(\n        varReceiptImage,\n        LookUp(\n            'Expense Mobile Attached Document Entity (mserp)',\n            EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),\n            CapturedDocument\n        )\n    );\n    \n// collect policy violations\nIf(\n    varSelectedExpenseDoc.PolicyViolationCount,\n    ClearCollect(\n        colPolViolations,\n        Split(\n            varSelectedExpenseDoc.PolicyViolationErrorMessage,\n            \"~|~\"\n        )\n    );\n    UpdateContext({varMaxViolationLevel: varSelectedExpenseDoc.PolicyViolationsLevel});\n    UpdateContext({varNumViolation: varSelectedExpenseDoc.PolicyViolationCount}),\n    Clear(colPolViolations);\n    UpdateContext({varMaxViolationLevel: 0});\n    UpdateContext({varNumViolation: 0})\n);\nNavigate(\n    'Expenses - Edit Screen',\n    ScreenTransition.None,\n    {\n        varNavigatedFrom : varNavigatedFrom,\n        varMaxViolationLevel: varMaxViolationLevel,\n        varNumViolation: varNumViolation,\n        varRemainingAmount: \n        If( \n            varSelectedExpenseDoc.IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No,\n            Value(\n                varSelectedExpenseDoc.'Transaction amount' - Sum(\n                    dsItemizations,\n                    DailyRate * Quantity\n                )\n            ),\n            Value(\n                varSelectedExpenseDoc.'Local amount' - Sum(\n                    dsItemizations,\n                    DailyRate * Quantity\n                )\n            )\n        )\n    }\n);\n"
             RemainingAmountLabel: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_RemainingAmountLabel'
             RemainingAmountValue: |-
               =If(
@@ -336,9 +336,9 @@ Screens:
               =UpdateContext({locItemizationError: Blank()});
               If(isDirtyItemization,
               IfError(
-                  'Expense lines (mserp)'.mserp_trvexpmobileexpenseentity_itemizeexpensequickly(
+                  'Expense Line Expense Mobile Entity (mserp)'.mserp_trvexpmobileexpenseentity_itemizeexpensequickly(
                       LookUp(
-                          'Expense lines (mserp)',
+                          'Expense Line Expense Mobile Entity (mserp)',
                           'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)' && 'Company (mserp_company)' = varSelectedLegalEntity,
                           'Expense Line Expense Mobile Entity (mserp)'
                       ),
@@ -346,7 +346,7 @@ Screens:
                   ),
                   UpdateContext({locItemizationError: JSON(FirstError.Details)});
                   ,
-                  Refresh('Expense lines (mserp)');
+                  Refresh('Expense Line Expense Mobile Entity (mserp)');
                   Set(isDirtyItemization, false);
               );
               );
@@ -381,7 +381,7 @@ Screens:
               // To get the refreshed values from the entity
               Set(
                   varSelectedExpenseDoc,
-                  LookUp('Expense lines (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')
+                  LookUp('Expense Line Expense Mobile Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)')
               );
 
               // populating base64 to show image on selection of expense

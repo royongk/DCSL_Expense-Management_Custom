@@ -13,7 +13,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -53,7 +53,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -201,7 +201,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -767,7 +767,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -807,7 +807,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -962,7 +962,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -1410,7 +1410,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -2609,7 +2609,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -2784,7 +2784,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -2959,7 +2959,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -2999,7 +2999,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -4884,7 +4884,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -5059,7 +5059,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -5234,7 +5234,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -5274,7 +5274,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -5422,7 +5422,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -5462,7 +5462,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "AllowedValues",
           "IsLockable": true,
@@ -7401,7 +7401,7 @@
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
-          "AutoRuleBindingString": "UpdateContext({varShowDeleteReceiptDialog: false});\nIf(\n    !IsBlank(varDeleteReceiptId),\n    IfError(\n        Patch(\n            'Expense Mobile Unattached Document Entity (mserp)',\n            LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varDeleteReceiptId),\n            {\n                ExpTransNumber: Blank()\n            }\n        ),\n        Notify(\n            Substitute(\n                Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch,\n                \"\"\"message\"\":\",\n                \"\"\n            ),\n            NotificationType.Error,\n            gblParams.notificationTime\n        )\n    );\n    // Refresh receipts collection\n    ClearCollect(\n        colAttachedReceipts,\n        SortByColumns(\n            Filter(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'\n            ),\n            \"CreatingDateTime\",\n            SortOrder.Descending\n        )\n    );\n    // Update AttachedReceiptId (first receipt or blank)\n    If(\n        !IsEmpty(colAttachedReceipts),\n        Patch(\n            'Expense lines (mserp)',\n            varSelectedExpenseDoc,\n            {\n                AttachedReceiptId: First(colAttachedReceipts).EntRecId\n            }\n        ),\n        Patch(\n            'Expense lines (mserp)',\n            varSelectedExpenseDoc,\n            {\n                AttachedReceiptId: Blank()\n            }\n        )\n    );\n    // Update varReceiptImage for backward compatibility\n    Set(\n        varReceiptImage,\n        If(\n            !IsEmpty(colAttachedReceipts),\n            First(colAttachedReceipts).CapturedDocument,\n            Blank()\n        )\n    );\n    Set(\n        varFileFormat,\n        If(\n            !IsEmpty(colAttachedReceipts),\n            First(colAttachedReceipts).FileExtension,\n            Blank()\n        )\n    );\n    Notify(\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',\n        NotificationType.Success,\n        gblParams.notificationTime\n    );\n    UpdateContext({varDeleteReceiptId: Blank()})\n)",
+          "AutoRuleBindingString": "",
           "InvariantPropertyName": "OnRightButtonClick",
           "IsLockable": false,
           "NameMapSourceSchema": "?"
@@ -7576,7 +7576,7 @@
         {
           "Category": "Behavior",
           "PropertyName": "OnRightButtonClick",
-          "RuleProviderType": "User"
+          "RuleProviderType": "Unknown"
         }
       ],
       "StyleName": "default5c870243b721456a9c9a6d13fc39da33Style",
@@ -15560,7 +15560,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -15600,7 +15600,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -16819,7 +16819,7 @@
         {
           "Category": "Design",
           "PropertyName": "maximumWidth",
-          "RuleProviderType": "System"
+          "RuleProviderType": "Unknown"
         },
         {
           "Category": "Design",
@@ -18022,7 +18022,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -18062,7 +18062,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "AllowedValues",
           "IsLockable": true,
@@ -18217,7 +18217,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -18257,7 +18257,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -66752,7 +66752,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -66792,7 +66792,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -66947,7 +66947,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -67129,7 +67129,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -68969,7 +68969,7 @@
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
-          "AutoRuleBindingString": "false",
+          "AutoRuleBindingString": "",
           "InvariantPropertyName": "OnSuccess",
           "IsLockable": false,
           "NameMapSourceSchema": "?"
@@ -69124,7 +69124,7 @@
         {
           "Category": "Behavior",
           "PropertyName": "OnSuccess",
-          "RuleProviderType": "User"
+          "RuleProviderType": "Unknown"
         }
       ],
       "StyleName": "defaultFormStyle",
@@ -69143,7 +69143,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -69318,7 +69318,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -69500,7 +69500,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -88845,7 +88845,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -89020,7 +89020,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -89139,7 +89139,7 @@
         {
           "Category": "Data",
           "PropertyName": "DisplayName",
-          "RuleProviderType": "User"
+          "RuleProviderType": "Unknown"
         },
         {
           "Category": "Design",
@@ -89403,7 +89403,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -91174,7 +91174,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -91214,7 +91214,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -91355,7 +91355,7 @@
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
-          "AutoRuleBindingString": "CustomGallerySample",
+          "AutoRuleBindingString": "",
           "InvariantPropertyName": "Items",
           "IsLockable": false,
           "NameMapSourceSchema": "?"
@@ -91940,7 +91940,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -92597,7 +92597,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -92637,7 +92637,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -92785,7 +92785,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -92825,7 +92825,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -92980,7 +92980,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -93149,7 +93149,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -95496,7 +95496,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -95598,7 +95598,7 @@
         {
           "Category": "Design",
           "PropertyName": "Width",
-          "RuleProviderType": "System"
+          "RuleProviderType": "Unknown"
         },
         {
           "Category": "Design",
@@ -95637,7 +95637,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -95677,7 +95677,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "AllowedValues",
           "IsLockable": true,
@@ -96041,7 +96041,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -96081,7 +96081,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -96236,7 +96236,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -96411,7 +96411,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -96593,7 +96593,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -96633,7 +96633,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -96788,7 +96788,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -96963,7 +96963,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -97340,7 +97340,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -97515,7 +97515,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -97690,7 +97690,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -97878,7 +97878,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -98053,7 +98053,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -98228,7 +98228,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -100218,7 +100218,14 @@
         "DataField",
         "Default",
         "DisplayMode",
-        "DisplayName",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "",
+          "InvariantPropertyName": "DisplayName",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "Fill",
         "Height",
         {
@@ -101479,7 +101486,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -101519,7 +101526,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -101674,7 +101681,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -101836,7 +101843,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -102018,7 +102025,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -102058,7 +102065,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -102503,7 +102510,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -102672,7 +102679,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -109676,7 +109683,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -127959,7 +127966,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -127999,7 +128006,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "AllowedValues",
           "IsLockable": true,
@@ -128400,7 +128407,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -128582,7 +128589,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -128622,7 +128629,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -128777,7 +128784,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -128952,7 +128959,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -128992,7 +128999,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -129147,7 +129154,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -130798,7 +130805,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -130838,7 +130845,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -131685,7 +131692,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -131860,7 +131867,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -132035,7 +132042,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -132217,7 +132224,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -132649,7 +132656,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -132689,7 +132696,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -132837,7 +132844,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -132877,7 +132884,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -134370,7 +134377,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -134545,7 +134552,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
@@ -134585,7 +134592,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "MaxLength",
           "IsLockable": true,
@@ -135173,7 +135180,7 @@
         },
         {
           "AFDDataSourceName": "",
-          "AutoRuleBindingEnabled": true,
+          "AutoRuleBindingEnabled": false,
           "AutoRuleBindingString": "",
           "InvariantPropertyName": "DisplayName",
           "IsLockable": true,
