@@ -1233,7 +1233,9 @@ Screens:
                   RadiusBottomRight: =0
                   RadiusTopLeft: =0
                   RadiusTopRight: =0
-                  Visible: =varAppMode = "AirfareAllowance" && !IsBlank(varSelectedTravelReq)
+                  Visible: |-
+                    =//varAppMode = "AirfareAllowance" && !IsBlank(varSelectedTravelReq)
+                    false
                   Width: =Parent.Width
                   Y: =ComboBox_Location.Y + ComboBox_Location.Height + 60
                 Children:
@@ -1732,7 +1734,7 @@ Screens:
                           =If(
                               CountRows(colAttachedExpenses) > 0,
                               0,
-                              125
+                              200
                           )
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
@@ -1743,6 +1745,149 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
+                        - scr17_btn_CreateExpenses_1:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =ColorFade(Self.Fill, -15%)
+                              BorderThickness: =0
+                              Color: =RGBA(34, 102, 227, 1)
+                              DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              FocusedBorderThickness: =0
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Normal
+                              Height: =60
+                              HoverBorderColor: =
+                              HoverColor: =Self.Color
+                              HoverFill: =
+                              OnSelect: |-
+                                =If(
+                                    varIsCreateReport,
+                                    UpdateContext({varCreateError: Blank()});
+                                    Clear(varError);
+                                    With(
+                                        {
+                                            patchedReport: IfError(
+                                                Patch(
+                                                    'Expense reports (mserp)',
+                                                    Defaults('Expense reports (mserp)'),
+                                                    {
+                                                        Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                        Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                                        Description: scr17_txt_Description_1.Text,
+                                                        'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                                    }
+                                                ),
+                                                UpdateContext({
+                                                        varCreateError : 
+                                                        Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")
+                                                    }
+                                                );
+                                                Blank()
+                                            )
+                                        },
+                                        If(!IsBlank(patchedReport), Set(varSelectedReport, patchedReport))
+                                    )
+                                );
+
+                                If(
+                                    IsBlank(varCreateError),
+                                    // [핵심] 신규 경비를 만들기 위한 환경 초기화 및 네비게이션
+                                    Set(varIsCreate, true);
+                                    Set(varSelectedExpenseDoc, Blank());
+                                    Set(varReceiptImage, Blank());
+                                    Navigate(
+                                        'Expenses - Edit Screen', 
+                                        ScreenTransition.None, 
+                                        {
+                                            varCntBack_scr17: true,
+                                            // 네비게이션 플래그를 'scr17_Create'로 지정해 새 경비 생성 후 Report 연결을 지시함
+                                            varNavigatedFrom: "scr17_Create", 
+                                            ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.Purpose, ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)')
+                                        }
+                                    ),
+                                    Notify(Substitute(varCreateError, """", ""), NotificationType.Error, gblParams.notificationTime)
+                                );
+
+                                Set(varIsCreateReport, false);
+                              PressedBorderColor: =
+                              PressedFill: =
+                              RadiusBottomLeft: =6
+                              RadiusBottomRight: =6
+                              RadiusTopLeft: =6
+                              RadiusTopRight: =6
+                              Size: =18
+                              Text: ="Create expenses"
+                              Visible: |-
+                                =If(
+                                    CountRows(colAttachedExpenses) > 0,
+                                    false,
+                                    true
+                                )
+                              X: |
+                                =(Parent.Width - Self.Width)/2
+                              Y: =scr17_btn_AttachExpenses_1.Y + scr17_btn_AttachExpenses_1.Height + 20
+                        - scr17_img_CreatePlus_1:
+                            Control: Image@2.2.3
+                            Properties:
+                              AccessibleLabel: =
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Height: =22
+                              Image: =Shapeplus
+                              OnSelect: |-
+                                =If(
+                                    varIsCreateReport,
+                                    UpdateContext({varCreateError: Blank()});
+                                    Clear(varError);
+                                    With(
+                                        {
+                                            patchedReport: IfError(
+                                                Patch(
+                                                    'Expense reports (mserp)',
+                                                    Defaults('Expense reports (mserp)'),
+                                                    {
+                                                        Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                        Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
+                                                        Description: scr17_txt_Description_1.Text,
+                                                        'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
+                                                    }
+                                                ),
+                                                UpdateContext({
+                                                        varCreateError : 
+                                                        Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")
+                                                    }
+                                                );
+                                                Blank()
+                                            )
+                                        },
+                                        If(!IsBlank(patchedReport), Set(varSelectedReport, patchedReport))
+                                    )
+                                );
+
+                                If(
+                                    IsBlank(varCreateError),
+                                    // [핵심] 신규 경비를 만들기 위한 환경 초기화 및 네비게이션
+                                    Set(varIsCreate, true);
+                                    Set(varSelectedExpenseDoc, Blank());
+                                    Set(varReceiptImage, Blank());
+                                    Navigate(
+                                        'Expenses - Edit Screen', 
+                                        ScreenTransition.None, 
+                                        {
+                                            varCntBack_scr17: true,
+                                            // 네비게이션 플래그를 'scr17_Create'로 지정해 새 경비 생성 후 Report 연결을 지시함
+                                            varNavigatedFrom: "scr17_Create", 
+                                            ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.Purpose, ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)')
+                                        }
+                                    ),
+                                    Notify(Substitute(varCreateError, """", ""), NotificationType.Error, gblParams.notificationTime)
+                                );
+
+                                Set(varIsCreateReport, false);
+                              Visible: =scr17_btn_AttachExpenses_1.Visible
+                              Width: =22
+                              X: =scr17_btn_AttachExpenses_1.X + 23
+                              Y: =scr17_btn_CreateExpenses_1.Y + 19
                         - scr17_btn_AttachExpenses_1:
                             Control: Classic/Button@2.2.0
                             Properties:

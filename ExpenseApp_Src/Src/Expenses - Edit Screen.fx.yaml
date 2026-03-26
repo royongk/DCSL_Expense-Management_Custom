@@ -625,6 +625,8 @@
                 varNavigatedFrom,
                 "scr17",
                 Navigate('Reports - Edit Screen'),
+                "scr17_Create",                         // [신규 추가]
+                Navigate('Reports - Edit Screen'),      // [신규 추가]
                 "scr20",
                 Navigate('Reports - View Only Screen'),
                 "scr18",
@@ -1318,12 +1320,61 @@
                     If(isDirty || isExpenseReceiptAttached, Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', NotificationType.Success, gblParams.notificationTime))
                 );
                 
+                // [신규 추가] Report에서 직접 Create를 타고 들어와 생성에 성공한 경우, 리포트에 자동 Attach 처리
+                If(
+                    varIsCreate && varNavigatedFrom = "scr17_Create" && !IsBlank(varSelectedReport),
+                    Collect(colAttachedExpenses, Self.LastSubmit);
+                    Patch(
+                        'Expense reports (mserp)',
+                        LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                        {
+                            // 콤마로 구분하여 트랜잭션 번호 연결 업데이트
+                            ExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', ",")
+                        }
+                    )
+                );
+                
                 If(
                     gblItemizeExpenseButtonClick,
                     Set(IsCreditcardTransactionInLocalCurrency, LookUp('Expense Line Expense Mobile Entity (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', IsCreditcardTransactionInLocalCurrency));
                     ClearCollect(dsItemizations, AddColumns(GroupBy(Filter('Expense Line Expense Mobile Entity (mserp)', 'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'), 'Itemization group', Itemization), StartDate, Text(Last(SortByColumns(Itemization, "mserp_transdate", SortOrder.Descending)).'Transaction date', "yyyy-mm-dd hh:mm:ssZ"), DailyRate, If(IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No, First(Itemization).'Transaction amount', First(Itemization).'Local amount'), Quantity, CountRows(Itemization), SubCategoryName, First(Itemization).'Expense subcategory name', SubCategoryRecId, First(Itemization).'Expense subcategory', ItemizationGroupId, mserp_expenseitemizationgroupid))
                 );
                 
+                If(
+                    locAllowNavigationBack && IsEmpty(colErrorLog),
+                    If(
+                        varIsCreate,
+                        // 기존에는 생성 모드일 때 무조건 List Screen으로 보냈으나, 분기 추가
+                        If(
+                            varNavigatedFrom = "scr17_Create",
+                            Navigate('Reports - Edit Screen'), // 리포트로 돌아가기
+                            Navigate('Expenses - List Screen')
+                        ),
+                        If(
+                            !IsBlank(varNavigatedFrom),
+                            UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});
+                            Set(varSelectedReport, LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber));
+                            ClearCollect(colAttachedExpensesForReport, Filter('Expense Line Expense Mobile Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'));
+                            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);
+                            If(
+                                gblItemizeExpenseButtonClick,
+                                Navigate('Itemization - Detail Screen', Transition.None, {varNavigatedFrom: varNavigatedFrom, varItemizationScreen: "itemizationDetailScreen"}),
+                                Switch(varNavigatedFrom, 
+                                    "scr17", Navigate('Reports - Edit Screen'), 
+                                    "scr17_Create", Navigate('Reports - Edit Screen'), // [신규 추가]
+                                    "scr20", Navigate('Reports - View Only Screen'), 
+                                    "scr18", Navigate('Reports - Attach Expenses Screen'), 
+                                    "scr19", Navigate('Reports - View Attached Expenses Screen'), 
+                                    Navigate('Expenses - List Screen')
+                                )
+                            );
+                            UpdateContext({varNavigatedFrom: Blank()}),
+                            Navigate('Expenses - List Screen')
+                        )
+                    ),
+                    If(locAllowNavigationBack && !IsEmpty(colErrorLog), false, Navigate('Expenses - List Screen', ScreenTransition.None))
+                );
+                /*
                 If(
                     locAllowNavigationBack && IsEmpty(colErrorLog),
                     If(
@@ -1346,6 +1397,7 @@
                     ),
                     If(locAllowNavigationBack && !IsEmpty(colErrorLog), false, Navigate('Expenses - List Screen', ScreenTransition.None))
                 );
+                */
                 
                 UpdateContext({dirtyTransAmount: Blank(), dirtyTransDate: Blank(), dirtyMerchant: "", varOnSelectTriggered: false, varOnShowFields: false, varOnChangeTriggered: false, varSalesTaxAmount: Blank(), msCallStartedForSalestaxCalculation: false});
                 Set(gblItemizeExpenseButtonClick, false)
@@ -1353,101 +1405,6 @@
             Width: =Parent.Width
             Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
             ZIndex: =1
-
-            Employee_DataCard1 As typedDataCard.numberEditCard:
-                BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_creatingworker"
-                Default: =ThisItem.'Employee (mserp_creatingworker)'
-                DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_creatingworker')
-                Fill: =RGBA(0, 0, 0, 0)
-                Height: =50
-                Required: =false
-                Update: |-
-                    =If(
-                        !IsBlank(cmb_Employee.Selected),
-                        Text(cmb_Employee.Selected.WorkerID),  // Value() 제거, 확실한 텍스트 전달을 위해 Text() 사용 권장
-                        Text(userRecord.CreatingWorker)
-                    )
-                Visible: =!IsEmpty(colActiveDelegations)
-                Width: =Parent.Width
-                X: =1
-                Y: =61
-                ZIndex: =1
-
-                DataCardKey26 As label:
-                    AutoHeight: =true
-                    Color: =gblParams.dropDownLabelColor
-                    Font: =Font.'Segoe UI'
-                    Height: =48
-                    Size: =21
-                    Text: ="Delegate Employee"
-                    Width: =Parent.Width - 60
-                    Wrap: =false
-                    X: =30
-                    Y: =10
-                    ZIndex: =1
-
-                cmb_Employee As combobox:
-                    BorderThickness: =0
-                    Color: =gblParams.dropDownLabelColor
-                    DefaultSelectedItems: |-
-                        =If(
-                            !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),
-                            // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
-                            LookUp(
-                                colCreatingWorkerOptions, 
-                                WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'
-                            ),
-                            // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
-                            LookUp(
-                                colCreatingWorkerOptions, 
-                                WorkerID = userRecord.CreatingWorker
-                            )
-                        )
-                    DisplayFields: =["WorkerName","WorkerName"]
-                    Font: =Font.'Segoe UI'
-                    Height: =gblParams.dropDownHeight
-                    HoverFill: =gblParams.dropDownHoverFill
-                    InputTextPlaceholder: |-
-                        ="Select Dlegate Employee. (Default: Myself)"
-                    Items: =colCreatingWorkerOptions
-                    SearchFields: =["WorkerName"]
-                    SearchItems: =Search(colCreatingWorkerOptions,cmb_Employee.SearchText,WorkerName)
-                    SelectMultiple: =false
-                    Size: =24
-                    Width: =Parent.Width - 2 * Self.X
-                    X: =DataCardKey26.X
-                    Y: =DataCardKey26.Y + DataCardKey26.Height
-                    ZIndex: =2
-
-                ErrorMessage26 As label:
-                    AutoHeight: =true
-                    Font: =Font.'Segoe UI'
-                    Height: =10
-                    Live: =Live.Assertive
-                    PaddingBottom: =0
-                    PaddingLeft: =0
-                    PaddingRight: =0
-                    PaddingTop: =0
-                    Size: =gblParams.errorMessageSize
-                    Text: =Parent.Error
-                    Visible: =Parent.DisplayMode=DisplayMode.Edit
-                    Width: =Parent.Width - 60
-                    X: =30
-                    Y: =cmb_Employee.Y + cmb_Employee.Height
-                    ZIndex: =4
-
-                StarVisible26 As label:
-                    Align: =Align.Center
-                    Height: =DataCardKey26.Height
-                    Size: =21
-                    Text: ="*"
-                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                    Width: =30
-                    Wrap: =false
-                    Y: =DataCardKey26.Y
-                    ZIndex: =5
 
             ExpenseType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
@@ -11580,6 +11537,101 @@
                     Wrap: =false
                     Y: =Project_DataCardKey.Y
                     ZIndex: =4
+
+            Employee_DataCard1 As typedDataCard.numberEditCard:
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_creatingworker"
+                Default: =ThisItem.'Employee (mserp_creatingworker)'
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_creatingworker')
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: |-
+                    =If(
+                        !IsBlank(cmb_Employee.Selected),
+                        Text(cmb_Employee.Selected.WorkerID),  // Value() 제거, 확실한 텍스트 전달을 위해 Text() 사용 권장
+                        Text(userRecord.CreatingWorker)
+                    )
+                Visible: =!IsEmpty(colActiveDelegations)
+                Width: =Parent.Width
+                X: =1
+                Y: =61
+                ZIndex: =1
+
+                DataCardKey26 As label:
+                    AutoHeight: =true
+                    Color: =gblParams.dropDownLabelColor
+                    Font: =Font.'Segoe UI'
+                    Height: =48
+                    Size: =21
+                    Text: ="Delegate Employee"
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                cmb_Employee As combobox:
+                    BorderThickness: =0
+                    Color: =gblParams.dropDownLabelColor
+                    DefaultSelectedItems: |-
+                        =If(
+                            !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),
+                            // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
+                            LookUp(
+                                colCreatingWorkerOptions, 
+                                WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'
+                            ),
+                            // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
+                            LookUp(
+                                colCreatingWorkerOptions, 
+                                WorkerID = userRecord.CreatingWorker
+                            )
+                        )
+                    DisplayFields: =["WorkerName","WorkerName"]
+                    Font: =Font.'Segoe UI'
+                    Height: =gblParams.dropDownHeight
+                    HoverFill: =gblParams.dropDownHoverFill
+                    InputTextPlaceholder: |-
+                        ="Select Dlegate Employee. (Default: Myself)"
+                    Items: =colCreatingWorkerOptions
+                    SearchFields: =["WorkerName"]
+                    SearchItems: =Search(colCreatingWorkerOptions,cmb_Employee.SearchText,WorkerName)
+                    SelectMultiple: =false
+                    Size: =24
+                    Width: =Parent.Width - 2 * Self.X
+                    X: =DataCardKey26.X
+                    Y: =DataCardKey26.Y + DataCardKey26.Height
+                    ZIndex: =2
+
+                ErrorMessage26 As label:
+                    AutoHeight: =true
+                    Font: =Font.'Segoe UI'
+                    Height: =10
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =gblParams.errorMessageSize
+                    Text: =Parent.Error
+                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =cmb_Employee.Y + cmb_Employee.Height
+                    ZIndex: =4
+
+                StarVisible26 As label:
+                    Align: =Align.Center
+                    Height: =DataCardKey26.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =DataCardKey26.Y
+                    ZIndex: =5
 
             "'Expense Beneficiary_DataCard1' As typedDataCard.textualMultiLineEditCard":
                 BorderStyle: =BorderStyle.Solid
