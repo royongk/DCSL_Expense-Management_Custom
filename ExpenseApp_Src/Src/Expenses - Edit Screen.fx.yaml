@@ -1121,7 +1121,10 @@
                 );
                 UpdateContext({msCallStartedForSalestaxCalculation: false});
             OnSuccess: |-
-                =// 1. 새로 생성된 경비 번호(ExpTransNumber) 확보
+                =// [신규 추가] 폼 제출 완료 직후의 생성 상태를 보존 (중간에 varIsCreate가 false로 바뀌는 버그 방지)
+                UpdateContext({locWasCreate: varIsCreate});
+                
+                // 1. 새로 생성된 경비 번호(ExpTransNumber) 확보
                 Set(
                     varTargetExpTransNumber,
                     Self.LastSubmit.'Expense transaction number (mserp_exptransnumber)'
@@ -1313,25 +1316,43 @@
                 
                 UpdateContext({varLoadingSpinner: false});
                 
-                // 10. 성공 메시지 및 화면 이동 (나머지 하단 로직은 기존과 동일하게 유지)
+                // --- 10. 성공 메시지 및 화면 이동 파트 ---
                 If(
-                    varIsCreate,
+                    locWasCreate, // varIsCreate 대신 보존한 locWasCreate 사용
                     Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel', NotificationType.Success, gblParams.notificationTime),
                     If(isDirty || isExpenseReceiptAttached, Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', NotificationType.Success, gblParams.notificationTime))
                 );
                 
-                // [신규 추가] Report에서 직접 Create를 타고 들어와 생성에 성공한 경우, 리포트에 자동 Attach 처리
+                // [수정됨] Report에서 직접 Create를 타고 들어와 생성에 성공한 경우, 리포트에 자동 Attach 처리
                 If(
-                    varIsCreate && varNavigatedFrom = "scr17_Create" && !IsBlank(varSelectedReport),
+                    locWasCreate && varNavigatedFrom = "scr17_Create" && !IsBlank(varSelectedReport),
+                    
+                    // 1. 임시로 컬렉션에 추가하여 Concat을 위한 데이터 확보
                     Collect(colAttachedExpenses, Self.LastSubmit);
+                    
+                    // 2. 리포트에 트랜잭션 번호 연결 (Patch)
                     Patch(
                         'Expense reports (mserp)',
                         LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
                         {
-                            // 콤마로 구분하여 트랜잭션 번호 연결 업데이트
                             ExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', ",")
                         }
-                    )
+                    );
+                    
+                    // 3. F&O 연동 후 TotalAmount(합계 금액) 등이 서버에서 갱신될 시간을 주고 최신 리포트 정보 다시 불러오기
+                    UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});
+                    Set(
+                        varSelectedReport,
+                        LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber)
+                    );
+                    
+                    // 4. 백엔드 반영을 위해 Line 엔터티 새로고침 후 갤러리 컬렉션 갱신
+                    Refresh('Expense Line Expense Mobile Entity (mserp)');
+                    ClearCollect(
+                        colAttachedExpensesForReport, 
+                        Filter('Expense Line Expense Mobile Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+                    );
+                    ClearCollect(colAttachedExpenses, colAttachedExpensesForReport)
                 );
                 
                 If(
@@ -1340,11 +1361,11 @@
                     ClearCollect(dsItemizations, AddColumns(GroupBy(Filter('Expense Line Expense Mobile Entity (mserp)', 'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'), 'Itemization group', Itemization), StartDate, Text(Last(SortByColumns(Itemization, "mserp_transdate", SortOrder.Descending)).'Transaction date', "yyyy-mm-dd hh:mm:ssZ"), DailyRate, If(IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No, First(Itemization).'Transaction amount', First(Itemization).'Local amount'), Quantity, CountRows(Itemization), SubCategoryName, First(Itemization).'Expense subcategory name', SubCategoryRecId, First(Itemization).'Expense subcategory', ItemizationGroupId, mserp_expenseitemizationgroupid))
                 );
                 
+                // --- 화면 네비게이션 처리 ---
                 If(
                     locAllowNavigationBack && IsEmpty(colErrorLog),
                     If(
-                        varIsCreate,
-                        // 기존에는 생성 모드일 때 무조건 List Screen으로 보냈으나, 분기 추가
+                        locWasCreate, // varIsCreate 대신 보존한 locWasCreate 사용
                         If(
                             varNavigatedFrom = "scr17_Create",
                             Navigate('Reports - Edit Screen'), // 리포트로 돌아가기
@@ -1361,7 +1382,7 @@
                                 Navigate('Itemization - Detail Screen', Transition.None, {varNavigatedFrom: varNavigatedFrom, varItemizationScreen: "itemizationDetailScreen"}),
                                 Switch(varNavigatedFrom, 
                                     "scr17", Navigate('Reports - Edit Screen'), 
-                                    "scr17_Create", Navigate('Reports - Edit Screen'), // [신규 추가]
+                                    "scr17_Create", Navigate('Reports - Edit Screen'),
                                     "scr20", Navigate('Reports - View Only Screen'), 
                                     "scr18", Navigate('Reports - Attach Expenses Screen'), 
                                     "scr19", Navigate('Reports - View Attached Expenses Screen'), 
