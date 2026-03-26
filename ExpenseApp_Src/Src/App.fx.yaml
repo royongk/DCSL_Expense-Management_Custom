@@ -126,7 +126,7 @@ App As appinfo:
                 Category: "Finance",
                 AppMode: "BillingTripSettlement",
                 // ⭐ 오너이거나, Local/Full 그룹 중 하나에 속한 경우
-                IsVisible: varIsOwner Or varIsLocal Or varIsFull
+                IsVisible: varIsOwner Or varIsLocal Or varIsFull Or varIsExpat
             },
             
             // 3. Cash Advance / Settlement
@@ -144,7 +144,7 @@ App As appinfo:
                 Category: "HR",
                 AppMode: "AirfareAllowance",
                 // ⭐ 오너이거나, Expat 그룹에 속한 경우
-                IsVisible: varIsOwner Or varIsExpat
+                IsVisible: varIsOwner Or varIsExpat Or varIsFull
             },
             
             // 5. Employee Benefits Claim
@@ -153,7 +153,7 @@ App As appinfo:
                 Category: "HR",
                 AppMode: "EmployeeBenefit",
                 // ⭐ 오너이거나, Local/Full 그룹 중 하나에 속한 경우
-                IsVisible: varIsOwner Or varIsLocal Or varIsFull
+                IsVisible: varIsOwner Or varIsFull
             },
             
             // 6. Salary Advance
@@ -162,7 +162,7 @@ App As appinfo:
                 Category: "HR",
                 AppMode: "SalaryAdvance",
                 // 모두에게 보이는 메뉴는 그대로 true 유지
-                IsVisible: true
+                IsVisible: varIsOwner Or varIsFull
             }
         );
         ClearCollect(
