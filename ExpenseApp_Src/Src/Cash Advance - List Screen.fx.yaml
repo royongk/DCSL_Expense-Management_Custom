@@ -183,7 +183,9 @@
                     ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft,
                     Set(varIsCreateCashAdvance, false);
                     Navigate('Cash Advance - Edit Screen', ScreenTransition.Fade),
-                    Notify("Cash Advance View Only Screen is not yet implemented", NotificationType.Information, 3000)
+            
+                    // Draft가 아니면 (Submitted, In Review 등) 무조건 View Only Screen으로 이동
+                    Navigate('Cash Advance - View Only Screen', ScreenTransition.Fade)
                 )
             )
         TemplatePadding: =0

@@ -5936,7 +5936,14 @@
     "scrCashAdvance_Gallerytemplate1": {
       "AllowAccessToGlobals": true,
       "ControlPropertyState": [
-        "OnSelect",
+        {
+          "AFDDataSourceName": "",
+          "AutoRuleBindingEnabled": false,
+          "AutoRuleBindingString": "If(\n    varCntSelect,\n    If(\n        IsBlank(LookUp(colSelectedCashAdvanceIds, cashAdvanceNumber = ThisItem.'Cash advance number')),\n        Collect(colSelectedCashAdvanceIds, {cashAdvanceNumber: ThisItem.'Cash advance number'}),\n        RemoveIf(colSelectedCashAdvanceIds, cashAdvanceNumber = ThisItem.'Cash advance number')\n    ),\n    Set(varSelectedCashAdvance, ThisItem);\n    If(\n        ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft,\n        Set(varIsCreateCashAdvance, false);\n        Navigate('Cash Advance - Edit Screen', ScreenTransition.Fade),\n        Notify(\"Cash Advance View Only Screen is not yet implemented\", NotificationType.Information, 3000)\n    )\n)",
+          "InvariantPropertyName": "OnSelect",
+          "IsLockable": false,
+          "NameMapSourceSchema": "?"
+        },
         "ItemAccessibleLabel",
         "TemplateFill"
       ],

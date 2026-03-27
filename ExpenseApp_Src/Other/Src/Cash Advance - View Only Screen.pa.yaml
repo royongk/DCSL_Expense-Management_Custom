@@ -7,32 +7,103 @@
 # For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
 # ************************************************************************************************
 Screens:
-  Cash Advance - Edit Screen:
+  Cash Advance - View Only Screen:
     Properties:
       Fill: =RGBA(248, 248, 248, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
       OnVisible: |-
-        =UpdateContext({ctVarCashDetailsBack:false});
-        UpdateContext({varIsCreateCashAdvance: IsBlank(varSelectedCashAdvance)});
-        Reset(dtp_RequestedDate);
-        Reset(cb_Location);
-        Reset(cb_Purpose);
-        Reset(txt_RequestedAmount);
-        Reset(cb_Currency);
-        // --- [신규 추가] 금액 천단위 콤마 표시용 변수 초기화 ---
-        UpdateContext({ locIsEditingAmount: false, dirtyTransAmount: Blank() });
+        =UpdateContext({ctVarCashDetailsBack: false})
     Children:
-      - CashAdvanceEdit_Header:
+      - CashAdvanceEdit_Header_1:
           Control: CanvasComponent
           ComponentName: hdr02_Header
           Properties:
-            Fill: =CashAdvanceEdit_Header.paramFill
+            Fill: =CashAdvanceEdit_Header_1.paramFill
             Height: =82
             Width: =Max(App.Width, App.MinScreenWidth)
             paramColor: =RGBA(0, 0, 0, 1)
             paramFill: =RGBA(255, 255, 255, 1)
-            paramTitle: =If(varIsCreateCashAdvance, "New ", "Edit ") & If(varAppMode = "SalaryAdvance", "Salary Advance Request", "Cash Advance Request")
-      - CashAdvanceEdit_BackIcon:
+            paramTitle: =If(varAppMode = "SalaryAdvance", "View Salary Advance Request", "View Cash Advance Request")
+      - CashAdvanceEdit_ButtonsButtonsContainer_1:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =RGBA(250, 249, 248, 1)
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =Parent.Height - Self.Height
+          Children:
+            - CashAdvanceEdit_WithdrawButton_1:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(195, 39, 39, 1)
+                  Color: =RGBA(195, 39, 39, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =76
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  OnSelect: |-
+                    =IfError(
+                        Patch(
+                            'DCSL TrvCash Advance Entity  (mserp)',
+                            varSelectedCashAdvance,
+                            {
+                                WorkflowAction: "Recall"
+                            }
+                        ),
+                        Notify("Failed to withdraw the request.", NotificationType.Error, gblParams.notificationTime)
+                    );
+                    If(
+                        IsEmpty(Errors('DCSL TrvCash Advance Entity  (mserp)')),
+                        Notify("Cash Advance recalled successfully", NotificationType.Success, gblParams.notificationTime);
+                        Navigate('Cash Advance - List Screen', ScreenTransition.None)
+                    )
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =19.15
+                  Text: ="Withdraw"
+                  Visible: =varSelectedCashAdvance.'Cash advance status' = 'Cash advance status (mserp)'.'In review'
+                  Width: =Parent.Width - Self.X*2
+                  X: =40
+                  Y: =20
+            - CashAdvanceEdit_SubmitButton_1:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(34, 102, 227, 1)
+                  Color: =Color.White
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(34, 102, 227, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =76
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  OnSelect: =Navigate('Cash Advance - List Screen', ScreenTransition.None)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =19.15
+                  Text: ="Done"
+                  Width: =Parent.Width - Self.X*2
+                  X: =40
+                  Y: =CashAdvanceEdit_WithdrawButton_1.Y + CashAdvanceEdit_WithdrawButton_1.Height + 20
+      - CashAdvanceEdit_BackIcon_1:
           Control: Classic/Icon@2.5.0
           Properties:
             AccessibleLabel: ="Press to go back"
@@ -41,22 +112,17 @@ Screens:
             Fill: =icongconfig_backbutton.Fill
             Height: =icongconfig_backbutton.Height
             Icon: =Icon.ChevronLeft
-            OnSelect: |-
-              =If(
-                  varIsCreateCashAdvance, 
-                  UpdateContext({ctVarCashDetailsBack: true}),          // 신규 모드면: 다이얼로그 변수 True
-                  Navigate('Cash Advance - List Screen', ScreenTransition.None) // 수정 모드면: 즉시 이동
-              )
+            OnSelect: =Navigate('Cash Advance - List Screen', ScreenTransition.None)
             TabIndex: =0
             Width: =icongconfig_backbutton.Width
             X: =22.5
-            Y: =(CashAdvanceEdit_Header.Height-Self.Height)/2
-      - CashAdvanceEdit_Container:
+            Y: =(CashAdvanceEdit_Header_1.Height-Self.Height)/2
+      - CashAdvanceEdit_Container_1:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
           Properties:
             DropShadow: =DropShadow.None
-            Height: =Parent.Height - CashAdvanceEdit_Header.Height - CashAdvanceEdit_ButtonsButtonsContainer.Height
+            Height: =Parent.Height - CashAdvanceEdit_Header_1.Height - CashAdvanceEdit_ButtonsButtonsContainer_1.Height
             LayoutDirection: =LayoutDirection.Vertical
             LayoutOverflowY: =LayoutOverflow.Scroll
             RadiusBottomLeft: =0
@@ -64,15 +130,15 @@ Screens:
             RadiusTopLeft: =0
             RadiusTopRight: =0
             Width: =Parent.Width
-            Y: =CashAdvanceEdit_Header.Height
+            Y: =CashAdvanceEdit_Header_1.Height
           Children:
-            - CollectionMethod_Container:
+            - CollectionMethod_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_CollectionMethod.Height + cb_CollectionMethod.Height + 20
+                  Height: =LblContainer_CollectionMethod_1.Height + cb_CollectionMethod_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -84,7 +150,7 @@ Screens:
                   RadiusTopRight: =0
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_CollectionMethod:
+                  - LblContainer_CollectionMethod_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -101,7 +167,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_CollectionMethod:
+                        - lbl_CollectionMethod_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -113,7 +179,7 @@ Screens:
                               Text: ="Collection Method"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - cb_CollectionMethod:
+                  - cb_CollectionMethod_1:
                       Control: Classic/ComboBox@2.4.0
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
@@ -123,9 +189,10 @@ Screens:
                         ChevronHoverFill: =RGBA(255, 255, 255, 1)
                         DefaultSelectedItems: =If(!varIsCreateCashAdvance, [varSelectedCashAdvance.'Collection method'])
                         DisplayFields: =["Value"]
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select method"
                         Items: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection method')
@@ -143,13 +210,13 @@ Screens:
                         SelectionFill: =RGBA(56, 96, 178, 1)
                         Width: =Parent.Width - Self.X*2
                         X: =40
-            - CollectionTransferDate_Container:
+            - CollectionTransferDate_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_CollectionTrasferDate.Height + dtp_CollectionTrasferDate.Height + 20
+                  Height: =LblContainer_CollectionTrasferDate_1.Height + dtp_CollectionTrasferDate_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -161,7 +228,7 @@ Screens:
                   RadiusTopRight: =0
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_CollectionTrasferDate:
+                  - LblContainer_CollectionTrasferDate_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -178,7 +245,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_CollectionTrasferDate:
+                        - lbl_CollectionTrasferDate_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -190,7 +257,7 @@ Screens:
                               Text: ="Collection/Transfer Date"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - dtp_CollectionTrasferDate:
+                  - dtp_CollectionTrasferDate_1:
                       Control: Classic/DatePicker@2.6.0
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
@@ -199,9 +266,10 @@ Screens:
                               varIsCreateCashAdvance, Today(), 
                               varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexcollectiontransferdate)'
                           )
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         IconBackground: =RGBA(56, 96, 178, 1)
                         IconFill: =RGBA(255, 255, 255, 1)
                         LayoutMinHeight: =40
@@ -209,13 +277,13 @@ Screens:
                         Size: =21
                         Width: =Parent.Width - Self.X*2
                         X: =40
-            - SalaryDeductionPeriod_Container:
+            - SalaryDeductionPeriod_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_SalaryDeductionPeriod.Height + cb_SalaryDeductionPeriod.Height + 20
+                  Height: =LblContainer_SalaryDeductionPeriod_1.Height + cb_SalaryDeductionPeriod_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -233,7 +301,7 @@ Screens:
                     )
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_SalaryDeductionPeriod:
+                  - LblContainer_SalaryDeductionPeriod_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -250,7 +318,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_SalaryDeductionPeriod:
+                        - lbl_SalaryDeductionPeriod_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -262,7 +330,7 @@ Screens:
                               Text: ="Salary deduction period"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - cb_SalaryDeductionPeriod:
+                  - cb_SalaryDeductionPeriod_1:
                       Control: Classic/ComboBox@2.4.0
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
@@ -272,9 +340,10 @@ Screens:
                         ChevronHoverFill: =RGBA(255, 255, 255, 1)
                         DefaultSelectedItems: =If(!varIsCreateCashAdvance, [varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexsalarydeductionperiod)'])
                         DisplayFields: =["Value"]
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Salary deduction period"
                         Items: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection/Transfer Date (mserp_deexsalarydeductionperiod)')
@@ -292,13 +361,13 @@ Screens:
                         SelectionFill: =RGBA(56, 96, 178, 1)
                         Width: =Parent.Width - Self.X*2
                         X: =40
-            - RequestedDate_Container:
+            - RequestedDate_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_RequestedDate.Height + dtp_RequestedDate.Height + 20
+                  Height: =LblContainer_RequestedDate_1.Height + dtp_RequestedDate_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -310,7 +379,7 @@ Screens:
                   RadiusTopRight: =0
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_RequestedDate:
+                  - LblContainer_RequestedDate_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -327,7 +396,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_RequestedDate:
+                        - lbl_RequestedDate_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -339,14 +408,15 @@ Screens:
                               Text: ="* Requested Date"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - dtp_RequestedDate:
+                  - dtp_RequestedDate_1:
                       Control: Classic/DatePicker@2.6.0
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DefaultDate: =If(varIsCreateCashAdvance, Today(), varSelectedCashAdvance.'Requested date')
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         IconBackground: =RGBA(56, 96, 178, 1)
                         IconFill: =RGBA(255, 255, 255, 1)
                         LayoutMinHeight: =40
@@ -354,13 +424,13 @@ Screens:
                         Size: =21
                         Width: =Parent.Width - Self.X*2
                         X: =40
-            - Location_Container:
+            - Location_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_Location.Height + cb_Location.Height + 20
+                  Height: =LblContainer_Location_1.Height + cb_Location_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -372,7 +442,7 @@ Screens:
                   RadiusTopRight: =0
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_Location:
+                  - LblContainer_Location_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -389,7 +459,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_Location:
+                        - lbl_Location_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -401,7 +471,7 @@ Screens:
                               Text: ="Location"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - cb_Location:
+                  - cb_Location_1:
                       Control: Classic/ComboBox@2.4.0
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
@@ -411,9 +481,10 @@ Screens:
                         ChevronHoverFill: =RGBA(255, 255, 255, 1)
                         DefaultSelectedItems: =If(!varIsCreateCashAdvance, LookUp('Travel locations (mserp)', Location = varSelectedCashAdvance.Location), Blank())
                         DisplayFields: =["mserp_destination"]
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Location"
                         Items: =Filter('Travel locations (mserp)','Company Code' = varSelectedLegalEntity)
@@ -431,13 +502,13 @@ Screens:
                         SelectionFill: =RGBA(56, 96, 178, 1)
                         Width: =Parent.Width - Self.X*2
                         X: =40
-            - Purpose_Container:
+            - Purpose_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_Purpose.Height + cb_Purpose.Height + 20
+                  Height: =LblContainer_Purpose_1.Height + cb_Purpose_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -449,7 +520,7 @@ Screens:
                   RadiusTopRight: =0
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_Purpose:
+                  - LblContainer_Purpose_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -466,7 +537,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_Purpose:
+                        - lbl_Purpose_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -478,7 +549,7 @@ Screens:
                               Text: ="Purpose"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - cb_Purpose:
+                  - cb_Purpose_1:
                       Control: Classic/ComboBox@2.4.0
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
@@ -488,15 +559,10 @@ Screens:
                         ChevronHoverFill: =RGBA(255, 255, 255, 1)
                         DefaultSelectedItems: "=If(\r\n    !varIsCreateCashAdvance, \r\n    // 1. 기존 데이터를 수정하는 경우 (기존 로직 유지)\r\n    LookUp(\r\n        'DimAttributeTrvTravelTxtEntity (mserp)', \r\n        'Purpose (mserp_value)' = varSelectedCashAdvance.Purpose\r\n    ), \r\n    \r\n    // 2. 신규 생성하는 경우 (AppMode에 따른 자동 선택 로직 추가)\r\n    LookUp(\r\n        'DimAttributeTrvTravelTxtEntity (mserp)', \r\n        'Purpose (mserp_value)' = If(varAppMode = \"SalaryAdvance\", \"Salary Advance\", \"Cash Advance\")\r\n    )\r\n)"
                         DisplayFields: =["mserp_value"]
-                        DisplayMode: |-
-                          =If(
-                              varAppMode in ["CashAdvance", "SalaryAdvance"] && !IsEmpty(Self.SelectedItems),
-                              DisplayMode.View,
-                              DisplayMode.Edit
-                          )
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Purpose"
                         Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
@@ -514,13 +580,13 @@ Screens:
                         SelectionFill: =RGBA(56, 96, 178, 1)
                         Width: =Parent.Width - Self.X*2
                         X: =40
-            - RequestedAmount_Container:
+            - RequestedAmount_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_RequestedAmount.Height + txt_RequestedAmount.Height + 20
+                  Height: =LblContainer_RequestedAmount_1.Height + txt_RequestedAmount_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -532,7 +598,7 @@ Screens:
                   RadiusTopRight: =0
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_RequestedAmount:
+                  - LblContainer_RequestedAmount_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -549,7 +615,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_RequestedAmount:
+                        - lbl_RequestedAmount_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -561,7 +627,7 @@ Screens:
                               Text: ="* Requested Amount"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - txt_RequestedAmount:
+                  - txt_RequestedAmount_1:
                       Control: Classic/TextInput@2.3.2
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
@@ -580,9 +646,10 @@ Screens:
                                   )
                               )
                           )
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         HintText: ="0.00"
                         HoverBorderColor: =RGBA(0, 18, 107, 1)
                         HoverFill: =RGBA(186, 202, 226, 1)
@@ -596,13 +663,13 @@ Screens:
                           =UpdateContext({ locIsEditingAmount: true })
                         Width: =Parent.Width - Self.X*2
                         X: =40
-            - Currency_Container:
+            - Currency_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_Currency.Height + cb_Currency.Height + 20
+                  Height: =LblContainer_Currency_1.Height + cb_Currency_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -614,7 +681,7 @@ Screens:
                   RadiusTopRight: =0
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_Currency:
+                  - LblContainer_Currency_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -631,7 +698,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_Currency:
+                        - lbl_Currency_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -643,7 +710,7 @@ Screens:
                               Text: ="Currency"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - cb_Currency:
+                  - cb_Currency_1:
                       Control: Classic/ComboBox@2.4.0
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
@@ -653,9 +720,10 @@ Screens:
                         ChevronHoverFill: =RGBA(255, 255, 255, 1)
                         DefaultSelectedItems: =LookUp('Currencies (mserp)', 'Currency code' = Coalesce(varSelectedCashAdvance.Currency, varDefaultCurrency))
                         DisplayFields: =["mserp_currencycode"]
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Find items"
                         Items: =ShowColumns('Currencies (mserp)','Currency code',Name)
@@ -673,13 +741,13 @@ Screens:
                         SelectionFill: =RGBA(56, 96, 178, 1)
                         Width: =Parent.Width - Self.X*2
                         X: =40
-            - CostCenter_Container:
+            - CostCenter_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_CostCenter.Height + cb_CostCenter.Height + 20
+                  Height: =LblContainer_CostCenter_1.Height + cb_CostCenter_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -697,7 +765,7 @@ Screens:
                     )
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_CostCenter:
+                  - LblContainer_CostCenter_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -714,7 +782,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_CostCenter:
+                        - lbl_CostCenter_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -726,7 +794,7 @@ Screens:
                               Text: ="* Cost Center"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - cb_CostCenter:
+                  - cb_CostCenter_1:
                       Control: Classic/ComboBox@2.4.0
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
@@ -735,10 +803,11 @@ Screens:
                         ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                         ChevronHoverFill: =RGBA(255, 255, 255, 1)
                         DefaultSelectedItems: =LookUp('DCSL Financial Dimension CostCenter (mserp)', 'Combination display' = varSelectedCashAdvance.CostCenter)
-                        DisplayFields: =["mserp_dimensionvalue","mserp_description"]
+                        DisplayFields: =["mserp_dimensionvalue"]
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Cost Cencter"
                         Items: =ShowColumns('DCSL Financial Dimension CostCenter (mserp)','Combination display',Name)
@@ -750,19 +819,19 @@ Screens:
                         PaddingTop: =5
                         PressedColor: =RGBA(255, 255, 255, 1)
                         PressedFill: =RGBA(0, 18, 107, 1)
-                        SearchFields: =["mserp_dimensionvalue","mserp_description"]
+                        SearchFields: =["mserp_dimensionvalue"]
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
                         Width: =Parent.Width - Self.X*2
                         X: =40
-            - ProjectCode_Container:
+            - ProjectCode_Container_1:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_ProjectCode.Height + cb_ProjectCode.Height + 20
+                  Height: =LblContainer_ProjectCode_1.Height + cb_ProjectCode_1.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -780,7 +849,7 @@ Screens:
                     )
                   Width: =Parent.Width
                 Children:
-                  - LblContainer_ProjectCode:
+                  - LblContainer_ProjectCode_1:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
                       Properties:
@@ -797,7 +866,7 @@ Screens:
                         RadiusTopRight: =0
                         Width: =Parent.Width
                       Children:
-                        - lbl_ProjectCode:
+                        - lbl_ProjectCode_1:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
@@ -809,7 +878,7 @@ Screens:
                               Text: ="Project Code"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
-                  - cb_ProjectCode:
+                  - cb_ProjectCode_1:
                       Control: Classic/ComboBox@2.4.0
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
@@ -827,10 +896,11 @@ Screens:
                               ),
                               Blank()
                           )
-                        DisplayFields: =["mserp_projectvalue","mserp_projectname"]
+                        DisplayFields: =["mserp_projectvalue"]
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Project Code"
                         Items: |-
@@ -860,70 +930,7 @@ Screens:
                         SelectionFill: =RGBA(56, 96, 178, 1)
                         Width: =Parent.Width - Self.X*2
                         X: =40
-      - CashAdvanceEdit_ButtonsButtonsContainer:
-          Control: GroupContainer@1.5.0
-          Variant: ManualLayout
-          Properties:
-            DropShadow: =DropShadow.None
-            Fill: =RGBA(250, 249, 248, 1)
-            RadiusBottomLeft: =0
-            RadiusBottomRight: =0
-            RadiusTopLeft: =0
-            RadiusTopRight: =0
-            Width: =Parent.Width
-            Y: =Parent.Height - Self.Height
-          Children:
-            - CashAdvanceEdit_SaveDraftButton:
-                Control: Classic/Button@2.2.0
-                Properties:
-                  BorderColor: =ColorFade(Self.Fill, -15%)
-                  Color: =RGBA(255, 255, 255, 1)
-                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                  Fill: =RGBA(34, 102, 227, 1)
-                  Font: =Font.'Segoe UI'
-                  Height: =76
-                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-                  HoverColor: =RGBA(255, 255, 255, 1)
-                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                  OnSelect: "=If(\n    IsBlank(dtp_RequestedDate.SelectedDate) || IsBlank(txt_RequestedAmount.Text) || IsEmpty(cb_CostCenter.SelectedItems),\n    Notify(\"Please fill in all required fields (Requested Date, Amount)\", NotificationType.Error, gblParams.notificationTime),\n    \n    Patch(\n        'DCSL TrvCash Advance Entity  (mserp)',\n        If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),\n        {\n            'Requested date': DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),\n            Location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),\n            Purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),\n            'Requested amount': Value(Substitute(txt_RequestedAmount.Text, \",\", \"\")),\n            Currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode),\n            'Collection method': cb_CollectionMethod.Selected.Value,\n            'Collection/Transfer Date (mserp_deexcollectiontransferdate)': DateTime(Year(dtp_CollectionTrasferDate.SelectedDate), Month(dtp_CollectionTrasferDate.SelectedDate), Day(dtp_CollectionTrasferDate.SelectedDate), 0, 0, 0),\n            'Collection/Transfer Date (mserp_deexsalarydeductionperiod)': cb_SalaryDeductionPeriod.Selected.Value,\n            CostCenter: cb_CostCenter.Selected.mserp_dimensionvalue,\n            Project: cb_ProjectCode.Selected.mserp_projectvalue\n        }\n    );\n    Notify(\"Cash Advance saved successfully\", NotificationType.Success, gblParams.notificationTime);\n    Navigate('Cash Advance - List Screen', ScreenTransition.None)\n)"
-                  PressedBorderColor: =Self.Fill
-                  PressedColor: =Self.Fill
-                  PressedFill: =Self.Color
-                  RadiusBottomLeft: =8
-                  RadiusBottomRight: =8
-                  RadiusTopLeft: =8
-                  RadiusTopRight: =8
-                  Size: =19.15
-                  Text: ="Save Draft"
-                  Width: =Parent.Width - Self.X*2
-                  X: =40
-                  Y: =20
-            - CashAdvanceEdit_SubmitButton:
-                Control: Classic/Button@2.2.0
-                Properties:
-                  BorderColor: =RGBA(34, 102, 227, 1)
-                  Color: =RGBA(34, 102, 227, 1)
-                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                  Fill: =Color.White
-                  Font: =Font.'Segoe UI'
-                  Height: =76
-                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-                  HoverColor: =RGBA(255, 255, 255, 1)
-                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                  OnSelect: "=If(\n    IsBlank(dtp_RequestedDate.SelectedDate) || IsBlank(txt_RequestedAmount.Text) || IsEmpty(cb_CostCenter.SelectedItems),\n    Notify(\"Please fill in all required fields (Requested Date, Amount)\", NotificationType.Error, gblParams.notificationTime),\n    \n    // 1단계: 기존 데이터를 생성하거나 수정하고, 그 결과를 'ctxSavedRecord' 변수에 저장합니다.\n    // (이때 mserp_workflowaction 필드는 업데이트하지 않습니다.)\n    UpdateContext({\n        ctxSavedRecord: Patch(\n            'DCSL TrvCash Advance Entity  (mserp)',\n            If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),\n            {\n                'Requested date': DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),\n                Location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),\n                Purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),\n                'Requested amount': Value(Substitute(txt_RequestedAmount.Text, \",\", \"\")),\n                Currency: If(IsBlank(cb_Currency.Selected.mserp_currencycode), If(varIsCreateCashAdvance, varDefaultCurrency, varSelectedCashAdvance.Currency), cb_Currency.Selected.mserp_currencycode),\n                'Collection method': cb_CollectionMethod.Selected.Value,\n                'Collection/Transfer Date (mserp_deexcollectiontransferdate)': DateTime(Year(dtp_CollectionTrasferDate.SelectedDate), Month(dtp_CollectionTrasferDate.SelectedDate), Day(dtp_CollectionTrasferDate.SelectedDate), 0, 0, 0),\n                'Collection/Transfer Date (mserp_deexsalarydeductionperiod)': cb_SalaryDeductionPeriod.Selected.Value,\n                CostCenter: cb_CostCenter.Selected.mserp_dimensionvalue,\n                Project: cb_ProjectCode.Selected.mserp_projectvalue\n            }\n        )\n    });\n    \n    // 2단계: 위에서 저장된 레코드(ctxSavedRecord)를 타겟으로 WorkflowAction을 \"Submit\"으로 업데이트합니다.\n    Patch(\n        'DCSL TrvCash Advance Entity  (mserp)',\n        ctxSavedRecord,\n        {\n            WorkflowAction: \"Submit\"\n        }\n    );\n    \n    // 3단계: 성공 알림 및 화면 이동\n    Notify(\"Cash Advance submitted successfully\", NotificationType.Success, gblParams.notificationTime);\n    Navigate('Cash Advance - List Screen', ScreenTransition.None)\n)"
-                  PressedBorderColor: =Self.Fill
-                  PressedColor: =Self.Fill
-                  PressedFill: =Self.Color
-                  RadiusBottomLeft: =8
-                  RadiusBottomRight: =8
-                  RadiusTopLeft: =8
-                  RadiusTopRight: =8
-                  Size: =19.15
-                  Text: ="Submit"
-                  Width: =Parent.Width - Self.X*2
-                  X: =40
-                  Y: =CashAdvanceEdit_SaveDraftButton.Y + CashAdvanceEdit_SaveDraftButton.Height + 20
-      - scr17_cmp02_CancelDialog_2:
+      - scr17_cmp02_CancelDialog_3:
           Control: CanvasComponent
           ComponentName: cmp02_ConfirmationDialog
           Properties:
