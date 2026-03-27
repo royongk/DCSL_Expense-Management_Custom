@@ -1608,9 +1608,7 @@
             LayoutMode: =LayoutMode.Auto
             LayoutOverflowY: =LayoutOverflow.Scroll
             PaddingLeft: =25
-            Visible: |-
-                =//varAppMode = "AirfareAllowance" && !IsBlank(varSelectedTravelReq)
-                false
+            Visible: =varAppMode = "AirfareAllowance" && !IsBlank(varSelectedTravelReq)
             Width: =Parent.Width
             Y: =ComboBox_Location.Y + ComboBox_Location.Height + 60
             ZIndex: =6
@@ -2185,7 +2183,7 @@
                     Text: ="Create expenses"
                     Visible: |-
                         =If(
-                            CountRows(colAttachedExpenses) > 0,
+                            CountRows(colAttachedExpenses) > 0 && varAppMode = "AirfareAllowance",
                             false,
                             true
                         )
@@ -2249,7 +2247,7 @@
                         );
                         
                         Set(varIsCreateReport, false);
-                    Visible: =scr17_btn_AttachExpenses_1.Visible
+                    Visible: =scr17_btn_CreateExpenses_1.Visible
                     Width: =22
                     X: =scr17_btn_AttachExpenses_1.X + 23
                     Y: =scr17_btn_CreateExpenses_1.Y + 19
