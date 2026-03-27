@@ -79,7 +79,7 @@ Screens:
 
         // 선택 및 필터 상태 초기화
         UpdateContext({varCntSelect: false});
-        UpdateContext({varCashAdvanceStatusFilter: Blank()});
+        UpdateContext({varCashAdvanceStatusFilter: ""});
         UpdateContext({varCashAdvanceDateFilterStart: Blank()});
         UpdateContext({varCashAdvanceDateFilterEnd: Blank()});
         UpdateContext({varCashAdvanceShowDateFilter: false});
@@ -127,7 +127,12 @@ Screens:
               =(Parent.Width - Self.Width)/2
             Y: |
               =scrCashAdvance_Gallery.Y + (Parent.Height - scrCashAdvance_hdr_TopHeader.Height - scrCashAdvance_cmp_Footer_1.Height - Self.Height)/2
-            subTitle: ="No cash advances available"
+            subTitle: |-
+              =If(
+                  varAppMode = "SalaryAdvance",
+                  "No Salary Advance Purpose available",
+                  "No cash advances Purpose available"
+              )
             title: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
       - scrCashAdvance_Gallery:
           Control: Gallery@2.15.0
@@ -141,7 +146,7 @@ Screens:
                   scrCashAdvance_cmp_Footer_1.Y - Self.Y,
                   Self.TemplateHeight * CountRows(Self.AllItems)
               )
-            Items: "=SortByColumns(\n    Filter(\n        'DCSL TrvCash Advance Entity  (mserp)',\n        // 1. 법인 필터\n        'Company (mserp_company)' = Upper(varSelectedLegalEntity),\n        \n        // 2. 상태 필터 (다중 선택 지원 로직으로 변경)\n        (\n            // A. 아무것도 선택하지 않았으면 전체 표시\n            IsEmpty(ComboBox_CashAdvanceStatusFilter.SelectedItems) ||\n            \n            // B. \"All\" (Value가 Blank인 항목)이 선택 목록에 포함되어 있으면 전체 표시\n            CountRows(Filter(ComboBox_CashAdvanceStatusFilter.SelectedItems, IsBlank(Value))) > 0 ||\n            \n            // C. 그 외: 현재 행의 상태가 선택된 목록 안에 있는지 확인 (in 연산자)\n            'Cash advance status' in ComboBox_CashAdvanceStatusFilter.SelectedItems.Value\n        ),\n        \n        // 3. 날짜 범위 필터 (이전에 수정한 로직 유지)\n        (\n            IsBlank(varCashAdvanceDateFilterStart) || \n            'Requested date' >= varCashAdvanceDateFilterStart\n        ) &&\n        (\n            IsBlank(varCashAdvanceDateFilterEnd) || \n            'Requested date' < DateAdd(varCashAdvanceDateFilterEnd, 1, TimeUnit.Days)\n        ),\n\n        // 4. 로그인한 사용자 필터\n        Employee = userRecord.CreatingWorker\n    ),\n    \"mserp_requesteddate\", \n    SortOrder.Descending\n)"
+            Items: "=SortByColumns(\n    Filter(\n        'DCSL TrvCash Advance Entity  (mserp)',\n        // 1. 법인 필터\n        'Company (mserp_company)' = Upper(varSelectedLegalEntity),\n        \n        // 2. 상태 필터 (다중 선택 지원 로직으로 변경)\n        (\n            // A. 아무것도 선택하지 않았으면 전체 표시\n            IsEmpty(ComboBox_CashAdvanceStatusFilter.SelectedItems) ||\n            \n            // B. \"All\" (Value가 Blank인 항목)이 선택 목록에 포함되어 있으면 전체 표시\n            CountRows(Filter(ComboBox_CashAdvanceStatusFilter.SelectedItems, IsBlank(Value))) > 0 ||\n            \n            // C. 그 외: 현재 행의 상태가 선택된 목록 안에 있는지 확인 (in 연산자)\n            'Cash advance status' in ComboBox_CashAdvanceStatusFilter.SelectedItems.Value\n        ),\n        \n        // 3. 날짜 범위 필터 (이전에 수정한 로직 유지)\n        (\n            IsBlank(varCashAdvanceDateFilterStart) || \n            'Requested date' >= varCashAdvanceDateFilterStart\n        ) &&\n        (\n            IsBlank(varCashAdvanceDateFilterEnd) || \n            'Requested date' < DateAdd(varCashAdvanceDateFilterEnd, 1, TimeUnit.Days)\n        ),\n\n        // 4. 로그인한 사용자 필터\n        Employee = userRecord.CreatingWorker,\n\n        // 5. ★ AppMode에 따른 Purpose 필터 추가\n        Purpose = If(varAppMode = \"SalaryAdvance\", \"Salary Advance\", \"Cash Advance\")\n    ),\n    \"mserp_requesteddate\", \n    SortOrder.Descending\n)"
             OnSelect: |-
               =If(
                   varCntSelect,
@@ -358,12 +363,13 @@ Screens:
             ApprovalsAccessibleLabel: ="Text"
             ApprovalsText: |-
               =If(
-                  varAppMode = "CashAdvance",
-                  "1. Cash Request",
+                  varAppMode = "SalaryAdvance", "Salary Request",
                   If(
-                      varAppMode = "AirfareAllowance",
-                      "Submit Reports",
-                      GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                      varAppMode = "CashAdvance", "1. Cash Request",
+                      If(
+                          varAppMode = "AirfareAllowance", "Submit Reports",
+                          GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                      )
                   )
               )
             DisplayMode: =!IsBlank(varSelectedLegalEntity)
@@ -378,7 +384,7 @@ Screens:
             Height: =84
             OnApprovalsButtonClick: |-
               =If(
-                  varAppMode = "CashAdvance",
+                  varAppMode in ["CashAdvance", "SalaryAdvance"], // 이 부분 수정
                   Set(varSelectedTab, 4);
                   Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
                   If(
@@ -897,7 +903,7 @@ Screens:
             homeIconAccessibleLabel: ="Navigate Home"
             homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
             paramAvatar: =Coalesce(userImage, blankImage)
-            paramTitle: ="Cash Advance"
+            paramTitle: =If(varAppMode = "SalaryAdvance", "Salary Advance", "Cash Advance")
             refreshIconAction: |-
               =UpdateContext({varCntSelect: false});
               Refresh('Cash advances (mserp)');

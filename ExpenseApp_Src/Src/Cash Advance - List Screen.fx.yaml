@@ -69,7 +69,7 @@
         
         // 선택 및 필터 상태 초기화
         UpdateContext({varCntSelect: false});
-        UpdateContext({varCashAdvanceStatusFilter: Blank()});
+        UpdateContext({varCashAdvanceStatusFilter: ""});
         UpdateContext({varCashAdvanceDateFilterStart: Blank()});
         UpdateContext({varCashAdvanceDateFilterEnd: Blank()});
         UpdateContext({varCashAdvanceShowDateFilter: false});
@@ -106,7 +106,12 @@
         );
 
     emptyStateComponent_CashAdvance As emptyStateComponent:
-        subTitle: ="No cash advances available"
+        subTitle: |-
+            =If(
+                varAppMode = "SalaryAdvance",
+                "No Salary Advance Purpose available",
+                "No cash advances Purpose available"
+            )
         title: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
         Visible: =scrCashAdvance_Gallery.AllItemsCount <= 0
@@ -155,7 +160,10 @@
                     ),
             
                     // 4. 로그인한 사용자 필터
-                    Employee = userRecord.CreatingWorker
+                    Employee = userRecord.CreatingWorker,
+            
+                    // 5. ★ AppMode에 따른 Purpose 필터 추가
+                    Purpose = If(varAppMode = "SalaryAdvance", "Salary Advance", "Cash Advance")
                 ),
                 "mserp_requesteddate", 
                 SortOrder.Descending
@@ -381,12 +389,13 @@
     scrCashAdvance_cmp_Footer_1 As cmp_Footer_5:
         ApprovalsText: |-
             =If(
-                varAppMode = "CashAdvance",
-                "1. Cash Request",
+                varAppMode = "SalaryAdvance", "Salary Request",
                 If(
-                    varAppMode = "AirfareAllowance",
-                    "Submit Reports",
-                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                    varAppMode = "CashAdvance", "1. Cash Request",
+                    If(
+                        varAppMode = "AirfareAllowance", "Submit Reports",
+                        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ApprovalsLabel'
+                    )
                 )
             )
         DisplayMode: =!IsBlank(varSelectedLegalEntity)
@@ -398,7 +407,7 @@
             )
         OnApprovalsButtonClick: |-
             =If(
-                varAppMode = "CashAdvance",
+                varAppMode in ["CashAdvance", "SalaryAdvance"], // 이 부분 수정
                 Set(varSelectedTab, 4);
                 Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
                 If(
@@ -820,7 +829,7 @@
                 )
             );
         paramAvatar: =Coalesce(userImage, blankImage)
-        paramTitle: ="Cash Advance"
+        paramTitle: =If(varAppMode = "SalaryAdvance", "Salary Advance", "Cash Advance")
         refreshIconAction: |-
             =UpdateContext({varCntSelect: false});
             Refresh('Cash advances (mserp)');

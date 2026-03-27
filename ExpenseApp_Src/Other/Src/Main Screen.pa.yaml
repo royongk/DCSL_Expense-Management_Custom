@@ -171,12 +171,10 @@ Screens:
                               OnSelect: |-
                                 =Set(varAppMode, ThisItem.AppMode);
                                 If(
-                                    ThisItem.AppMode = "CashAdvance",
-                                    // CashAdvance 모드일 경우: 탭 번호를 4(Cash Request)로 맞추고 해당 화면으로 이동
+                                    ThisItem.AppMode in ["CashAdvance", "SalaryAdvance"], // CashAdvance와 SalaryAdvance 모두 처리
                                     Set(varSelectedTab, 4);
                                     Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
 
-                                    // 그 외의 모드일 경우: 기존처럼 탭 번호를 2(Expenses)로 맞추고 기존 화면으로 이동
                                     Set(varSelectedTab, 2);
                                     Navigate('Expenses - List Screen', ScreenTransition.Fade)
                                 )
@@ -294,7 +292,7 @@ Screens:
                               OnSelect: |-
                                 =Set(varAppMode, ThisItem.AppMode);
                                 If(
-                                    ThisItem.AppMode = "CashAdvance",
+                                    ThisItem.AppMode in ["CashAdvance", "SalaryAdvance"], // CashAdvance와 SalaryAdvance 모두 처리
                                     Set(varSelectedTab, 4);
                                     Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
 
