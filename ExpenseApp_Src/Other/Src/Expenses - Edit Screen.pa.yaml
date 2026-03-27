@@ -527,116 +527,6 @@ Screens:
                   Width: =Parent.Width
                   Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
                 Children:
-                  - Employee_DataCard1:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicNumberEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_creatingworker"
-                        Default: =ThisItem.'Employee (mserp_creatingworker)'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_creatingworker')
-                        Required: =false
-                        Update: |-
-                          =If(
-                              !IsBlank(cmb_Employee.Selected),
-                              Text(cmb_Employee.Selected.WorkerID),  // Value() 제거, 확실한 텍스트 전달을 위해 Text() 사용 권장
-                              Text(userRecord.CreatingWorker)
-                          )
-                        Visible: =!IsEmpty(colActiveDelegations)
-                        Width: =Parent.Width
-                        X: =1
-                        Y: =61
-                      Children:
-                        - DataCardKey26:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldName
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =48
-                              Text: ="Delegate Employee"
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - cmb_Employee:
-                            Control: Classic/ComboBox@2.4.0
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              BorderThickness: =0
-                              ChevronBackground: =RGBA(56, 96, 178, 1)
-                              ChevronFill: =RGBA(255, 255, 255, 1)
-                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              DefaultSelectedItems: |-
-                                =If(
-                                    !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),
-                                    // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
-                                    LookUp(
-                                        colCreatingWorkerOptions, 
-                                        WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'
-                                    ),
-                                    // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
-                                    LookUp(
-                                        colCreatingWorkerOptions, 
-                                        WorkerID = userRecord.CreatingWorker
-                                    )
-                                )
-                              DisplayFields: =["WorkerName","WorkerName"]
-                              Font: =Font.'Segoe UI'
-                              Height: =gblParams.dropDownHeight
-                              HoverFill: =gblParams.dropDownHoverFill
-                              InputTextPlaceholder: |-
-                                ="Select Dlegate Employee. (Default: Myself)"
-                              Items: =colCreatingWorkerOptions
-                              PressedColor: =RGBA(255, 255, 255, 1)
-                              PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =["WorkerName"]
-                              SelectMultiple: =false
-                              SelectionColor: =RGBA(255, 255, 255, 1)
-                              SelectionFill: =RGBA(56, 96, 178, 1)
-                              Size: =24
-                              Width: =Parent.Width - 2 * Self.X
-                              X: =DataCardKey26.X
-                              Y: =DataCardKey26.Y + DataCardKey26.Height
-                        - ErrorMessage26:
-                            Control: Label@2.5.1
-                            MetadataKey: ErrorMessage
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(168, 0, 0, 1)
-                              Font: =Font.'Segoe UI'
-                              FontWeight: =FontWeight.Semibold
-                              Height: =10
-                              Live: =Live.Assertive
-                              PaddingBottom: =0
-                              PaddingLeft: =0
-                              PaddingRight: =0
-                              PaddingTop: =0
-                              Size: =gblParams.errorMessageSize
-                              Text: =Parent.Error
-                              Visible: =Parent.DisplayMode=DisplayMode.Edit
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =cmb_Employee.Y + cmb_Employee.Height
-                        - StarVisible26:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldRequired
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =DataCardKey26.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =DataCardKey26.Y
                   - ExpenseType_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
@@ -10186,6 +10076,116 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =Project_DataCardKey.Y
+                  - Employee_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicNumberEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_creatingworker"
+                        Default: =ThisItem.'Employee (mserp_creatingworker)'
+                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_creatingworker')
+                        Required: =false
+                        Update: |-
+                          =If(
+                              !IsBlank(cmb_Employee.Selected),
+                              Text(cmb_Employee.Selected.WorkerID),  // Value() 제거, 확실한 텍스트 전달을 위해 Text() 사용 권장
+                              Text(userRecord.CreatingWorker)
+                          )
+                        Visible: =!IsEmpty(colActiveDelegations)
+                        Width: =Parent.Width
+                        X: =1
+                        Y: =61
+                      Children:
+                        - DataCardKey26:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              Font: =Font.'Segoe UI'
+                              Height: =48
+                              Text: ="Delegate Employee"
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - cmb_Employee:
+                            Control: Classic/ComboBox@2.4.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              BorderThickness: =0
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              DefaultSelectedItems: |-
+                                =If(
+                                    !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),
+                                    // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
+                                    LookUp(
+                                        colCreatingWorkerOptions, 
+                                        WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'
+                                    ),
+                                    // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
+                                    LookUp(
+                                        colCreatingWorkerOptions, 
+                                        WorkerID = userRecord.CreatingWorker
+                                    )
+                                )
+                              DisplayFields: =["WorkerName","WorkerName"]
+                              Font: =Font.'Segoe UI'
+                              Height: =gblParams.dropDownHeight
+                              HoverFill: =gblParams.dropDownHoverFill
+                              InputTextPlaceholder: |-
+                                ="Select Dlegate Employee. (Default: Myself)"
+                              Items: =colCreatingWorkerOptions
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SearchFields: =["WorkerName"]
+                              SelectMultiple: =false
+                              SelectionColor: =RGBA(255, 255, 255, 1)
+                              SelectionFill: =RGBA(56, 96, 178, 1)
+                              Size: =24
+                              Width: =Parent.Width - 2 * Self.X
+                              X: =DataCardKey26.X
+                              Y: =DataCardKey26.Y + DataCardKey26.Height
+                        - ErrorMessage26:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =gblParams.errorMessageSize
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =cmb_Employee.Y + cmb_Employee.Height
+                        - StarVisible26:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey26.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey26.Y
                   - Expense Beneficiary_DataCard1:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicTextualMultilineEdit

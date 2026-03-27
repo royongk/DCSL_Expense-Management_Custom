@@ -170,8 +170,16 @@ Screens:
                               HoverFill: =RGBA(163, 32, 53, 0.08)
                               OnSelect: |-
                                 =Set(varAppMode, ThisItem.AppMode);
-                                Set(varSelectedTab, 2);
-                                Navigate('Expenses - List Screen', ScreenTransition.Fade)
+                                If(
+                                    ThisItem.AppMode = "CashAdvance",
+                                    // CashAdvance 모드일 경우: 탭 번호를 4(Cash Request)로 맞추고 해당 화면으로 이동
+                                    Set(varSelectedTab, 4);
+                                    Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
+
+                                    // 그 외의 모드일 경우: 기존처럼 탭 번호를 2(Expenses)로 맞추고 기존 화면으로 이동
+                                    Set(varSelectedTab, 2);
+                                    Navigate('Expenses - List Screen', ScreenTransition.Fade)
+                                )
                               PaddingLeft: =20
                               PressedBorderColor: =Self.Fill
                               PressedColor: =RGBA(255, 255, 255, 1)
@@ -285,8 +293,14 @@ Screens:
                               HoverFill: =RGBA(163, 32, 53, 0.08)
                               OnSelect: |-
                                 =Set(varAppMode, ThisItem.AppMode);
-                                Set(varSelectedTab, 2);
-                                Navigate('Expenses - List Screen', ScreenTransition.Fade)
+                                If(
+                                    ThisItem.AppMode = "CashAdvance",
+                                    Set(varSelectedTab, 4);
+                                    Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
+
+                                    Set(varSelectedTab, 2);
+                                    Navigate('Expenses - List Screen', ScreenTransition.Fade)
+                                )
                               PaddingLeft: =20
                               PressedBorderColor: =Self.Fill
                               PressedColor: =RGBA(255, 255, 255, 1)

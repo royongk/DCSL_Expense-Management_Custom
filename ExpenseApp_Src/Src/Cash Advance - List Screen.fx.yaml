@@ -1,35 +1,99 @@
 "'Cash Advance - List Screen' As screen.'phoneBrowseLayout_ver3.0'":
     Fill: =Color.White
     OnVisible: |-
-        =UpdateContext({varCntSelect: false});
+        =// =========================================================================
+        // 1. 공통 앱 파라미터 및 전역 변수 초기화 (Expenses Screen과 동일 로직)
+        // =========================================================================
+        
+        // 현재 선택된 메뉴(AppMode)에 맞는 D365 Expense Type 텍스트 결정
+        Set(
+            varTargetExpenseType,
+            Switch(
+                varAppMode,
+                "AirfareAllowance", "Allowance",
+                "BillingTripSettlement", "Billing Trip Settlement",
+                "CashAdvance", "Cash Advance",
+                "EmployeeBenefit", "Employee Benefit",
+                "SalaryAdvance", "Salary Advance",
+                "ExpenseReport", "Expense Reimbursement", 
+                Blank()
+            )
+        );
+        
+        // 해당 Type에 매핑된 카테고리(Expense category) 목록을 로컬 컬렉션에 저장
+        ClearCollect(
+            colMappedCategories,
+            Filter(
+                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                'Expense Type' = varTargetExpenseType
+            )
+        );
+        
+        // 공통 UI 테마 및 동작 파라미터 설정
+        Set(
+            gblParams,
+            {
+                dropDownHeight : 60,
+                dorpDownBorderThickness : 2,
+                dropDownBorderColor : RGBA(34, 102, 227, 1),
+                dropDownLabelColor : Color.Black,
+                dropDownHoverFill : RGBA(204, 222, 255, 1),
+                errorMessageSize : 18,
+                dropDownFontSize : 24,
+                expenseDataCardViewOnly: RGBA(110, 110, 110, 1),
+                notificationTime : 4000
+            }
+        );
+        
+        // 화면 동작 제어용 컨텍스트 변수 초기화
+        UpdateContext({varOnShowFields : false});
+        UpdateContext({varOnSelectTriggered : false});
+        UpdateContext({varOnChangeTriggered : false});
+        Set(varExpenseButtonClicked, false);
+        Set(varDefaultSalesTaxGroup, Blank());
+        Set(varItemSalesTaxDefaultValue, Blank());
+        Set(varSelectedExpenseDoc, Blank());
+        
+        Set(
+            varDefaultSalesTaxGroupUserContext,
+            userRecord.WorkerDefaultTaxGroup
+        );
+        
+        // 관리 매개변수 데이터 리프레시
+        Refresh('Expense management parameters (mserp)');
+        
+        
+        // =========================================================================
+        // 2. Cash Advance - List Screen 고유 초기화 및 데이터 로드
+        // =========================================================================
+        
+        // 선택 및 필터 상태 초기화
+        UpdateContext({varCntSelect: false});
         UpdateContext({varCashAdvanceStatusFilter: Blank()});
         UpdateContext({varCashAdvanceDateFilterStart: Blank()});
         UpdateContext({varCashAdvanceDateFilterEnd: Blank()});
         UpdateContext({varCashAdvanceShowDateFilter: false});
-        //UpdateContext({
-        //    varSelectedCashAdvance: If(
-        //        false, 
-        //        First('Cash advances (mserp)'), 
-        //        Blank()
-        //    )
-        //});
         Set(varSelectedCashAdvance, Blank());
         UpdateContext({varCntDelete: false});
+        
+        // Cash Advance 데이터 로드
         Refresh('Cash advances (mserp)');
         Clear(colSelectedCashAdvanceIds);
         Reset(scrCashAdvance_Gallery);
         Reset(ComboBox_CashAdvanceStatusFilter);
-        // 2. [추가] 상태 필터용 컬렉션 생성
+        
+        // ★ 하단 네비게이션 Footer 탭 번호를 Cash Advance 목적에 맞게 4로 강제 지정
+        Set(varSelectedTab, 4);
+        
+        // 상태 필터용 콤보박스 옵션 컬렉션 생성 (All + 선택 항목)
         ClearCollect(
             colCashAdvanceStatusOptions,
-            // (1) 첫 번째 항목: 'All' (값은 Blank)
             {
                 Value: Coalesce(Blank(), LookUp(Choices('Cash advances (mserp)'.'Cash advance status'), true, Value)), 
                 DisplayName: "All"
             }
         );
         
-        // (2) 두 번째 항목부터: Dataverse 선택 항목 추가
         Collect(
             colCashAdvanceStatusOptions,
             ForAll(
@@ -318,7 +382,7 @@
         ApprovalsText: |-
             =If(
                 varAppMode = "CashAdvance",
-                "Cash Request",
+                "1. Cash Request",
                 If(
                     varAppMode = "AirfareAllowance",
                     "Submit Reports",
@@ -327,8 +391,11 @@
             )
         DisplayMode: =!IsBlank(varSelectedLegalEntity)
         ExpensesText: |-
-            =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
-            "Add Expenses"
+            =If(
+                varAppMode = "CashAdvance",
+                "2. Add Expenses",
+                "Add Expenses"
+            )
         OnApprovalsButtonClick: |-
             =If(
                 varAppMode = "CashAdvance",
@@ -356,11 +423,14 @@
         paramInDefaultAppMode: =varAppMode
         paramInDefaultSelectedTab: =4
         ReportText: |-
-            =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
-            If(
+            =If(
                 varAppMode = "AirfareAllowance",
                 "View Reports",
-                "Submit Reports"
+                If(
+                    varAppMode = "CashAdvance",
+                    "3. Submit Reportst",
+                    "Submit Reports"
+                )
             )
         SelectedTab: =4
         Visible: =!varCntSelect

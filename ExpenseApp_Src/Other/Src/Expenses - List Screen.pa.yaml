@@ -133,7 +133,7 @@ Screens:
             ApprovalsText: |-
               =If(
                   varAppMode = "CashAdvance",
-                  "Cash Request",
+                  "1. Cash Request",
                   If(
                       varAppMode = "AirfareAllowance",
                       "Submit Reports",
@@ -143,8 +143,11 @@ Screens:
             DisplayMode: =true
             ExpenseAccessibleLabel: ="Text"
             ExpensesText: |-
-              =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
-              "Add Expenses"
+              =If(
+                  varAppMode = "CashAdvance",
+                  "2. Add Expenses",
+                  "Add Expenses"
+              )
             Fill: =RGBA(248, 248, 248, 0.94)
             Height: =84
             OnApprovalsButtonClick: |-
@@ -201,11 +204,14 @@ Screens:
             ReceiptText: ="Text"
             ReportAccessibleLabel: ="Text"
             ReportText: |-
-              =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
-              If(
+              =If(
                   varAppMode = "AirfareAllowance",
                   "View Reports",
-                  "Submit Reports"
+                  If(
+                      varAppMode = "CashAdvance",
+                      "3. Submit Reportst",
+                      "Submit Reports"
+                  )
               )
             SelectedTab: =2
             Visible: =!varCntSelect

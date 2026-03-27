@@ -115,7 +115,7 @@
         ApprovalsText: |-
             =If(
                 varAppMode = "CashAdvance",
-                "Cash Request",
+                "1. Cash Request",
                 If(
                     varAppMode = "AirfareAllowance",
                     "Submit Reports",
@@ -123,8 +123,11 @@
                 )
             )
         ExpensesText: |-
-            =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpensesLabel'
-            "Add Expenses"
+            =If(
+                varAppMode = "CashAdvance",
+                "2. Add Expenses",
+                "Add Expenses"
+            )
         OnApprovalsButtonClick: |-
             =If(
                 varAppMode = "CashAdvance",
@@ -176,11 +179,14 @@
             )
         paramInDefaultAppMode: =varAppMode
         ReportText: |-
-            =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportsLabel'
-            If(
+            =If(
                 varAppMode = "AirfareAllowance",
                 "View Reports",
-                "Submit Reports"
+                If(
+                    varAppMode = "CashAdvance",
+                    "3. Submit Reportst",
+                    "Submit Reports"
+                )
             )
         SelectedTab: =2
         Visible: =!varCntSelect
