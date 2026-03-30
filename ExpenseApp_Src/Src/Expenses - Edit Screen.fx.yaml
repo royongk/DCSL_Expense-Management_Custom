@@ -1149,88 +1149,48 @@
                 UpdateContext({varLoadingSpinner: true});
                 Clear(colErrorLog);
                 
-                // 4. 첨부 파일 연결 처리 (네트워크 취소 방지 및 완벽한 순차 동기화 아키텍처)
+                // 4. 첨부 파일 연결 처리 (커스텀 엔티티를 이용한 JSON 일괄 전송)
                 If(
                     !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
                     
-                    // 총 첨부 파일 개수를 미리 계산
-                    UpdateContext({ locTotalCount: CountRows(colPendingReceipts) });
+                    // [4-1] D365 개발자가 요청한 스키마에 맞춰 JSON 배열 생성
+                    UpdateContext({
+                        locMultiAttachmentJson: JSON(
+                            ForAll(
+                                colPendingReceipts As CurrentReceipt,
+                                {
+                                    FileName: Coalesce(CurrentReceipt.mserp_filename, "Receipt-" & Text(CurrentReceipt.mserp_entrecid)),
+                                    FileExtension: CurrentReceipt.mserp_fileextension,
+                                    
+                                    // [중요] Power Apps의 이미지 데이터는 'data:image/jpeg;base64,~~~~' 형태입니다.
+                                    // D365 백엔드에서 정상적으로 읽기 위해 헤더 부분을 잘라내고 순수 Base64 문자열만 보냅니다.
+                                    FileContent: If(
+                                        Find(",", CurrentReceipt.mserp_captureddocument) > 0,
+                                        Mid(CurrentReceipt.mserp_captureddocument, Find(",", CurrentReceipt.mserp_captureddocument) + 1),
+                                        CurrentReceipt.mserp_captureddocument
+                                    )
+                                }
+                            ),
+                            JSONFormat.IgnoreUnsupportedTypes // 안전한 JSON 문자열화를 위한 포맷 지정
+                        )
+                    });
                     
-                    // [1번째 파일] UpdateContext를 사용하여 서버 응답이 완전히 끝날 때까지 대기 강제
-                    If(locTotalCount >= 1,
-                        UpdateContext({
-                            locPatchRes1: Patch(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 1).mserp_entrecid)),
-                                { ExpTransNumber: varTargetExpTransNumber }
-                            )
-                        })
+                    // 1. 커스텀 Command 엔티티로 데이터 1회 전송 (Patch 먼저 실행)
+                    Patch(
+                        'DCSL Receipt Command Entity (mserp)',
+                        Defaults('DCSL Receipt Command Entity (mserp)'),
+                        {
+                            'Expense transaction number': varTargetExpTransNumber,
+                            'Multi Attachment Json': locMultiAttachmentJson
+                        }
                     );
-                    
-                    // [2번째 파일] 1번 패치의 결과가 locPatchRes1에 담기고, 내부 캐시가 안정화된 후 실행됨
-                    If(locTotalCount >= 2,
-                        UpdateContext({
-                            locPatchRes2: Patch(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 2).mserp_entrecid)),
-                                { ExpTransNumber: varTargetExpTransNumber }
-                            )
-                        })
-                    );
-                    
-                    // [3번째 파일]
-                    If(locTotalCount >= 3,
-                        UpdateContext({
-                            locPatchRes3: Patch(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 3).mserp_entrecid)),
-                                { ExpTransNumber: varTargetExpTransNumber }
-                            )
-                        })
-                    );
-                    
-                    // [4번째 파일] (필요 시 확장)
-                    If(locTotalCount >= 4,
-                        UpdateContext({
-                            locPatchRes4: Patch(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 4).mserp_entrecid)),
-                                { ExpTransNumber: varTargetExpTransNumber }
-                            )
-                        })
-                    );
-                    
-                    // [5번째 파일] (필요 시 확장)
-                    If(locTotalCount >= 5,
-                        UpdateContext({
-                            locPatchRes5: Patch(
-                                'Expense Mobile Unattached Document Entity (mserp)',
-                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 5).mserp_entrecid)),
-                                { ExpTransNumber: varTargetExpTransNumber }
-                            )
-                        })
-                    )
                 
-                    // 모든 순차 처리가 끝난 후, 데이터 소스에 에러가 남아있는지 일괄 체크
-                    /*
+                    // 2. 해당 엔티티에 방금 발생한 에러가 있는지 확인 후 알림 띄우기
                     If(
-                        !IsEmpty(Errors('Expense Mobile Unattached Document Entity (mserp)')),
-                        Notify("일부 첨부 파일 연결 중 네트워크 오류가 발생했습니다. 다시 시도해 주세요.", NotificationType.Error)
-                    )
-                    */
+                        !IsEmpty(Errors('DCSL Receipt Command Entity (mserp)')),
+                        Notify("다중 첨부 파일 전송 중 오류가 발생했습니다.", NotificationType.Error, gblParams.notificationTime)
+                    );
                 );
-                
-                // 5. 에러 처리 및 알림
-                /*
-                If(
-                    !IsEmpty(colErrorLog),
-                    Notify(
-                        "일부 첨부 파일 연결 실패: " & First(colErrorLog).ErrorMessage,
-                        NotificationType.Error,
-                        5000
-                    )
-                );
-                */
                 
                 // 6. 첨부 파일 목록 갱신 (서버 조회를 생략하여 무한 로딩 및 에러 원천 차단)
                 If(
