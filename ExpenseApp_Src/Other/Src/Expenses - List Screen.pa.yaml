@@ -296,7 +296,7 @@ Screens:
                   colFromUnattached,
                   Filter(
                       colMyUnattachedTemp,
-                      ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                      ExpTransNumber = varSelectedExpenseDoc.mserp_exptransnumber
                   )
               );
 
@@ -353,13 +353,13 @@ Screens:
               // collect policy violations
 
               If(
-                  varSelectedExpenseDoc.PolicyViolationCount,
+                  varSelectedExpenseDoc.mserp_policyviolationcount,
                   ClearCollect(
                       colPolViolations,
-                      Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                      Split(varSelectedExpenseDoc.mserp_policyviolationerrormessage, "~|~")
                   );
-                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
-                  UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.mserp_policyviolationslevel});
+                  UpdateContext({varNumViolation : varSelectedExpenseDoc.mserp_policyviolationcount}),
                   Clear(colPolViolations);
                   UpdateContext({varMaxViolationLevel : 0});
                   UpdateContext({varNumViolation : 0})
@@ -993,7 +993,8 @@ Screens:
                       LookUp('Legal entities (mserp)',Company = varSelectedLegalEntity, Currency)
                   )
               );
-              Refresh('Expense Line Expense Mobile Entity (mserp)');
+              // 기존 코드 하단에 있는 Refresh 변경
+              Refresh('DCSL Expense Line Expense Moblie Entity (mserp)');
               Refresh('Expense management parameters (mserp)');
             secondIcon: =If(CountRows(collSelectedExpenseIds)=0, DeleteIconDisabled,DeleteIconEnabled)
             secondIconAccessibleLabel: =If(Self.secondIcon = DeleteIconEnabled, "Delete expenses", "Disabled delete")

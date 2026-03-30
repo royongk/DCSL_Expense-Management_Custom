@@ -50,20 +50,20 @@
                     Blank()
                 ),
                 // 수정 모드일 때는 초기화 (이후 로직에서 기존 값 매핑됨)
-                Coalesce(varSelectedExpenseDoc.'Expense Type', Blank())
+                Coalesce(varSelectedExpenseDoc.mserp_deexexpensetype, Blank())
             )
         });
         UpdateContext({
-            varSelectedPurchaseCategory: Coalesce(varSelectedExpenseDoc.'Purchase Category', Blank()) 
+            varSelectedPurchaseCategory: Coalesce(varSelectedExpenseDoc.mserp_deexpurchasecategory, Blank()) 
         });
         UpdateContext({varSelectedPurchaseCategoryValue: ""});
         UpdateContext({
-            varSelectedItemOrService: Coalesce(varSelectedExpenseDoc.'Item or Service', Blank())
+            varSelectedItemOrService: Coalesce(varSelectedExpenseDoc.mserp_deexitemorservice, Blank())
         });
         UpdateContext({
             curCategory: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
-                varSelectedExpenseDoc.'Expense category (mserp_costtype)',
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.mserp_costtype),
+                varSelectedExpenseDoc.mserp_costtype,
                 // 신규 생성 시: "Dummy for Expense" 조회
                 If(
                     varIsCreate && !IsBlank(varSelectedLegalEntity),
@@ -80,11 +80,11 @@
         // TargetText context
         UpdateContext({TargetText: ""});
         If(
-            !varIsCreate && !IsBlank(varSelectedExpenseDoc.CostCenter),
+            !varIsCreate && !IsBlank(varSelectedExpenseDoc.mserp_deexcostcenter),
             UpdateContext({
                 varSelectedCostCenter: LookUp(
                     'DCSL Financial Dimension CostCenter (mserp)',
-                    'Combination display' = varSelectedExpenseDoc.CostCenter
+                    'Combination display' = varSelectedExpenseDoc.mserp_deexcostcenter
                 )
             })
         );
@@ -93,14 +93,14 @@
         // Project type context (will be derived from Expense Type / Purchase Category / Item or Service)
         UpdateContext({varSelectedProjectType: Blank()});
         If(
-            !varIsCreate && !IsBlank(varSelectedExpenseDoc.Project),
+            !varIsCreate && !IsBlank(varSelectedExpenseDoc.mserp_deexproject),
             UpdateContext({
                 varSelectedProject: LookUp(
                     Filter(
                         'DCSL Financial Dimension Master (mserp)',
                         'Dimension name' = "Project"
                     ),
-                    'Dimension value' = varSelectedExpenseDoc.Project
+                    'Dimension value' = varSelectedExpenseDoc.mserp_deexproject
                 )
             })
         );
@@ -109,16 +109,16 @@
         // 성공적으로 불러왔다면, 부정확한 Reverse Lookup으로 덮어쓰지 않도록 방어 로직 추가
         If(
             !varIsCreate && 
-            !IsBlank(varSelectedExpenseDoc.'Expense Type') &&
+            !IsBlank(varSelectedExpenseDoc.mserp_deexexpensetype) &&
             (IsBlank(varSelectedExpenseType) || IsBlank(varSelectedPurchaseCategory) || IsBlank(varSelectedItemOrService)),
             
             With(
                 {
                     mappingRecord: LookUp(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
-                        'Expense Type' = varSelectedExpenseDoc.'Expense Type' &&
-                        'Purchase Category' = varSelectedExpenseDoc.'Purchase Category' &&
-                        'Item or Service' = varSelectedExpenseDoc.'Item or Service'
+                        'Expense Type' = varSelectedExpenseDoc.mserp_deexexpensetype &&
+                        'Purchase Category' = varSelectedExpenseDoc.mserp_deexpurchasecategory &&
+                        'Item or Service' = varSelectedExpenseDoc.mserp_deexitemorservice
                     )
                 },
                 If(
@@ -141,13 +141,13 @@
         // 1. 기존 LCY에 문자열로 저장된 값("100.00 USD")에서 공백(" ")을 기준으로 금액과 통화를 분리
         UpdateContext({
             locOriginalAmount: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
-                Left(varSelectedExpenseDoc.LCY, Find(" ", varSelectedExpenseDoc.LCY) - 1),
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.mserp_deexcurrencyamountview) && Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview) > 0, 
+                Left(varSelectedExpenseDoc.mserp_deexcurrencyamountview, Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview) - 1),
                 Blank()
             ),
             locOriginalCurrency: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
-                Right(varSelectedExpenseDoc.LCY, Len(varSelectedExpenseDoc.LCY) - Find(" ", varSelectedExpenseDoc.LCY)),
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.mserp_deexcurrencyamountview) && Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview) > 0, 
+                Right(varSelectedExpenseDoc.mserp_deexcurrencyamountview, Len(varSelectedExpenseDoc.mserp_deexcurrencyamountview) - Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview)),
                 Blank()
             )
         });
@@ -156,22 +156,22 @@
         UpdateContext({ 
             locCalculatedLCY: If(
                 !varIsCreate, 
-                Text(varSelectedExpenseDoc.'Transaction amount'), 
+                Text(varSelectedExpenseDoc.mserp_amountcurr), 
                 Blank()
             ) 
         });
-        UpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')});
-        UpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.'Intercompany project category'});
-        UpdateContext({curProjIdSelected: varSelectedExpenseDoc.'Project ID'});
-        UpdateContext({curCountrySelected: varSelectedExpenseDoc.'Country/region (mserp_countryregion)'});
-        UpdateContext({curStateSelected: varSelectedExpenseDoc.'State/province'});
-        UpdateContext({curBillIssuedToSelected: varSelectedExpenseDoc.'Hotel bill issued to'});
+        UpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.mserp_intercompanyle)});
+        UpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.mserp_intercompanycategory});
+        UpdateContext({curProjIdSelected: varSelectedExpenseDoc.mserp_projid});
+        UpdateContext({curCountrySelected: varSelectedExpenseDoc.mserp_countryregion});
+        UpdateContext({curStateSelected: varSelectedExpenseDoc.mserp_addressstate});
+        UpdateContext({curBillIssuedToSelected: varSelectedExpenseDoc.mserp_billissuedto});
         UpdateContext({taxModifiedByUser: false});
         UpdateContext({varLoadingSpinner : true});
         If(
             !varIsCreate && 
-            !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)') &&
-            varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> "",
+            !IsBlank(varSelectedExpenseDoc.mserp_costtype) &&
+            varSelectedExpenseDoc.mserp_costtype <> "",
             UpdateContext(
                 {
                     locItemizeButtonVisibilityFlag : 'Expense mobile master data (mserp)'.mserp_trvexpmobilemasterdataentity_isexpenseitemizable(LookUp('Expense mobile master data (mserp)',Email = User().Email).'Expense mobile master data (mserp)', 
@@ -6760,7 +6760,7 @@
                         =UpdateContext({isDirty : true});
                     Reset: =true
                     SearchFields: =["mserp_activitynumber","mserp_purpose"]
-                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,'Activity number',Purpose)
+                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,mserp_activitynumber,mserp_purpose)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -7782,7 +7782,7 @@
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_salestaxgroup","mserp_description"]
-                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,'Sales tax group',Description)
+                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,mserp_salestaxgroup,mserp_description)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
