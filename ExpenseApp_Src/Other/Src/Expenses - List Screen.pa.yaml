@@ -76,6 +76,25 @@ Screens:
             userRecord.WorkerDefaultTaxGroup
         );
         Refresh('Expense management parameters (mserp)');
+
+        // --- [대리자 권한 목록 사전 조회 로직 추가] ---
+        // 1. 접속한 사용자의 마스터 정보 세팅 (Edit Screen에서 사용하는 방식과 동일)
+        Set(
+            varCurrentD365User,
+            LookUp('Expense mobile master data (mserp)', Email = User().Email)
+        );
+
+        // 2. 현재 활성화된 대리 위임 내역을 컬렉션으로 저장
+        ClearCollect(
+            colActiveDelegations,
+            Filter(
+                '@DEEX:DEEX_20316 (mserp)',
+                Delegate = varCurrentD365User.ID && 
+                'Start date' <= Today() &&
+                'End date' >= Today()
+            )
+        );
+
         Reset(scr01_glr_ListExpense);
     Children:
       - GlobalLabels:
@@ -227,16 +246,7 @@ Screens:
             BorderColor: =RGBA(0, 18, 107, 1)
             Default: ={}
             Height: "=If(\n    varCntSelect,\n    Min(Parent.Height - scr01_hdr_TopHeader.Height - scr01_shp_BaseRectangle.Height-scr01_shp_Rectangle.Height, Self.TemplateHeight * CountRows(Self.AllItems)),\n    Min(Parent.Height - scr01_hdr_TopHeader.Height - scr01_cmp_Footer.Height,Self.TemplateHeight * CountRows(Self.AllItems)) \n    \n)"
-            Items: |-
-              =Filter(
-                  SortByColumns('Expense Line Expense Mobile Entity (mserp)', "mserp_transdate", SortOrder.Descending),
-                  'Company (mserp_company)' = varSelectedLegalEntity && 
-                  'Approval status' = 'Document status (mserp)'.Draft && 
-                  IsBlank('Expense report number (mserp_expnumber)') && 
-                  ('Expense line type' = 'Expense line type (mserp)'.Default 
-                  || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&
-                  'Expense Type' = varTargetExpenseType
-              )
+            Items: "=Filter(\n    SortByColumns('DCSL Expense Line Expense Moblie Entity (mserp)', \"mserp_transdate\", SortOrder.Descending),\n    'Company (mserp_company)' = varSelectedLegalEntity && \n    'Approval status' = 'Document status (mserp)'.Draft && \n    IsBlank('Expense report number (mserp_expnumber)') && \n    ('Expense line type' = 'Expense line type (mserp)'.Default \n    || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&\n    'Expense Type' = varTargetExpenseType &&\n    \n    // \U0001F447 [핵심 추가 로직] 본인의 ID이거나, 위임자 목록(colActiveDelegations)의 Employee ID에 포함되는 경우\n    (\n        'Employee (mserp_creatingworker)' = userRecord.CreatingWorker ||\n        'Employee (mserp_creatingworker)' in colActiveDelegations.Employee\n    )\n)"
             OnSelect: |-
               =
               //set details for the next screen 
@@ -259,14 +269,14 @@ Screens:
               // assign the expense to a varSelectedExpenseDoc
               Set(
                   varSelectedExpenseDoc,
-                  LookUp('Expense Line Expense Mobile Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                  LookUp('DCSL Expense Line Expense Moblie Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
               );
 
               // 1. [Attached Entity] 조회 (이미 완전히 연결된 파일)
               ClearCollect(colFromAttached,
                   Filter(
                       'Expense Mobile Attached Document Entity (mserp)',
-                      'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                      'Reference record ID' = Value(varSelectedExpenseDoc.mserp_expenserecid)
                   )
               );
 
@@ -286,7 +296,7 @@ Screens:
                   colFromUnattached,
                   Filter(
                       colMyUnattachedTemp,
-                      ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                      ExpTransNumber = varSelectedExpenseDoc.mserp_exptransnumber
                   )
               );
 
@@ -341,18 +351,20 @@ Screens:
                   Blank()
               );
               // collect policy violations
+
               If(
-                  varSelectedExpenseDoc.PolicyViolationCount,
+                  varSelectedExpenseDoc.mserp_policyviolationcount,
                   ClearCollect(
                       colPolViolations,
-                      Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
+                      Split(varSelectedExpenseDoc.mserp_policyviolationerrormessage, "~|~")
                   );
-                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
-                  UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
+                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.mserp_policyviolationslevel});
+                  UpdateContext({varNumViolation : varSelectedExpenseDoc.mserp_policyviolationcount}),
                   Clear(colPolViolations);
                   UpdateContext({varMaxViolationLevel : 0});
                   UpdateContext({varNumViolation : 0})
               );
+
 
               Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : Blank(),varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation, varRemainingAmount: 0, locCategoryChange: false, locItemizeButtonVisibilityFlag: false});
 
