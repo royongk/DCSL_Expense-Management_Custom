@@ -55,7 +55,7 @@
         // 1. 접속한 사용자의 마스터 정보 가져오기
         Set(
             varCurrentD365User,
-            LookUp('Expense mobile master data (mserp)', mserp_usernetworkalias = User().Email)
+            LookUp('Expense mobile master data (mserp)', Email = User().Email)
         );
         
         // 2. 물리적 텍스트 필드(mserp_delegateduser)로 서버에서 직접 필터링
@@ -63,9 +63,9 @@
             colActiveDelegations,
             Filter(
                 '@DEEX:DEEX_20316 (mserp)',
-                mserp_delegateduser = varCurrentD365User.mserp_userid && 
-                mserp_fromdateutc <= Today() &&
-                mserp_todateutc >= Today()
+                Delegate = varCurrentD365User.ID && 
+                'Start date' <= Today() &&
+                'End date' >= Today()
             )
         );
         

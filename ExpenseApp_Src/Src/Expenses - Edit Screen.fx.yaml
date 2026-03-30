@@ -141,13 +141,13 @@
         // 1. 기존 LCY에 문자열로 저장된 값("100.00 USD")에서 공백(" ")을 기준으로 금액과 통화를 분리
         UpdateContext({
             locOriginalAmount: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
-                Left(varSelectedExpenseDoc.LCY, Find(" ", varSelectedExpenseDoc.LCY) - 1),
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.mserp_deexcurrencyamountview) && Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview) > 0, 
+                Left(varSelectedExpenseDoc.mserp_deexcurrencyamountview, Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview) - 1),
                 Blank()
             ),
             locOriginalCurrency: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
-                Right(varSelectedExpenseDoc.LCY, Len(varSelectedExpenseDoc.LCY) - Find(" ", varSelectedExpenseDoc.LCY)),
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.mserp_deexcurrencyamountview) && Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview) > 0, 
+                Right(varSelectedExpenseDoc.mserp_deexcurrencyamountview, Len(varSelectedExpenseDoc.mserp_deexcurrencyamountview) - Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview)),
                 Blank()
             )
         });
@@ -572,7 +572,7 @@
         // 1. 접속한 사용자의 마스터 정보 가져오기 (화면에 '본인' 이름을 표시하기 위함)
         Set(
             varCurrentD365User,
-            LookUp('Expense mobile master data (mserp)', mserp_usernetworkalias = User().Email)
+            LookUp('Expense mobile master data (mserp)', Email = User().Email)
         );
         
         // 2. [변경됨] 가상 필드 대신, 물리적 텍스트 필드(mserp_delegateduser)로 서버에서 직접 필터링합니다.
@@ -581,9 +581,9 @@
             Filter(
                 '@DEEX:DEEX_20316 (mserp)',
                 // 텍스트 ID 끼리 비교합니다. (varCurrentD365User.mserp_userid 가 "DEEX1.ERP" 형태)
-                mserp_delegateduser = varCurrentD365User.mserp_userid && 
-                mserp_fromdateutc <= Today() &&
-                mserp_todateutc >= Today()
+                Delegate = varCurrentD365User.ID && 
+                'Start date' <= Today() &&
+                'End date' >= Today()
             )
         );
         
@@ -4782,13 +4782,13 @@
 
             LCY_DataCard1 As typedDataCard.textualEditCard:
                 BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_deexlcy"
-                Default: =ThisItem.LCY
+                DataField: ="mserp_deexcurrencyamountview"
+                Default: =ThisItem.mserp_deexlcy
                 DisplayMode: =DisplayMode.View
                 DisplayName: ="Accounting Amount & Currency"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
-                MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, LCY)
+                MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, mserp_deexcurrencyamountview)
                 Required: =false
                 Update: |-
                     =/*
@@ -4805,7 +4805,7 @@
                         DataCardValue4_1.Text & " " & ComboBox1_12.Selected.mserp_currencycode,
                         
                         // 신규 작성이 아니거나 값이 비어있는 경우 기존 문서의 LCY 값 유지
-                        varSelectedExpenseDoc.LCY
+                        varSelectedExpenseDoc.mserp_deexcurrencyamountview
                     )
                 Width: =640
                 WidthFit: =true
@@ -11561,10 +11561,10 @@
 
             Employee_DataCard1 As typedDataCard.numberEditCard:
                 BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_creatingworker"
-                Default: =ThisItem.'Employee (mserp_creatingworker)'
+                DataField: ="mserp_deexdelegatedworker"
+                Default: =ThisItem.'Delegated Worker'
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_creatingworker')
+                DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,mserp_deexdelegatedworker)
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
@@ -11656,18 +11656,18 @@
 
             "'Expense Beneficiary_DataCard1' As typedDataCard.textualMultiLineEditCard":
                 BorderStyle: =BorderStyle.Solid
-                DataField: ="mserp_deexexpensebeneficiary"
+                DataField: ="mserp_deexbeneficiary"
                 Default: |-
                     =If(
                         // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용
                         varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                        varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.
+                        varSelectedExpenseDoc.mserp_deexexpensebeneficiary, // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.
                         
                         // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지
-                        ThisItem.'Expense Beneficiary'
+                        ThisItem.mserp_deexexpensebeneficiary
                     )
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
+                DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,mserp_deexbeneficiary)
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =ErrorMessage24.Y + ErrorMessage24.Height + 5
                 Required: =false
@@ -11830,7 +11830,7 @@
                                         // 2. LookUp 조건에서는 함수 없이 순수한 텍스트 값인 'CleanID'와 비교
                                         LookUp(
                                             'DCSL EmployeeV2 Entity (mserp)',
-                                            mserp_name = CleanID
+                                            Name = CleanID
                                         )
                                     )
                                 ),
@@ -11865,7 +11865,7 @@
                                 )
                             )
                         SearchFields: =["mserp_name"]
-                        SearchItems: =Search(SortByColumns('DCSL EmployeeV2 Entity (mserp)',"mserp_name",SortOrder.Ascending),cmb_OtherStaff.SearchText,mserp_name)
+                        SearchItems: =Search(SortByColumns('DCSL EmployeeV2 Entity (mserp)',"mserp_name",SortOrder.Ascending),cmb_OtherStaff.SearchText,Name)
                         SelectionColor: =Color.Black
                         SelectionFill: =gblParams.dropDownBorderColor
                         Size: =20

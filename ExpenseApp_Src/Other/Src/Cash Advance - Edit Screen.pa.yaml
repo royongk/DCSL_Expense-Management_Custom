@@ -486,7 +486,7 @@ Screens:
                         ChevronFill: =RGBA(255, 255, 255, 1)
                         ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                         ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                        DefaultSelectedItems: "=If(\r\n    !varIsCreateCashAdvance, \r\n    // 1. 기존 데이터를 수정하는 경우 (기존 로직 유지)\r\n    LookUp(\r\n        'DimAttributeTrvTravelTxtEntity (mserp)', \r\n        'Purpose (mserp_value)' = varSelectedCashAdvance.Purpose\r\n    ), \r\n    \r\n    // 2. 신규 생성하는 경우 (AppMode에 따른 자동 선택 로직 추가)\r\n    LookUp(\r\n        'DimAttributeTrvTravelTxtEntity (mserp)', \r\n        'Purpose (mserp_value)' = If(varAppMode = \"SalaryAdvance\", \"Salary Advance\", \"Cash Advance\")\r\n    )\r\n)"
+                        DefaultSelectedItems: "=If(\n    !varIsCreateCashAdvance, \n    // 1. 기존 데이터를 수정하는 경우 (기존 로직 유지)\n    LookUp(\n        'DimAttributeTrvTravelTxtEntity (mserp)', \n        'Purpose (mserp_value)' = varSelectedCashAdvance.Purpose\n    ), \n    \n    // 2. 신규 생성하는 경우 (AppMode에 따른 자동 선택 로직 추가)\n    LookUp(\n        'DimAttributeTrvTravelTxtEntity (mserp)', \n        'Purpose (mserp_value)' = If(varAppMode = \"SalaryAdvance\", \"Salary Advance\", \"Cash Advance\")\n    )\n)"
                         DisplayFields: =["mserp_value"]
                         DisplayMode: |-
                           =If(

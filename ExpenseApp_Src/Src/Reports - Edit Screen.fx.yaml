@@ -42,7 +42,7 @@
         // 1. 접속한 사용자의 마스터 정보 가져오기 (화면에 '본인' 이름을 표시하기 위함)
         Set(
             varCurrentD365User,
-            LookUp('Expense mobile master data (mserp)', mserp_usernetworkalias = User().Email)
+            LookUp('Expense mobile master data (mserp)', Email = User().Email)
         );
         
         // 2. [변경됨] 가상 필드 대신, 물리적 텍스트 필드(mserp_delegateduser)로 서버에서 직접 필터링합니다.
@@ -51,9 +51,9 @@
             Filter(
                 '@DEEX:DEEX_20316 (mserp)',
                 // 텍스트 ID 끼리 비교합니다. (varCurrentD365User.mserp_userid 가 "DEEX1.ERP" 형태)
-                mserp_delegateduser = varCurrentD365User.mserp_userid && 
-                mserp_fromdateutc <= Today() &&
-                mserp_todateutc >= Today()
+                Delegate = varCurrentD365User.ID && 
+                'Start date' <= Today() &&
+                'End date' >= Today()
             )
         );
         
@@ -315,7 +315,7 @@
                                             'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
                                             'Document Status': 'Document Status (mserp)'.Submitted,
                                             'Created in Apps': 'NoYes (mserp)'.Yes,
-                                            Employee: If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
+                                            'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
                                             // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
                                             // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
                                         }
@@ -466,7 +466,7 @@
                                                     Description: scr17_txt_Description_1.Text,
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
                                                     'Created in Apps': 'NoYes (mserp)'.Yes,
-                                                    Employee: If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
+                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
                                                 }
                                             ),
                                             First(
@@ -502,7 +502,7 @@
                                                     Description: scr17_txt_Description_1.Text,
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
                                                     'Created in Apps': 'NoYes (mserp)'.Yes,
-                                                    Employee: If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
+                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
                                                 }
                                             ),
                                             First(
@@ -2183,7 +2183,7 @@
                     Text: ="Create expenses"
                     Visible: |-
                         =If(
-                            CountRows(colAttachedExpenses) > 0 && varAppMode = "AirfareAllowance",
+                            CountRows(colAttachedExpenses) > 0 || varAppMode <> "AirfareAllowance",
                             false,
                             true
                         )
