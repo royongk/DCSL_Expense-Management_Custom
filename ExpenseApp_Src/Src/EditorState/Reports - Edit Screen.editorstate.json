@@ -573,7 +573,7 @@
       "MetaDataIDKey": "",
       "Name": "CashAdvance_Container_gp",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 3,
+      "ParentIndex": 1,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -3453,7 +3453,7 @@
       "MetaDataIDKey": "",
       "Name": "Container2_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 1,
+      "ParentIndex": 2,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -3715,7 +3715,7 @@
       "MetaDataIDKey": "",
       "Name": "Container23_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 0,
+      "ParentIndex": 1,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -4513,7 +4513,7 @@
       "MetaDataIDKey": "",
       "Name": "Employee - Draft",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 2,
+      "ParentIndex": 6,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -5248,7 +5248,7 @@
       "MetaDataIDKey": "",
       "Name": "Legal Entity - Draft",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 6,
+      "ParentIndex": 4,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -5810,7 +5810,7 @@
       "MetaDataIDKey": "",
       "Name": "Location- Draft",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 4,
+      "ParentIndex": 2,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -7146,7 +7146,7 @@
       "MetaDataIDKey": "",
       "Name": "Report Detals -  Draft",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 4,
+      "ParentIndex": 3,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -7559,7 +7559,7 @@
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
-          "AutoRuleBindingString": "false",
+          "AutoRuleBindingString": "",
           "InvariantPropertyName": "OnSelect",
           "IsLockable": false,
           "NameMapSourceSchema": "?"
@@ -7585,7 +7585,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_btn_AttachExpenses_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 2,
+      "ParentIndex": 0,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -7771,7 +7771,7 @@
         {
           "Category": "Behavior",
           "PropertyName": "OnSelect",
-          "RuleProviderType": "User"
+          "RuleProviderType": "Unknown"
         }
       ],
       "StyleName": "defaultButtonStyle",
@@ -7783,7 +7783,7 @@
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
-          "AutoRuleBindingString": "If(\n    varIsCreateReport,\n    UpdateContext({varCreateError: Blank()});\n    Clear(varError);\n    With(\n        {\n            patchedReport: IfError(\n                Patch(\n                    'Expense reports (mserp)',\n                    Defaults('Expense reports (mserp)'),\n                    {\n                        Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n                Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),\n                        Description: scr17_txt_Description_1.Text,\n                        'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)\n                        // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)\n                        // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), \"\", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))\n                    }\n                ),\n                UpdateContext({\n                        varCreateError : \n                        Substitute(\n                            Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \n                            \"\"\"message\"\":\", \n                            \"\"\n                        )\n                    }\n                );\n                Blank()\n            )\n        },\n        If(\n            !IsBlank(patchedReport),\n            Set(varSelectedReport, patchedReport)\n        )\n    )\n);\n\nIf(\n    IsBlank(varCreateError),\n    Navigate(\n        'Reports - Attach Expenses Screen', \n        ScreenTransition.None, \n        {\n            varCntBack_scr17: true,\n            // [추가] 다음 화면 필터링을 위해 현재 선택된 Purpose 값을 전달합니다.\n            ctxTargetPurpose: If(\n                IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),\n                If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.Purpose, ComboBox_Purpose.SearchText),\n                ComboBox_Purpose.Selected.'Purpose (mserp_value)'\n            )\n        }\n    ),\n    Notify(\n        Substitute(varCreateError, \"\"\"\", \"\"),\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\n\n/*\nIf(\n    IsBlank(varCreateError),\n    Navigate('Reports - Attach Expenses Screen', ScreenTransition.None, {varCntBack_scr17: true}),\n    Notify(\n        Substitute(varCreateError, \"\"\"\", \"\"),\n        NotificationType.Error,\n        gblParams.notificationTime\n    )\n);\n*/\n\nSet(varIsCreateReport,\n    false\n);\n",
+          "AutoRuleBindingString": "",
           "InvariantPropertyName": "OnSelect",
           "IsLockable": false,
           "NameMapSourceSchema": "?"
@@ -7869,7 +7869,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_btn_CreateExpenses_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 0,
+      "ParentIndex": 2,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -8115,7 +8115,7 @@
         {
           "Category": "Behavior",
           "PropertyName": "OnSelect",
-          "RuleProviderType": "User"
+          "RuleProviderType": "Unknown"
         }
       ],
       "StyleName": "defaultButtonStyle",
@@ -8911,7 +8911,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_cmp02_CancelDialog_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 2,
+      "ParentIndex": 1,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -9230,7 +9230,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_glr_AttachedExpenses_4",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 2,
+      "ParentIndex": 0,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -9459,7 +9459,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_hdr_TopHeader_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 1,
+      "ParentIndex": 0,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -9615,7 +9615,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_ico_Back_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 3,
+      "ParentIndex": 2,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -10040,7 +10040,7 @@
         {
           "AFDDataSourceName": "",
           "AutoRuleBindingEnabled": false,
-          "AutoRuleBindingString": "Navigate('Reports - Attach Expenses Screen');",
+          "AutoRuleBindingString": "",
           "InvariantPropertyName": "OnSelect",
           "IsLockable": false,
           "NameMapSourceSchema": "?"
@@ -10062,7 +10062,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_img_CreatePlus_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 1,
+      "ParentIndex": 3,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -10288,7 +10288,7 @@
         {
           "Category": "Behavior",
           "PropertyName": "OnSelect",
-          "RuleProviderType": "User"
+          "RuleProviderType": "Unknown"
         }
       ],
       "StyleName": "defaultImageStyle",
@@ -10437,7 +10437,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_img_Description_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 1,
+      "ParentIndex": 2,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -11010,7 +11010,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_img_Employee",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 1,
+      "ParentIndex": 2,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -13631,7 +13631,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_img_Plus_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 3,
+      "ParentIndex": 1,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -14644,7 +14644,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_img_Title_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 1,
+      "ParentIndex": 2,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -15230,7 +15230,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_img_Totals_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 1,
+      "ParentIndex": 3,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -16292,7 +16292,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_lbl_Description_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 2,
+      "ParentIndex": 1,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -17457,7 +17457,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_lbl_Employee",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 2,
+      "ParentIndex": 1,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -20247,7 +20247,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_lbl_NumAttachedExp_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 0,
+      "ParentIndex": 1,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -22215,7 +22215,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_lbl_Title_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 2,
+      "ParentIndex": 1,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -22623,7 +22623,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_lbl_TotalAmount_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 3,
+      "ParentIndex": 1,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -25240,7 +25240,7 @@
       "MetaDataIDKey": "",
       "Name": "scr17_ViewAttachedExpenses_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 1,
+      "ParentIndex": 0,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -26418,7 +26418,7 @@
       "MetaDataIDKey": "",
       "Name": "Title - Draft",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 1,
+      "ParentIndex": 5,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -27293,7 +27293,7 @@
       "MetaDataIDKey": "",
       "Name": "Totals Buttons - Draft",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 0,
+      "ParentIndex": 4,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {
@@ -28780,7 +28780,7 @@
       "MetaDataIDKey": "",
       "Name": "TravelRequisitionContainer_1",
       "OptimizeForDevices": "Off",
-      "ParentIndex": 5,
+      "ParentIndex": 3,
       "PersistMetaDataIDKey": false,
       "Properties": [
         {

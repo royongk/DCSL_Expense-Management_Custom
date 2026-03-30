@@ -1332,8 +1332,8 @@
                     
                     // 2. 리포트에 트랜잭션 번호 연결 (Patch)
                     Patch(
-                        'Expense reports (mserp)',
-                        LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                        'Expense reports (mserp)_1',
+                        LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
                         {
                             ExpTransNumber: Concat(colAttachedExpenses, mserp_exptransnumber, ",")
                         }
@@ -1343,7 +1343,7 @@
                     UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});
                     Set(
                         varSelectedReport,
-                        LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber)
+                        LookUp('Expense reports (mserp)_1', 'Expense report number' = varExpenseReportNumber)
                     );
                     
                     // 4. 백엔드 반영을 위해 Line 엔터티 새로고침 후 갤러리 컬렉션 갱신
@@ -1374,7 +1374,7 @@
                         If(
                             !IsBlank(varNavigatedFrom),
                             UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});
-                            Set(varSelectedReport, LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber));
+                            Set(varSelectedReport, LookUp('Expense reports (mserp)_1', 'Expense report number' = varExpenseReportNumber));
                             ClearCollect(colAttachedExpensesForReport, Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'));
                             ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);
                             If(
@@ -1404,7 +1404,7 @@
                         If(
                             !IsBlank(varNavigatedFrom),
                             UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});
-                            Set(varSelectedReport, LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber));
+                            Set(varSelectedReport, LookUp('Expense reports (mserp)_1', 'Expense report number' = varExpenseReportNumber));
                             ClearCollect(colAttachedExpensesForReport, Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'));
                             ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);
                             If(

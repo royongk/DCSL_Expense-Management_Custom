@@ -207,7 +207,7 @@
             // ⚠️ LookUp from original data source FIRST to ensure field name compatibility
             Set(
                 varSelectedReport,
-                LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
+                LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && DEEXLegalEntity_DataArea = varSelectedLegalEntity)
             );
             // ✅ Use varSelectedReport.'Document Status' from original data source for type consistency
             Set(
@@ -216,12 +216,14 @@
             );
             // ✅ Reset varSelectedTravelReq when selecting a report from list (not from Travel Requisition)
             Set(varSelectedTravelReq, Blank());
-            Clear(colAttachedExpensesForReport);
-            ForAll(
-                Split(varSelectedReport.ExpTransNumber, ",") As attachedExpenses,
-                Collect(
-                    colAttachedExpensesForReport,
-                    LookUp('DCSL Expense Line Expense Moblie Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = attachedExpenses[@Value] && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')
+            
+            // 기존의 Clear, ForAll, Collect, LookUp 방식을 버리고 Filter와 ClearCollect를 사용하여 한 번에 데이터를 가져옵니다.
+            ClearCollect(
+                colAttachedExpensesForReport,
+                Filter(
+                    'DCSL Expense Line Expense Moblie Entity (mserp)',
+                    'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 
+                    'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
                 )
             );
             ClearCollect(
@@ -977,9 +979,9 @@
                 colSelectedReportIds,
                 IfError(
                     Remove(
-                        'Expense reports (mserp)',
+                        'Expense reports (mserp)_1',
                         LookUp(
-                            'Expense reports (mserp)',
+                            'Expense reports (mserp)_1',
                             'Expense report number' = colSelectedReportIds[@reportNumber]
                         )
                     ),
