@@ -475,7 +475,7 @@ Screens:
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   BorderColor: =RGBA(0, 18, 107, 1)
-                  DataSource: ='Expense Line Expense Mobile Entity (mserp)'
+                  DataSource: ='DCSL Expense Line Expense Moblie Entity (mserp)'
                   DefaultMode: |-
                     =If(
                         varIsCreate,
@@ -522,7 +522,7 @@ Screens:
                         )
                     );
                     UpdateContext({msCallStartedForSalestaxCalculation: false});
-                  OnSuccess: "=// [신규 추가] 폼 제출 완료 직후의 생성 상태를 보존 (중간에 varIsCreate가 false로 바뀌는 버그 방지)\nUpdateContext({locWasCreate: varIsCreate});\n\n// 1. 새로 생성된 경비 번호(ExpTransNumber) 확보\nSet(\n    varTargetExpTransNumber,\n    Self.LastSubmit.'Expense transaction number (mserp_exptransnumber)'\n);\n\n// 2. RecId 확보\nUpdateContext({varSubmittedExpRecId: Self.LastSubmit.ExpenseRecId});\n\n// [수정됨] F&O 엔터티에 대한 무거운 Refresh() 호출 제거\n// Self.LastSubmit에 RecId가 없다면 곧바로 LookUp만 실행하도록 최적화\nIf(\n    IsBlank(varSubmittedExpRecId) || varSubmittedExpRecId = 0,\n    UpdateContext({\n        varSubmittedExpRecId: LookUp(\n            'Expense Line Expense Mobile Entity (mserp)', \n            'Expense transaction number (mserp_exptransnumber)' = varTargetExpTransNumber\n        ).ExpenseRecId\n    })\n);\n\n// 3. 진행 표시 시작 및 에러 로그 초기화\nUpdateContext({varLoadingSpinner: true});\nClear(colErrorLog);\n\n// 4. 첨부 파일 연결 처리 (네트워크 취소 방지 및 완벽한 순차 동기화 아키텍처)\nIf(\n    !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),\n    \n    // 총 첨부 파일 개수를 미리 계산\n    UpdateContext({ locTotalCount: CountRows(colPendingReceipts) });\n    \n    // [1번째 파일] UpdateContext를 사용하여 서버 응답이 완전히 끝날 때까지 대기 강제\n    If(locTotalCount >= 1,\n        UpdateContext({\n            locPatchRes1: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 1).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    );\n    \n    // [2번째 파일] 1번 패치의 결과가 locPatchRes1에 담기고, 내부 캐시가 안정화된 후 실행됨\n    If(locTotalCount >= 2,\n        UpdateContext({\n            locPatchRes2: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 2).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    );\n    \n    // [3번째 파일]\n    If(locTotalCount >= 3,\n        UpdateContext({\n            locPatchRes3: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 3).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    );\n    \n    // [4번째 파일] (필요 시 확장)\n    If(locTotalCount >= 4,\n        UpdateContext({\n            locPatchRes4: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 4).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    );\n    \n    // [5번째 파일] (필요 시 확장)\n    If(locTotalCount >= 5,\n        UpdateContext({\n            locPatchRes5: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 5).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    )\n\n    // 모든 순차 처리가 끝난 후, 데이터 소스에 에러가 남아있는지 일괄 체크\n    /*\n    If(\n        !IsEmpty(Errors('Expense Mobile Unattached Document Entity (mserp)')),\n        Notify(\"일부 첨부 파일 연결 중 네트워크 오류가 발생했습니다. 다시 시도해 주세요.\", NotificationType.Error)\n    )\n    */\n);\n\n// 5. 에러 처리 및 알림\n/*\nIf(\n    !IsEmpty(colErrorLog),\n    Notify(\n        \"일부 첨부 파일 연결 실패: \" & First(colErrorLog).ErrorMessage,\n        NotificationType.Error,\n        5000\n    )\n);\n*/\n\n// 6. 첨부 파일 목록 갱신 (서버 조회를 생략하여 무한 로딩 및 에러 원천 차단)\nIf(\n    !IsBlank(varTargetExpTransNumber),\n\n    // [단계 1] Attached 파일들 먼저 담기 (기존과 동일)\n    ClearCollect(\n        colAttachedReceipts,\n        ForAll(\n            Filter(\n                'Expense Mobile Attached Document Entity (mserp)',\n                'Reference record ID' = Value(varSubmittedExpRecId)\n            ),\n            {\n                mserp_entrecid: EntRecId,\n                mserp_captureddocument: CapturedDocument,\n                mserp_fileextension: FileExtension,\n                mserp_filename: Description,\n                mserp_createddatetime: CreatingDateTime \n            }\n        )\n    );\n    \n    // [단계 2] Unattached 파일(방금 추가한 것) 메모리에서 바로 추가 (LookUp 제거로 성능 극대화)\n    Collect(\n        colAttachedReceipts,\n        ForAll(\n            colPendingReceipts As CurrentReceipt,\n            {\n                mserp_entrecid: CurrentReceipt.mserp_entrecid,\n                mserp_captureddocument: CurrentReceipt.mserp_captureddocument,\n                mserp_fileextension: CurrentReceipt.mserp_fileextension,\n                mserp_filename: Coalesce(\n                    CurrentReceipt.mserp_filename, \n                    Concatenate(\"Receipt-\", Text(CurrentReceipt.mserp_entrecid))\n                ),\n                mserp_createddatetime: Now()\n            }\n        )\n    );\n    \n    // [단계 3] 최종 결과 정렬 (내림차순)\n    ClearCollect(\n        colAttachedReceipts,\n        SortByColumns(\n            colAttachedReceipts,\n            \"mserp_createddatetime\", \n            SortOrder.Descending\n        )\n    )\n);\n\n// 7. 상태 변수 초기화\nSet(varIsCreate, false);\nSet(varSelectedExpenseDoc, Self.LastSubmit);\nUpdateContext({varSubmittedExpTransNumber: \"\"});\nUpdateContext({varSubmittedExpRecId: Blank()});\nSet(isExpenseReceiptAttached, false);\nSet(OCRresponse, Blank());\nSet(gblNavigationDrawerVisibility, false);\n\n// 8. 컬렉션 정리\nIf(IsEmpty(colErrorLog), Clear(colPendingReceipts));\nClear(colErrorLog);\n\n// 9. 미리보기 이미지 업데이트\nSet(\n    varReceiptImage,\n    If(\n        !IsEmpty(colAttachedReceipts),\n        First(colAttachedReceipts).mserp_captureddocument,\n        Blank()\n    )\n);\nSet(\n    varFileFormat,\n    If(\n        !IsEmpty(colAttachedReceipts),\n        First(colAttachedReceipts).mserp_fileextension,\n        Blank()\n    )\n);\n\nUpdateContext({varLoadingSpinner: false});\n\n// --- 10. 성공 메시지 및 화면 이동 파트 ---\nIf(\n    locWasCreate, // varIsCreate 대신 보존한 locWasCreate 사용\n    Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel', NotificationType.Success, gblParams.notificationTime),\n    If(isDirty || isExpenseReceiptAttached, Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', NotificationType.Success, gblParams.notificationTime))\n);\n\n// [수정됨] Report에서 직접 Create를 타고 들어와 생성에 성공한 경우, 리포트에 자동 Attach 처리\nIf(\n    locWasCreate && varNavigatedFrom = \"scr17_Create\" && !IsBlank(varSelectedReport),\n    \n    // 1. 임시로 컬렉션에 추가하여 Concat을 위한 데이터 확보\n    Collect(colAttachedExpenses, Self.LastSubmit);\n    \n    // 2. 리포트에 트랜잭션 번호 연결 (Patch)\n    Patch(\n        'Expense reports (mserp)',\n        LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),\n        {\n            ExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', \",\")\n        }\n    );\n    \n    // 3. F&O 연동 후 TotalAmount(합계 금액) 등이 서버에서 갱신될 시간을 주고 최신 리포트 정보 다시 불러오기\n    UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});\n    Set(\n        varSelectedReport,\n        LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber)\n    );\n    \n    // 4. 백엔드 반영을 위해 Line 엔터티 새로고침 후 갤러리 컬렉션 갱신\n    Refresh('Expense Line Expense Mobile Entity (mserp)');\n    ClearCollect(\n        colAttachedExpensesForReport, \n        Filter('Expense Line Expense Mobile Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')\n    );\n    ClearCollect(colAttachedExpenses, colAttachedExpensesForReport)\n);\n\nIf(\n    gblItemizeExpenseButtonClick,\n    Set(IsCreditcardTransactionInLocalCurrency, LookUp('Expense Line Expense Mobile Entity (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', IsCreditcardTransactionInLocalCurrency));\n    ClearCollect(dsItemizations, AddColumns(GroupBy(Filter('Expense Line Expense Mobile Entity (mserp)', 'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'), 'Itemization group', Itemization), StartDate, Text(Last(SortByColumns(Itemization, \"mserp_transdate\", SortOrder.Descending)).'Transaction date', \"yyyy-mm-dd hh:mm:ssZ\"), DailyRate, If(IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No, First(Itemization).'Transaction amount', First(Itemization).'Local amount'), Quantity, CountRows(Itemization), SubCategoryName, First(Itemization).'Expense subcategory name', SubCategoryRecId, First(Itemization).'Expense subcategory', ItemizationGroupId, mserp_expenseitemizationgroupid))\n);\n\n// --- 화면 네비게이션 처리 ---\nIf(\n    locAllowNavigationBack && IsEmpty(colErrorLog),\n    If(\n        locWasCreate, // varIsCreate 대신 보존한 locWasCreate 사용\n        If(\n            varNavigatedFrom = \"scr17_Create\",\n            Navigate('Reports - Edit Screen'), // 리포트로 돌아가기\n            Navigate('Expenses - List Screen')\n        ),\n        If(\n            !IsBlank(varNavigatedFrom),\n            UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});\n            Set(varSelectedReport, LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber));\n            ClearCollect(colAttachedExpensesForReport, Filter('Expense Line Expense Mobile Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'));\n            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);\n            If(\n                gblItemizeExpenseButtonClick,\n                Navigate('Itemization - Detail Screen', Transition.None, {varNavigatedFrom: varNavigatedFrom, varItemizationScreen: \"itemizationDetailScreen\"}),\n                Switch(varNavigatedFrom, \n                    \"scr17\", Navigate('Reports - Edit Screen'), \n                    \"scr17_Create\", Navigate('Reports - Edit Screen'),\n                    \"scr20\", Navigate('Reports - View Only Screen'), \n                    \"scr18\", Navigate('Reports - Attach Expenses Screen'), \n                    \"scr19\", Navigate('Reports - View Attached Expenses Screen'), \n                    Navigate('Expenses - List Screen')\n                )\n            );\n            UpdateContext({varNavigatedFrom: Blank()}),\n            Navigate('Expenses - List Screen')\n        )\n    ),\n    If(locAllowNavigationBack && !IsEmpty(colErrorLog), false, Navigate('Expenses - List Screen', ScreenTransition.None))\n);\n/*\nIf(\n    locAllowNavigationBack && IsEmpty(colErrorLog),\n    If(\n        varIsCreate,\n        Navigate('Expenses - List Screen'),\n        If(\n            !IsBlank(varNavigatedFrom),\n            UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});\n            Set(varSelectedReport, LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber));\n            ClearCollect(colAttachedExpensesForReport, Filter('Expense Line Expense Mobile Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'));\n            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);\n            If(\n                gblItemizeExpenseButtonClick,\n                Navigate('Itemization - Detail Screen', Transition.None, {varNavigatedFrom: varNavigatedFrom, varItemizationScreen: \"itemizationDetailScreen\"}),\n                Switch(varNavigatedFrom, \"scr17\", Navigate('Reports - Edit Screen'), \"scr20\", Navigate('Reports - View Only Screen'), \"scr18\", Navigate('Reports - Attach Expenses Screen'), \"scr19\", Navigate('Reports - View Attached Expenses Screen'), Navigate('Expenses - List Screen'))\n            );\n            UpdateContext({varNavigatedFrom: Blank()}),\n            Navigate('Expenses - List Screen')\n        )\n    ),\n    If(locAllowNavigationBack && !IsEmpty(colErrorLog), false, Navigate('Expenses - List Screen', ScreenTransition.None))\n);\n*/\n\nUpdateContext({dirtyTransAmount: Blank(), dirtyTransDate: Blank(), dirtyMerchant: \"\", varOnSelectTriggered: false, varOnShowFields: false, varOnChangeTriggered: false, varSalesTaxAmount: Blank(), msCallStartedForSalestaxCalculation: false});\nSet(gblItemizeExpenseButtonClick, false)"
+                  OnSuccess: "=// [신규 추가] 폼 제출 완료 직후의 생성 상태를 보존 (중간에 varIsCreate가 false로 바뀌는 버그 방지)\nUpdateContext({locWasCreate: varIsCreate});\n\n// 1. 새로 생성된 경비 번호(ExpTransNumber) 확보\nSet(\n    varTargetExpTransNumber,\n    Self.LastSubmit.'Expense transaction number (mserp_exptransnumber)'\n);\n\n// 2. RecId 확보\nUpdateContext({varSubmittedExpRecId: Self.LastSubmit.ExpenseRecId});\n\n// [수정됨] F&O 엔터티에 대한 무거운 Refresh() 호출 제거\n// Self.LastSubmit에 RecId가 없다면 곧바로 LookUp만 실행하도록 최적화\nIf(\n    IsBlank(varSubmittedExpRecId) || varSubmittedExpRecId = 0,\n    UpdateContext({\n        varSubmittedExpRecId: LookUp(\n            'DCSL Expense Line Expense Moblie Entity (mserp)', \n            'Expense transaction number (mserp_exptransnumber)' = varTargetExpTransNumber\n        ).ExpenseRecId\n    })\n);\n\n// 3. 진행 표시 시작 및 에러 로그 초기화\nUpdateContext({varLoadingSpinner: true});\nClear(colErrorLog);\n\n// 4. 첨부 파일 연결 처리 (네트워크 취소 방지 및 완벽한 순차 동기화 아키텍처)\nIf(\n    !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),\n    \n    // 총 첨부 파일 개수를 미리 계산\n    UpdateContext({ locTotalCount: CountRows(colPendingReceipts) });\n    \n    // [1번째 파일] UpdateContext를 사용하여 서버 응답이 완전히 끝날 때까지 대기 강제\n    If(locTotalCount >= 1,\n        UpdateContext({\n            locPatchRes1: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 1).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    );\n    \n    // [2번째 파일] 1번 패치의 결과가 locPatchRes1에 담기고, 내부 캐시가 안정화된 후 실행됨\n    If(locTotalCount >= 2,\n        UpdateContext({\n            locPatchRes2: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 2).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    );\n    \n    // [3번째 파일]\n    If(locTotalCount >= 3,\n        UpdateContext({\n            locPatchRes3: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 3).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    );\n    \n    // [4번째 파일] (필요 시 확장)\n    If(locTotalCount >= 4,\n        UpdateContext({\n            locPatchRes4: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 4).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    );\n    \n    // [5번째 파일] (필요 시 확장)\n    If(locTotalCount >= 5,\n        UpdateContext({\n            locPatchRes5: Patch(\n                'Expense Mobile Unattached Document Entity (mserp)',\n                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = Value(Index(colPendingReceipts, 5).mserp_entrecid)),\n                { ExpTransNumber: varTargetExpTransNumber }\n            )\n        })\n    )\n\n    // 모든 순차 처리가 끝난 후, 데이터 소스에 에러가 남아있는지 일괄 체크\n    /*\n    If(\n        !IsEmpty(Errors('Expense Mobile Unattached Document Entity (mserp)')),\n        Notify(\"일부 첨부 파일 연결 중 네트워크 오류가 발생했습니다. 다시 시도해 주세요.\", NotificationType.Error)\n    )\n    */\n);\n\n// 5. 에러 처리 및 알림\n/*\nIf(\n    !IsEmpty(colErrorLog),\n    Notify(\n        \"일부 첨부 파일 연결 실패: \" & First(colErrorLog).ErrorMessage,\n        NotificationType.Error,\n        5000\n    )\n);\n*/\n\n// 6. 첨부 파일 목록 갱신 (서버 조회를 생략하여 무한 로딩 및 에러 원천 차단)\nIf(\n    !IsBlank(varTargetExpTransNumber),\n\n    // [단계 1] Attached 파일들 먼저 담기 (기존과 동일)\n    ClearCollect(\n        colAttachedReceipts,\n        ForAll(\n            Filter(\n                'Expense Mobile Attached Document Entity (mserp)',\n                'Reference record ID' = Value(varSubmittedExpRecId)\n            ),\n            {\n                mserp_entrecid: EntRecId,\n                mserp_captureddocument: CapturedDocument,\n                mserp_fileextension: FileExtension,\n                mserp_filename: Description,\n                mserp_createddatetime: CreatingDateTime \n            }\n        )\n    );\n    \n    // [단계 2] Unattached 파일(방금 추가한 것) 메모리에서 바로 추가 (LookUp 제거로 성능 극대화)\n    Collect(\n        colAttachedReceipts,\n        ForAll(\n            colPendingReceipts As CurrentReceipt,\n            {\n                mserp_entrecid: CurrentReceipt.mserp_entrecid,\n                mserp_captureddocument: CurrentReceipt.mserp_captureddocument,\n                mserp_fileextension: CurrentReceipt.mserp_fileextension,\n                mserp_filename: Coalesce(\n                    CurrentReceipt.mserp_filename, \n                    Concatenate(\"Receipt-\", Text(CurrentReceipt.mserp_entrecid))\n                ),\n                mserp_createddatetime: Now()\n            }\n        )\n    );\n    \n    // [단계 3] 최종 결과 정렬 (내림차순)\n    ClearCollect(\n        colAttachedReceipts,\n        SortByColumns(\n            colAttachedReceipts,\n            \"mserp_createddatetime\", \n            SortOrder.Descending\n        )\n    )\n);\n\n// 7. 상태 변수 초기화\nSet(varIsCreate, false);\nSet(varSelectedExpenseDoc, Self.LastSubmit);\nUpdateContext({varSubmittedExpTransNumber: \"\"});\nUpdateContext({varSubmittedExpRecId: Blank()});\nSet(isExpenseReceiptAttached, false);\nSet(OCRresponse, Blank());\nSet(gblNavigationDrawerVisibility, false);\n\n// 8. 컬렉션 정리\nIf(IsEmpty(colErrorLog), Clear(colPendingReceipts));\nClear(colErrorLog);\n\n// 9. 미리보기 이미지 업데이트\nSet(\n    varReceiptImage,\n    If(\n        !IsEmpty(colAttachedReceipts),\n        First(colAttachedReceipts).mserp_captureddocument,\n        Blank()\n    )\n);\nSet(\n    varFileFormat,\n    If(\n        !IsEmpty(colAttachedReceipts),\n        First(colAttachedReceipts).mserp_fileextension,\n        Blank()\n    )\n);\n\nUpdateContext({varLoadingSpinner: false});\n\n// --- 10. 성공 메시지 및 화면 이동 파트 ---\nIf(\n    locWasCreate, // varIsCreate 대신 보존한 locWasCreate 사용\n    Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCreateMessageLabel', NotificationType.Success, gblParams.notificationTime),\n    If(isDirty || isExpenseReceiptAttached, Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseUpdateMessageLabel', NotificationType.Success, gblParams.notificationTime))\n);\n\n// [수정됨] Report에서 직접 Create를 타고 들어와 생성에 성공한 경우, 리포트에 자동 Attach 처리\nIf(\n    locWasCreate && varNavigatedFrom = \"scr17_Create\" && !IsBlank(varSelectedReport),\n    \n    // 1. 임시로 컬렉션에 추가하여 Concat을 위한 데이터 확보\n    Collect(colAttachedExpenses, Self.LastSubmit);\n    \n    // 2. 리포트에 트랜잭션 번호 연결 (Patch)\n    Patch(\n        'Expense reports (mserp)',\n        LookUp('Expense reports (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),\n        {\n            ExpTransNumber: Concat(colAttachedExpenses, mserp_exptransnumber, \",\")\n        }\n    );\n    \n    // 3. F&O 연동 후 TotalAmount(합계 금액) 등이 서버에서 갱신될 시간을 주고 최신 리포트 정보 다시 불러오기\n    UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});\n    Set(\n        varSelectedReport,\n        LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber)\n    );\n    \n    // 4. 백엔드 반영을 위해 Line 엔터티 새로고침 후 갤러리 컬렉션 갱신\n    Refresh('DCSL Expense Line Expense Moblie Entity (mserp)');\n    ClearCollect(\n        colAttachedExpensesForReport, \n        Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line')\n    );\n    ClearCollect(colAttachedExpenses, colAttachedExpensesForReport)\n);\n\nIf(\n    gblItemizeExpenseButtonClick,\n    Set(IsCreditcardTransactionInLocalCurrency, LookUp('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense transaction number (mserp_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)', IsCreditcardTransactionInLocalCurrency));\n    ClearCollect(dsItemizations, AddColumns(GroupBy(Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense line type' = 'Expense line type (mserp)'.'Itemized line' && 'Expense transaction number (mserp_itemizedline_exptransnumber)' = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'), 'Itemization group', Itemization), StartDate, Text(Last(SortByColumns(Itemization, \"mserp_transdate\", SortOrder.Descending)).'Transaction date', \"yyyy-mm-dd hh:mm:ssZ\"), DailyRate, If(IsCreditcardTransactionInLocalCurrency = 'NoYes (mserp)'.No, First(Itemization).'Transaction amount', First(Itemization).'Local amount'), Quantity, CountRows(Itemization), SubCategoryName, First(Itemization).'Expense subcategory name', SubCategoryRecId, First(Itemization).'Expense subcategory', ItemizationGroupId, mserp_expenseitemizationgroupid))\n);\n\n// --- 화면 네비게이션 처리 ---\nIf(\n    locAllowNavigationBack && IsEmpty(colErrorLog),\n    If(\n        locWasCreate, // varIsCreate 대신 보존한 locWasCreate 사용\n        If(\n            varNavigatedFrom = \"scr17_Create\",\n            Navigate('Reports - Edit Screen'), // 리포트로 돌아가기\n            Navigate('Expenses - List Screen')\n        ),\n        If(\n            !IsBlank(varNavigatedFrom),\n            UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});\n            Set(varSelectedReport, LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber));\n            ClearCollect(colAttachedExpensesForReport, Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'));\n            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);\n            If(\n                gblItemizeExpenseButtonClick,\n                Navigate('Itemization - Detail Screen', Transition.None, {varNavigatedFrom: varNavigatedFrom, varItemizationScreen: \"itemizationDetailScreen\"}),\n                Switch(varNavigatedFrom, \n                    \"scr17\", Navigate('Reports - Edit Screen'), \n                    \"scr17_Create\", Navigate('Reports - Edit Screen'),\n                    \"scr20\", Navigate('Reports - View Only Screen'), \n                    \"scr18\", Navigate('Reports - Attach Expenses Screen'), \n                    \"scr19\", Navigate('Reports - View Attached Expenses Screen'), \n                    Navigate('Expenses - List Screen')\n                )\n            );\n            UpdateContext({varNavigatedFrom: Blank()}),\n            Navigate('Expenses - List Screen')\n        )\n    ),\n    If(locAllowNavigationBack && !IsEmpty(colErrorLog), false, Navigate('Expenses - List Screen', ScreenTransition.None))\n);\n/*\nIf(\n    locAllowNavigationBack && IsEmpty(colErrorLog),\n    If(\n        varIsCreate,\n        Navigate('Expenses - List Screen'),\n        If(\n            !IsBlank(varNavigatedFrom),\n            UpdateContext({varExpenseReportNumber: varSelectedReport.'Expense report number'});\n            Set(varSelectedReport, LookUp('Expense reports (mserp)', 'Expense report number' = varExpenseReportNumber));\n            ClearCollect(colAttachedExpensesForReport, Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'));\n            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);\n            If(\n                gblItemizeExpenseButtonClick,\n                Navigate('Itemization - Detail Screen', Transition.None, {varNavigatedFrom: varNavigatedFrom, varItemizationScreen: \"itemizationDetailScreen\"}),\n                Switch(varNavigatedFrom, \"scr17\", Navigate('Reports - Edit Screen'), \"scr20\", Navigate('Reports - View Only Screen'), \"scr18\", Navigate('Reports - Attach Expenses Screen'), \"scr19\", Navigate('Reports - View Attached Expenses Screen'), Navigate('Expenses - List Screen'))\n            );\n            UpdateContext({varNavigatedFrom: Blank()}),\n            Navigate('Expenses - List Screen')\n        )\n    ),\n    If(locAllowNavigationBack && !IsEmpty(colErrorLog), false, Navigate('Expenses - List Screen', ScreenTransition.None))\n);\n*/\n\nUpdateContext({dirtyTransAmount: Blank(), dirtyTransDate: Blank(), dirtyMerchant: \"\", varOnSelectTriggered: false, varOnShowFields: false, varOnChangeTriggered: false, varSalesTaxAmount: Blank(), msCallStartedForSalestaxCalculation: false});\nSet(gblItemizeExpenseButtonClick, false)"
                   SnapToColumns: =false
                   Width: =Parent.Width
                   Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
@@ -1021,7 +1021,7 @@ Screens:
                                   Blank()
                               )
                           )
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Expense category (mserp_costtype)')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Expense category (mserp_costtype)')
                         Required: =true
                         Update: |-
                           =With(
@@ -1315,8 +1315,8 @@ Screens:
                               If(!IsBlank(ComboBox1_8.Selected), ComboBox1_8.Selected.Description, Blank()),
                               varSelectedExpenseDoc.'Category description'
                           )
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Category description')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Category description')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Category description')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Category description')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue8_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -1415,8 +1415,8 @@ Screens:
                               Lower(varSelectedLegalEntity),
                               ThisItem.'Company Code'
                           )
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Company (mserp_company)')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Company (mserp_company)')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Company (mserp_company)')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Company (mserp_company)')
                         Required: =true
                         Update: =DataCardValue14_1.Text
                         Visible: =false
@@ -1508,7 +1508,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_submitterjustification"
                         Default: =ThisItem.'Employee justification'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Employee justification')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Employee justification')
                         Required: =ThisItem.IsSubmitterJustificationRequired = 1
                         Update: |-
                           =If(
@@ -1605,7 +1605,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_datefrom"
                         Default: =ThisItem.'Per diem from date'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Per diem from date')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Per diem from date')
                         Required: =false
                         Update: |-
                           =If(
@@ -1893,7 +1893,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_dateto"
                         Default: =ThisItem.'Per diem to date'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Per diem to date')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Per diem to date')
                         Required: =false
                         Update: |-
                           =If(
@@ -2184,7 +2184,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_justifyingworker"
                         Default: =ThisItem.'Employee (mserp_justifyingworker)'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Employee (mserp_justifyingworker)')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Employee (mserp_justifyingworker)')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: |-
                           =If(
@@ -2300,7 +2300,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deduktionbreakfest"
                         Default: =ThisItem.Breakfast
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,Breakfast)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,Breakfast)
                         Required: =false
                         Update: =Value(DataCardValue1.Text)
                         Visible: |-
@@ -2388,7 +2388,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deduktionlunch"
                         Default: =ThisItem.Lunch
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,Lunch)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,Lunch)
                         Required: =false
                         Update: =Value(DataCardValue2.Text)
                         Visible: |-
@@ -2476,7 +2476,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deduktiondinner"
                         Default: =ThisItem.Dinner
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,Dinner)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,Dinner)
                         Required: =false
                         Update: =Value(DataCardValue3.Text)
                         Visible: |-
@@ -2564,7 +2564,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_trvlocations"
                         Default: =ThisItem.'Location (mserp_trvlocations)'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Location (mserp_trvlocations)')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Location (mserp_trvlocations)')
                         Required: =false
                         Update: =Value(DataCardValue20.Text)
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.'Per diem'
@@ -2697,7 +2697,7 @@ Screens:
                         DataField: ="mserp_amountcurr"
                         Default: =ThisItem.'Transaction amount'
                         DisplayMode: "=If(\n    // 1. 기존 조건: 일당(Per diem) 경비인 경우\n    currExpenseType = 'TrvExpType (mserp)'.'Per diem' || \n    \n    // 2. \U0001F680 [신규 추가] 고정 금액이 설정된 카테고리인 경우\n    !IsBlank(locCurrentSetup.Amount) && \n    locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,\n    \n    // 위 조건 중 하나라도 맞으면 읽기 전용(수정 불가)\n    DisplayMode.View,\n    \n    // 일반적인 상황에서는 편집 가능\n    DisplayMode.Edit\n)"
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Transaction amount')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Transaction amount')
                         Required: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
                         Update: "=// 천단위 구분 기호 해제 로직 포함\n/*\nValue(\n    // 일반 경비인 경우 입력된 텍스트 사용\n    If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,\n        Blank(),\n        // [중요] 텍스트 입력값(\"1,000\")을 숫자(1000)로 변환\n        Substitute(DataCardValue4_1.Text, \",\", \"\") // 입력된 텍스트에서 쉼표(,)를 모두 빈값으로 치환\n    ),\n    varDefaultLanguage\n)\n*/\nValue(\n    If(\n        // 계산된 LCY 값(locCalculatedLCY)이 존재하면 해당 환산 금액을 우선 저장\n        !IsBlank(locCalculatedLCY),\n        locCalculatedLCY,\n        \n        // 계산된 값이 없다면 기존처럼 텍스트 박스에 입력된 값을 숫자로 변환하여 저장\n        If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,\n            Blank(),\n            Substitute(DataCardValue4_1.Text, \",\", \"\")\n        )\n    ),\n    varDefaultLanguage\n)"
                         Visible: =true && currExpenseType <> 'TrvExpType (mserp)'.Mileage && !(Breakfast_DataCard1.Visible)
@@ -2833,8 +2833,8 @@ Screens:
                               DisplayMode.View,
                               DisplayMode.Edit
                           )
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Currency (mserp_exchangecode)')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Currency (mserp_exchangecode)')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Currency (mserp_exchangecode)')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Currency (mserp_exchangecode)')
                         Required: =true
                         Update: |-
                           =//ComboBox1_12.Selected.mserp_currencycode
@@ -3029,7 +3029,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_kmowncar"
                         Default: =ThisItem.Mileage
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,Mileage)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,Mileage)
                         Required: =false
                         Update: =Value(DataCardValue40.Text)
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.Mileage
@@ -3120,7 +3120,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_transdate"
                         Default: =varSelectedExpenseDoc.'Transaction date'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Transaction date')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Transaction date')
                         Required: =true
                         Update: |-
                           =//If(
@@ -3326,7 +3326,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_exptype"
                         Default: =If(!IsBlank(ComboBox1_8.Selected), ComboBox1_8.Selected.'Expense type', Blank())
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Expense type')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Expense type')
                         Required: =false
                         Update: =DataCardValue7_1.Selected.Value
                         Visible: =false
@@ -3425,10 +3425,10 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deexcurrencyamountview"
-                        Default: =ThisItem.mserp_deexlcy
+                        Default: =ThisItem.LCY
                         DisplayMode: =DisplayMode.View
                         DisplayName: ="Accounting Amount & Currency"
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, mserp_deexcurrencyamountview)
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, mserp_deexcurrencyamountview)
                         Required: =false
                         Update: "=/*\nIf(\n    !IsBlank(locCalculatedLCY),\n    locCalculatedLCY,                 // 새로 계산된 순수 숫자 전송\n    Value(varSelectedExpenseDoc.LCY)  // 새로 계산된 적이 없다면 기존 문서의 순수 숫자 전송\n)\n*/\nIf(\n    // 사용자가 금액과 통화를 모두 입력/선택한 상태라면\n    !IsBlank(DataCardValue4_1.Text) && !IsBlank(ComboBox1_12.Selected.mserp_currencycode),\n    // \"입력금액 통화코드\" 형태로 결합하여 텍스트로 저장 (예: \"100 USD\")\n    DataCardValue4_1.Text & \" \" & ComboBox1_12.Selected.mserp_currencycode,\n    \n    // 신규 작성이 아니거나 값이 비어있는 경우 기존 문서의 LCY 값 유지\n    varSelectedExpenseDoc.LCY\n)"
                         WidthFit: =true
@@ -3534,8 +3534,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_vehicletype"
                         Default: =ThisItem.'Vehicle type'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Vehicle type')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Vehicle type')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Vehicle type')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Vehicle type')
                         Required: =false
                         Update: =VehicleTypeCombobox.Selected.Value
                         Visible: |
@@ -3662,7 +3662,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_numberofpassengers"
                         Default: =ThisItem.'Number of passengers'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Number of passengers')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Number of passengers')
                         Required: =false
                         Update: =Value(DataCardValue63.Text)
                         Visible: |
@@ -3765,7 +3765,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_paymethod"
                         Default: =varSelectedExpenseDoc.'Payment method'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Payment method')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Payment method')
                         Required: =true
                         Update: ="BANK"
                         Visible: =false
@@ -3945,7 +3945,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_kmprice"
                         Default: =ThisItem.'Rate per mile'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Rate per mile')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Rate per mile')
                         Required: =false
                         Visible: =false
                         Width: =Parent.Width
@@ -3990,8 +3990,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_mileagefromaddress"
                         Default: =ThisItem.'From address'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'From address')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'From address')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'From address')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'From address')
                         Required: =false
                         Update: =DataCardValue60.Text
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.Mileage
@@ -4081,8 +4081,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_mileagetoaddress"
                         Default: =ThisItem.'To address'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'To address')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'To address')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'To address')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'To address')
                         Required: =false
                         Update: =DataCardValue61.Text
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.Mileage
@@ -4172,8 +4172,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_merchantid"
                         Default: =ThisItem.Merchant
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,Merchant)
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, Merchant)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,Merchant)
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, Merchant)
                         Required: =false
                         Update: =DataCardValue2_1.Text
                         Visible: =false
@@ -4283,11 +4283,11 @@ Screens:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
                       Properties:
-                        AllowedValues: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.AllowedValues, 'Legal entity')
+                        AllowedValues: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.AllowedValues, 'Legal entity')
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_intercompanyle"
                         Default: =varSelectedExpenseDoc.'Legal entity'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Legal entity')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Legal entity')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: |
                           =If(
@@ -4393,8 +4393,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_intercompanycategory"
                         Default: =ThisItem.'Intercompany project category'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Intercompany project category')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Intercompany project category')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Intercompany project category')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Intercompany project category')
                         Required: =false
                         Update: =curInterCompanyProjectCategory
                         Visible: |-
@@ -4532,7 +4532,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_projid"
                         Default: =varSelectedExpenseDoc.'Project ID'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Project ID')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Project ID')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: |-
                           =If(
@@ -4923,7 +4923,7 @@ Screens:
                               varSelectedExpenseDoc.Billable
                               //also check if the project chosen has a default projline property
                           )
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,Billable)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,Billable)
                         Required: =false
                         Update: =ComboBox4_1.Selected.mserp_lineproperty
                         Visible: ='Project ID_DataCard2_3'.Visible
@@ -5060,8 +5060,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_projactivitynumber"
                         Default: =varSelectedExpenseDoc.'Activity number'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Activity number')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Activity number')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Activity number')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Activity number')
                         Required: =false
                         Update: =ComboBox1_14.Selected.'Activity number'
                         Visible: ='Project ID_DataCard2_3'.Visible
@@ -5189,11 +5189,11 @@ Screens:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
                       Properties:
-                        AllowedValues: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.AllowedValues, 'Country/region (mserp_countryregion)')
+                        AllowedValues: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.AllowedValues, 'Country/region (mserp_countryregion)')
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_countryregion"
                         Default: =varSelectedExpenseDoc.'Country/region (mserp_countryregion)'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Country/region (mserp_countryregion)')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Country/region (mserp_countryregion)')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =ComboBox1_17.Selected.Code
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5488,11 +5488,11 @@ Screens:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
                       Properties:
-                        AllowedValues: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.AllowedValues, 'State/province')
+                        AllowedValues: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.AllowedValues, 'State/province')
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_addressstate"
                         Default: =varSelectedExpenseDoc.'State/province'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'State/province')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'State/province')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =ComboBox1_18.Selected.State
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -5791,11 +5791,11 @@ Screens:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
                       Properties:
-                        AllowedValues: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.AllowedValues, 'City (mserp_city)')
+                        AllowedValues: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.AllowedValues, 'City (mserp_city)')
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_city"
                         Default: =varSelectedExpenseDoc.'City (mserp_addresscity_name)'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'City (mserp_city)')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'City (mserp_city)')
                         Required: |-
                           =/*
                           If(
@@ -5957,7 +5957,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_addresszipcode"
                         Default: =ThisItem.'ZIP/postal code'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'ZIP/postal code')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'ZIP/postal code')
                         Required: |-
                           =If(
                               featureEnabled = "True",
@@ -6114,7 +6114,7 @@ Screens:
                           )
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_taxgroup"
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Sales tax group')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Sales tax group')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =ComboBox1_15.Selected.'Sales tax group'
                         Visible: =LookUp(labelTableLookUp,fieldName="TaxGroup",visible)
@@ -6314,7 +6314,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_taxitemgroup"
                         Default: =//varSelectedExpenseDoc.'Item sales tax group'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Item sales tax group')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Item sales tax group')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =ComboBox1_16.Selected.'Item sales tax group'
                         Visible: =LookUp(labelTableLookUp,fieldName="TaxItemGroup",visible)
@@ -6522,7 +6522,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_taxincluded"
                         Default: =varSelectedExpenseDoc.'Tax included'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Tax included')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Tax included')
                         Height: =120
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: |-
@@ -6769,7 +6769,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_correctedtaxamount"
                         Default: =ThisItem.'Actual sales tax amount'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Actual sales tax amount')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Actual sales tax amount')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =Value(DataCardValue25_1.Text,varDefaultLanguage)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -6882,7 +6882,7 @@ Screens:
                           ),
                           Value(DataCardValue4_1.Text)
                           ),"#,#0.00", varDefaultLanguage)
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Net transaction amount')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Net transaction amount')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -6930,8 +6930,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_entertainmentlocation"
                         Default: =ThisItem.'Location of entertainment'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Location of entertainment')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Location of entertainment')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Location of entertainment')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Location of entertainment')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue20_1.Text
                         Visible: |-
@@ -7026,7 +7026,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_billissuedto"
                         Default: =ThisItem.'Hotel bill issued to'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Hotel bill issued to')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Hotel bill issued to')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue19_1.Selected.Value
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Hotel
@@ -7295,7 +7295,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_reimburseamt"
                         Default: =ThisItem.'Reimbursement amount'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Reimbursement amount')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Reimbursement amount')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -7343,7 +7343,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_invoiceamt"
                         Default: =ThisItem.'Invoice amount'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Invoice amount')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Invoice amount')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -7391,7 +7391,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_deexpurchasedate"
                         Default: =varSelectedExpenseDoc.'Purchase Date'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Purchase Date')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Purchase Date')
                         Required: =true
                         Update: =DatePickerCanvas_PurchaseDate.SelectedDate
                         Width: =Parent.Width
@@ -7505,8 +7505,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_additionalinformation"
                         Default: =ThisItem.'Additional information'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Additional information')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Additional information')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Additional information')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Additional information')
                         Required: |-
                           =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                           true
@@ -7626,7 +7626,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_reason"
                         Default: =ThisItem.Reason
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,Reason)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,Reason)
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue15_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -7721,8 +7721,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_transactiontext"
                         Default: =ThisItem.'Internal note'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Internal note')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Internal note')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Internal note')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Internal note')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue18_1.Text
                         Visible: |-
@@ -7820,8 +7820,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_businesspurpose"
                         Default: =ThisItem.Purpose
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,Purpose)
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, Purpose)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,Purpose)
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, Purpose)
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue24_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -7914,8 +7914,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_receiptnumber"
                         Default: =ThisItem.'Receipt number'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Receipt number')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Receipt number')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Receipt number')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Receipt number')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue31_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -8008,8 +8008,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_ticketnumber"
                         Default: =ThisItem.'Ticket number'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Ticket number')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Ticket number')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Ticket number')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Ticket number')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue32_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -8104,7 +8104,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_ticketused"
                         Default: =ThisItem.'Ticket used'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Ticket used')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Ticket used')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue33_1.Selected.Value
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -8208,8 +8208,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_ticketclass"
                         Default: =ThisItem.'Ticket class'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Ticket class')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Ticket class')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Ticket class')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Ticket class')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Update: =DataCardValue34_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
@@ -8304,7 +8304,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_carrentalcheckoutdate"
                         Default: =ThisItem.'Car rental check out date'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Car rental check out date')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Car rental check out date')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.'Car rental'
                         Update: =DatePickerCanvas1_19.SelectedDate
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.'Car rental'
@@ -8421,7 +8421,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_returndate"
                         Default: =ThisItem.'Car rental return date'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Car rental return date')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Car rental return date')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.'Car rental'
                         Update: =DatePickerCanvas1_20.SelectedDate
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.'Car rental'
@@ -8538,8 +8538,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_checkoutlocation"
                         Default: =ThisItem.'Check out location'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Check out location')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Check out location')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Check out location')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Check out location')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.'Car rental'
                         Update: =DataCardValue35_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.'Car rental'
@@ -8631,7 +8631,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_vehicleclass"
                         Default: =ThisItem.'Vehicle class'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Vehicle class')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Vehicle class')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.'Car rental'
                         Update: =DataCardValue36_1.Selected.Value
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.'Car rental'
@@ -8733,7 +8733,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_checkindate"
                         Default: =ThisItem.'Check in date'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Check in date')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Check in date')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.Hotel
                         Update: =DatePickerCanvas1_21.SelectedDate
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Hotel
@@ -8850,7 +8850,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_checkoutdate"
                         Default: =ThisItem.'Check out date'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Check out date')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Check out date')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.Hotel
                         Update: =DatePickerCanvas1_22.SelectedDate
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Hotel
@@ -8967,7 +8967,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_totalroomnights"
                         Default: =ThisItem.'Number of nights'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Number of nights')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Number of nights')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.Hotel
                         Update: =Value(DataCardValue41_1.Text)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Hotel
@@ -9059,7 +9059,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_totaltaxamount"
                         Default: =ThisItem.'Total tax amount'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Total tax amount')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Total tax amount')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.Hotel
                         Update: =Value(DataCardValue42_1.Text)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Hotel
@@ -9154,7 +9154,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_totalroomrent"
                         Default: =ThisItem.'Total room rent'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Total room rent')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Total room rent')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.Hotel
                         Update: =Value(DataCardValue43_1.Text)
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Hotel
@@ -9246,8 +9246,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_travelagencyname"
                         Default: =ThisItem.'Travel Agency'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Travel Agency')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Travel Agency')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Travel Agency')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Travel Agency')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue44_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Airline
@@ -9339,8 +9339,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_travelagencyinvoicenumber"
                         Default: =ThisItem.'Travel agency invoice number'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Travel agency invoice number')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Travel agency invoice number')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Travel agency invoice number')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Travel agency invoice number')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.Airline
                         Update: =DataCardValue45_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Airline
@@ -9432,7 +9432,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_domesticindicator"
                         Default: =ThisItem.'Domestic flight'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Domestic flight')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Domestic flight')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.Airline
                         Update: =DataCardValue46_1.Selected.Value
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Airline
@@ -9534,7 +9534,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_serviceclass"
                         Default: =ThisItem.'Service class'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Service class')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Service class')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.Airline
                         Update: =DataCardValue47_1.Selected.Value
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Airline
@@ -9635,7 +9635,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_ticketissuedate"
                         Default: =ThisItem.'Ticket issue date'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Ticket issue date')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Ticket issue date')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && currExpenseType = 'TrvExpType (mserp)'.Airline
                         Update: =DatePickerCanvas1_23.SelectedDate
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible) && currExpenseType = 'TrvExpType (mserp)'.Airline
@@ -9848,8 +9848,8 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_defaultdimensiondisplayvalue"
                         Default: =ThisItem.'Default dimension display value'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,'Default dimension display value')
-                        MaxLength: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'], DataSourceInfo.MaxLength, 'Default dimension display value')
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Default dimension display value')
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Default dimension display value')
                         Required: =LookUp(labelTableLookUp,labelName=Self.DisplayName,required)
                         Update: =DataCardValue37_1.Text
                         Visible: =false
@@ -10083,7 +10083,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deexdelegatedworker"
                         Default: =ThisItem.'Delegated Worker'
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,mserp_deexdelegatedworker)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,mserp_deexdelegatedworker)
                         Required: =false
                         Update: |-
                           =If(
@@ -10192,8 +10192,8 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deexbeneficiary"
-                        Default: "=If(\n    // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용\n    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    varSelectedExpenseDoc.mserp_deexexpensebeneficiary, // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.\n    \n    // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지\n    ThisItem.mserp_deexexpensebeneficiary\n)"
-                        DisplayName: =DataSourceInfo([@'Expense Line Expense Mobile Entity (mserp)'],DataSourceInfo.DisplayName,mserp_deexbeneficiary)
+                        Default: "=If(\n    // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용\n    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.\n    \n    // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지\n    ThisItem.'Expense Beneficiary'\n)"
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,mserp_deexbeneficiary)
                         Height: =ErrorMessage24.Y + ErrorMessage24.Height + 5
                         Required: =false
                         Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n\n        // 3. 다른 직원 숫자 선택 (숫자 변환 실패 시 0)\n        valNoOfOtherStaff: IfError(Value(txt_NoOfOtherStaff.Text), 0),\n        \n        // 4. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 5. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, Name, \",\"), \n            NumberOfOtherStaff: valNoOfOtherStaff,\n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
@@ -11092,14 +11092,14 @@ Screens:
                   If(
                       !IsEmpty(colAttachedReceipts),
                       Patch(
-                          'Expense Line Expense Mobile Entity (mserp)',
+                          'DCSL Expense Line Expense Moblie Entity (mserp)',
                           varSelectedExpenseDoc,
                           {
                               AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
                           }
                       ),
                       Patch(
-                          'Expense Line Expense Mobile Entity (mserp)',
+                          'DCSL Expense Line Expense Moblie Entity (mserp)',
                           varSelectedExpenseDoc,
                           {
                               AttachedReceiptId: Blank()
@@ -11208,7 +11208,7 @@ Screens:
                           =// 현재 사용자의 기존 Expense 목록 불러오기 (조건은 비즈니스 로직에 맞게 조정 가능)
                           SortByColumns(
                               Filter(
-                                  'Expense Line Expense Mobile Entity (mserp)', 
+                                  'DCSL Expense Line Expense Moblie Entity (mserp)', 
                                   'Company (mserp_company)' = varSelectedLegalEntity &&
                                   'Expense Type' = varTargetExpenseType
                               ),
