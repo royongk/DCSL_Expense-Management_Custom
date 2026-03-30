@@ -141,13 +141,13 @@
         // 1. 기존 LCY에 문자열로 저장된 값("100.00 USD")에서 공백(" ")을 기준으로 금액과 통화를 분리
         UpdateContext({
             locOriginalAmount: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.mserp_deexcurrencyamountview) && Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview) > 0, 
-                Left(varSelectedExpenseDoc.mserp_deexcurrencyamountview, Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview) - 1),
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
+                Left(varSelectedExpenseDoc.LCY, Find(" ", varSelectedExpenseDoc.LCY) - 1),
                 Blank()
             ),
             locOriginalCurrency: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.mserp_deexcurrencyamountview) && Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview) > 0, 
-                Right(varSelectedExpenseDoc.mserp_deexcurrencyamountview, Len(varSelectedExpenseDoc.mserp_deexcurrencyamountview) - Find(" ", varSelectedExpenseDoc.mserp_deexcurrencyamountview)),
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
+                Right(varSelectedExpenseDoc.LCY, Len(varSelectedExpenseDoc.LCY) - Find(" ", varSelectedExpenseDoc.LCY)),
                 Blank()
             )
         });
@@ -4805,7 +4805,7 @@
                         DataCardValue4_1.Text & " " & ComboBox1_12.Selected.mserp_currencycode,
                         
                         // 신규 작성이 아니거나 값이 비어있는 경우 기존 문서의 LCY 값 유지
-                        varSelectedExpenseDoc.mserp_deexcurrencyamountview
+                        varSelectedExpenseDoc.LCY
                     )
                 Width: =640
                 WidthFit: =true
@@ -6760,7 +6760,7 @@
                         =UpdateContext({isDirty : true});
                     Reset: =true
                     SearchFields: =["mserp_activitynumber","mserp_purpose"]
-                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,mserp_activitynumber,mserp_purpose)
+                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,'Activity number',Purpose)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -7782,7 +7782,7 @@
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_salestaxgroup","mserp_description"]
-                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,mserp_salestaxgroup,mserp_description)
+                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,'Sales tax group',Description)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
