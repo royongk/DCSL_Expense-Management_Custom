@@ -322,6 +322,14 @@ App As appinfo:
             userRecord,
             LookUp('Expense mobile master data (mserp)',Email = User().Email)
         );
+        
+        // --- 추가할 방어 로직 시작 ---
+        If(
+            IsBlank(userRecord),
+            Notify("현재 로그인한 계정의 ERP(F&O) 마스터 데이터가 존재하지 않습니다.", NotificationType.Error, 10000)
+        );
+        // --- 추가할 방어 로직 끝 ---
+        
         Set(
             varDefaultSalesTaxGroupUserContext,
             userRecord.WorkerDefaultTaxGroup
@@ -355,7 +363,7 @@ App As appinfo:
         );
         
         If(
-            LookUp('Legal entities (mserp)',Company = varDefaultLegalEntity,IsEmployed) = 'NoYes (mserp)'.Yes,
+            LookUp('Legal entities (mserp)',Company = varDefaultLegalEntity).IsEmployed = 'NoYes (mserp)'.Yes,
             Set(
                 varSelectedLegalEntity, Upper(Text(varDefaultLegalEntity))
             ),
@@ -367,7 +375,7 @@ App As appinfo:
         ClearCollect(
             collectionICLE,
             ForAll(
-            Split(LookUp('Legal entities (mserp)', Upper(Company) = varSelectedLegalEntity,IntercompanyLEs), ",") As legalEntityAlias,
+            Split(Coalesce(LookUp('Legal entities (mserp)', Upper(Company) = varSelectedLegalEntity).IntercompanyLEs, ""), ",") As legalEntityAlias,
             {
                 Value: Upper(legalEntityAlias.Value)
             }
@@ -377,7 +385,7 @@ App As appinfo:
             !IsBlank(varSelectedLegalEntity),
             Set(
                 varDefaultCurrency,
-                LookUp('Legal entities (mserp)',Company = varSelectedLegalEntity, Currency)
+                LookUp('Legal entities (mserp)',Company = varSelectedLegalEntity).Currency
             )
         );
         ////////////////Concurrent API calls to get master data and expense lines data//////////////////
@@ -435,17 +443,12 @@ App As appinfo:
             blankImage,
             "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAADBQTFRFpaWl////5ubmrKystLS0zMzM8fHx3NzcpKSkvLy8+fn5/f39oaGhxMTE09PTp6enixYligAAAx9JREFUeNrsmst25CAMRM1bSID//28Hd3LmkTOOES46G9cmiyxuC8pClL1tjx49evTo0aNHjx49+lFR13uJpRzI/QP9PjbtzufQukKo3jnqv+MdXFebjZFNlwhHa4N3y9FELlgxL33+MYZjqm7pihfy4aPUfyQsHb0vLHqv1pyJm98Xkck1PuWKkVgXkX06574Uw14W1OvT99heNLcFNXtrroUn0whX2HAAm9s1MSMSrtB6t8DmS9c4dVjGlUyUrRlWwm1zcQqukQDrnqWyKMDWFVTHsgpuf6YqCpxZw4WVTHszOnEuBbLSUQk2YQPYi7q1tGDrEAUX7UofTQSyxUkN5rxjtli05FYQ59IUmH4GnAgBVpu6gzcEWCbAO6ZiLVoSYOo79li92A0CthOuRpjLTYARs8DRuUTfMgFgauqCrUcciyWrvZUcQU4Jq3yY+nmMmfWCdos9aOjyuhFEUBco7dDVRy7UXJ2jrm2hBnrdEBIz7ro4dEn93bWgV+ThxWbrkXHE0b7G+pfN2It5cWPbHOuGzSJoc0lGuPiArxxk/r5Vdu6CvGlz7XzePBwgMa9J2Mo3iWLncvJlRb0fz3OLZxXHQMu4veYQz5JMm92i/PYVVcdza0cb/IYnF/I18lUG0fB5ucuWP8x76uvjfxYb1dPm28DgdaDZ5q3guMEOD3zCAZZz+aQZBOR4oDHLrMwi2GBa2BGg6iZrlt60bxdc1dzP1xM30bW3jImbueFwx9zUuUamuHyHTMeoNcV9OWz+IlNmAp8/ZJ512FQW8DfZ+skoIN3hHmdl8jR19jKbe5I2lxaLuauJt1DFWwOQfpvp5gb/idqU25wjgqtf7N0aDFiXS3RnRQOStP1trePLXKApObDBqY2nXt4KEDyeTZRqoBofChIWPJpOKNOlAX8Nvl6lZsAaa1/kIxo89sqv3D8O/2OvoZQYD7YjjzJ+pYdyVaIgePBAdE6gg1j9skD7CQRsEqEVWzzyiQZlXsAVCZe2DrJgqfuIffUk72nFSsv1hxLOrgFfjV6LvCWX7irZrAGbC3dRNYv0FfxLgAEAUtErPzTrdUYAAAAASUVORK5CYII="
         );
-        // 기존 코드 주석 처리 또는 삭제
-        // Set(
-        //     userImage,
-        //     LookUp('View User image for Expense Mobile (mserp)',User = userRecord.ID,UserImage)
-        // );
         
         // 수정된 코드
         Set(
             userImage,
             IfError(
-                LookUp('View User image for Expense Mobile (mserp)', User = userRecord.ID, UserImage),
+                LookUp('View User image for Expense Mobile (mserp)',User = userRecord.ID).UserImage,
                 blankImage // 에러가 발생하면(이미지가 없어 직렬화 에러가 나면) 미리 정의해둔 blankImage를 사용합니다.
             )
         );
