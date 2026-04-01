@@ -323,20 +323,16 @@ App As appinfo:
             LookUp('Expense mobile master data (mserp)',Email = User().Email)
         );
         
-        // --- 추가할 방어 로직 시작 ---
-        If(
-            IsBlank(userRecord),
-            Notify("현재 로그인한 계정의 ERP(F&O) 마스터 데이터가 존재하지 않습니다.", NotificationType.Error, 10000)
-        );
-        // --- 추가할 방어 로직 끝 ---
+        // 방어 로직: F&O에 유저 데이터가 없을 경우 에러 방지
+        If(IsBlank(userRecord), Notify("ERP 사용자 마스터 데이터가 존재하지 않습니다.", NotificationType.Error, 5000));
         
         Set(
             varDefaultSalesTaxGroupUserContext,
-            userRecord.WorkerDefaultTaxGroup
+            Coalesce(userRecord.WorkerDefaultTaxGroup, "")
         );
         Set(
             varDefaultLegalEntity,
-            userRecord.UserPreferredLegalEntity
+            Coalesce(userRecord.UserPreferredLegalEntity, "")
         );
         //Set(
         //    varDefaultLanguage,
@@ -385,7 +381,7 @@ App As appinfo:
             !IsBlank(varSelectedLegalEntity),
             Set(
                 varDefaultCurrency,
-                LookUp('Legal entities (mserp)',Company = varSelectedLegalEntity).Currency
+                Coalesce(LookUp('Legal entities (mserp)', Company = varSelectedLegalEntity).Currency, "")
             )
         );
         ////////////////Concurrent API calls to get master data and expense lines data//////////////////
