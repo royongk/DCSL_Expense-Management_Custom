@@ -198,7 +198,7 @@
                         If(
                             !IsBlank(varSelectedReport),
                             Text(
-                                Value(varSelectedReport.AmountTotal),
+                                Value(varSelectedReport.'Amount (mserp_amounttotal)'),
                                 "#,#0.00",
                                 varDefaultLanguage
                             ),
@@ -263,7 +263,7 @@
                     If(
                         IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)') && 
                         IsBlank(ComboBox_Purpose.SearchText) && 
-                        IsBlank(varSelectedReport.Purpose),
+                        IsBlank(varSelectedReport.'Purpose (mserp_purpose)'),
                         UpdateContext({varPurposeValidationFailed: true});
                         Notify(
                             Coalesce(
@@ -309,7 +309,7 @@
                                         'Expense reports (mserp)_1',
                                         LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
                                         {
-                                            Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                            'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                             Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                             Description: scr17_txt_Description_1.Text,
                                             'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
@@ -404,7 +404,7 @@
                     If(
                         IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)') && 
                         IsBlank(ComboBox_Purpose.SearchText) && 
-                        IsBlank(varSelectedReport.Purpose),
+                        IsBlank(varSelectedReport.'Purpose (mserp_purpose)'),
                         UpdateContext({varPurposeValidationFailed: true});
                         Notify(
                             Coalesce(
@@ -439,7 +439,7 @@
                                      'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
                                  )
                              ) > 0) &&
-                            Value(varSelectedReport.AmountTotal) > Value(varSelectedTravelReq.'Amount to reconcile'),
+                            Value(varSelectedReport.'Amount (mserp_amounttotal)') > Value(varSelectedTravelReq.'Amount to reconcile'),
                             
                             // 2. 유효성 검사 실패 시 (Validation Failed)
                             Notify(
@@ -461,7 +461,7 @@
                                                 'Expense reports (mserp)_1',
                                                 Defaults('Expense reports (mserp)_1'),
                                                 {
-                                                    Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                    'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                                     Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),
                                                     Description: scr17_txt_Description_1.Text,
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
@@ -497,7 +497,7 @@
                                                 'Expense reports (mserp)_1',
                                                 LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
                                                 {
-                                                    Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose, ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                    'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                                     Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location, ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                                     Description: scr17_txt_Description_1.Text,
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
@@ -961,7 +961,7 @@
                         
                         // 2. 수정 모드일 때 (varIsCreateReport = false)
                         // 데이터베이스에 저장된 기존 보고서의 Purpose 값을 그대로 불러옵니다.
-                        LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.Purpose)
+                        LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.'Purpose (mserp_purpose)')
                     )
                 DisplayFields: =["mserp_value"]
                 DisplayMode: |-
@@ -974,12 +974,7 @@
                         DisplayMode.Edit
                     )
                 Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
-                InputTextPlaceholder: |-
-                    =/*If(IsBlank(varSelectedReport.Purpose),
-                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_TitlePlaceholderLabel',
-                    varSelectedReport.Purpose)
-                    */
-                    "Select Purpose"
+                InputTextPlaceholder: ="Select Purpose"
                 Items: |
                     =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
                 LayoutMaxHeight: =
@@ -988,7 +983,7 @@
                 LayoutMinWidth: =575
                 OnChange: |-
                     =If(
-                        ComboBox_Purpose.Selected.'Purpose (mserp_value)' <> varSelectedReport.Purpose,
+                        ComboBox_Purpose.Selected.'Purpose (mserp_value)' <> varSelectedReport.'Purpose (mserp_purpose)',
                             UpdateContext({isExpReportDirty : true})
                     );
                 OnSelect: |-
@@ -2134,7 +2129,7 @@
                                             'Expense reports (mserp)_1',
                                             Defaults('Expense reports (mserp)_1'),
                                             {
-                                                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                                 Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                                 Description: scr17_txt_Description_1.Text,
                                                 'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
@@ -2165,7 +2160,7 @@
                                     varCntBack_scr17: true,
                                     // 네비게이션 플래그를 'scr17_Create'로 지정해 새 경비 생성 후 Report 연결을 지시함
                                     varNavigatedFrom: "scr17_Create", 
-                                    ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.Purpose, ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)')
+                                    ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)')
                                 }
                             ),
                             Notify(Substitute(varCreateError, """", ""), NotificationType.Error, gblParams.notificationTime)
@@ -2209,7 +2204,7 @@
                                             'Expense reports (mserp)_1',
                                             Defaults('Expense reports (mserp)_1'),
                                             {
-                                                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                                 Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                                 Description: scr17_txt_Description_1.Text,
                                                 'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
@@ -2240,7 +2235,7 @@
                                     varCntBack_scr17: true,
                                     // 네비게이션 플래그를 'scr17_Create'로 지정해 새 경비 생성 후 Report 연결을 지시함
                                     varNavigatedFrom: "scr17_Create", 
-                                    ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.Purpose, ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)')
+                                    ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)')
                                 }
                             ),
                             Notify(Substitute(varCreateError, """", ""), NotificationType.Error, gblParams.notificationTime)
@@ -2276,7 +2271,7 @@
                                             'Expense reports (mserp)_1',
                                             Defaults('Expense reports (mserp)_1'),
                                             {
-                                                Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose,                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
                                         Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
                                                 Description: scr17_txt_Description_1.Text,
                                                 'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
@@ -2313,7 +2308,7 @@
                                     // [추가] 다음 화면 필터링을 위해 현재 선택된 Purpose 값을 전달합니다.
                                     ctxTargetPurpose: If(
                                         IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                        If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.Purpose, ComboBox_Purpose.SearchText),
+                                        If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText),
                                         ComboBox_Purpose.Selected.'Purpose (mserp_value)'
                                     )
                                 }

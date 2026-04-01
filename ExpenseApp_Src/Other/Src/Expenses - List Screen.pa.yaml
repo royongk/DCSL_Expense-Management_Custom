@@ -276,7 +276,7 @@ Screens:
               ClearCollect(colFromAttached,
                   Filter(
                       'Expense Mobile Attached Document Entity (mserp)',
-                      'Reference record ID' = Value(varSelectedExpenseDoc.mserp_expenserecid)
+                      'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
                   )
               );
 
@@ -296,7 +296,7 @@ Screens:
                   colFromUnattached,
                   Filter(
                       colMyUnattachedTemp,
-                      ExpTransNumber = varSelectedExpenseDoc.mserp_exptransnumber
+                      ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
                   )
               );
 
@@ -353,13 +353,13 @@ Screens:
               // collect policy violations
 
               If(
-                  varSelectedExpenseDoc.mserp_policyviolationcount,
+                  varSelectedExpenseDoc.PolicyViolationCount,
                   ClearCollect(
                       colPolViolations,
-                      Split(varSelectedExpenseDoc.mserp_policyviolationerrormessage, "~|~")
+                      Split(varSelectedExpenseDoc.PolicyViolationErrorMessage, "~|~")
                   );
-                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.mserp_policyviolationslevel});
-                  UpdateContext({varNumViolation : varSelectedExpenseDoc.mserp_policyviolationcount}),
+                  UpdateContext({varMaxViolationLevel : varSelectedExpenseDoc.PolicyViolationsLevel});
+                  UpdateContext({varNumViolation : varSelectedExpenseDoc.PolicyViolationCount}),
                   Clear(colPolViolations);
                   UpdateContext({varMaxViolationLevel : 0});
                   UpdateContext({varNumViolation : 0})
