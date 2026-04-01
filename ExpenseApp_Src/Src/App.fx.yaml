@@ -72,7 +72,11 @@ App As appinfo:
         costCenterFieldOrder_Y = 60;
         projectFieldOrder_Y = 61;
         
-        gblIsProjectValidationFlag = LookUp('Expense management parameters (mserp)','Company Code' = varSelectedLegalEntity).'Enable project validations' = 'NoYes (mserp)'.Yes;
+        gblIsProjectValidationFlag = If(
+            IsBlank(varSelectedLegalEntity), 
+            false, 
+            LookUp('Expense management parameters (mserp)','Company Code' = varSelectedLegalEntity).'Enable project validations' = 'NoYes (mserp)'.Yes
+        );
         
         
     MinScreenWidth: =320
