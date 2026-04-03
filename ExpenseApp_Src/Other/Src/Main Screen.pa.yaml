@@ -11,6 +11,40 @@ Screens:
     Properties:
       Fill: =RGBA(245, 246, 248, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =// 1. 사용자 이메일 및 마스터 권한 확인
+        Set(varUserEmail, User().Email);
+        Set(
+            varIsOwner, 
+            varUserEmail in ["PowerApps.Admin@dulwich-seoul.kr"]
+        );
+
+        // 2. [성능 최적화] Office 365 그룹 권한 체크를 '병렬(Concurrent)'로 동시에 실행하여 로딩 속도 대폭 향상
+        Concurrent(
+            Set(
+                varIsLocal, 
+                !IsBlank(LookUp(Office365그룹.ListGroupMembers("b9c7b018-c604-4a68-b9ab-e61b0a265f23").value, mail = varUserEmail))
+            ),
+            Set(
+                varIsFull, 
+                !IsBlank(LookUp(Office365그룹.ListGroupMembers("f135e183-009e-48d8-b88a-71850795b8cf").value, mail = varUserEmail))
+            ),
+            Set(
+                varIsExpat, 
+                !IsBlank(LookUp(Office365그룹.ListGroupMembers("f7691104-2166-43db-a229-fbb15179fc47").value, mail = varUserEmail))
+            )
+        );
+
+        // 3. Main Screen 랜딩 페이지 메뉴 구성용 컬렉션 생성 (권한 검증 완료 후 실행)
+        ClearCollect(
+            colLandingMenu,
+            { DisplayName: "Expense Reimbursement", Category: "Finance", AppMode: "ExpenseReport", IsVisible: varIsOwner Or varIsLocal Or varIsFull Or varIsExpat },
+            { DisplayName: "School Trip Expense Settlement", Category: "Finance", AppMode: "BillingTripSettlement", IsVisible: varIsOwner Or varIsLocal Or varIsFull Or varIsExpat },
+            { DisplayName: "Cash Advance / Settlement", Category: "Finance", AppMode: "CashAdvance", IsVisible: varIsOwner Or varIsFull },
+            { DisplayName: "Airfare & Shipping Allowance Claim", Category: "HR", AppMode: "AirfareAllowance", IsVisible: varIsOwner Or varIsExpat Or varIsFull },
+            { DisplayName: "Employee Benefits Claim", Category: "HR", AppMode: "EmployeeBenefit", IsVisible: varIsOwner Or varIsLocal Or varIsFull },
+            { DisplayName: "Salary Advance", Category: "HR", AppMode: "SalaryAdvance", IsVisible: varIsOwner Or varIsFull }
+        );
     Children:
       - MainScreen_Logo:
           Control: Image@2.2.3
