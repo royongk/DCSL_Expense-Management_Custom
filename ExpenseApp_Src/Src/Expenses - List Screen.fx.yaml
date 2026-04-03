@@ -225,19 +225,36 @@
                 
             )
         Items: |-
-            =Filter(
-                SortByColumns('DCSL Expense Line Expense Moblie Entity (mserp)', "mserp_transdate", SortOrder.Descending),
-                'Company (mserp_company)' = varSelectedLegalEntity && 
-                'Approval status' = 'Document status (mserp)'.Draft && 
-                IsBlank('Expense report number (mserp_expnumber)') && 
-                ('Expense line type' = 'Expense line type (mserp)'.Default 
-                || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&
-                'Expense Type' = varTargetExpenseType &&
+            =If(
+                // 1. 위임자 목록(colActiveDelegations)이 비어있는 경우: 'in' 구문을 제외하고 본인 데이터만 검색합니다.
+                IsEmpty(colActiveDelegations),
+                Filter(
+                    SortByColumns('DCSL Expense Line Expense Moblie Entity (mserp)', "mserp_transdate", SortOrder.Descending),
+                    'Company (mserp_company)' = varSelectedLegalEntity && 
+                    'Approval status' = 'Document status (mserp)'.Draft && 
+                    IsBlank('Expense report number (mserp_expnumber)') && 
+                    ('Expense line type' = 'Expense line type (mserp)'.Default 
+                    || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&
+                    'Expense Type' = varTargetExpenseType &&
+                    
+                    // 본인의 ID만 확인
+                    'Employee (mserp_creatingworker)' = userRecord.CreatingWorker
+                ),
                 
-                // 👇 [핵심 추가 로직] 본인의 ID이거나, 위임자 목록(colActiveDelegations)의 Employee ID에 포함되는 경우
-                (
-                    'Employee (mserp_creatingworker)' = userRecord.CreatingWorker ||
-                    'Employee (mserp_creatingworker)' in colActiveDelegations.Employee
+                // 2. 위임자 목록이 존재하는 경우: 기존처럼 본인 ID와 위임자 목록을 함께 검색합니다.
+                Filter(
+                    SortByColumns('DCSL Expense Line Expense Moblie Entity (mserp)', "mserp_transdate", SortOrder.Descending),
+                    'Company (mserp_company)' = varSelectedLegalEntity && 
+                    'Approval status' = 'Document status (mserp)'.Draft && 
+                    IsBlank('Expense report number (mserp_expnumber)') && 
+                    ('Expense line type' = 'Expense line type (mserp)'.Default 
+                    || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&
+                    'Expense Type' = varTargetExpenseType &&
+                    
+                    (
+                        'Employee (mserp_creatingworker)' = userRecord.CreatingWorker ||
+                        'Employee (mserp_creatingworker)' in colActiveDelegations.Employee
+                    )
                 )
             )
         Layout: =Layout.Vertical
