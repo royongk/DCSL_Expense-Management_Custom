@@ -11,7 +11,7 @@ Screens:
     Properties:
       Fill: =RGBA(229, 229, 229, 1)
       LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
-      OnVisible: "=// 변수 초기화\nUpdateContext({varCntBack:false});\n\n// ctxTargetPurpose 값의 존재 여부 및 varAppMode에 따라 쿼리 분기 처리 (위임 문제 해결)\nIf(\n    IsBlank(ctxTargetPurpose),\n    \n    // 1. ctxTargetPurpose가 비어있을 때 (전체 표시)\n    ClearCollect(\n        dsExpenses,\n        SortByColumns(\n            Filter(\n                'DCSL Expense Line Expense Moblie Entity (mserp)',\n                'Company (mserp_company)' = varSelectedLegalEntity && \n                'Approval status' = 'Document status (mserp)'.Draft && \n                IsBlank('Expense report number (mserp_expnumber)') && \n                ('Expense line type' = 'Expense line type (mserp)'.Default || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header')\n            ),\n            \"mserp_transdate\", \n            SortOrder.Descending\n        )\n    ),\n\n    // 2. ctxTargetPurpose가 값이 있을 때\n    If(\n        varAppMode = \"AirfareAllowance\",\n        \n        // 2-A. varAppMode가 \"AirfareAllowance\"인 경우\n        ClearCollect(\n            dsExpenses,\n            SortByColumns(\n                Filter(\n                    'DCSL Expense Line Expense Moblie Entity (mserp)',\n                    'Company (mserp_company)' = varSelectedLegalEntity && \n                    'Approval status' = 'Document status (mserp)'.Draft && \n                    IsBlank('Expense report number (mserp_expnumber)') && \n                    ('Expense line type' = 'Expense line type (mserp)'.Default || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&\n                    'Expense category (mserp_costtype)' = ctxTargetPurpose // *주의: 선택(Choice) 열이라면 'Item or Service'.Value = ctxTargetPurpose 로 수정 필요\n                ),\n                \"mserp_transdate\", \n                SortOrder.Descending\n            )\n        ),\n        \n        // 2-B. varAppMode가 \"AirfareAllowance\"가 아닌 경우\n        ClearCollect(\n            dsExpenses,\n            SortByColumns(\n                Filter(\n                    'DCSL Expense Line Expense Moblie Entity (mserp)',\n                    'Company (mserp_company)' = varSelectedLegalEntity && \n                    'Approval status' = 'Document status (mserp)'.Draft && \n                    IsBlank('Expense report number (mserp_expnumber)') && \n                    ('Expense line type' = 'Expense line type (mserp)'.Default || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&\n                    'Expense Type' = ctxTargetPurpose // *주의: 선택(Choice) 열이라면 'Expense Type'.Value 로 수정 필요\n                ),\n                \"mserp_transdate\", \n                SortOrder.Descending\n            )\n        )\n    )\n);\n\n// 나머지 컬렉션 초기화 로직 유지\nClearCollect(colExpensesToBeAttached, colAttachedExpenses);\nClearCollect(colAttachedExpensesForReport, colAttachedExpenses);"
+      OnVisible: "=Clear(colExpensesToBeAttached);\n\n// 변수 초기화\nUpdateContext({varCntBack:false});\n\n// ctxTargetPurpose 값의 존재 여부 및 varAppMode에 따라 쿼리 분기 처리 (위임 문제 해결)\nIf(\n    IsBlank(ctxTargetPurpose),\n    \n    // 1. ctxTargetPurpose가 비어있을 때 (전체 표시)\n    ClearCollect(\n        dsExpenses,\n        SortByColumns(\n            Filter(\n                'DCSL Expense Line Expense Moblie Entity (mserp)',\n                'Company (mserp_company)' = varSelectedLegalEntity && \n                'Approval status' = 'Document status (mserp)'.Draft && \n                IsBlank('Expense report number (mserp_expnumber)') && \n                // [핵심 추가] 전달받은 사용자 ID로 필터링\n                'Employee (mserp_creatingworker)' = ctxSelectedWorkerID &&\n                ('Expense line type' = 'Expense line type (mserp)'.Default || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header')\n            ),\n            \"mserp_transdate\", \n            SortOrder.Descending\n        )\n    ),\n\n    // 2. ctxTargetPurpose가 값이 있을 때\n    If(\n        varAppMode = \"AirfareAllowance\",\n        \n        // 2-A. varAppMode가 \"AirfareAllowance\"인 경우\n        ClearCollect(\n            dsExpenses,\n            SortByColumns(\n                Filter(\n                    'DCSL Expense Line Expense Moblie Entity (mserp)',\n                    'Company (mserp_company)' = varSelectedLegalEntity && \n                    'Approval status' = 'Document status (mserp)'.Draft && \n                    IsBlank('Expense report number (mserp_expnumber)') && \n                    'Employee (mserp_creatingworker)' = ctxSelectedWorkerID &&\n                    ('Expense line type' = 'Expense line type (mserp)'.Default || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&\n                    'Expense category (mserp_costtype)' = ctxTargetPurpose // *주의: 선택(Choice) 열이라면 'Item or Service'.Value = ctxTargetPurpose 로 수정 필요\n                ),\n                \"mserp_transdate\", \n                SortOrder.Descending\n            )\n        ),\n        \n        // 2-B. varAppMode가 \"AirfareAllowance\"가 아닌 경우\n        ClearCollect(\n            dsExpenses,\n            SortByColumns(\n                Filter(\n                    'DCSL Expense Line Expense Moblie Entity (mserp)',\n                    'Company (mserp_company)' = varSelectedLegalEntity && \n                    'Approval status' = 'Document status (mserp)'.Draft && \n                    IsBlank('Expense report number (mserp_expnumber)') && \n                    'Employee (mserp_creatingworker)' = ctxSelectedWorkerID &&\n                    ('Expense line type' = 'Expense line type (mserp)'.Default || 'Expense line type' = 'Expense line type (mserp)'.'Itemized header') &&\n                    'Expense Type' = ctxTargetPurpose // *주의: 선택(Choice) 열이라면 'Expense Type'.Value 로 수정 필요\n                ),\n                \"mserp_transdate\", \n                SortOrder.Descending\n            )\n        )\n    )\n);\n\n// 나머지 컬렉션 초기화 로직 유지\nClearCollect(colExpensesToBeAttached, colAttachedExpenses);\nClearCollect(colAttachedExpensesForReport, colAttachedExpenses);"
     Children:
       - scr18_btn_Done:
           Control: Classic/Button@2.2.0
@@ -25,59 +25,7 @@ Screens:
             HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
             HoverColor: =RGBA(255, 255, 255, 1)
             HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-            OnSelect: |
-              =//on pressing done, we navigate back to previous screen having updated the colAttachedExpenses based on whether checked or //unchecked
-              ClearCollect(
-                  colAttachedExpenses,
-                  colExpensesToBeAttached
-              );
-              //colAttachedExpenses now contains those expenses which remain to be attached and those which are attached already
-              //any expense not part of this list will be unattached from the chosen report
-              IfError(
-                  Patch(
-                      'Expense reports (mserp)_1',
-                      LookUp('Expense reports (mserp)_1','Expense report number' = varSelectedReport.'Expense report number'),
-                      {
-                          DEEXExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', ","),
-                          'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                          Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                          Description: scr17_txt_Description_1.Text
-                      }
-                  ),
-                  First( ClearCollect( varError, Substitute( Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "" ) ) )
-              );
-              If(
-                  !(IsBlank(First(varError).Value) || First(varError).Value = ""),
-                  Notify(
-                      Substitute(First(varError).Value, """", ""),
-                      NotificationType.Error,
-                      gblParams.notificationTime
-                  ),
-                  If(
-                      varCntBack_scr17,
-                      Navigate('Reports - Edit Screen'),
-                      Navigate('Reports - View Attached Expenses Screen')
-                  )
-              );
-              UpdateContext({varReportNumber : varSelectedReport.'Expense report number'});
-              Set(
-                  varSelectedReport,
-                  LookUp('Expense reports (mserp)_1','Expense report number' = varReportNumber)
-              );
-              ClearCollect(
-                  colAttachedExpensesForReport,
-                  Filter(
-                      'DCSL Expense Line Expense Moblie Entity (mserp)',
-                      'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
-                      && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
-                  )
-              );
-              Refresh('DCSL Expense Line Expense Moblie Entity (mserp)');
-              ClearCollect(
-                  colAttachedExpenses,
-                  colAttachedExpensesForReport
-              );
-              Clear(varError)
+            OnSelect: "=// 1. 선택된 항목을 첨부 컬렉션으로 복사\nClearCollect(colAttachedExpenses, colExpensesToBeAttached);\n\n// 2. F&O 백엔드로 쉼표로 연결된 문자열(DEEXExpTransNumber) 전송\nIfError(\n    Patch(\n        'Expense reports (mserp)_1',\n        LookUp('Expense reports (mserp)_1','Expense report number' = varSelectedReport.'Expense report number'),\n        {\n            DEEXExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', \",\"),\n            // [개선] scr17의 컨트롤 직접 참조 대신 전달받은 ctxTargetPurpose 변수 사용\n            'Purpose (mserp_purpose)': Coalesce(ctxTargetPurpose, varSelectedReport.'Purpose (mserp_purpose)'),\n            Location: varSelectedReport.Location // Edit Screen에서 이미 Location은 저장되었으므로 varSelectedReport 참조\n        }\n    ),\n    First(ClearCollect(varError, Substitute(Match(FirstError.Details.HttpResponse, \"\"\"message\"\":\"\"([^\"\"]*)\"\"\").FullMatch, \"\"\"message\"\":\", \"\")))\n);\n\n// 3. 에러 핸들링 및 화면 이동\nIf(\n    !(IsBlank(First(varError).Value) || First(varError).Value = \"\"),\n    Notify(Substitute(First(varError).Value, \"\"\"\", \"\"), NotificationType.Error, gblParams.notificationTime),\n    \n    // 에러가 없을 때만 이동 수행\n    If(\n        varCntBack_scr17,\n        Navigate('Reports - Edit Screen'),\n        Navigate('Reports - View Attached Expenses Screen')\n    )\n);\n\n// 4. 데이터 소스 갱신 및 상태 동기화 (화면 이동이 일어난 직후 백그라운드에서 갱신됨)\nUpdateContext({varReportNumber : varSelectedReport.'Expense report number'});\nSet(varSelectedReport, LookUp('Expense reports (mserp)_1','Expense report number' = varReportNumber));\n\nRefresh('DCSL Expense Line Expense Moblie Entity (mserp)');\n\nClearCollect(\n    colAttachedExpensesForReport,\n    Filter(\n        'DCSL Expense Line Expense Moblie Entity (mserp)',\n        'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' \n        && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'\n    )\n);\n\nClearCollect(colAttachedExpenses, colAttachedExpensesForReport);\nClear(varError);"
             PressedBorderColor: =Self.Fill
             PressedColor: =Self.Fill
             PressedFill: =Self.Color

@@ -936,14 +936,11 @@
                 Default: =Blank()
                 DefaultSelectedItems: |-
                     =If(
-                        // 1. 신규 생성 모드일 때 (varIsCreateReport = true)
                         varIsCreateReport,
                         If(
-                            // 기존 로직 유지 (특정 출장 요청이 연결된 경우)
                             !IsBlank(varSelectedTravelReq) && varAppMode = "AirfareAllowance",
-                            LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedTravelReq.'Business purpose'),
+                            LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedTravelReq.'Business purpose' && 'Company Code' = varSelectedLegalEntity),
                             
-                            // 추가 로직: varAppMode에 따라 목적(Purpose) 자동 매핑
                             !IsBlank(varAppMode),
                             LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = Switch(
                                 varAppMode,
@@ -952,16 +949,12 @@
                                 "CashAdvance", "Cash Advance",
                                 "EmployeeBenefit", "Employee Benefit",
                                 "SalaryAdvance", "Salary Advance",
-                                Blank()                              // 매핑되지 않은 AppMode일 경우 Blank 처리
-                            )),
+                                Blank()
+                            ) && 'Company Code' = varSelectedLegalEntity),
                             
-                            // AppMode가 없을 경우 기본값
                             Blank()
                         ),
-                        
-                        // 2. 수정 모드일 때 (varIsCreateReport = false)
-                        // 데이터베이스에 저장된 기존 보고서의 Purpose 값을 그대로 불러옵니다.
-                        LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.'Purpose (mserp_purpose)')
+                        LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedReport.'Purpose (mserp_purpose)' && 'Company Code' = varSelectedLegalEntity)
                     )
                 DisplayFields: =["mserp_value"]
                 DisplayMode: |-
@@ -1545,11 +1538,10 @@
             ComboBox_Location As combobox:
                 AccessibleLabel: ="Dropdown to enter location"
                 DefaultSelectedItems: |-
-                    =//LookUp('Travel locations (mserp)', Location = varSelectedReport.Location)
-                    If(
+                    =If(
                         varIsCreateReport && !IsBlank(varSelectedTravelReq) && varAppMode = "AirfareAllowance",
-                        LookUp('Travel locations (mserp)', Location = varSelectedTravelReq.Destination),
-                        LookUp('Travel locations (mserp)', Location = varSelectedReport.Location)
+                        LookUp('Travel locations (mserp)', Location = varSelectedTravelReq.Destination && 'Company Code' = varSelectedLegalEntity),
+                        LookUp('Travel locations (mserp)', Location = varSelectedReport.Location && 'Company Code' = varSelectedLegalEntity)
                     )
                 DisplayFields: =["mserp_destination"]
                 Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
@@ -2118,41 +2110,63 @@
                     HoverColor: =Self.Color
                     HoverFill: =
                     OnSelect: |-
-                        =If(
-                            varIsCreateReport,
-                            UpdateContext({varCreateError: Blank()});
-                            Clear(varError);
-                            With(
-                                {
-                                    patchedReport: IfError(
-                                        Patch(
-                                            'Expense reports (mserp)_1',
-                                            Defaults('Expense reports (mserp)_1'),
-                                            {
-                                                'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                                Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                                Description: scr17_txt_Description_1.Text,
-                                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
-                                            }
-                                        ),
-                                        UpdateContext({
-                                                varCreateError : 
-                                                Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")
-                                            }
-                                        );
-                                        Blank()
-                                    )
-                                },
-                                If(!IsBlank(patchedReport), Set(varSelectedReport, patchedReport))
-                            )
+                        =// 1. 에러 및 상태 변수 무조건 초기화 (최상단으로 분리)
+                        UpdateContext({varCreateError: Blank(), varPurposeValidationFailed: false});
+                        
+                        // 2. 필수 값 유효성 검사 (Purpose 및 Delegate Employee 체크)
+                        If(
+                            varIsCreateReport && IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)') && IsBlank(ComboBox_Purpose.SearchText) && IsBlank(varSelectedReport.'Purpose (mserp_purpose)'),
+                            UpdateContext({varPurposeValidationFailed: true});
+                            UpdateContext({varCreateError: Coalesce(GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterPurposeLabel', "Purpose field is required.")})
                         );
                         
                         If(
+                            varIsCreateReport && !IsEmpty(colActiveDelegations) && IsBlank(ComboBox_Employee.Selected.WorkerID), 
+                            UpdateContext({varPurposeValidationFailed: true});
+                            UpdateContext({varCreateError: "Delegate Employee field is required."})
+                        );
+                        
+                        // 3. 유효성 검사 통과 시에만 Patch(보고서 생성) 실행
+                        If(
+                            !varPurposeValidationFailed,
+                            If(
+                                varIsCreateReport,
+                                Clear(varError);
+                                With(
+                                    {
+                                        patchedReport: IfError(
+                                            Patch(
+                                                'Expense reports (mserp)_1',
+                                                Defaults('Expense reports (mserp)_1'),
+                                                {
+                                                    'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'), If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText), ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                    Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
+                                                    Description: scr17_txt_Description_1.Text,
+                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                                    // 💡 누락되었던 대리인 정보 및 앱 생성 플래그 추가
+                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank()),
+                                                    'Created in Apps': 'NoYes (mserp)'.Yes
+                                                }
+                                            ),
+                                            UpdateContext({
+                                                varCreateError : Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")
+                                            });
+                                            Blank()
+                                        )
+                                    },
+                                    If(!IsBlank(patchedReport), Set(varSelectedReport, patchedReport))
+                                )
+                            )
+                        );
+                        
+                        // 4. 에러 유무에 따른 네비게이션 및 플래그 처리
+                        If(
                             IsBlank(varCreateError),
-                            // [핵심] 신규 경비를 만들기 위한 환경 초기화 및 네비게이션
+                            // [핵심] 신규 경비를 만들기 위한 환경 초기화 및 네비게이션 (에러가 없을 때만 실행)
                             Set(varIsCreate, true);
                             Set(varSelectedExpenseDoc, Blank());
                             Set(varReceiptImage, Blank());
+                            
                             Navigate(
                                 'Expenses - Edit Screen', 
                                 ScreenTransition.None, 
@@ -2160,13 +2174,16 @@
                                     varCntBack_scr17: true,
                                     // 네비게이션 플래그를 'scr17_Create'로 지정해 새 경비 생성 후 Report 연결을 지시함
                                     varNavigatedFrom: "scr17_Create", 
-                                    ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)')
+                                    ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'), If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText), ComboBox_Purpose.Selected.'Purpose (mserp_value)')
                                 }
-                            ),
+                            );
+                            
+                            // 💡 화면 이동(Navigate) 및 작업이 모두 '성공'했을 때만 생성 모드를 해제합니다.
+                            Set(varIsCreateReport, false),
+                            
+                            // 에러 발생 시 알림만 표시 (상태 변수는 변경하지 않아 재시도 가능하게 함)
                             Notify(Substitute(varCreateError, """", ""), NotificationType.Error, gblParams.notificationTime)
                         );
-                        
-                        Set(varIsCreateReport, false);
                     PressedBorderColor: =
                     PressedColor: =Self.Color
                     PressedFill: =
@@ -2193,41 +2210,63 @@
                     Height: =22
                     Image: =Shapeplus
                     OnSelect: |-
-                        =If(
-                            varIsCreateReport,
-                            UpdateContext({varCreateError: Blank()});
-                            Clear(varError);
-                            With(
-                                {
-                                    patchedReport: IfError(
-                                        Patch(
-                                            'Expense reports (mserp)_1',
-                                            Defaults('Expense reports (mserp)_1'),
-                                            {
-                                                'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                                Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                                Description: scr17_txt_Description_1.Text,
-                                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
-                                            }
-                                        ),
-                                        UpdateContext({
-                                                varCreateError : 
-                                                Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")
-                                            }
-                                        );
-                                        Blank()
-                                    )
-                                },
-                                If(!IsBlank(patchedReport), Set(varSelectedReport, patchedReport))
-                            )
+                        =// 1. 에러 및 상태 변수 무조건 초기화 (최상단으로 분리)
+                        UpdateContext({varCreateError: Blank(), varPurposeValidationFailed: false});
+                        
+                        // 2. 필수 값 유효성 검사 (Purpose 및 Delegate Employee 체크)
+                        If(
+                            varIsCreateReport && IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)') && IsBlank(ComboBox_Purpose.SearchText) && IsBlank(varSelectedReport.'Purpose (mserp_purpose)'),
+                            UpdateContext({varPurposeValidationFailed: true});
+                            UpdateContext({varCreateError: Coalesce(GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterPurposeLabel', "Purpose field is required.")})
                         );
                         
                         If(
+                            varIsCreateReport && !IsEmpty(colActiveDelegations) && IsBlank(ComboBox_Employee.Selected.WorkerID), 
+                            UpdateContext({varPurposeValidationFailed: true});
+                            UpdateContext({varCreateError: "Delegate Employee field is required."})
+                        );
+                        
+                        // 3. 유효성 검사 통과 시에만 Patch(보고서 생성) 실행
+                        If(
+                            !varPurposeValidationFailed,
+                            If(
+                                varIsCreateReport,
+                                Clear(varError);
+                                With(
+                                    {
+                                        patchedReport: IfError(
+                                            Patch(
+                                                'Expense reports (mserp)_1',
+                                                Defaults('Expense reports (mserp)_1'),
+                                                {
+                                                    'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'), If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText), ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
+                                                    Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
+                                                    Description: scr17_txt_Description_1.Text,
+                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                                    // 💡 누락되었던 대리인 정보 및 앱 생성 플래그 추가
+                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank()),
+                                                    'Created in Apps': 'NoYes (mserp)'.Yes
+                                                }
+                                            ),
+                                            UpdateContext({
+                                                varCreateError : Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")
+                                            });
+                                            Blank()
+                                        )
+                                    },
+                                    If(!IsBlank(patchedReport), Set(varSelectedReport, patchedReport))
+                                )
+                            )
+                        );
+                        
+                        // 4. 에러 유무에 따른 네비게이션 및 플래그 처리
+                        If(
                             IsBlank(varCreateError),
-                            // [핵심] 신규 경비를 만들기 위한 환경 초기화 및 네비게이션
+                            // [핵심] 신규 경비를 만들기 위한 환경 초기화 및 네비게이션 (에러가 없을 때만 실행)
                             Set(varIsCreate, true);
                             Set(varSelectedExpenseDoc, Blank());
                             Set(varReceiptImage, Blank());
+                            
                             Navigate(
                                 'Expenses - Edit Screen', 
                                 ScreenTransition.None, 
@@ -2235,13 +2274,16 @@
                                     varCntBack_scr17: true,
                                     // 네비게이션 플래그를 'scr17_Create'로 지정해 새 경비 생성 후 Report 연결을 지시함
                                     varNavigatedFrom: "scr17_Create", 
-                                    ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)')
+                                    ctxTargetPurpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'), If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText), ComboBox_Purpose.Selected.'Purpose (mserp_value)')
                                 }
-                            ),
+                            );
+                            
+                            // 💡 화면 이동(Navigate) 및 작업이 모두 '성공'했을 때만 생성 모드를 해제합니다.
+                            Set(varIsCreateReport, false),
+                            
+                            // 에러 발생 시 알림만 표시 (상태 변수는 변경하지 않아 재시도 가능하게 함)
                             Notify(Substitute(varCreateError, """", ""), NotificationType.Error, gblParams.notificationTime)
                         );
-                        
-                        Set(varIsCreateReport, false);
                     Visible: =scr17_btn_CreateExpenses_1.Visible
                     Width: =22
                     X: =scr17_btn_AttachExpenses_1.X + 23
@@ -2259,81 +2301,95 @@
                     HoverBorderColor: =
                     HoverColor: =Self.Color
                     HoverFill: =
-                    OnSelect: |
-                        =If(
-                            varIsCreateReport,
-                            UpdateContext({varCreateError: Blank()});
+                    OnSelect: |-
+                        =Set(gblNavigationDrawerVisibility, false);
+                        
+                        // 1. 화면 이동 전 현재 UI에서 선택/입력된 목적(Purpose) 값을 미리 변수에 확정하여 저장 (타이밍 버그 방지)
+                        // Coalesce 함수는 나열된 값 중 가장 먼저 '비어 있지 않은(Non-blank)' 값을 찾아 반환합니다.
+                        UpdateContext({
+                            locTargetPurpose: Coalesce(
+                                ComboBox_Purpose.Selected.'Purpose (mserp_value)',
+                                ComboBox_Purpose.SearchText,
+                                varSelectedReport.'Purpose (mserp_purpose)'
+                            ),
+                            varCreateError: Blank(), 
+                            varPurposeValidationFailed: false
+                        });
+                        
+                        // 2. 필수 값 유효성 검사 (콤보박스 대신 locTargetPurpose 변수 사용)
+                        If(
+                            IsBlank(locTargetPurpose),
+                            UpdateContext({
+                                varPurposeValidationFailed: true, 
+                                varCreateError: Coalesce(GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterPurposeLabel', "Purpose field is required.")
+                            })
+                        );
+                        If(
+                            !IsEmpty(colActiveDelegations) && IsBlank(ComboBox_Employee.Selected.WorkerID), 
+                            UpdateContext({
+                                varPurposeValidationFailed: true, 
+                                varCreateError: "Delegate Employee field is required."
+                            })
+                        );
+                        
+                        // 3. 신규 생성 OR 기존 수정사항 저장
+                        If(
+                            !varPurposeValidationFailed,
                             Clear(varError);
                             With(
                                 {
                                     patchedReport: IfError(
-                                        Patch(
-                                            'Expense reports (mserp)_1',
-                                            Defaults('Expense reports (mserp)_1'),
-                                            {
-                                                'Purpose (mserp_purpose)': If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.'Purpose (mserp_purpose)',                                           ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                        Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location,                                                             ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                                Description: scr17_txt_Description_1.Text,
-                                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value)
-                                                // ⚠️ COMMENTED: 'Project ID' field does not exist in new data source (mserp_trvexptablemobileentity)
-                                                // 'Project ID': If(IsBlank(If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID')), "", If(gblIsProjectValidationFlag, ComboBox_ProjectId_ExpReport_odata.Selected.projectId,ComboBox_ProjectId_ExpReport_entity.Selected.'Project ID'))
-                                            }
+                                        If(
+                                            varIsCreateReport,
+                                            // [신규 생성 로직]
+                                            Patch(
+                                                'Expense reports (mserp)_1',
+                                                Defaults('Expense reports (mserp)_1'),
+                                                {
+                                                    'Purpose (mserp_purpose)': locTargetPurpose,  // 💡 콤보박스 대신 확정된 변수 사용
+                                                    Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
+                                                    Description: scr17_txt_Description_1.Text,
+                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank()),
+                                                    'Created in Apps': 'NoYes (mserp)'.Yes
+                                                }
+                                            ),
+                                            // [기존 수정 로직]
+                                            Patch(
+                                                'Expense reports (mserp)_1',
+                                                LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                                {
+                                                    'Purpose (mserp_purpose)': locTargetPurpose,  // 💡 콤보박스 대신 확정된 변수 사용
+                                                    Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
+                                                    Description: scr17_txt_Description_1.Text,
+                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
+                                                }
+                                            )
                                         ),
-                                        UpdateContext({
-                                                varCreateError : 
-                                                Substitute(
-                                                    Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                                    """message"":", 
-                                                    ""
-                                                )
-                                            }
-                                        );
+                                        UpdateContext({varCreateError: Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")});
                                         Blank()
                                     )
                                 },
-                                If(
-                                    !IsBlank(patchedReport),
-                                    Set(varSelectedReport, patchedReport)
-                                )
+                                If(!IsBlank(patchedReport), Set(varSelectedReport, patchedReport))
                             )
                         );
                         
+                        // 4. 에러 확인 후 네비게이션
                         If(
                             IsBlank(varCreateError),
+                            // 화면 이동 전 상태 변수를 변경하더라도 locTargetPurpose는 이미 고정되어 있으므로 안전합니다.
+                            Set(varIsCreateReport, false);
                             Navigate(
                                 'Reports - Attach Expenses Screen', 
                                 ScreenTransition.None, 
                                 {
                                     varCntBack_scr17: true,
-                                    // [추가] 다음 화면 필터링을 위해 현재 선택된 Purpose 값을 전달합니다.
-                                    ctxTargetPurpose: If(
-                                        IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                        If(IsBlank(ComboBox_Purpose.SearchText), varSelectedReport.'Purpose (mserp_purpose)', ComboBox_Purpose.SearchText),
-                                        ComboBox_Purpose.Selected.'Purpose (mserp_value)'
-                                    )
+                                    ctxSelectedWorkerID: ComboBox_Employee.Selected.WorkerID, 
+                                    ctxTargetPurpose: locTargetPurpose // 💡 더 이상 빈 값이 넘어가지 않습니다!
                                 }
                             ),
-                            Notify(
-                                Substitute(varCreateError, """", ""),
-                                NotificationType.Error,
-                                gblParams.notificationTime
-                            )
-                        );
-                        
-                        /*
-                        If(
-                            IsBlank(varCreateError),
-                            Navigate('Reports - Attach Expenses Screen', ScreenTransition.None, {varCntBack_scr17: true}),
-                            Notify(
-                                Substitute(varCreateError, """", ""),
-                                NotificationType.Error,
-                                gblParams.notificationTime
-                            )
-                        );
-                        */
-                        
-                        Set(varIsCreateReport,
-                            false
+                            Notify(Substitute(varCreateError, """", ""), NotificationType.Error, gblParams.notificationTime)
                         );
                     PressedBorderColor: =
                     PressedColor: =Self.Color
