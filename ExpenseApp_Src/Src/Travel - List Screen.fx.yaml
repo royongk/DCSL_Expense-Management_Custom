@@ -1,7 +1,74 @@
 "'Travel - List Screen' As screen.'phoneBrowseLayout_ver3.0'":
     Fill: =Color.White
     OnVisible: |-
-        =UpdateContext({varCntSelect: false});
+        =// 1. AppMode에 따른 Expense Type 정의 및 매핑
+        Set(
+            varTargetExpenseType,
+            Switch(
+                varAppMode,
+                "AirfareAllowance", "Allowance",
+                "BillingTripSettlement", "Billing Trip Settlement",
+                "CashAdvance", "Cash Advance",
+                "EmployeeBenefit", "Employee Benefit",
+                "SalaryAdvance", "Salary Advance",
+                "ExpenseReport", "Expense Reimbursement", 
+                Blank()
+            )
+        );
+        
+        ClearCollect(
+            colMappedCategories,
+            Filter(
+                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                'Expense Type' = varTargetExpenseType
+            )
+        );
+        
+        // 2. 글로벌 파라미터 세팅 (Expenses 화면과 동일)
+        Set(
+            gblParams,
+            {
+                dropDownHeight : 60,
+                dorpDownBorderThickness : 2,
+                dropDownBorderColor : RGBA(34, 102, 227, 1),
+                dropDownLabelColor : Color.Black,
+                dropDownHoverFill : RGBA(204, 222, 255, 1),
+                errorMessageSize : 18,
+                dropDownFontSize : 24,
+                expenseDataCardViewOnly: RGBA(110, 110, 110, 1),
+                notificationTime : 4000
+            }
+        );
+        
+        // 3. User 및 대리인 권한 조회 로직 동기화
+        Set(varDefaultSalesTaxGroup, Blank());
+        Set(varItemSalesTaxDefaultValue, Blank());
+        Set(varSelectedExpenseDoc, Blank());
+        
+        Set(
+            varDefaultSalesTaxGroupUserContext,
+            userRecord.WorkerDefaultTaxGroup
+        );
+        
+        Refresh('Expense management parameters (mserp)');
+        
+        Set(
+            varCurrentD365User,
+            LookUp('Expense mobile master data (mserp)', Email = User().Email)
+        );
+        
+        ClearCollect(
+            colActiveDelegations,
+            Filter(
+                '@DEEX:DEEX_20316 (mserp)',
+                Delegate = varCurrentD365User.ID && 
+                'Start date' <= Today() &&
+                'End date' >= Today()
+            )
+        );
+        
+        // 4. 기존 Travel - List Screen 전용 로직
+        UpdateContext({varCntSelect: false});
         Refresh('Travel requisition (mserp)');
         Set(varSelectedTravelReq, Blank());
         Reset(scrTravel_Gallery);

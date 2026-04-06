@@ -2347,12 +2347,11 @@
                                             Patch(
                                                 'Expense reports (mserp)_1',
                                                 Defaults('Expense reports (mserp)_1'),
-                                                {
-                                                    'Company Code': Lower(varSelectedLegalEntity), 
-                                                    
+                                                {                            
                                                     // 💡 [핵심 수정 1] 생성(Patch) 시점에는 반드시 "현재 로그인한 접속자"를 전송합니다.
                                                     // D365 서버의 무조건적인 본인 인증 검증(400 에러)을 통과하기 위함입니다.
-                                                    Employee: Value(userRecord.CreatingWorker),
+                                                    Employee: Value(ComboBox_Employee.Selected.WorkerID),
+                                                    'Company (mserp_company)': Upper(varSelectedLegalEntity),
                         
                                                     'Purpose (mserp_purpose)': locTargetPurpose,
                                                     Description: Coalesce(scr17_txt_Description_1.Text, "New Expense Report"),
@@ -2362,8 +2361,12 @@
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
                                                     
                                                     // 💡 [핵심 수정 2] 타겟 대리인의 ID는 오직 이곳(Delegated Worker)에만 담아 보냅니다.
-                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank()),
-                                                    'Created in Apps': 'NoYes (mserp)'.Yes
+                                                    // 💡 타겟 대리인의 ID는 로그인한 접속자와 선택된 사용자가 '다를 경우'에만 담아 보냅니다.
+                                                    'Delegated Worker': If(
+                                                        !IsEmpty(colActiveDelegations) && Value(ComboBox_Employee.Selected.WorkerID) <> Value(userRecord.CreatingWorker), 
+                                                        Value(ComboBox_Employee.Selected.WorkerID), 
+                                                        Blank()
+                                                    )
                                                 }
                                             ),
                                             // [기존 수정 로직]
@@ -2375,7 +2378,12 @@
                                                     Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
                                                     Description: scr17_txt_Description_1.Text,
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
-                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
+                                                    // 💡 타겟 대리인의 ID는 로그인한 접속자와 선택된 사용자가 '다를 경우'에만 담아 보냅니다.
+                                                    'Delegated Worker': If(
+                                                        !IsEmpty(colActiveDelegations) && Value(ComboBox_Employee.Selected.WorkerID) <> Value(userRecord.CreatingWorker), 
+                                                        Value(ComboBox_Employee.Selected.WorkerID), 
+                                                        Blank()
+                                                    )
                                                 }
                                             )
                                         ),

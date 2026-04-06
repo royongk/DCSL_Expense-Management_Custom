@@ -116,7 +116,7 @@ ComponentDefinitions:
         DataType: Number
     Properties:
       Fill: =RGBA(248, 248, 248, 0.94)
-      Height: =84
+      Height: =If(App.Width >= 1024, 120, 84)
       OnReset: =Set(varSelectedTab,cmp_Footer_5.paramInDefaultSelectedTab)
       Width: =Max(App.Width, App.MinScreenWidth)
       paramOutSelectedTabIndex: =
@@ -146,24 +146,14 @@ ComponentDefinitions:
               )
             Fill: =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: =0
-            Height: =84
+            Height: =Parent.Height
             HoverFill: =
             OnSelect: =Select(cmp_footer_img_Expenses_8)
             PressedFill: =
             TabIndex: =0
-            Visible: =cmp_Footer_5.paramInDefaultAppMode <> "SalaryAdvance"
-            Width: |-
-              =If(
-                  cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "AirfareAllowance"],
-                  Parent.Width/3,
-                  Parent.Width/2
-              )
-            X: |-
-              =If(
-                  cmp_Footer_5.paramInDefaultAppMode = "CashAdvance", 
-                  Self.Width, 
-                  0
-              )
+            Visible: =!(cmp_Footer_5.paramInDefaultAppMode in ["SalaryAdvance", "AirfareAllowance"])
+            Width: =If(cmp_Footer_5.paramInDefaultAppMode = "CashAdvance", Parent.Width / 3, Parent.Width / 2)
+            X: =If(cmp_Footer_5.paramInDefaultAppMode = "CashAdvance", Parent.Width / 3, 0)
       - reportsRegion_3:
           Control: Rectangle@2.3.0
           Properties:
@@ -182,23 +172,17 @@ ComponentDefinitions:
               )
             Fill: =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: =0
-            Height: =84
+            Height: =Parent.Height
             HoverFill: =
             OnSelect: =Select(cmp_footer_img_Reports_8)
             PressedFill: =
             TabIndex: =0
             Visible: =cmp_Footer_5.paramInDefaultAppMode <> "SalaryAdvance"
-            Width: |-
-              =If(
-                  cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "AirfareAllowance"],
-                  Parent.Width/3,
-                  Parent.Width/2
-              )
+            Width: =If(cmp_Footer_5.paramInDefaultAppMode = "CashAdvance", Parent.Width / 3, Parent.Width / 2)
             X: |-
               =If(
-                  cmp_Footer_5.paramInDefaultAppMode = "CashAdvance", 
-                  2 * Self.Width, 
-                  Self.Width
+                  cmp_Footer_5.paramInDefaultAppMode = "CashAdvance", Parent.Width * 2 / 3,
+                  Parent.Width / 2
               )
       - approvalsRegion_3:
           Control: Rectangle@2.3.0
@@ -218,7 +202,7 @@ ComponentDefinitions:
               )
             Fill: =RGBA(0, 0, 0, 0)
             FocusedBorderThickness: =0
-            Height: =84
+            Height: =Parent.Height
             HoverFill: =
             OnSelect: =Select(cmp_footer_img_Approvals_2)
             PressedFill: =
@@ -229,8 +213,13 @@ ComponentDefinitions:
                   true,
                   false
               )
-            Width: =If(cmp_Footer_5.paramInDefaultAppMode = "SalaryAdvance", Parent.Width, Parent.Width / 3)
-            X: =If(cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "SalaryAdvance"], 0, Parent.Width * 2 / 3)
+            Width: |-
+              =If(
+                  cmp_Footer_5.paramInDefaultAppMode = "SalaryAdvance", Parent.Width,
+                  cmp_Footer_5.paramInDefaultAppMode = "AirfareAllowance", Parent.Width / 2,
+                  Parent.Width / 3
+              )
+            X: =If(cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "SalaryAdvance", "AirfareAllowance"], 0, Parent.Width * 2 / 3)
       - cmp_footer_img_Reports_8:
           Control: Image@2.2.3
           Properties:
@@ -241,18 +230,18 @@ ComponentDefinitions:
                   DisplayMode.Edit,
                   DisplayMode.View
               )
-            Height: =28.16
+            Height: =If(App.Width >= 1024, 40, 28.16)
             Image: =If( Value(cmp_Footer_5.paramInDefaultSelectedTab=3),IcnFooterReportsSelected, IcnFooterReportsUnSelected)
             OnSelect: =cmp_Footer_5.OnReportsButtonClick()
             Visible: =cmp_Footer_5.paramInDefaultAppMode <> "SalaryAdvance"
-            Width: =28.16
+            Width: =If(App.Width >= 1024, 40, 28.16)
             X: =reportsRegion_3.X + (reportsRegion_3.Width - Self.Width)/2
-            Y: =14.88
+            Y: =If(App.Width >= 1024, 24, 14.88)
       - cmp_footer_img_Approvals_2:
           Control: Image@2.2.3
           Properties:
             BorderColor: =RGBA(0, 18, 107, 1)
-            Height: =28.16
+            Height: =If(App.Width >= 1024, 40, 28.16)
             Image: |-
               =If(
                   cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "SalaryAdvance"], // SalaryAdvance 추가
@@ -277,9 +266,9 @@ ComponentDefinitions:
               )
             OnSelect: =cmp_Footer_5.OnApprovalsButtonClick()
             Visible: =approvalsRegion_3.Visible
-            Width: =28.16
+            Width: =If(App.Width >= 1024, 40, 28.16)
             X: =approvalsRegion_3.X + (approvalsRegion_3.Width - Self.Width)/2
-            Y: =14.88
+            Y: =If(App.Width >= 1024, 24, 14.88)
       - cmp_footer_img_Expenses_8:
           Control: Image@2.2.3
           Properties:
@@ -290,13 +279,13 @@ ComponentDefinitions:
                   DisplayMode.Edit,
                   DisplayMode.View
               )
-            Height: =28.16
+            Height: =If(App.Width >= 1024, 40, 28.16)
             Image: =If( cmp_Footer_5.paramInDefaultSelectedTab=2,IcnFooterExpenseSelected,IcnFooterExpenseUnSelected)
             OnSelect: =cmp_Footer_5.OnExpensesButtonClick()
-            Visible: =cmp_Footer_5.paramInDefaultAppMode <> "SalaryAdvance"
-            Width: =28.16
+            Visible: =!(cmp_Footer_5.paramInDefaultAppMode in ["SalaryAdvance", "AirfareAllowance"])
+            Width: =If(App.Width >= 1024, 40, 28.16)
             X: =expensesRegion_3.X + (expensesRegion_3.Width - Self.Width)/2
-            Y: =16.59
+            Y: =If(App.Width >= 1024, 24, 14.88)
       - cmp_footer_lbl_Expenses_8:
           Control: Label@2.5.1
           Properties:
@@ -310,21 +299,16 @@ ComponentDefinitions:
                   DisplayMode.View
               )
             Font: =Font.'Segoe UI'
-            Height: =28
+            Height: =If(App.Width >= 1024, 36, 28)
             PaddingBottom: =0
             PaddingTop: =0
-            Size: =16
+            Size: =If(App.Width >= 1024, 18, 16)
             Text: =cmp_Footer_5.ExpensesText
-            Visible: =cmp_Footer_5.paramInDefaultAppMode <> "SalaryAdvance"
-            Width: |-
-              =If(
-                  cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "AirfareAllowance"],
-                  App.Width / 3,
-                  App.Width / 2
-              )
+            Visible: =!(cmp_Footer_5.paramInDefaultAppMode in ["SalaryAdvance", "AirfareAllowance"])
+            Width: =If(cmp_Footer_5.paramInDefaultAppMode = "CashAdvance", Parent.Width / 3, Parent.Width / 2)
             Wrap: =false
             X: =expensesRegion_3.X
-            Y: =49.49
+            Y: =cmp_footer_img_Expenses_8.Y + cmp_footer_img_Expenses_8.Height + If(App.Width >= 1024, 6, 4)
       - cmp_footer_lbl_Reports_8:
           Control: Label@2.5.1
           Properties:
@@ -338,21 +322,16 @@ ComponentDefinitions:
                   DisplayMode.View
               )
             Font: =Font.'Segoe UI'
-            Height: =28
+            Height: =If(App.Width >= 1024, 36, 28)
             PaddingBottom: =0
             PaddingTop: =0
-            Size: =16
+            Size: =If(App.Width >= 1024, 18, 16)
             Text: =cmp_Footer_5.ReportText
             Visible: =cmp_Footer_5.paramInDefaultAppMode <> "SalaryAdvance"
-            Width: |-
-              =If(
-                  cmp_Footer_5.paramInDefaultAppMode in ["CashAdvance", "AirfareAllowance"],
-                  App.Width / 3,
-                  App.Width / 2
-              )
+            Width: =If(cmp_Footer_5.paramInDefaultAppMode = "CashAdvance", Parent.Width / 3, Parent.Width / 2)
             Wrap: =false
             X: =reportsRegion_3.X
-            Y: =49.49
+            Y: =cmp_footer_img_Reports_8.Y + cmp_footer_img_Reports_8.Height + If(App.Width >= 1024, 6, 4)
       - cmp_footer_lbl_Approvals_2:
           Control: Label@2.5.1
           Properties:
@@ -366,13 +345,18 @@ ComponentDefinitions:
                   DisplayMode.View
               )
             Font: =Font.'Segoe UI'
-            Height: =28
+            Height: =If(App.Width >= 1024, 36, 28)
             PaddingBottom: =0
             PaddingTop: =0
-            Size: =16
+            Size: =If(App.Width >= 1024, 18, 16)
             Text: =cmp_Footer_5.ApprovalsText
             Visible: =approvalsRegion_3.Visible
-            Width: =approvalsRegion_3.Width
+            Width: |-
+              =If(
+                  cmp_Footer_5.paramInDefaultAppMode = "SalaryAdvance", Parent.Width,
+                  cmp_Footer_5.paramInDefaultAppMode = "AirfareAllowance", Parent.Width / 2,
+                  Parent.Width / 3
+              )
             Wrap: =false
             X: =approvalsRegion_3.X
-            Y: =49.49
+            Y: =cmp_footer_img_Approvals_2.Y + cmp_footer_img_Approvals_2.Height + If(App.Width >= 1024, 6, 4)
