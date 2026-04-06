@@ -78,54 +78,73 @@
         Fill: =RGBA(34, 102, 227, 1)
         Height: =88
         OnSelect: |-
-            =// 1. 선택된 항목을 첨부 컬렉션으로 복사
+            =// 1. 사용자가 눈으로 보고 체크한 항목을 첨부 컬렉션에 임시 확정
             ClearCollect(colAttachedExpenses, colExpensesToBeAttached);
             
-            // 2. F&O 백엔드로 쉼표로 연결된 문자열(DEEXExpTransNumber) 전송
-            IfError(
-                Patch(
-                    'Expense reports (mserp)_1',
-                    LookUp('Expense reports (mserp)_1','Expense report number' = varSelectedReport.'Expense report number'),
-                    {
-                        DEEXExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', ","),
-                        // [개선] scr17의 컨트롤 직접 참조 대신 전달받은 ctxTargetPurpose 변수 사용
-                        'Purpose (mserp_purpose)': Coalesce(ctxTargetPurpose, varSelectedReport.'Purpose (mserp_purpose)'),
-                        Location: varSelectedReport.Location // Edit Screen에서 이미 Location은 저장되었으므로 varSelectedReport 참조
-                    }
-                ),
-                First(ClearCollect(varError, Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")))
-            );
+            // 2. ✨ [핵심 방어막] 보고서 번호를 고정 변수에 저장 (LookUp 실패 시 Blank가 되는 현상 방지)
+            UpdateContext({locCurrentReportNum: varSelectedReport.'Expense report number'});
             
-            // 3. 에러 핸들링 및 화면 이동
             If(
-                !(IsBlank(First(varError).Value) || First(varError).Value = ""),
-                Notify(Substitute(First(varError).Value, """", ""), NotificationType.Error, gblParams.notificationTime),
+                IsBlank(locCurrentReportNum),
+                Notify("Error: Expense Report Number is missing.", NotificationType.Error, gblParams.notificationTime),
                 
-                // 에러가 없을 때만 이동 수행
+                // 3. F&O 백엔드로 쉼표로 연결된 문자열(DEEXExpTransNumber) 전송
+                Clear(varError);
+                IfError(
+                    Patch(
+                        'Expense reports (mserp)_1',
+                        LookUp('Expense reports (mserp)_1','Expense report number' = locCurrentReportNum),
+                        {
+                            DEEXExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', ","),
+                            'Purpose (mserp_purpose)': Coalesce(ctxTargetPurpose, varSelectedReport.'Purpose (mserp_purpose)'),
+                            Location: varSelectedReport.Location
+                        }
+                    ),
+                    First(ClearCollect(varError, Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")))
+                );
+            
+                // 4. 에러 확인 후 데이터 동기화 및 네비게이션 실행
                 If(
-                    varCntBack_scr17,
-                    Navigate('Reports - Edit Screen'),
-                    Navigate('Reports - View Attached Expenses Screen')
+                    !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                    // 에러 발생 시 알림 표시
+                    Notify(Substitute(First(varError).Value, """", ""), NotificationType.Error, gblParams.notificationTime),
+                    
+                    // --- 에러 없이 정상 처리되었을 때의 후속 작업 ---
+                    
+                    // (A) 백엔드 데이터 갱신
+                    Refresh('DCSL Expense Line Expense Moblie Entity (mserp)');
+                    Set(varSelectedReport, LookUp('Expense reports (mserp)_1', 'Expense report number' = locCurrentReportNum));
+                    
+                    // (B) ✨ [199개 버그 차단] Blank가 아닐 때만 서버에서 필터링해서 가져오기
+                    If(
+                        !IsBlank(locCurrentReportNum),
+                        ClearCollect(
+                            colAttachedExpensesForReport,
+                            Filter(
+                                'DCSL Expense Line Expense Moblie Entity (mserp)',
+                                'Expense report number (mserp_expnumber)' = locCurrentReportNum 
+                                && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
+                            )
+                        );
+                        
+                        // 💡 F&O 백엔드의 비동기 처리 지연으로 인해 서버에서 아직 0건이 오더라도,
+                        // 로컬에서 이미 선택해둔 데이터(colAttachedExpenses)를 유지하여 UI가 깜빡이는 것을 방지합니다.
+                        If(
+                            CountRows(colAttachedExpensesForReport) > 0,
+                            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport)
+                        )
+                    );
+                    
+                    Clear(varError);
+                    
+                    // (C) ✨ [가장 중요한 순서 변경] 모든 데이터 처리가 끝난 뒤에 화면을 이동합니다.
+                    If(
+                        varCntBack_scr17,
+                        Navigate('Reports - Edit Screen', ScreenTransition.None),
+                        Navigate('Reports - View Attached Expenses Screen', ScreenTransition.None)
+                    )
                 )
             );
-            
-            // 4. 데이터 소스 갱신 및 상태 동기화 (화면 이동이 일어난 직후 백그라운드에서 갱신됨)
-            UpdateContext({varReportNumber : varSelectedReport.'Expense report number'});
-            Set(varSelectedReport, LookUp('Expense reports (mserp)_1','Expense report number' = varReportNumber));
-            
-            Refresh('DCSL Expense Line Expense Moblie Entity (mserp)');
-            
-            ClearCollect(
-                colAttachedExpensesForReport,
-                Filter(
-                    'DCSL Expense Line Expense Moblie Entity (mserp)',
-                    'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number' 
-                    && 'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
-                )
-            );
-            
-            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);
-            Clear(varError);
         Size: =24
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DoneButtonLabel'

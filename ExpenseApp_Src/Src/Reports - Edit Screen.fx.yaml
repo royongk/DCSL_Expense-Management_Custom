@@ -2336,6 +2336,8 @@
                         If(
                             !varPurposeValidationFailed,
                             Clear(varError);
+                            UpdateContext({varCreateError: Blank()});
+                            
                             With(
                                 {
                                     patchedReport: IfError(
@@ -2346,10 +2348,20 @@
                                                 'Expense reports (mserp)_1',
                                                 Defaults('Expense reports (mserp)_1'),
                                                 {
-                                                    'Purpose (mserp_purpose)': locTargetPurpose,  // 💡 콤보박스 대신 확정된 변수 사용
+                                                    'Company Code': Lower(varSelectedLegalEntity), 
+                                                    
+                                                    // 💡 [핵심 수정 1] 생성(Patch) 시점에는 반드시 "현재 로그인한 접속자"를 전송합니다.
+                                                    // D365 서버의 무조건적인 본인 인증 검증(400 에러)을 통과하기 위함입니다.
+                                                    Employee: Value(userRecord.CreatingWorker),
+                        
+                                                    'Purpose (mserp_purpose)': locTargetPurpose,
+                                                    Description: Coalesce(scr17_txt_Description_1.Text, "New Expense Report"),
                                                     Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
-                                                    Description: scr17_txt_Description_1.Text,
-                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                                    
+                                                    // 혹시 모를 대문자 에러를 방지하기 위해 여기도 Lower() 처리
+                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
+                                                    
+                                                    // 💡 [핵심 수정 2] 타겟 대리인의 ID는 오직 이곳(Delegated Worker)에만 담아 보냅니다.
                                                     'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank()),
                                                     'Created in Apps': 'NoYes (mserp)'.Yes
                                                 }
@@ -2359,19 +2371,57 @@
                                                 'Expense reports (mserp)_1',
                                                 LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
                                                 {
-                                                    'Purpose (mserp_purpose)': locTargetPurpose,  // 💡 콤보박스 대신 확정된 변수 사용
+                                                    'Purpose (mserp_purpose)': locTargetPurpose,
                                                     Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
                                                     Description: scr17_txt_Description_1.Text,
-                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
+                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
                                                     'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
                                                 }
                                             )
                                         ),
-                                        UpdateContext({varCreateError: Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":", "")});
-                                        Blank()
+                                        // 💡 [개선] 빈 에러 메시지에도 대응하는 강력한 에러 핸들러
+                                        UpdateContext({
+                                            varCreateError: Coalesce(
+                                                If(
+                                                    !IsBlank(FirstError.Details.HttpResponse) && IsMatch(FirstError.Details.HttpResponse, ".*""message"":""[^""]+"".*"), 
+                                                    Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]+)""").FullMatch, """message"":", "")
+                                                ),
+                                                If(!IsBlank(FirstError.Message) && FirstError.Message <> "Expense reports (mserp)_1 실패: ", FirstError.Message),
+                                                "D365 F&O 서버 내부 검증(Validation) 에러로 인해 생성이 거부되었습니다."
+                                            )
+                                        });
+                                        Blank() // 에러 시 Blank 반환
                                     )
                                 },
-                                If(!IsBlank(patchedReport), Set(varSelectedReport, patchedReport))
+                                
+                                // 💡 [핵심 해결 로직] Patch 성공 시 F&O에서 번호를 안 줬을 경우를 대비한 최신 데이터 재조회
+                                If(
+                                    IsBlank(varCreateError) && !IsBlank(patchedReport),
+                                    If(
+                                        // 신규 생성인데 보고서 번호가 빈 값(Blank)으로 응답된 경우
+                                        varIsCreateReport && IsBlank(patchedReport.'Expense report number'),
+                                        Set(
+                                            varSelectedReport,
+                                            First(
+                                                SortByColumns(
+                                                    Filter(
+                                                        'Expense reports (mserp)_1', 
+                                                        'Company Code' = Lower(varSelectedLegalEntity), 
+                                                        
+                                                        // 💡 [핵심 수정 3] 다시 찾을 때(Re-fetch)는 F&O가 치환해 둔 '대리인(UI 선택자)'으로 검색해야 합니다!
+                                                        Employee = Value(ComboBox_Employee.Selected.WorkerID),
+                                                        
+                                                        'Purpose (mserp_purpose)' = locTargetPurpose
+                                                    ),
+                                                    "mserp_createddate",
+                                                    SortOrder.Descending
+                                                )
+                                            )
+                                        ),
+                                        // 정상적으로 번호가 왔거나(드문 경우) 기존 보고서 수정 모드일 때는 그대로 덮어씁니다.
+                                        Set(varSelectedReport, patchedReport)
+                                    )
+                                )
                             )
                         );
                         
