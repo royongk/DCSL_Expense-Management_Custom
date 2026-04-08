@@ -698,7 +698,7 @@ Screens:
                         DataField: ="mserp_deexpurchasecategory"
                         Default: =varSelectedPurchaseCategory
                         DisplayName: ="Expense Category"
-                        Required: =false
+                        Required: =true
                         Update: =ComboBox_PurchaseCategory.Selected.Value
                         Width: =Parent.Width
                         X: =1
@@ -722,8 +722,22 @@ Screens:
                             Control: Classic/ComboBox@2.4.0
                             Properties:
                               AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                              BorderColor: |-
+                                =If(
+                                    !IsBlank(Parent.Error), 
+                                    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우
+
+                                    Parent.Visible && Parent.Required && IsBlank(Parent.Update), 
+                                    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우
+
+                                    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)
+                                )
+                              BorderThickness: |-
+                                =If(
+                                    !IsBlank(Parent.Error) || (Parent.Visible && Parent.Required && IsBlank(Parent.Update)), 
+                                    2,  // 에러가 있거나( || ) 필수 항목이 비어있으면 두께를 2로 설정
+                                    0   // 정상 상태에서는 두께를 1로 설정
+                                )
                               ChevronBackground: =RGBA(56, 96, 178, 1)
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
@@ -882,7 +896,7 @@ Screens:
                         DataField: ="mserp_deexitemorservice"
                         Default: =varSelectedItemOrService
                         DisplayName: ="What is this expense for?"
-                        Required: =false
+                        Required: =true
                         Update: =ComboBox_ItemOrService.Selected.Value
                         Width: =Parent.Width
                         X: =1
@@ -906,8 +920,22 @@ Screens:
                             Control: Classic/ComboBox@2.4.0
                             Properties:
                               AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                              BorderColor: |-
+                                =If(
+                                    !IsBlank(Parent.Error), 
+                                    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우
+
+                                    Parent.Visible && Parent.Required && IsBlank(Parent.Update), 
+                                    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우
+
+                                    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)
+                                )
+                              BorderThickness: |-
+                                =If(
+                                    !IsBlank(Parent.Error) || (Parent.Visible && Parent.Required && IsBlank(Parent.Update)), 
+                                    2,  // 에러가 있거나( || ) 필수 항목이 비어있으면 두께를 2로 설정
+                                    0   // 정상 상태에서는 두께를 1로 설정
+                                )
                               ChevronBackground: =RGBA(56, 96, 178, 1)
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
@@ -2784,8 +2812,22 @@ Screens:
                             MetadataKey: FieldValue
                             Properties:
                               AccessibleLabel: =Concatenate("Enter ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                              BorderColor: |-
+                                =If(
+                                    !IsBlank(Parent.Error), 
+                                    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우
+
+                                    Parent.Visible && Parent.Required && IsBlank(Parent.Update), 
+                                    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우
+
+                                    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)
+                                )
+                              BorderThickness: |-
+                                =If(
+                                    !IsBlank(Parent.Error) || (Parent.Visible && Parent.Required && IsBlank(Parent.Update)), 
+                                    2,  // 에러가 있거나( || ) 필수 항목이 비어있으면 두께를 2로 설정
+                                    0   // 정상 상태에서는 두께를 1로 설정
+                                )
                               Default: "=// 천단위 구분 기호 로직 수정\nWith(\n    {\n        baseAmount: If(\n            !IsBlank(locCurrentSetup.Amount) && locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,\n            locCurrentSetup.Amount, \n            \n            // 핵심 변경: varSelectedExpenseDoc.'Transaction amount' 보다 파싱된 locOriginalAmount(100)를 우선 사용\n            Value(Coalesce(dirtyTransAmount, locOriginalAmount, Text(varSelectedExpenseDoc.'Transaction amount')))\n        )\n    },\n    If(\n        locIsEditingAmount, \n        Text(baseAmount, \"#\"),                   \n        Text(baseAmount, \"#,##0.00\", varDefaultLanguage) \n    )\n)"
                               DelayOutput: =true
                               DisplayMode: =Parent.DisplayMode
@@ -3017,8 +3059,22 @@ Screens:
                             Control: Classic/ComboBox@2.4.0
                             Properties:
                               AccessibleLabel: =Concatenate("Select ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                              BorderColor: |-
+                                =If(
+                                    !IsBlank(Parent.Error), 
+                                    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우
+
+                                    Parent.Visible && Parent.Required && IsBlank(Parent.Update), 
+                                    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우
+
+                                    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)
+                                )
+                              BorderThickness: |-
+                                =If(
+                                    !IsBlank(Parent.Error) || (Parent.Visible && Parent.Required && IsBlank(Parent.Update)), 
+                                    2,  // 에러가 있거나( || ) 필수 항목이 비어있으면 두께를 2로 설정
+                                    0   // 정상 상태에서는 두께를 1로 설정
+                                )
                               ChevronBackground: =RGBA(56, 96, 178, 1)
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
@@ -7536,6 +7592,22 @@ Screens:
                             Control: DatePicker@0.0.46
                             Properties:
                               AccessibleLabel: =Concatenate("Select ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
+                              BorderColor: |-
+                                =If(
+                                    !IsBlank(Parent.Error), 
+                                    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우
+
+                                    Parent.Visible && Parent.Required && IsBlank(Parent.Update), 
+                                    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우
+
+                                    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)
+                                )
+                              BorderThickness: |-
+                                =If(
+                                    !IsBlank(Parent.Error) || (Parent.Visible && Parent.Required && IsBlank(Parent.Update)), 
+                                    2,  // 에러가 있거나( || ) 필수 항목이 비어있으면 두께를 2로 설정
+                                    0   // 정상 상태에서는 두께를 1로 설정
+                                )
                               Fill: =RGBA(255, 255, 255, 1)
                               FontSize: =28
                               Height: =gblParams.dropDownHeight
@@ -7580,9 +7652,7 @@ Screens:
                         Default: =ThisItem.'Additional information'
                         DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Additional information')
                         MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Additional information')
-                        Required: |-
-                          =//LookUp(labelTableLookUp,labelName=Self.DisplayName,required) && LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
-                          true
+                        Required: =true
                         Update: =DataCardValue11_1.Text
                         Visible: =LookUp(labelTableLookUp,labelName = Self.DisplayName,visible)
                         Width: =Parent.Width
@@ -7626,8 +7696,22 @@ Screens:
                             MetadataKey: FieldValue
                             Properties:
                               AccessibleLabel: =Concatenate("Enter ", Parent.DisplayName, If(Parent.Required, "and it is a required field"))
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =0
+                              BorderColor: |-
+                                =If(
+                                    !IsBlank(Parent.Error), 
+                                    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우
+
+                                    Parent.Visible && Parent.Required && IsBlank(Parent.Update), 
+                                    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우
+
+                                    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)
+                                )
+                              BorderThickness: |-
+                                =If(
+                                    !IsBlank(Parent.Error) || (Parent.Visible && Parent.Required && IsBlank(Parent.Update)), 
+                                    2,  // 에러가 있거나( || ) 필수 항목이 비어있으면 두께를 2로 설정
+                                    0   // 정상 상태에서는 두께를 1로 설정
+                                )
                               Color: =gblParams.dropDownLabelColor
                               Default: |-
                                 =If(
@@ -9827,9 +9911,9 @@ Screens:
                         DataField: ="mserp_deexcostcenter"
                         Default: =varSelectedExpenseDoc.CostCenter
                         DisplayName: ="Budget"
-                        Required: =false
+                        Required: "=If(\r\n    // Salary Advance (가불/급여 선지급) 유형이면 Cost Center 숨김\r\n    varAppMode = \"SalaryAdvance\" || varAppMode = \"AirfareAllowance\" || varAppMode = \"EmployeeBenefit\",\r\n    false,\r\n    \r\n    // 그 외의 경우는 정상 표시 (이후 필요에 따라 Visible 조건을 더 추가할 수 있습니다)\r\n    true\r\n)"
                         Update: =ComboBox_CostCenter.Selected.'Combination display'
-                        Visible: "=// 기존 =true 를 아래 코드로 변경합니다.\nIf(\n    // Salary Advance (가불/급여 선지급) 유형이면 Cost Center 숨김\n    varAppMode = \"SalaryAdvance\" || varAppMode = \"AirfareAllowance\" || varAppMode = \"EmployeeBenefit\",\n    false,\n    \n    // 그 외의 경우는 정상 표시 (이후 필요에 따라 Visible 조건을 더 추가할 수 있습니다)\n    true\n)"
+                        Visible: "=If(\n    // Salary Advance (가불/급여 선지급) 유형이면 Cost Center 숨김\n    varAppMode = \"SalaryAdvance\" || varAppMode = \"AirfareAllowance\" || varAppMode = \"EmployeeBenefit\",\n    false,\n    \n    // 그 외의 경우는 정상 표시 (이후 필요에 따라 Visible 조건을 더 추가할 수 있습니다)\n    true\n)"
                         Width: =Parent.Width
                         X: =0
                         Y: =costCenterFieldOrder_Y
@@ -9851,8 +9935,22 @@ Screens:
                             Control: Classic/ComboBox@2.4.0
                             Properties:
                               AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                              BorderColor: |-
+                                =If(
+                                    !IsBlank(Parent.Error), 
+                                    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우
+
+                                    Parent.Visible && Parent.Required && IsBlank(Parent.Update), 
+                                    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우
+
+                                    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)
+                                )
+                              BorderThickness: |-
+                                =If(
+                                    !IsBlank(Parent.Error) || (Parent.Visible && Parent.Required && IsBlank(Parent.Update)), 
+                                    2,  // 에러가 있거나( || ) 필수 항목이 비어있으면 두께를 2로 설정
+                                    0   // 정상 상태에서는 두께를 1로 설정
+                                )
                               ChevronBackground: =RGBA(56, 96, 178, 1)
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
@@ -10038,7 +10136,7 @@ Screens:
                         DataField: ="mserp_deexproject"
                         Default: =varSelectedExpenseDoc.Project
                         DisplayName: ="Project code (required for billing trip)"
-                        Required: =false
+                        Required: "=If(\r\n    // HR 경비 3가지 유형 중 하나라도 해당되면\r\n    varAppMode in [\"AirfareAllowance\", \"EmployeeBenefit\", \"SalaryAdvance\"] || \r\n    varSelectedExpenseType in [\r\n        \"Airfare & Shipping Allowance Claim\", \r\n        \"Employee Benefits Claim\", \r\n        \"Employee Benefit\", \r\n        \"Salary Advance\", \r\n        \"Airfare Allowance\"\r\n    ],\r\n    false, // 숨김 처리\r\n    \r\n    // 그 외 일반 경비 유형은 표시\r\n    true\r\n)"
                         Update: |-
                           =If(
                               Self.Visible, 
@@ -10067,8 +10165,22 @@ Screens:
                             Control: Classic/ComboBox@2.4.0
                             Properties:
                               AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              BorderThickness: =If(Parent.Error, gblParams.dorpDownBorderThickness, 0)
+                              BorderColor: |-
+                                =If(
+                                    !IsBlank(Parent.Error), 
+                                    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우
+
+                                    Parent.Visible && Parent.Required && IsBlank(Parent.Update), 
+                                    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우
+
+                                    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)
+                                )
+                              BorderThickness: |-
+                                =If(
+                                    !IsBlank(Parent.Error) || (Parent.Visible && Parent.Required && IsBlank(Parent.Update)), 
+                                    2,  // 에러가 있거나( || ) 필수 항목이 비어있으면 두께를 2로 설정
+                                    0   // 정상 상태에서는 두께를 1로 설정
+                                )
                               ChevronBackground: =RGBA(56, 96, 178, 1)
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
@@ -10295,12 +10407,13 @@ Screens:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
                             Properties:
-                              DropShadow: =DropShadow.Bold
+                              DropShadow: =DropShadow.None
+                              Fill: =RGBA(248, 248, 248, 1)
                               Height: "=With({\n    _gap: 15,\n    _padding: 10, // con_Beneficiary_Layout 자체의 위아래 패딩(5 + 5)\n    c1: If(DataCardKey_MySelf.Visible, DataCardKey_MySelf.Height, 0),\n    c2: If(Toggle_MySelf.Visible, Toggle_MySelf.Height, 0),\n    c3: If(DataCardKey_OtherStaff.Visible, DataCardKey_OtherStaff.Height, 0),\n    c4: If(cmb_OtherStaff.Visible, cmb_OtherStaff.Height, 0),\n    c5: If(DataCardKey_NoOfOtherStaff.Visible, DataCardKey_NoOfOtherStaff.Height, 0),\n    c6: If(txt_NoOfOtherStaff.Visible, txt_NoOfOtherStaff.Height, 0),\n    \n    // 핵심 수정: 하위 컨테이너의 Height 속성을 믿지 않고, 실제 컨트롤(Label, TextInput) 높이를 직접 계산\n    c7: If(con_Student_Row.Visible, \n           Max(\n               DataCardKey_StudentPrimary.Height + txt_StudentPrimary.Height + 16, // 16은 Primary 컨테이너 자체 패딩\n               DataCardKey_StudentSenior.Height + txt_StudentSenior.Height + 16    // 16은 Senior 컨테이너 자체 패딩\n           ) + 16, // 16은 con_Student_Row 자체의 상하 패딩 (8 + 8)\n           0)\n},\n    // 모든 컨트롤의 높이 합산\n    c1 + c2 + c3 + c4 + c5 + c6 + c7 + \n    // 보여지는 컨트롤 개수에 따른 Gap 정확히 계산\n    (Max(0, (If(c1>0, 1, 0) + If(c2>0, 1, 0) + If(c3>0, 1, 0) + If(c4>0, 1, 0) + If(c5>0, 1, 0) + If(c6>0, 1, 0) + If(c7>0, 1, 0)) - 1) * _gap) + \n    // 메인 컨테이너 위아래 여백\n    _padding\n)"
                               LayoutDirection: =LayoutDirection.Vertical
                               LayoutGap: =15
                               PaddingBottom: =5
-                              PaddingLeft: =5
+                              PaddingLeft: =25
                               PaddingRight: =5
                               PaddingTop: =5
                               RadiusBottomLeft: =0
@@ -10339,10 +10452,10 @@ Screens:
                                       )
                                     FalseText: ="No"
                                     Font: =Font.'Open Sans'
-                                    LabelPaddingLeft: =15
+                                    LabelPaddingLeft: =10
                                     TrueFill: =RGBA(56, 96, 178, 1)
                                     TrueText: ="Yes"
-                                    X: =cmb_OtherStaff.X
+                                    X: =30
                                     Y: =40
                               - DataCardKey_OtherStaff:
                                   Control: Label@2.5.1
@@ -10612,6 +10725,7 @@ Screens:
                               Width: =Parent.Width - 60
                               Wrap: =false
                               X: =30
+                              Y: =10
                         - DataCardKey24:
                             Control: Label@2.5.1
                             MetadataKey: FieldName
