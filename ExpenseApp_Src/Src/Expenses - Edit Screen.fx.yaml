@@ -1438,7 +1438,7 @@
                 DataField: ="mserp_deexexpensetype"
                 Default: =varSelectedExpenseType
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: ="Expense Type"
+                DisplayName: ="Expense Type (pre-selected)"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
@@ -1448,6 +1448,23 @@
                 X: =1
                 Y: =expenseCategoryFieldOrder_Y - 120
                 ZIndex: =1
+
+                lbl_ExpenseType_title As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Bold
+                    Height: =48
+                    Size: =24
+                    Text: ="1. Expense Type"
+                    Underline: =true
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
 
                 ExpenseType_DataCardKey As label:
                     AutoHeight: =true
@@ -1461,8 +1478,8 @@
                     Width: =Parent.Width - 60
                     Wrap: =false
                     X: =30
-                    Y: =10
-                    ZIndex: =1
+                    Y: =lbl_ExpenseType_title.Y + lbl_ExpenseType_title.Height + 10
+                    ZIndex: =2
 
                 ComboBox_ExpenseType As combobox:
                     AccessibleLabel: =Concatenate("Select ", Parent.DisplayName)
@@ -1540,7 +1557,7 @@
                     Width: =Parent.Width - 2 * Self.X
                     X: =30
                     Y: =ExpenseType_DataCardKey.Y + ExpenseType_DataCardKey.Height + 5
-                    ZIndex: =2
+                    ZIndex: =3
 
                 ExpenseType_StarVisible As label:
                     Align: =Align.Center
@@ -1573,7 +1590,7 @@
                 DataField: ="mserp_deexpurchasecategory"
                 Default: =varSelectedPurchaseCategory
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: ="Purchase Category"
+                DisplayName: ="Expense Category"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
@@ -1638,7 +1655,7 @@
                             "Value",
                             SortOrder.Ascending
                         )
-                    NoSelectionText: ="Select Purchase Category"
+                    NoSelectionText: ="Select Expense Category, e.g. CPD, Event etc."
                     OnChange: |-
                         =UpdateContext({varSelectedPurchaseCategory: Parent.Update});
                         UpdateContext({varSelectedPurchaseCategoryValue: Parent.Update});
@@ -1715,6 +1732,18 @@
                     Y: =PurchaseCategory_DataCardKey.Y
                     ZIndex: =4
 
+                StarVisible4_9 As label:
+                    Align: =Align.Center
+                    Color: =RGBA(0, 18, 107, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Height: =DataCardKey4_1.Height
+                    Size: =21
+                    Text: ="*"
+                    Width: =30
+                    Wrap: =false
+                    Y: =DataCardKey4_1.Y
+                    ZIndex: =25
+
             ItemOrService_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
                     =If(
@@ -1739,7 +1768,7 @@
                 DataField: ="mserp_deexitemorservice"
                 Default: =varSelectedItemOrService
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: ="Item or Service"
+                DisplayName: ="What is this expense for?"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
@@ -1798,7 +1827,7 @@
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
-                    InputTextPlaceholder: ="Select Item or Service"
+                    InputTextPlaceholder: ="Select details, e.g. subscription, transportation"
                     IsSearchable: =false
                     Items: |-
                         =SortByColumns(
@@ -1816,7 +1845,7 @@
                             "Value",
                             SortOrder.Ascending
                         )
-                    NoSelectionText: ="Select Item or Service"
+                    NoSelectionText: ="Select details, e.g. subscription, transportation"
                     OnChange: |-
                         =UpdateContext({varSelectedItemOrService: Parent.Update});
                         // Derive project type from 3-level category selection
@@ -1900,6 +1929,35 @@
                     Wrap: =false
                     Y: =ItemOrService_DataCardKey.Y
                     ZIndex: =4
+
+                StarVisible4_8 As label:
+                    Align: =Align.Center
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =RGBA(0, 18, 107, 1)
+                    Height: =DataCardKey4_1.Height
+                    Size: =21
+                    Text: ="*"
+                    Width: =30
+                    Wrap: =false
+                    Y: =DataCardKey4_1.Y
+                    ZIndex: =24
+
+                lbl_AmountInformation_title As label:
+                    AutoHeight: =true
+                    Color: =gblParams.dropDownLabelColor
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Bold
+                    Height: =48
+                    Size: =24
+                    Text: ="2. Amount Information"
+                    Underline: =true
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =ComboBox_ItemOrService.Y + ComboBox_ItemOrService.Height + 30
+                    ZIndex: =27
 
             "'Expense category_DataCard3_3' As typedDataCard.allowedValuesStringEditCard":
                 AllowedValues: |-
@@ -3899,7 +3957,7 @@
                         // 일반적인 상황에서는 편집 가능
                         DisplayMode.Edit
                     )
-                DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Transaction amount')
+                DisplayName: ="Expense amount"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
@@ -3944,9 +4002,7 @@
                     Font: =Font.'Segoe UI'
                     Height: =48
                     Size: =21
-                    Text: |-
-                        =LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName)
-                        //"Transaction amount"
+                    Text: ="Expense amount"
                     Tooltip: =Self.Text
                     Width: =Parent.Width - 60
                     Wrap: =false
@@ -3983,8 +4039,7 @@
                         =//TextFormat.Number
                         TextFormat.Text
                     Height: =gblParams.dropDownHeight
-                    HintText: |-
-                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionAmountLabel'
+                    HintText: ="Enter Expense amount"
                     HoverBorderColor: =
                     HoverFill: =gblParams.dropDownHoverFill
                     OnChange: |-
@@ -4785,7 +4840,7 @@
                 DataField: ="mserp_deexcurrencyamountview"
                 Default: =ThisItem.LCY
                 DisplayMode: =DisplayMode.View
-                DisplayName: ="Accounting Amount & Currency"
+                DisplayName: ="Converted KRW amount (automatic)"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, mserp_deexcurrencyamountview)
@@ -8859,7 +8914,7 @@
                     Width: =Parent.Width - 60
                     Wrap: =false
                     X: =30
-                    Y: =10
+                    Y: =lbl_AdditionalPurchaseInformation_title.Y + lbl_AdditionalPurchaseInformation_title.Height + 10
                     ZIndex: =1
 
                 DateValue_PurchaseDate As datepicker:
@@ -8957,6 +9012,23 @@
                     X: =30
                     Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
                     ZIndex: =8
+
+                lbl_AdditionalPurchaseInformation_title As label:
+                    AutoHeight: =true
+                    BorderColor: =RGBA(0, 0, 0, 1)
+                    Color: =gblParams.dropDownLabelColor
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Bold
+                    Height: =48
+                    Size: =24
+                    Text: ="3. Additional purchase information"
+                    Underline: =true
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =28
 
             "'Additional information_DataCard1_3' As typedDataCard.textualEditCard":
                 BorderColor: =gblParams.dropDownBorderColor
@@ -11192,7 +11264,7 @@
                 DataField: ="mserp_deexcostcenter"
                 Default: =varSelectedExpenseDoc.CostCenter
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: ="Cost Center"
+                DisplayName: ="Budget"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
@@ -11270,14 +11342,14 @@
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
-                    InputTextPlaceholder: ="Select Cost Center"
+                    InputTextPlaceholder: ="Select Budget"
                     Items: |-
                         =SortByColumns(
                             'DCSL Financial Dimension CostCenter (mserp)',
                             "mserp_dimensionvalue",
                             SortOrder.Ascending
                         )
-                    NoSelectionText: ="Select Cost Center"
+                    NoSelectionText: ="Select Budget"
                     OnChange: |-
                         =UpdateContext(
                             {
@@ -11317,6 +11389,18 @@
                     X: =30
                     Y: =ComboBox_CostCenter.Y + ComboBox_CostCenter.Height
                     ZIndex: =3
+
+                CostCenter_StarVisible As label:
+                    Align: =Align.Center
+                    Color: =RGBA(0, 18, 107, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Height: =Project_DataCardKey.Height
+                    Size: =21
+                    Text: ="*"
+                    Width: =30
+                    Wrap: =false
+                    Y: =Project_DataCardKey.Y
+                    ZIndex: =26
 
             "'Default dimension display value_DataCard1_3' As typedDataCard.textualEditCard":
                 BorderColor: =gblParams.dropDownBorderColor
@@ -11425,7 +11509,7 @@
                 DataField: ="mserp_deexproject"
                 Default: =varSelectedExpenseDoc.Project
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: ="Project"
+                DisplayName: ="Project code (required for billing trip)"
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
@@ -11553,7 +11637,6 @@
                     Height: =Project_DataCardKey.Height
                     Size: =21
                     Text: ="*"
-                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
                     Width: =30
                     Wrap: =false
                     Y: =Project_DataCardKey.Y
@@ -11703,9 +11786,9 @@
                     )
                 Visible: |-
                     =If(
-                        varAppMode <> "EmployeeBenefit",
-                        true,
-                        false
+                        varAppMode in ["EmployeeBenefit", "AirfareAllowance"],
+                        false,
+                        true
                     )
                 Width: =Parent.Width
                 X: =0
@@ -11753,7 +11836,8 @@
                     PaddingTop: =5
                     Visible: =Parent.Visible
                     Width: =Parent.Width
-                    ZIndex: =2
+                    Y: =lbl_ExpenseBeneficiaries_title.Y + lbl_ExpenseBeneficiaries_title.Height + 10
+                    ZIndex: =1
 
                     DataCardKey_MySelf As label:
                         AlignInContainer: =AlignInContainer.Stretch
@@ -11772,7 +11856,7 @@
                         Wrap: =false
                         X: =30
                         Y: =10
-                        ZIndex: =1
+                        ZIndex: =2
 
                     Toggle_MySelf As toggleSwitch:
                         AlignInContainer: =AlignInContainer.Start
@@ -11794,7 +11878,7 @@
                         Width: =154
                         X: =cmb_OtherStaff.X
                         Y: =40
-                        ZIndex: =2
+                        ZIndex: =3
 
                     DataCardKey_OtherStaff As label:
                         AlignInContainer: =AlignInContainer.Stretch
@@ -11808,12 +11892,12 @@
                         LayoutMinWidth: =560
                         PaddingLeft: =20
                         Size: =21
-                        Text: ="Other Staff"
+                        Text: ="Staff (Select up to 10 staff members this expense was for)"
                         Width: =Parent.Width - 60
                         Wrap: =false
                         X: =30
                         Y: =10
-                        ZIndex: =3
+                        ZIndex: =4
 
                     cmb_OtherStaff As combobox:
                         AlignInContainer: =AlignInContainer.Center
@@ -11840,7 +11924,7 @@
                         FocusedBorderThickness: =2
                         Height: =gblParams.dropDownHeight
                         HoverFill: =gblParams.dropDownHoverFill
-                        InputTextPlaceholder: ="Select Other Staff"
+                        InputTextPlaceholder: ="Select names of staff"
                         IsSearchable: =false
                         Items: |-
                             =//'Expense mobile master data (mserp)'
@@ -11854,6 +11938,7 @@
                         LayoutMaxWidth: =0
                         LayoutMinHeight: =16
                         LayoutMinWidth: =400
+                        NoSelectionText: ="Select names of staff"
                         OnChange: |-
                             =// 기존에 OnChange에 수식이 있다면 그 뒤에 세미콜론(;)을 붙이고 아래 코드를 추가하세요.
                             If(
@@ -11870,7 +11955,7 @@
                         SelectionFill: =gblParams.dropDownBorderColor
                         Size: =20
                         Width: =Parent.Width - 60
-                        ZIndex: =4
+                        ZIndex: =5
 
                     DataCardKey_NoOfOtherStaff As label:
                         AlignInContainer: =AlignInContainer.Stretch
@@ -11884,12 +11969,12 @@
                         LayoutMinWidth: =560
                         PaddingLeft: =20
                         Size: =21
-                        Text: ="Number of Other Staff"
+                        Text: ="External attendees"
                         Width: =Parent.Width - 60
                         Wrap: =false
                         X: =30
                         Y: =10
-                        ZIndex: =5
+                        ZIndex: =6
 
                     txt_NoOfOtherStaff As text:
                         AlignInContainer: =AlignInContainer.Center
@@ -11902,7 +11987,7 @@
                             )
                         Format: =TextFormat.Number
                         Height: =70
-                        HintText: ="Enter Number of Other Staff"
+                        HintText: ="Enter number of external attendees"
                         LayoutMaxHeight: =0
                         LayoutMaxWidth: =0
                         LayoutMinHeight: =16
@@ -11914,7 +11999,7 @@
                         Size: =21
                         VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
                         Width: =Parent.Width - 60
-                        ZIndex: =6
+                        ZIndex: =7
 
                     con_Student_Row As groupContainer.horizontalAutoLayoutContainer:
                         Height: =If(Self.Visible, Max(con_Student_Primary.Height, con_Student_Senior.Height) + 16, 0)
@@ -11935,7 +12020,7 @@
                         PaddingTop: =8
                         Width: =Parent.Width - 60
                         Y: =cmb_OtherStaff.Y + cmb_OtherStaff.Height
-                        ZIndex: =7
+                        ZIndex: =8
 
                         con_Student_Primary As groupContainer.verticalAutoLayoutContainer:
                             Height: =If(Self.Visible, DataCardKey_StudentPrimary.Height + txt_StudentPrimary.Height + 16, 0)
@@ -11968,7 +12053,7 @@
                                 LayoutMinWidth: =100
                                 PaddingLeft: =0
                                 Size: =21
-                                Text: ="Student(Primary)"
+                                Text: ="Primary Students"
                                 Width: =Parent.Width - 60
                                 Wrap: =false
                                 X: =30
@@ -11986,7 +12071,7 @@
                                     )
                                 Format: =TextFormat.Number
                                 Height: =70
-                                HintText: ="Enter Student(Primary)"
+                                HintText: ="Enter number of students"
                                 LayoutMaxHeight: =0
                                 LayoutMaxWidth: =0
                                 LayoutMinHeight: =16
@@ -12029,7 +12114,7 @@
                                 LayoutMinHeight: =70
                                 LayoutMinWidth: =100
                                 Size: =21
-                                Text: ="Student(Senior)"
+                                Text: ="Senior Students"
                                 Width: =Parent.Width - 60
                                 Wrap: =false
                                 X: =30
@@ -12047,7 +12132,7 @@
                                     )
                                 Format: =TextFormat.Number
                                 Height: =70
-                                HintText: ="Enter Student(Senior)"
+                                HintText: ="Enter number of students"
                                 LayoutMaxHeight: =0
                                 LayoutMaxWidth: =0
                                 LayoutMinHeight: =16
@@ -12057,6 +12142,22 @@
                                 VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
                                 Width: =Parent.Width - 60
                                 ZIndex: =2
+
+                lbl_ExpenseBeneficiaries_title As label:
+                    AutoHeight: =true
+                    Color: =gblParams.dropDownLabelColor
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FocusedBorderThickness: =
+                    Font: =Font.'Segoe UI'
+                    FontWeight: =FontWeight.Bold
+                    Height: =48
+                    Size: =24
+                    Text: ="4. Expense Beneficiaries - who was involved?"
+                    Underline: =true
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    ZIndex: =2
 
                 DataCardKey24 As label:
                     AutoHeight: =true

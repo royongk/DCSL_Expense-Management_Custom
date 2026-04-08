@@ -395,153 +395,135 @@
                 Font: =Font.'Segoe UI'
                 Height: =76
                 OnSelect: |-
-                    =Set(
-                        gblNavigationDrawerVisibility,
-                        false
-                    );
-                    // ✅ Purpose 필수 필드 유효성 검사
-                    UpdateContext({varPurposeValidationFailed: false});
+                    =Set(gblNavigationDrawerVisibility, false);
+                    
+                    // 1. 값 확정 및 유효성 검사 초기화 (타이밍 버그 방지)
+                    UpdateContext({
+                        locTargetPurpose: Coalesce(
+                            ComboBox_Purpose.Selected.'Purpose (mserp_value)',
+                            ComboBox_Purpose.SearchText,
+                            varSelectedReport.Purpose
+                        ),
+                        varPurposeValidationFailed: false,
+                        varAmountValidationFailed: false
+                    });
+                    
+                    Clear(varError); // 에러 컬렉션 초기화
+                    
+                    // 2. 필수 값 유효성 검사 (Purpose)
                     If(
-                        IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)') && 
-                        IsBlank(ComboBox_Purpose.SearchText) && 
-                        IsBlank(varSelectedReport.Purpose),
+                        IsBlank(locTargetPurpose),
                         UpdateContext({varPurposeValidationFailed: true});
                         Notify(
-                            Coalesce(
-                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterPurposeLabel',
-                                "Purpose field is required."
-                            ),
+                            Coalesce(GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterPurposeLabel', "Purpose field is required."),
                             NotificationType.Error,
                             gblParams.notificationTime
                         )
                     );
-                    // ✅ Delegate Employee 필수 필드 유효성 검사
+                    
+                    // 3. 필수 값 유효성 검사 (Delegate Employee)
                     If(
-                        !IsEmpty(colActiveDelegations) &&
-                        IsBlank(ComboBox_Employee.Selected.WorkerID), 
+                        !IsEmpty(colActiveDelegations) && IsBlank(ComboBox_Employee.Selected.WorkerID), 
+                        UpdateContext({varPurposeValidationFailed: true}); // 💡 수정: 누락되었던 실행 중단 플래그 추가
                         Notify(
                             "Delegate Employee field is required.",
                             NotificationType.Error,
                             gblParams.notificationTime
                         )
                     );
-                    // 기존 유효성 검사 및 저장 로직 (Purpose 유효성 검사 통과 시에만 실행)
+                    
+                    // 4. 금액 한도 유효성 검사 (Amount)
                     If(
-                        !varPurposeValidationFailed,
-                        // 기존 유효성 검사 및 저장 로직
-                        If(
-                            // 1. 유효성 검사 (Validation Check)
-                            !IsBlank(varSelectedTravelReq) &&
-                            (CountRows(colAttachedExpenses) > 0 || 
-                             CountRows(
-                                 Filter(
-                                     'DCSL Expense Line Expense Moblie Entity (mserp)',
-                                     'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
-                                 )
-                             ) > 0) &&
-                            Value(varSelectedReport.AmountTotal) > Value(varSelectedTravelReq.'Amount to reconcile'),
-                            
-                            // 2. 유효성 검사 실패 시 (Validation Failed)
-                            Notify(
-                                "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
-                                NotificationType.Error,
-                                gblParams.notificationTime
-                            ),
+                        !IsBlank(varSelectedTravelReq) &&
+                        (CountRows(colAttachedExpenses) > 0 || CountRows(Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number')) > 0) &&
+                        Value(varSelectedReport.AmountTotal) > Value(varSelectedTravelReq.'Amount to reconcile'),
                         
-                            // 3. 유효성 검사 통과 시 (Validation Passed - Create or Update)
-                            If(
-                                varIsCreateReport,
-                                
-                                // 3-1. 신규 생성 로직 (Create Logic)
-                                Clear(varError);
-                                With(
-                                    {
-                                        patchedReport: IfError(
-                                            Patch(
-                                                'DCSL Expense Moblie Report (mserp)',
-                                                Defaults('DCSL Expense Moblie Report (mserp)'),
-                                                {
-                                                    Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),ComboBox_Purpose.SearchText, ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                                    Location : If(IsBlank(ComboBox_Location.Selected.Location),ComboBox_Location.SearchText,ComboBox_Location.Selected.Location),
-                                                    Description: scr17_txt_Description_1.Text,
-                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
-                                                    'Created in Apps': 'NoYes (mserp)'.Yes,
-                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
-                                                }
-                                            ),
-                                            First(
-                                                ClearCollect(
-                                                    varError, 
-                                                    Substitute(
-                                                        Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                                        """message"":", 
-                                                        ""
-                                                    )
-                                                )
-                                            );
-                                            Blank()
-                                        )
-                                    },
-                                    If(
-                                        !IsBlank(patchedReport),
-                                        Set(varSelectedReport, patchedReport)
-                                    )
-                                ), // ✅ FIXED: 여기 있던 닫는 괄호 ')'를 콤마 ','로 변경하여 Else 구문으로 연결합니다.
+                        UpdateContext({varAmountValidationFailed: true}); // 💡 수정: 알림만 띄우고 넘어가던 것을 방지
+                        Notify(
+                            "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        )
+                    );
+                    
+                    // 5. 모든 유효성 검사를 통과했을 때만 저장 로직 실행
+                    If(
+                        !varPurposeValidationFailed && !varAmountValidationFailed,
                         
-                                // 3-2. 기존 수정 로직 (Update Logic - Else Block)
-                                Clear(varError);
-                                With(
-                                    {
-                                        patchedReport: IfError(
-                                            Patch(
-                                                'DCSL Expense Moblie Report (mserp)',
-                                                LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
-                                                {
-                                                    Purpose: If(IsBlank(ComboBox_Purpose.Selected.'Purpose (mserp_value)'),If(IsBlank(ComboBox_Purpose.SearchText),varSelectedReport.Purpose, ComboBox_Purpose.SearchText),ComboBox_Purpose.Selected.'Purpose (mserp_value)'),
-                                                    Location : If(IsBlank(ComboBox_Location.Selected.Location),If(IsBlank(ComboBox_Location.SearchText),varSelectedReport.Location, ComboBox_Location.SearchText),ComboBox_Location.Selected.Location),
-                                                    Description: scr17_txt_Description_1.Text,
-                                                    'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), varSelectedLegalEntity, ComboBox_LegalEntity_ExpReport.Selected.Value),
-                                                    'Created in Apps': 'NoYes (mserp)'.Yes,
-                                                    'Delegated Worker': If(!IsEmpty(colActiveDelegations), Value(ComboBox_Employee.Selected.WorkerID), Blank())
-                                                }
-                                            ),
-                                            First(
-                                                ClearCollect(
-                                                    varError, 
-                                                    Substitute(
-                                                        Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, 
-                                                        """message"":", 
-                                                        ""
-                                                    )
-                                                )
-                                            );
-                                            Blank()
-                                        )
-                                    },
+                        // 5-1. 데이터 생성 또는 수정
+                        With(
+                            {
+                                patchedReport: IfError(
                                     If(
-                                        !IsBlank(patchedReport),
-                                        Set(varSelectedReport, patchedReport)
-                                    )
+                                        varIsCreateReport,
+                                        // [신규 생성] Employee 필드 추가 및 안전한 생성
+                                        Patch(
+                                            'DCSL Expense Moblie Report (mserp)',
+                                            Defaults('DCSL Expense Moblie Report (mserp)'),
+                                            {
+                                                Employee: Value(ComboBox_Employee.Selected.WorkerID), // 💡 핵심 수정: 서버 필수 값 추가
+                                                Purpose: locTargetPurpose,
+                                                Location : If(IsBlank(ComboBox_Location.Selected.Location), ComboBox_Location.SearchText, ComboBox_Location.Selected.Location),
+                                                Description: scr17_txt_Description_1.Text,
+                                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
+                                                'Created in Apps': 'NoYes (mserp)'.Yes,
+                                                'Delegated Worker': If(!IsEmpty(colActiveDelegations) && Value(ComboBox_Employee.Selected.WorkerID) <> Value(userRecord.CreatingWorker), Value(ComboBox_Employee.Selected.WorkerID), Blank())
+                                            }
+                                        ),
+                                        // [기존 수정]
+                                        Patch(
+                                            'DCSL Expense Moblie Report (mserp)',
+                                            LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                                            {
+                                                Purpose: locTargetPurpose,
+                                                Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
+                                                Description: scr17_txt_Description_1.Text,
+                                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
+                                                'Delegated Worker': If(!IsEmpty(colActiveDelegations) && Value(ComboBox_Employee.Selected.WorkerID) <> Value(userRecord.CreatingWorker), Value(ComboBox_Employee.Selected.WorkerID), Blank())
+                                            }
+                                        )
+                                    ),
+                                    // 💡 핵심 수정: 에러 시 앱이 강제 종료되지 않도록 안전한 패턴(Coalesce) 적용
+                                    Collect(
+                                        varError, 
+                                        {
+                                            Value: Coalesce(
+                                                If(
+                                                    !IsBlank(FirstError.Details.HttpResponse) && IsMatch(FirstError.Details.HttpResponse, ".*""message"":""([^""]+)"".*"), 
+                                                    Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]+)""").FullMatch, """message"":", "")
+                                                ),
+                                                FirstError.Message,
+                                                "서버 처리 중 오류가 발생했습니다."
+                                            )
+                                        }
+                                    );
+                                    Blank()
                                 )
-                            ); // ✅ FIXED: 내부 If(varIsCreateReport...)를 여기서 닫습니다.
+                            },
+                            If(
+                                !IsBlank(patchedReport) && IsEmpty(varError),
+                                Set(varSelectedReport, patchedReport) // 성공 시 변수 업데이트
+                            )
+                        );
                         
-                        // 4. 출장 요청 헤더 연결 (Link Header)
+                        // 5-2. 출장 요청 헤더 연결 (Patch 성공 및 에러 없을 때만)
                         If(
-                            varIsCreateReport && !IsBlank(varSelectedTravelReq) && IsBlank(First(varError).Value) && !IsBlank(varSelectedReport),
+                            varIsCreateReport && !IsBlank(varSelectedTravelReq) && IsEmpty(varError),
                             With(
                                 {
-                                    expenseReport1: LookUp(
-                                        'DCSL Expense Moblie Report (mserp)',
+                                    // 💡 핵심 해결: F&O 서버가 백엔드에서 생성한 ReferenceId를 확실히 가져오기 위해 재조회(Re-fetch)
+                                    freshReportReq: LookUp(
+                                        'DCSL Expense Moblie Report (mserp)', 
                                         'Expense report number' = varSelectedReport.'Expense report number'
                                     )
                                 },
                                 If(
-                                    !IsBlank(expenseReport1.DEEXReferenceId),
+                                    !IsBlank(freshReportReq.DEEXReferenceId),
                                     Patch(
                                         'Expense Header to Travel Requisition Entity (mserp)',
                                         Defaults('Expense Header to Travel Requisition Entity (mserp)'),
                                         {
-                                            'Reference (mserp_trvexptable)': expenseReport1.DEEXReferenceId,
+                                            'Reference (mserp_trvexptable)': freshReportReq.DEEXReferenceId,
                                             'Travel requisition number': varSelectedTravelReq.'Travel requisition number'
                                         }
                                     )
@@ -549,9 +531,10 @@
                             )
                         );
                         
-                        // 5. ReferenceId 및 ReferenceDataAreaId 조회 후 교차 테이블에 Insert
+                        // 5-3. 현금 선지급 매핑
                         If(
-                            !IsBlank(ComboBox_MaptoCashAdvance.Selected.'Cash advance number') && (Toggle_Settlment_1.Value = true),
+                            IsEmpty(varError) && !IsBlank(ComboBox_MaptoCashAdvance.Selected.'Cash advance number') && (Toggle_Settlment_1.Value = true),
+                            
                             Patch(
                                 'DCSL Expense Moblie Report (mserp)',
                                 LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
@@ -561,45 +544,23 @@
                             );
                             With(
                                 {
-                                    // 조회 조건은 화면 내 갤러리(Gallery)나 콤보박스(ComboBox)의 선택 항목 등에 맞게 수정해주세요.
-                                    varCashAdvance: LookUp(
-                                        'DCSL TrvCash Advance Entity  (mserp)',
-                                        'Cash advance number' = ComboBox_MaptoCashAdvance.Selected.'Cash advance number' // 예시 조건
-                                    ),
-                                    varExpenseReport: LookUp(
-                                        'DCSL Expense Moblie Report (mserp)',
-                                        'Expense report number' = varSelectedReport.'Expense report number' // (생성된 경비보고서 번호)
-                                    )
+                                    varCashAdvance: LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = ComboBox_MaptoCashAdvance.Selected.'Cash advance number'),
+                                    // 💡 핵심 해결: 현금 매핑에서도 최신 ReferenceId 보장을 위해 재조회
+                                    freshReportCash: LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = varSelectedReport.'Expense report number')
                                 },
-                                
-                                // 3. 두 테이블에서 필수 키 값을 정상적으로 찾았는지 검증
                                 If(
-                                    !IsBlank(varCashAdvance.ReferenceId) && !IsBlank(varExpenseReport.DEEXReferenceId),
-                                    
-                                    // [해결 방법] 위임 경고를 없애기 위해 LookUp 외부에서 단순 변수로 값을 먼저 추출합니다.
-                                    // 만약 TrvExpTable이 텍스트(Text)형 컬럼이라면 Text()로, 숫자(Number)형이라면 Value()로 감싸주세요.
-                                    // (보통 F&O ReferenceId는 숫자형이므로 Value()를 사용하는 것이 안전합니다.)
+                                    !IsBlank(varCashAdvance.ReferenceId) && !IsBlank(freshReportCash.DEEXReferenceId),
                                     With(
                                         {
-                                            // 위임 경고를 피하기 위한 단일 값 추출 및 형변환
-                                            valExpId: Value(varExpenseReport.DEEXReferenceId),
+                                            valExpId: Value(freshReportCash.DEEXReferenceId),
                                             valCompanyCode: Text(varSelectedLegalEntity),
                                             valCashAdvanceId: Value(varCashAdvance.ReferenceId)
                                         },
-                                        
-                                        // With로 생성한 단일 변수(valExpId, valCompanyCode)를 사용하여 위임 경고 없이 조회합니다.
                                         With(
                                             {
-                                                varExistingMapping: LookUp(
-                                                    'DCSL TrvExpTableTrvCashAdvanceTable Entity (mserp)',
-                                                    TrvExpTable = valExpId && 
-                                                    'Company Code' = valCompanyCode
-                                                )
+                                                varExistingMapping: LookUp('DCSL TrvExpTableTrvCashAdvanceTable Entity (mserp)', TrvExpTable = valExpId && 'Company Code' = valCompanyCode)
                                             },
-                                            
-                                            // 데이터 존재 여부 및 변경 여부에 따른 분기 처리 (Insert / Update / Skip)
                                             If(
-                                                // 상황 1: 기존 매핑 없음 -> 신규 생성 (Insert)
                                                 IsBlank(varExistingMapping),
                                                 Patch(
                                                     'DCSL TrvExpTableTrvCashAdvanceTable Entity (mserp)',
@@ -609,57 +570,43 @@
                                                         'Company Code': valCompanyCode,
                                                         TrvExpTable: valExpId
                                                     }
-                                                );                
-                                                Notify("현금 선지급 매핑이 성공적으로 추가되었습니다.", NotificationType.Success);
+                                                );
+                                                Notify("Cash Advance mapping has been successfully added.", NotificationType.Success),
                                                 
-                                                // 상황 2: 매핑이 존재하지만 현금 선지급 ID가 다른 경우 -> 덮어쓰기 (Update)
-                                                , varExistingMapping.TrvCashAdvance <> valCashAdvanceId,
+                                                varExistingMapping.TrvCashAdvance <> valCashAdvanceId,
                                                 Patch(
                                                     'DCSL TrvExpTableTrvCashAdvanceTable Entity (mserp)',
                                                     varExistingMapping, 
-                                                    {
-                                                        TrvCashAdvance: valCashAdvanceId
-                                                    }
+                                                    { TrvCashAdvance: valCashAdvanceId }
                                                 );
-                                                Notify("현금 선지급 매핑이 새로운 값으로 수정되었습니다.", NotificationType.Success);
+                                                Notify("Cash Advance mapping modified to new value", NotificationType.Success),
                                                 
-                                                // 상황 3: 매핑이 존재하고 값도 같은 경우 -> 무시 (Skip)
-                                                ,
-                                                Notify("현금 선지급 정보가 동일하여 변경되지 않았습니다.", NotificationType.Information)
+                                                Notify("Cash advance information is the same and has not been changed.", NotificationType.Information)
                                             )
                                         )
                                     ),
-                                    
-                                    // 필수 데이터 누락 시 예외 처리
-                                    Notify("현금 선지급 또는 경비 보고서의 식별자(ID)를 찾을 수 없습니다.", NotificationType.Error)
+                                    Notify("The identifier (DEEXReferenceId) of the cash advance payment or expense report cannot be determined on the server.", NotificationType.Error)
                                 )
                             )
                         );
                     
-                        // 5. 결과 알림 및 이동 (Result Notify & Navigate)
+                        // 5-4. 최종 결과 처리 및 화면 이동
                         If(
-                            !(IsBlank(First(varError).Value) || First(varError).Value = ""),
+                            !IsEmpty(varError),
+                            // 에러가 발생한 경우 알림만 띄우고 이동 금지
                             Notify(
-                                Substitute(First(varError).Value, """", ""),
+                                First(varError).Value,
                                 NotificationType.Error,
                                 gblParams.notificationTime
                             ),
+                            
+                            // 에러가 없는 경우 정상 처리 알림 및 리스트 화면 이동
                             If(
                                 varIsCreateReport,
-                                Notify(
-                                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel',
-                                    NotificationType.Success, 
-                                    gblParams.notificationTime
-                                ),
-                                Notify(
-                                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', 
-                                    NotificationType.Success, 
-                                    gblParams.notificationTime
-                                )
+                                Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportCreateMessageLabel', NotificationType.Success, gblParams.notificationTime),
+                                Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportUpdatedSuccessfullyLabel', NotificationType.Success, gblParams.notificationTime)
                             );
                             Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus:1})
-                        );
-                        Clear(varError)
                         )
                     )
                 RadiusBottomLeft: =8
@@ -2202,7 +2149,12 @@
                     Width: =280
                     X: |
                         =(Parent.Width - Self.Width)/2
-                    Y: =scr17_btn_AttachExpenses_1.Y + scr17_btn_AttachExpenses_1.Height + 20
+                    Y: |-
+                        =If(
+                            scr17_btn_AttachExpenses_1.Visible = true,
+                            scr17_btn_AttachExpenses_1.Y + scr17_btn_AttachExpenses_1.Height + 20,
+                            40
+                        )
                     ZIndex: =1
 
                 scr17_img_CreatePlus_1 As image:
@@ -2460,7 +2412,7 @@
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AttachExpensesLabel'
                     Visible: |-
                         =If(
-                            CountRows(colAttachedExpenses) > 0,
+                            CountRows(colAttachedExpenses) > 0 || varAppMode = "AirfareAllowance",
                             false,
                             true
                         )

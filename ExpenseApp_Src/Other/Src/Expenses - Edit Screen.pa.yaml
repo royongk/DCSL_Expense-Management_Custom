@@ -539,13 +539,30 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_deexexpensetype"
                         Default: =varSelectedExpenseType
-                        DisplayName: ="Expense Type"
+                        DisplayName: ="Expense Type (pre-selected)"
                         Required: =false
                         Update: =ComboBox_ExpenseType.Selected.Value
                         Width: =Parent.Width
                         X: =1
                         Y: =expenseCategoryFieldOrder_Y - 120
                       Children:
+                        - lbl_ExpenseType_title:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              FocusedBorderThickness: =
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =48
+                              Size: =24
+                              Text: ="1. Expense Type"
+                              Underline: =true
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
                         - ExpenseType_DataCardKey:
                             Control: Label@2.5.1
                             Properties:
@@ -559,7 +576,7 @@ Screens:
                               Width: =Parent.Width - 60
                               Wrap: =false
                               X: =30
-                              Y: =10
+                              Y: =lbl_ExpenseType_title.Y + lbl_ExpenseType_title.Height + 10
                         - ComboBox_ExpenseType:
                             Control: Classic/ComboBox@2.4.0
                             Properties:
@@ -680,7 +697,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_deexpurchasecategory"
                         Default: =varSelectedPurchaseCategory
-                        DisplayName: ="Purchase Category"
+                        DisplayName: ="Expense Category"
                         Required: =false
                         Update: =ComboBox_PurchaseCategory.Selected.Value
                         Width: =Parent.Width
@@ -747,7 +764,7 @@ Screens:
                                     "Value",
                                     SortOrder.Ascending
                                 )
-                              NoSelectionText: ="Select Purchase Category"
+                              NoSelectionText: ="Select Expense Category, e.g. CPD, Event etc."
                               OnChange: |-
                                 =UpdateContext({varSelectedPurchaseCategory: Parent.Update});
                                 UpdateContext({varSelectedPurchaseCategoryValue: Parent.Update});
@@ -827,6 +844,18 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =PurchaseCategory_DataCardKey.Y
+                        - StarVisible4_9:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey4_1.Height
+                              Text: ="*"
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey4_1.Y
                   - ItemOrService_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
@@ -852,7 +881,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_deexitemorservice"
                         Default: =varSelectedItemOrService
-                        DisplayName: ="Item or Service"
+                        DisplayName: ="What is this expense for?"
                         Required: =false
                         Update: =ComboBox_ItemOrService.Selected.Value
                         Width: =Parent.Width
@@ -913,7 +942,7 @@ Screens:
                               Font: =Font.'Open Sans'
                               Height: =gblParams.dropDownHeight
                               HoverFill: =gblParams.dropDownHoverFill
-                              InputTextPlaceholder: ="Select Item or Service"
+                              InputTextPlaceholder: ="Select details, e.g. subscription, transportation"
                               IsSearchable: =false
                               Items: |-
                                 =SortByColumns(
@@ -931,7 +960,7 @@ Screens:
                                     "Value",
                                     SortOrder.Ascending
                                 )
-                              NoSelectionText: ="Select Item or Service"
+                              NoSelectionText: ="Select details, e.g. subscription, transportation"
                               OnChange: "=UpdateContext({varSelectedItemOrService: Parent.Update});\n// Derive project type from 3-level category selection\nUpdateContext(\n    {\n        varSelectedProjectType: \n            LookUp(\n                'DCSL Expense Category Mapping Setup Entity (mserp)',\n                'Expense Type' = varSelectedExpenseType &&\n                'Purchase Category' = varSelectedPurchaseCategory &&\n                'Item or Service' = Parent.Update,\n                'Project Type'\n            )\n    }\n);\n// cmbItemOrService 컨트롤의 OnChange 속성\nUpdateContext({\n    locCurrentSetup: LookUp(\n        'DCSL Expense Category Mapping Setup Entity (mserp)',\n        'Expense Type' = ComboBox_ExpenseType.Selected.Value && \n        'Purchase Category' = ComboBox_PurchaseCategory.Selected.Value && \n        'Item or Service' = Self.Selected.Value\n    )\n});\n\n// 금액 필드 초기화 (선택 사항)\nReset(DataCardValue4_1);\n\n// Fixed Amount가 Yes(true)로 바뀌었을 때만 통화 콤보박스를 초기화\nIf(\n    locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,\n    Reset(ComboBox1_12);\n    \n    // --- [수정] 환율 조회 및 LCY(KRW) 계산 로직 (캐싱된 컬렉션 활용) ---\n    If(\n        !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locCurrentSetup.Amount),\n        \n        With(\n            {\n                // 1. 메모리에 캐싱된 컬렉션(colExchangeRates)에서 환율 즉시 조회\n                fetchedRate: LookUp(\n                    colExchangeRates,\n                    Currency = ComboBox1_12.Selected.mserp_currencycode\n                ).'Exchange rate',\n                \n                // 2. locCurrentSetup(설정 정보)의 Amount 값을 숫자로 변환\n                currentAmount: Value(locCurrentSetup.Amount)\n            },\n            \n            // 3. KRW 환산 금액 계산 및 로컬 변수(locCalculatedLCY) 저장\n            // [안전장치] Coalesce를 사용하여 환율 누락 시 계산식 오류 방지 및 반올림(Round) 적용\n            UpdateContext({ \n                locCalculatedLCY: Text(\n                    Round((currentAmount * Value(Coalesce(fetchedRate, 100))) / 100, 0)\n                )\n            })\n        )\n    )\n);"
                               PaddingBottom: =5
                               PaddingLeft: =5
@@ -961,6 +990,35 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =ItemOrService_DataCardKey.Y
+                        - StarVisible4_8:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey4_1.Height
+                              Text: ="*"
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey4_1.Y
+                        - lbl_AmountInformation_title:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              FocusedBorderThickness: =
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =48
+                              Size: =24
+                              Text: ="2. Amount Information"
+                              Underline: =true
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =ComboBox_ItemOrService.Y + ComboBox_ItemOrService.Height + 30
                   - Expense category_DataCard3_3:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
@@ -2697,7 +2755,7 @@ Screens:
                         DataField: ="mserp_amountcurr"
                         Default: =ThisItem.'Transaction amount'
                         DisplayMode: "=If(\n    // 1. 기존 조건: 일당(Per diem) 경비인 경우\n    currExpenseType = 'TrvExpType (mserp)'.'Per diem' || \n    \n    // 2. \U0001F680 [신규 추가] 고정 금액이 설정된 카테고리인 경우\n    !IsBlank(locCurrentSetup.Amount) && \n    locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,\n    \n    // 위 조건 중 하나라도 맞으면 읽기 전용(수정 불가)\n    DisplayMode.View,\n    \n    // 일반적인 상황에서는 편집 가능\n    DisplayMode.Edit\n)"
-                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Transaction amount')
+                        DisplayName: ="Expense amount"
                         Required: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
                         Update: "=// 천단위 구분 기호 해제 로직 포함\n/*\nValue(\n    // 일반 경비인 경우 입력된 텍스트 사용\n    If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,\n        Blank(),\n        // [중요] 텍스트 입력값(\"1,000\")을 숫자(1000)로 변환\n        Substitute(DataCardValue4_1.Text, \",\", \"\") // 입력된 텍스트에서 쉼표(,)를 모두 빈값으로 치환\n    ),\n    varDefaultLanguage\n)\n*/\nValue(\n    If(\n        // 계산된 LCY 값(locCalculatedLCY)이 존재하면 해당 환산 금액을 우선 저장\n        !IsBlank(locCalculatedLCY),\n        locCalculatedLCY,\n        \n        // 계산된 값이 없다면 기존처럼 텍스트 박스에 입력된 값을 숫자로 변환하여 저장\n        If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,\n            Blank(),\n            Substitute(DataCardValue4_1.Text, \",\", \"\")\n        )\n    ),\n    varDefaultLanguage\n)"
                         Visible: =true && currExpenseType <> 'TrvExpType (mserp)'.Mileage && !(Breakfast_DataCard1.Visible)
@@ -2715,9 +2773,7 @@ Screens:
                               FocusedBorderThickness: =
                               Font: =Font.'Segoe UI'
                               Height: =48
-                              Text: |-
-                                =LookUp(labelTableLookUp, labelName = Parent.DisplayName, localisedLabelName)
-                                //"Transaction amount"
+                              Text: ="Expense amount"
                               Tooltip: =Self.Text
                               Width: =Parent.Width - 60
                               Wrap: =false
@@ -2739,7 +2795,7 @@ Screens:
                                 =//TextFormat.Number
                                 TextFormat.Text
                               Height: =gblParams.dropDownHeight
-                              HintText: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_EnterTransactionAmountLabel'
+                              HintText: ="Enter Expense amount"
                               HoverBorderColor: =
                               HoverFill: =gblParams.dropDownHoverFill
                               OnChange: "=// 1. 입력값에서 콤마를 제거한 '순수 숫자'를 임시 변수에 저장\nUpdateContext({ locTempAmount: Substitute(Self.Text, \",\", \"\") });\n\n// 2. 최대 금액 초과 여부 체크 및 알림\nIf(\n    !IsBlank(locCurrentSetup.'Max Amount') && \n    locCurrentSetup.'Max Amount' > 0 && \n    Value(locTempAmount) > locCurrentSetup.'Max Amount',\n    Notify(\"입력한 금액이 최대 허용 금액을 초과했습니다. 금액을 다시 확인해주세요.\", NotificationType.Error, 4000)\n);\n\n// 3. 실제 저장될 변수(dirtyTransAmount)에 '순수 숫자'만 업데이트\nUpdateContext({ dirtyTransAmount: locTempAmount });\n\n// --- [수정] 환율 조회 및 LCY(KRW) 계산 로직 (캐싱된 컬렉션 활용) ---\nIf(\n    !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locTempAmount),\n    \n    With(\n        {\n            // 1. 메모리에 캐싱된 컬렉션(colExchangeRates)에서 환율 즉시 조회\n            fetchedRate: LookUp(\n                colExchangeRates,\n                Currency = ComboBox1_12.Selected.mserp_currencycode\n            ).'Exchange rate',\n            \n            // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환\n            currentAmount: Value(Substitute(DataCardValue4_1.Text, \",\", \"\"))\n        },\n        \n        // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 0자리까지만 남김)\n        // [안전장치] Coalesce를 사용하여 환율 누락 시 계산식 오류 방지\n        UpdateContext({ \n            locCalculatedLCY: Text(\n                Round((currentAmount * Value(Coalesce(fetchedRate, 100))) / 100, 0)\n            )\n        })\n    )\n);\n\n// 4. 편집 모드 종료\nUpdateContext({ locIsEditingAmount: false });\n\n// 5. 컨트롤 리셋 (이때 Default 로직이 돌아가며 천 단위 콤마가 예쁘게 적용됨)\nReset(Self);\n\n// 6. 기타 필수 상태 업데이트\nUpdateContext({isDirty : true});\nUpdateContext({varOnChangeTriggered : true});\n\n// \U0001F680 [가장 중요한 수정] 기존에 있던 아래 코드는 절대 사용하면 안 됩니다. 삭제했습니다.\n// UpdateContext({dirtyTransAmount : Self.Text}); \n\nUpdateContext({taxModifiedByUser:false});\nUpdateContext({msCallStartedForSalestaxCalculation : true});\n\nIf(\n    varOnChangeTriggered && varOnSelectTriggered,\n    UpdateContext({varOnShowFields : true})\n);\n\nReset(DataCardValue25_1);\nUpdateContext({msCallStartedForSalestaxCalculation : false});"
@@ -3427,7 +3483,7 @@ Screens:
                         DataField: ="mserp_deexcurrencyamountview"
                         Default: =ThisItem.LCY
                         DisplayMode: =DisplayMode.View
-                        DisplayName: ="Accounting Amount & Currency"
+                        DisplayName: ="Converted KRW amount (automatic)"
                         MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, mserp_deexcurrencyamountview)
                         Required: =false
                         Update: "=/*\nIf(\n    !IsBlank(locCalculatedLCY),\n    locCalculatedLCY,                 // 새로 계산된 순수 숫자 전송\n    Value(varSelectedExpenseDoc.LCY)  // 새로 계산된 적이 없다면 기존 문서의 순수 숫자 전송\n)\n*/\nIf(\n    // 사용자가 금액과 통화를 모두 입력/선택한 상태라면\n    !IsBlank(DataCardValue4_1.Text) && !IsBlank(ComboBox1_12.Selected.mserp_currencycode),\n    // \"입력금액 통화코드\" 형태로 결합하여 텍스트로 저장 (예: \"100 USD\")\n    DataCardValue4_1.Text & \" \" & ComboBox1_12.Selected.mserp_currencycode,\n    \n    // 신규 작성이 아니거나 값이 비어있는 경우 기존 문서의 LCY 값 유지\n    varSelectedExpenseDoc.LCY\n)"
@@ -7413,7 +7469,7 @@ Screens:
                               Width: =Parent.Width - 60
                               Wrap: =false
                               X: =30
-                              Y: =10
+                              Y: =lbl_AdditionalPurchaseInformation_title.Y + lbl_AdditionalPurchaseInformation_title.Height + 10
                         - DateValue_PurchaseDate:
                             Control: Classic/DatePicker@2.6.0
                             Properties:
@@ -7498,6 +7554,23 @@ Screens:
                               Width: =Parent.Width - 2 * Self.X
                               X: =30
                               Y: =PurchaseDate_DataCardKey.Y + PurchaseDate_DataCardKey.Height + 5
+                        - lbl_AdditionalPurchaseInformation_title:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              FocusedBorderThickness: =
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =48
+                              Size: =24
+                              Text: ="3. Additional purchase information"
+                              Underline: =true
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
                   - Additional information_DataCard1_3:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicTextualEdit
@@ -9753,7 +9826,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_deexcostcenter"
                         Default: =varSelectedExpenseDoc.CostCenter
-                        DisplayName: ="Cost Center"
+                        DisplayName: ="Budget"
                         Required: =false
                         Update: =ComboBox_CostCenter.Selected.'Combination display'
                         Visible: "=// 기존 =true 를 아래 코드로 변경합니다.\nIf(\n    // Salary Advance (가불/급여 선지급) 유형이면 Cost Center 숨김\n    varAppMode = \"SalaryAdvance\" || varAppMode = \"AirfareAllowance\" || varAppMode = \"EmployeeBenefit\",\n    false,\n    \n    // 그 외의 경우는 정상 표시 (이후 필요에 따라 Visible 조건을 더 추가할 수 있습니다)\n    true\n)"
@@ -9791,14 +9864,14 @@ Screens:
                               Font: =Font.'Open Sans'
                               Height: =gblParams.dropDownHeight
                               HoverFill: =gblParams.dropDownHoverFill
-                              InputTextPlaceholder: ="Select Cost Center"
+                              InputTextPlaceholder: ="Select Budget"
                               Items: |-
                                 =SortByColumns(
                                     'DCSL Financial Dimension CostCenter (mserp)',
                                     "mserp_dimensionvalue",
                                     SortOrder.Ascending
                                 )
-                              NoSelectionText: ="Select Cost Center"
+                              NoSelectionText: ="Select Budget"
                               OnChange: |-
                                 =UpdateContext(
                                     {
@@ -9841,6 +9914,18 @@ Screens:
                               Width: =Parent.Width - 60
                               X: =30
                               Y: =ComboBox_CostCenter.Y + ComboBox_CostCenter.Height
+                        - CostCenter_StarVisible:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =Project_DataCardKey.Height
+                              Text: ="*"
+                              Width: =30
+                              Wrap: =false
+                              Y: =Project_DataCardKey.Y
                   - Default dimension display value_DataCard1_3:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicTextualEdit
@@ -9952,7 +10037,7 @@ Screens:
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_deexproject"
                         Default: =varSelectedExpenseDoc.Project
-                        DisplayName: ="Project"
+                        DisplayName: ="Project code (required for billing trip)"
                         Required: =false
                         Update: |-
                           =If(
@@ -10072,7 +10157,6 @@ Screens:
                               Font: =Font.'Open Sans'
                               Height: =Project_DataCardKey.Height
                               Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
                               Width: =30
                               Wrap: =false
                               Y: =Project_DataCardKey.Y
@@ -10199,9 +10283,9 @@ Screens:
                         Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n\n        // 3. 다른 직원 숫자 선택 (숫자 변환 실패 시 0)\n        valNoOfOtherStaff: IfError(Value(txt_NoOfOtherStaff.Text), 0),\n        \n        // 4. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 5. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, Name, \",\"), \n            NumberOfOtherStaff: valNoOfOtherStaff,\n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
                         Visible: |-
                           =If(
-                              varAppMode <> "EmployeeBenefit",
-                              true,
-                              false
+                              varAppMode in ["EmployeeBenefit", "AirfareAllowance"],
+                              false,
+                              true
                           )
                         Width: =Parent.Width
                         X: =0
@@ -10225,6 +10309,7 @@ Screens:
                               RadiusTopRight: =0
                               Visible: =Parent.Visible
                               Width: =Parent.Width
+                              Y: =lbl_ExpenseBeneficiaries_title.Y + lbl_ExpenseBeneficiaries_title.Height + 10
                             Children:
                               - DataCardKey_MySelf:
                                   Control: Label@2.5.1
@@ -10269,7 +10354,7 @@ Screens:
                                     Font: =Font.'Open Sans'
                                     Height: =48
                                     PaddingLeft: =20
-                                    Text: ="Other Staff"
+                                    Text: ="Staff (Select up to 10 staff members this expense was for)"
                                     Width: =Parent.Width - 60
                                     Wrap: =false
                                     X: =30
@@ -10306,7 +10391,7 @@ Screens:
                                     Font: =Font.'Open Sans'
                                     Height: =gblParams.dropDownHeight
                                     HoverFill: =gblParams.dropDownHoverFill
-                                    InputTextPlaceholder: ="Select Other Staff"
+                                    InputTextPlaceholder: ="Select names of staff"
                                     IsSearchable: =false
                                     Items: |-
                                       =//'Expense mobile master data (mserp)'
@@ -10318,6 +10403,7 @@ Screens:
                                       )
                                     LayoutMinHeight: =16
                                     LayoutMinWidth: =400
+                                    NoSelectionText: ="Select names of staff"
                                     OnChange: |-
                                       =// 기존에 OnChange에 수식이 있다면 그 뒤에 세미콜론(;)을 붙이고 아래 코드를 추가하세요.
                                       If(
@@ -10345,7 +10431,7 @@ Screens:
                                     Font: =Font.'Open Sans'
                                     Height: =48
                                     PaddingLeft: =20
-                                    Text: ="Number of Other Staff"
+                                    Text: ="External attendees"
                                     Width: =Parent.Width - 60
                                     Wrap: =false
                                     X: =30
@@ -10364,7 +10450,7 @@ Screens:
                                       )
                                     Font: =Font.'Open Sans'
                                     Format: =TextFormat.Number
-                                    HintText: ="Enter Number of Other Staff"
+                                    HintText: ="Enter number of external attendees"
                                     HoverBorderColor: =RGBA(0, 18, 107, 1)
                                     HoverFill: =RGBA(186, 202, 226, 1)
                                     LayoutMinHeight: =16
@@ -10427,7 +10513,7 @@ Screens:
                                                 Height: =48
                                                 LayoutMinWidth: =100
                                                 PaddingLeft: =0
-                                                Text: ="Student(Primary)"
+                                                Text: ="Primary Students"
                                                 Width: =Parent.Width - 60
                                                 Wrap: =false
                                                 X: =30
@@ -10446,7 +10532,7 @@ Screens:
                                                   )
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
-                                                HintText: ="Enter Student(Primary)"
+                                                HintText: ="Enter number of students"
                                                 HoverBorderColor: =RGBA(0, 18, 107, 1)
                                                 HoverFill: =RGBA(186, 202, 226, 1)
                                                 LayoutMinHeight: =16
@@ -10483,7 +10569,7 @@ Screens:
                                                 Font: =Font.'Open Sans'
                                                 Height: =48
                                                 LayoutMinWidth: =100
-                                                Text: ="Student(Senior)"
+                                                Text: ="Senior Students"
                                                 Width: =Parent.Width - 60
                                                 Wrap: =false
                                                 X: =30
@@ -10502,7 +10588,7 @@ Screens:
                                                   )
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
-                                                HintText: ="Enter Student(Senior)"
+                                                HintText: ="Enter number of students"
                                                 HoverBorderColor: =RGBA(0, 18, 107, 1)
                                                 HoverFill: =RGBA(186, 202, 226, 1)
                                                 LayoutMinHeight: =16
@@ -10510,6 +10596,22 @@ Screens:
                                                 PaddingLeft: =5
                                                 VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
                                                 Width: =Parent.Width - 60
+                        - lbl_ExpenseBeneficiaries_title:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              FocusedBorderThickness: =
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =48
+                              Size: =24
+                              Text: ="4. Expense Beneficiaries - who was involved?"
+                              Underline: =true
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
                         - DataCardKey24:
                             Control: Label@2.5.1
                             MetadataKey: FieldName
