@@ -3,7 +3,7 @@
     OnVisible: |-
         =UpdateContext({varCntSelect:false});
         //Clear(collSelectedExpenses)
-        Refresh('Expense reports (mserp)_1')
+        Refresh('DCSL Expense Moblie Report (mserp)')
 
     emptyStateComponent_6 As emptyStateComponent:
         subTitle: =
@@ -22,10 +22,10 @@
         Items: |-
             =SortByColumns(
                 Filter(
-                    'Expense reports (mserp)_1',
-                    'Document Status' in dsDrafts[@Value] && DEEXLegalEntity_DataArea = varSelectedLegalEntity
+                    'DCSL Expense Moblie Report (mserp)',
+                    'Document Status' in dsDrafts[@Value] && LegalEntity_DataArea = varSelectedLegalEntity
                 ),
-                "mserp_createddate",
+                "mserp_reportcreateddatetime",
                 SortOrder.Descending
             )
         Layout: =Layout.Vertical
@@ -164,7 +164,7 @@
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
-                            =Concatenate(Text(Value(ThisItem.'Amount (mserp_amounttotal)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                            =Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                         Width: =Parent.Width
                         ZIndex: =1
 
@@ -182,7 +182,7 @@
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
                             =Text(
-                                DateValue(ThisItem.CreatedDate),
+                                DateValue(ThisItem.ReportCreatedDateTime),
                                 "mmm dd, yyyy"
                             )
                         Width: =Parent.Width

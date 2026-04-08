@@ -19,7 +19,7 @@
         )
         );
         Concurrent(
-        Refresh('Expense reports (mserp)_1'),
+        Refresh('DCSL Expense Moblie Report (mserp)'),
         Refresh('DimAttributeTrvTravelTxtEntity (mserp)'),
         Refresh('Travel locations (mserp)'),
         Refresh('@DEEX:DEEX_20316 (mserp)')
@@ -157,28 +157,28 @@
                         // 상태별 필터링
                         Switch(
                             varcntSelectedStatus,
-                            1, Filter('Expense reports (mserp)_1', 'Document Status' = 'Document Status (mserp)'.Draft),
-                            2, Filter('Expense reports (mserp)_1', 'Document Status' = 'Document Status (mserp)'.Submitted),
+                            1, Filter('DCSL Expense Moblie Report (mserp)', 'Document Status' = 'Document Status (mserp)'.Draft),
+                            2, Filter('DCSL Expense Moblie Report (mserp)', 'Document Status' = 'Document Status (mserp)'.Submitted),
                             // 💡 상태 3: Finance Approved
-                            3, Filter('Expense reports (mserp)_1', 
+                            3, Filter('DCSL Expense Moblie Report (mserp)', 
                                     'Document Status' = 'Document Status (mserp)'.Approved && 
                                     /* 예시: 승인 단계 필드 추가 */ 
                                     ('Document status' = 'Document status (mserp)'.Draft || 'Document status' = 'Document status (mserp)'.Submitted || 'Document status' = 'Document status (mserp)'.'In review')
                                 ),
                             // 💡 상태 4: Budget holder Approved
-                            4, Filter('Expense reports (mserp)_1', 
+                            4, Filter('DCSL Expense Moblie Report (mserp)', 
                                     'Document Status' = 'Document Status (mserp)'.Approved && 
                                     /* 예시: 승인 단계 필드 추가 */ 
                                     'Document status' = 'Document status (mserp)'.Approved
                                 ),
                             // 💡 상태 5: Finance Rejected
-                            5, Filter('Expense reports (mserp)_1', 
+                            5, Filter('DCSL Expense Moblie Report (mserp)', 
                                     'Document Status' = 'Document Status (mserp)'.Rejected && 
                                     /* 예시: 승인 단계 필드 추가 */ 
                                     'Document status' = 'Document status (mserp)'.Draft
                                 ),
                             // 💡 상태 6: Budget holder Rejected
-                            6, Filter('Expense reports (mserp)_1', 
+                            6, Filter('DCSL Expense Moblie Report (mserp)', 
                                     'Document Status' = 'Document Status (mserp)'.Rejected && 
                                     /* 예시: 승인 단계 필드 추가 */ 
                                     'Document status' = 'Document status (mserp)'.Rejected
@@ -186,7 +186,7 @@
                         ),
                         
                         // 법인(Legal Entity) 필터링
-                        Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity),
+                        LegalEntity_DataArea = Upper(varSelectedLegalEntity),
                         
                         // 💡 3. [수정됨] 대리인/본인 상시 조회 필터링
                         // If문 없이 무조건 컬렉션 배열에 포함된 WorkerID를 조회합니다.
@@ -195,9 +195,9 @@
                         Employee in colCreatingWorkerOptions.WorkerID,
                         
                         // AppMode에 따른 Purpose 필터링
-                        IsBlank(mappedPurpose) || 'Purpose (mserp_purpose)' = mappedPurpose
+                        IsBlank(mappedPurpose) || Purpose = mappedPurpose
                     ), 
-                    "mserp_createddate", SortOrder.Descending
+                    "mserp_reportcreateddatetime", SortOrder.Descending
                 )
             )
         Layout: =Layout.Vertical
@@ -207,7 +207,7 @@
             // ⚠️ LookUp from original data source FIRST to ensure field name compatibility
             Set(
                 varSelectedReport,
-                LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && DEEXLegalEntity_DataArea = varSelectedLegalEntity)
+                LookUp('DCSL Expense Moblie Report (mserp)','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
             );
             // ✅ Use varSelectedReport.'Document Status' from original data source for type consistency
             Set(
@@ -312,9 +312,9 @@
                     Size: =21
                     Text: |-
                         =If(
-                            ThisItem.'Purpose (mserp_purpose)' <> "" || !IsBlank(ThisItem.'Purpose (mserp_purpose)'),
-                            Concatenate("Report bearing title ", ThisItem.'Purpose (mserp_purpose)', If(Self.Value, " selected", " unselected")),
-                            Concatenate("Report bearing amount ", Concatenate(Text(Value(ThisItem.'Amount (mserp_amounttotal)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency), If(Self.Value, " selected", " unselected"))
+                            ThisItem.Purpose <> "" || !IsBlank(ThisItem.Purpose),
+                            Concatenate("Report bearing title ", ThisItem.Purpose, If(Self.Value, " selected", " unselected")),
+                            Concatenate("Report bearing amount ", Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency), If(Self.Value, " selected", " unselected"))
                         )
                     VerticalAlign: =VerticalAlign.Bottom
                     Visible: =varCntSelect
@@ -415,7 +415,7 @@
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
-                            =Concatenate(Text(Value(ThisItem.'Amount (mserp_amounttotal)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                            =Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                         Width: =Parent.Width
                         ZIndex: =1
 
@@ -433,7 +433,7 @@
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
                             =Text(
-                                DateValue(ThisItem.CreatedDate),
+                                DateValue(ThisItem.ReportCreatedDateTime),
                                 "mmm dd, yyyy"
                             )
                         Width: =Parent.Width
@@ -902,7 +902,7 @@
                 varSelectedTab,
                 3
             );
-            Refresh('Expense reports (mserp)_1');
+            Refresh('DCSL Expense Moblie Report (mserp)');
             ClearCollect(
                 collectionICLE,
                 ForAll(
@@ -979,9 +979,9 @@
                 colSelectedReportIds,
                 IfError(
                     Remove(
-                        'Expense reports (mserp)_1',
+                        'DCSL Expense Moblie Report (mserp)',
                         LookUp(
-                            'Expense reports (mserp)_1',
+                            'DCSL Expense Moblie Report (mserp)',
                             'Expense report number' = colSelectedReportIds[@reportNumber]
                         )
                     ),

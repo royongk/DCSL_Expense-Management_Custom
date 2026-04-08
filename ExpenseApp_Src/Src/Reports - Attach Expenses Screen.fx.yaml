@@ -16,7 +16,7 @@
                 SortByColumns(
                     Filter(
                         'DCSL Expense Line Expense Moblie Entity (mserp)',
-                        'Company (mserp_company)' = varSelectedLegalEntity && 
+                        'Company Code' = varSelectedLegalEntity && 
                         'Approval status' = 'Document status (mserp)'.Draft && 
                         IsBlank('Expense report number (mserp_expnumber)') && 
                         // [핵심 추가] 전달받은 사용자 ID로 필터링
@@ -38,7 +38,7 @@
                     SortByColumns(
                         Filter(
                             'DCSL Expense Line Expense Moblie Entity (mserp)',
-                            'Company (mserp_company)' = varSelectedLegalEntity && 
+                            'Company Code' = varSelectedLegalEntity && 
                             'Approval status' = 'Document status (mserp)'.Draft && 
                             IsBlank('Expense report number (mserp_expnumber)') && 
                             'Employee (mserp_creatingworker)' = ctxSelectedWorkerID &&
@@ -56,7 +56,7 @@
                     SortByColumns(
                         Filter(
                             'DCSL Expense Line Expense Moblie Entity (mserp)',
-                            'Company (mserp_company)' = varSelectedLegalEntity && 
+                            'Company Code' = varSelectedLegalEntity && 
                             'Approval status' = 'Document status (mserp)'.Draft && 
                             IsBlank('Expense report number (mserp_expnumber)') && 
                             'Employee (mserp_creatingworker)' = ctxSelectedWorkerID &&
@@ -92,11 +92,11 @@
                 Clear(varError);
                 IfError(
                     Patch(
-                        'Expense reports (mserp)_1',
-                        LookUp('Expense reports (mserp)_1','Expense report number' = locCurrentReportNum),
+                        'DCSL Expense Moblie Report (mserp)',
+                        LookUp('DCSL Expense Moblie Report (mserp)','Expense report number' = locCurrentReportNum),
                         {
-                            DEEXExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', ","),
-                            'Purpose (mserp_purpose)': Coalesce(ctxTargetPurpose, varSelectedReport.'Purpose (mserp_purpose)'),
+                            ExpTransNumber: Concat(colAttachedExpenses, 'Expense transaction number (mserp_exptransnumber)', ","),
+                            Purpose: Coalesce(ctxTargetPurpose, varSelectedReport.Purpose),
                             Location: varSelectedReport.Location
                         }
                     ),
@@ -113,7 +113,7 @@
                     
                     // (A) 백엔드 데이터 갱신
                     Refresh('DCSL Expense Line Expense Moblie Entity (mserp)');
-                    Set(varSelectedReport, LookUp('Expense reports (mserp)_1', 'Expense report number' = locCurrentReportNum));
+                    Set(varSelectedReport, LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = locCurrentReportNum));
                     
                     // (B) ✨ [199개 버그 차단] Blank가 아닐 때만 서버에서 필터링해서 가져오기
                     If(

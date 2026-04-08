@@ -29,7 +29,7 @@ Screens:
         )
         );
         Concurrent(
-        Refresh('Expense reports (mserp)_1'),
+        Refresh('DCSL Expense Moblie Report (mserp)'),
         Refresh('DimAttributeTrvTravelTxtEntity (mserp)'),
         Refresh('Travel locations (mserp)'),
         Refresh('@DEEX:DEEX_20316 (mserp)')
@@ -148,13 +148,13 @@ Screens:
                   scr16_cmp_Footer_1.Y - Self.Y,
                   Self.TemplateHeight * CountRows(Self.AllItems)
               )
-            Items: "=With(\n    {\n        // 1. varAppMode에 매핑되는 Purpose 값을 사전에 정의합니다.\n        mappedPurpose: Switch(\n            varAppMode,\n            \"ExpenseReport\", \"Expense reimbursement\",\n            \"BillingTripSettlement\", \"Billing Trip Settlement\",\n            \"CashAdvance\", \"Cash Advance\",\n            \"EmployeeBenefit\", \"Employee Benefit\",\n            \"SalaryAdvance\", \"Salary Advance\",\n            Blank()\n        ),\n        \n        // 2. 기준 과거 날짜 상수 (DateTime 형식 일치)\n        dtOneWeekAgo: DateAdd(Now(), -7, TimeUnit.Days),\n        dtOneMonthAgo: DateAdd(Now(), -30, TimeUnit.Days),\n        dtSixMonthsAgo: DateAdd(Now(), -180, TimeUnit.Days),\n        dtOneYearAgo: DateAdd(Now(), -365, TimeUnit.Days)\n    },\n    SortByColumns(\n        Filter(\n            // 상태별 필터링\n            Switch(\n                varcntSelectedStatus,\n                1, Filter('Expense reports (mserp)_1', 'Document Status' = 'Document Status (mserp)'.Draft),\n                2, Filter('Expense reports (mserp)_1', 'Document Status' = 'Document Status (mserp)'.Submitted),\n                // \U0001F4A1 상태 3: Finance Approved\n                3, Filter('Expense reports (mserp)_1', \n                        'Document Status' = 'Document Status (mserp)'.Approved && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        ('Document status' = 'Document status (mserp)'.Draft || 'Document status' = 'Document status (mserp)'.Submitted || 'Document status' = 'Document status (mserp)'.'In review')\n                    ),\n                // \U0001F4A1 상태 4: Budget holder Approved\n                4, Filter('Expense reports (mserp)_1', \n                        'Document Status' = 'Document Status (mserp)'.Approved && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        'Document status' = 'Document status (mserp)'.Approved\n                    ),\n                // \U0001F4A1 상태 5: Finance Rejected\n                5, Filter('Expense reports (mserp)_1', \n                        'Document Status' = 'Document Status (mserp)'.Rejected && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        'Document status' = 'Document status (mserp)'.Draft\n                    ),\n                // \U0001F4A1 상태 6: Budget holder Rejected\n                6, Filter('Expense reports (mserp)_1', \n                        'Document Status' = 'Document Status (mserp)'.Rejected && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        'Document status' = 'Document status (mserp)'.Rejected\n                    )\n            ),\n            \n            // 법인(Legal Entity) 필터링\n            Upper(DEEXLegalEntity_DataArea) = Upper(varSelectedLegalEntity),\n            \n            // \U0001F4A1 3. [수정됨] 대리인/본인 상시 조회 필터링\n            // If문 없이 무조건 컬렉션 배열에 포함된 WorkerID를 조회합니다.\n            // 대리인이 없으면 본인 ID만 1개 있으므로 본인 데이터만 나오고,\n            // 대리인이 있으면 본인+대리인 ID가 모두 있으므로 통합되어 출력됩니다.\n            Employee in colCreatingWorkerOptions.WorkerID,\n            \n            // AppMode에 따른 Purpose 필터링\n            IsBlank(mappedPurpose) || 'Purpose (mserp_purpose)' = mappedPurpose\n        ), \n        \"mserp_createddate\", SortOrder.Descending\n    )\n)"
+            Items: "=With(\n    {\n        // 1. varAppMode에 매핑되는 Purpose 값을 사전에 정의합니다.\n        mappedPurpose: Switch(\n            varAppMode,\n            \"ExpenseReport\", \"Expense reimbursement\",\n            \"BillingTripSettlement\", \"Billing Trip Settlement\",\n            \"CashAdvance\", \"Cash Advance\",\n            \"EmployeeBenefit\", \"Employee Benefit\",\n            \"SalaryAdvance\", \"Salary Advance\",\n            Blank()\n        ),\n        \n        // 2. 기준 과거 날짜 상수 (DateTime 형식 일치)\n        dtOneWeekAgo: DateAdd(Now(), -7, TimeUnit.Days),\n        dtOneMonthAgo: DateAdd(Now(), -30, TimeUnit.Days),\n        dtSixMonthsAgo: DateAdd(Now(), -180, TimeUnit.Days),\n        dtOneYearAgo: DateAdd(Now(), -365, TimeUnit.Days)\n    },\n    SortByColumns(\n        Filter(\n            // 상태별 필터링\n            Switch(\n                varcntSelectedStatus,\n                1, Filter('DCSL Expense Moblie Report (mserp)', 'Document Status' = 'Document Status (mserp)'.Draft),\n                2, Filter('DCSL Expense Moblie Report (mserp)', 'Document Status' = 'Document Status (mserp)'.Submitted),\n                // \U0001F4A1 상태 3: Finance Approved\n                3, Filter('DCSL Expense Moblie Report (mserp)', \n                        'Document Status' = 'Document Status (mserp)'.Approved && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        ('Document status' = 'Document status (mserp)'.Draft || 'Document status' = 'Document status (mserp)'.Submitted || 'Document status' = 'Document status (mserp)'.'In review')\n                    ),\n                // \U0001F4A1 상태 4: Budget holder Approved\n                4, Filter('DCSL Expense Moblie Report (mserp)', \n                        'Document Status' = 'Document Status (mserp)'.Approved && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        'Document status' = 'Document status (mserp)'.Approved\n                    ),\n                // \U0001F4A1 상태 5: Finance Rejected\n                5, Filter('DCSL Expense Moblie Report (mserp)', \n                        'Document Status' = 'Document Status (mserp)'.Rejected && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        'Document status' = 'Document status (mserp)'.Draft\n                    ),\n                // \U0001F4A1 상태 6: Budget holder Rejected\n                6, Filter('DCSL Expense Moblie Report (mserp)', \n                        'Document Status' = 'Document Status (mserp)'.Rejected && \n                        /* 예시: 승인 단계 필드 추가 */ \n                        'Document status' = 'Document status (mserp)'.Rejected\n                    )\n            ),\n            \n            // 법인(Legal Entity) 필터링\n            LegalEntity_DataArea = Upper(varSelectedLegalEntity),\n            \n            // \U0001F4A1 3. [수정됨] 대리인/본인 상시 조회 필터링\n            // If문 없이 무조건 컬렉션 배열에 포함된 WorkerID를 조회합니다.\n            // 대리인이 없으면 본인 ID만 1개 있으므로 본인 데이터만 나오고,\n            // 대리인이 있으면 본인+대리인 ID가 모두 있으므로 통합되어 출력됩니다.\n            Employee in colCreatingWorkerOptions.WorkerID,\n            \n            // AppMode에 따른 Purpose 필터링\n            IsBlank(mappedPurpose) || Purpose = mappedPurpose\n        ), \n        \"mserp_reportcreateddatetime\", SortOrder.Descending\n    )\n)"
             OnSelect: |-
               =UpdateContext({varcntShowFilter:false});
               // ⚠️ LookUp from original data source FIRST to ensure field name compatibility
               Set(
                   varSelectedReport,
-                  LookUp('Expense reports (mserp)_1','Expense report number' = ThisItem.'Expense report number' && DEEXLegalEntity_DataArea = varSelectedLegalEntity)
+                  LookUp('DCSL Expense Moblie Report (mserp)','Expense report number' = ThisItem.'Expense report number' && LegalEntity_DataArea = varSelectedLegalEntity)
               );
               // ✅ Use varSelectedReport.'Document Status' from original data source for type consistency
               Set(
@@ -262,9 +262,9 @@ Screens:
                               Reset: =varCntSelect Or scr01_chk_SelectAll.Value
                               Text: |-
                                 =If(
-                                    ThisItem.'Purpose (mserp_purpose)' <> "" || !IsBlank(ThisItem.'Purpose (mserp_purpose)'),
-                                    Concatenate("Report bearing title ", ThisItem.'Purpose (mserp_purpose)', If(Self.Value, " selected", " unselected")),
-                                    Concatenate("Report bearing amount ", Concatenate(Text(Value(ThisItem.'Amount (mserp_amounttotal)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency), If(Self.Value, " selected", " unselected"))
+                                    ThisItem.Purpose <> "" || !IsBlank(ThisItem.Purpose),
+                                    Concatenate("Report bearing title ", ThisItem.Purpose, If(Self.Value, " selected", " unselected")),
+                                    Concatenate("Report bearing amount ", Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency), If(Self.Value, " selected", " unselected"))
                                 )
                               VerticalAlign: =VerticalAlign.Bottom
                               Visible: =varCntSelect
@@ -353,7 +353,7 @@ Screens:
                                     LayoutMaxWidth: =
                                     OnSelect: =Select(scr16_shp_SelectRegion_4)
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                                    Text: =Concatenate(Text(Value(ThisItem.'Amount (mserp_amounttotal)'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                                    Text: =Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                                     Width: =Parent.Width
                               - Label6_3:
                                   Control: Label@2.5.1
@@ -368,7 +368,7 @@ Screens:
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
                                     Text: |-
                                       =Text(
-                                          DateValue(ThisItem.CreatedDate),
+                                          DateValue(ThisItem.ReportCreatedDateTime),
                                           "mmm dd, yyyy"
                                       )
                                     Width: =Parent.Width
@@ -933,7 +933,7 @@ Screens:
                   varSelectedTab,
                   3
               );
-              Refresh('Expense reports (mserp)_1');
+              Refresh('DCSL Expense Moblie Report (mserp)');
               ClearCollect(
                   collectionICLE,
                   ForAll(
@@ -1012,9 +1012,9 @@ Screens:
                   colSelectedReportIds,
                   IfError(
                       Remove(
-                          'Expense reports (mserp)_1',
+                          'DCSL Expense Moblie Report (mserp)',
                           LookUp(
-                              'Expense reports (mserp)_1',
+                              'DCSL Expense Moblie Report (mserp)',
                               'Expense report number' = colSelectedReportIds[@reportNumber]
                           )
                       ),

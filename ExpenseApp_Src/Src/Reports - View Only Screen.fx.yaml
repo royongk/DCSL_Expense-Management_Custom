@@ -124,7 +124,7 @@
                         If(
                             !IsBlank(varSelectedReport),
                             Text(
-                                Value(varSelectedReport.'Amount (mserp_amounttotal)'),
+                                Value(varSelectedReport.AmountTotal),
                                 "#,#0.00",
                                 varDefaultLanguage
                             ),
@@ -201,8 +201,8 @@
                     );
                     IfError(
                         Patch(
-                            'Expense reports (mserp)_1',
-                            LookUp('Expense reports (mserp)_1', 'Expense report number' = varSelectedReport.'Expense report number'),
+                            'DCSL Expense Moblie Report (mserp)',
+                            LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
                             {
                                 WorkflowAction: "Recall",
                                 'Document Status': 'Document Status (mserp)'.Draft
