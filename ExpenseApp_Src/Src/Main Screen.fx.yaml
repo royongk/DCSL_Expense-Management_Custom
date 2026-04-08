@@ -34,14 +34,90 @@
             { DisplayName: "Employee Benefits Claim", Category: "HR", AppMode: "EmployeeBenefit", IsVisible: varIsOwner Or varIsLocal Or varIsFull },
             { DisplayName: "Salary Advance", Category: "HR", AppMode: "SalaryAdvance", IsVisible: varIsOwner Or varIsFull }
         );
+        
+        // 4. [동적 설정 데이터 로드] 설정 테이블에서 5개의 필수 필드값 가져오기
+        // 'AppConfigSettings' 테이블의 첫 번째(단일) 행 데이터를 기준으로 변수 할당 (성능 최적화)
+        With(
+            { globalSettings: LookUp('Expense management parameters (mserp)','Company Code' = varSelectedLegalEntity) },
+            Concurrent(
+                Set(varFinanceEmail, globalSettings.'Contact Finance'),
+                Set(varHREmail, globalSettings.'Contact HR'),
+                Set(varTechEmail, globalSettings.'Contact for technical support'),
+                Set(varInstructionLink, globalSettings.'Instruction material Link'),
+                Set(varVideoLink, globalSettings.'Introduction video Link')
+            )
+        );
+
+    conFooterLayout As groupContainer.verticalAutoLayoutContainer:
+        Height: =lblTechSupport.Height + lblInstructionLink.Height + vidIntroVideo.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =20
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        LayoutMode: =LayoutMode.Auto
+        PaddingBottom: =8
+        PaddingLeft: =8
+        PaddingRight: =8
+        PaddingTop: =8
+        Width: =Parent.Width - 40
+        X: =20
+        Y: =conMainLayout.Y + conMainLayout.Height + 30
+        ZIndex: =1
+
+        lblTechSupport As label:
+            Align: =Align.Center
+            Color: =RGBA(80, 80, 80, 1)
+            FontWeight: =FontWeight.Bold
+            Height: =70
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =16
+            LayoutMinWidth: =16
+            OnSelect: |-
+                =Launch("mailto:" & varTechEmail)
+            Size: =If(App.Width >= 1024, 22, 16)
+            Text: |-
+                ="Contact for technical support: " & Coalesce(varTechEmail, "Loading...")
+            Width: =Parent.Width
+            ZIndex: =1
+
+        lblInstructionLink As label:
+            Align: =Align.Center
+            Color: =RGBA(0, 100, 255, 1)
+            FontWeight: =FontWeight.Bold
+            Height: =70
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =16
+            LayoutMinWidth: =16
+            OnSelect: =Launch(varInstructionLink)
+            Size: =If(App.Width >= 1024, 22, 16)
+            Text: |-
+                ="Instruction material:" & Char(10) & "Link to more instruction material: SharePoint folder"
+            Underline: =true
+            Width: =Parent.Width
+            ZIndex: =2
+
+        vidIntroVideo As videoPlayback:
+            Height: =If(App.Width >= 1024, 320, 200)
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =16
+            LayoutMinWidth: =16
+            Media: =varVideoLink
+            Width: =If(App.Width >= 1024, 640, Parent.Width - 40)
+            ZIndex: =3
 
     MainScreen_Logo As image:
         Height: =If(App.Width >= 1024, 150, 100)
         Image: =DCSL_Logo
         Width: =If(App.Width >= 1024, 450, Parent.Width - 80)
         X: =(Parent.Width - Self.Width) / 2
-        Y: =If(App.Width >= 1024, Parent.Height * 0.15, Parent.Height * 0.2)
-        ZIndex: =1
+        Y: =If(App.Width >= 1024, 40, 20)
+        ZIndex: =2
 
     MainScreen_TitleLabel As label:
         Align: =Align.Center
@@ -54,7 +130,7 @@
         Width: =Parent.Width - 40
         X: =(Parent.Width - Self.Width) / 2
         Y: =MainScreen_Logo.Y + MainScreen_Logo.Height + 40
-        ZIndex: =4
+        ZIndex: =3
 
     MainScreen_WelcomeLabel As label:
         Align: =Align.Center
@@ -66,7 +142,7 @@
         Width: =Parent.Width - 40
         X: =(Parent.Width - Self.Width) / 2
         Y: =MainScreen_TitleLabel.Y + MainScreen_TitleLabel.Height + 10
-        ZIndex: =5
+        ZIndex: =4
 
     conMainLayout As groupContainer.horizontalAutoLayoutContainer:
         Height: =conFinanceSection.Height
@@ -83,15 +159,15 @@
         PaddingTop: =8
         Width: =Parent.Width - 40
         X: =20
-        Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + 100
-        ZIndex: =6
+        Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + 30
+        ZIndex: =5
 
         conFinanceSection As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.Start
             BorderColor: =RGBA(0,0,0,0.05)
             BorderThickness: =1
             Fill: =RGBA(255, 255, 255, 1)
-            Height: =conFinanceHeader.Height + galFinanceMenu.Height + 40
+            Height: =conFinanceHeader.Height + galFinanceMenu.Height + lblContactFinance.Height + 40
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGridColumnMinWidth: =0
@@ -216,12 +292,29 @@
                     Y: =(Parent.TemplateHeight - Self.Height) / 2
                     ZIndex: =1
 
+            lblContactFinance As label:
+                Align: =Align.Center
+                Color: =RGBA(0, 100, 255, 1)
+                Font: =FontWeight.Semibold
+                HoverColor: =RGBA(0, 50, 150, 1)
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                OnSelect: |-
+                    =Launch("mailto:" & varFinanceEmail)
+                Size: =If(App.Width >= 1024, 14, 12)
+                Text: |-
+                    ="Contact Finance: " & Coalesce(varFinanceEmail, "Loading...")
+                Width: =Parent.Width
+                ZIndex: =3
+
         conHRSection As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.Start
             BorderColor: =RGBA(0,0,0,0.05)
             BorderThickness: =1
             Fill: =RGBA(255, 255, 255, 1)
-            Height: =conHRHeader.Height + galHRMenu.Height + 40
+            Height: =conHRHeader.Height + galHRMenu.Height + lblContactHR.Height + 40
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGridColumnMinWidth: =0
@@ -347,4 +440,21 @@
                     X: =(Parent.TemplateWidth - Self.Width) / 2
                     Y: =(Parent.TemplateHeight - Self.Height) / 2
                     ZIndex: =1
+
+            lblContactHR As label:
+                Align: =Align.Center
+                Color: =RGBA(0, 100, 255, 1)
+                Font: =FontWeight.Semibold
+                HoverColor: =RGBA(0, 50, 150, 1)
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                OnSelect: |-
+                    =Launch("mailto:" & varHREmail)
+                Size: =If(App.Width >= 1024, 14, 12)
+                Text: |-
+                    ="Contact HR: " & Coalesce(varHREmail, "Loading...")
+                Width: =Parent.Width
+                ZIndex: =4
 
