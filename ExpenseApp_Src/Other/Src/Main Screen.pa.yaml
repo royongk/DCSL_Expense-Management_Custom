@@ -76,8 +76,8 @@ Screens:
             RadiusBottomRight: =0
             RadiusTopLeft: =0
             RadiusTopRight: =0
-            Width: =Parent.Width - 40
-            X: =20
+            Width: =conMainLayout.Width
+            X: =conMainLayout.X
             Y: =conMainLayout.Y + conMainLayout.Height + 30
           Children:
             - lblTechSupport:
@@ -116,20 +116,20 @@ Screens:
                 Properties:
                   BorderColor: =RGBA(0, 18, 107, 1)
                   Fill: =RGBA(56, 96, 178, 1)
-                  Height: =If(App.Width >= 1024, 320, 200)
+                  Height: =Self.Width * (9/16)
                   LayoutMinHeight: =16
                   LayoutMinWidth: =16
                   Media: =varVideoLink
-                  Width: =If(App.Width >= 1024, 640, Parent.Width - 40)
+                  Width: =If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40)
       - MainScreen_Logo:
           Control: Image@2.2.3
           Properties:
             BorderColor: =RGBA(0, 18, 107, 1)
-            Height: =If(App.Width >= 1024, 150, 100)
+            Height: =If(App.Width >= 1024, 180, 100)
             Image: =DCSL_Logo
-            Width: =If(App.Width >= 1024, 450, Parent.Width - 80)
+            Width: =If(App.Width >= 1024, 550, 300)
             X: =(Parent.Width - Self.Width) / 2
-            Y: =If(App.Width >= 1024, 40, 20)
+            Y: =If(App.Width >= 1024, App.Height * 0.08, 20)
       - MainScreen_TitleLabel:
           Control: Label@2.5.1
           Properties:
@@ -166,7 +166,9 @@ Screens:
             Height: =conFinanceSection.Height
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Horizontal
-            LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+            LayoutGap: =If(App.Width >= 1024, 60, 20)
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutWrap: =true
             PaddingBottom: =8
             PaddingLeft: =8
             PaddingRight: =8
@@ -175,9 +177,9 @@ Screens:
             RadiusBottomRight: =0
             RadiusTopLeft: =0
             RadiusTopRight: =0
-            Width: =Parent.Width - 40
-            X: =20
-            Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + 30
+            Width: =App.Width - If(App.Width >= 1024, 80, 40)
+            X: =(App.Width - Self.Width) / 2
+            Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + If(App.Width >= 1024, 60, 30)
           Children:
             - conFinanceSection:
                 Control: GroupContainer@1.5.0
@@ -193,15 +195,15 @@ Screens:
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutMinHeight: =16
                   LayoutMinWidth: =16
-                  PaddingBottom: =8
-                  PaddingLeft: =8
-                  PaddingRight: =8
-                  PaddingTop: =8
+                  PaddingBottom: =If(App.Width >= 1024, 30, 16)
+                  PaddingLeft: =If(App.Width >= 1024, 30, 16)
+                  PaddingRight: =If(App.Width >= 1024, 30, 16)
+                  PaddingTop: =If(App.Width >= 1024, 30, 16)
                   RadiusBottomLeft: =16
                   RadiusBottomRight: =16
                   RadiusTopLeft: =16
                   RadiusTopRight: =16
-                  Width: =Parent.Width/2
+                  Width: =(Parent.Width - Parent.LayoutGap) / 2
                 Children:
                   - conFinanceHeader:
                       Control: GroupContainer@1.5.0
@@ -262,7 +264,7 @@ Screens:
                         LayoutMinHeight: =16
                         LayoutMinWidth: =16
                         TemplatePadding: =0
-                        TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 24, 16)
+                        TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
                       Children:
                         - btnFinance:
                             Control: Classic/Button@2.2.0
@@ -274,7 +276,7 @@ Screens:
                               DisabledBorderColor: =RGBA(166, 166, 166, 1)
                               Fill: =RGBA(255, 255, 255, 1)
                               Font: =Font.'Open Sans'
-                              Height: =If(App.Width >= 1024, 80, 60)
+                              Height: =If(App.Width >= 1024, 100, 60)
                               HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
                               HoverColor: =RGBA(163, 32, 53, 1)
                               HoverFill: =RGBA(163, 32, 53, 0.08)
@@ -304,7 +306,7 @@ Screens:
                               RadiusTopRight: =12
                               Size: =If(App.Width >= 1024, 18, 14)
                               Text: =ThisItem.DisplayName
-                              Width: =If(App.Width >= 1024, Parent.TemplateWidth * 0.7, Parent.TemplateWidth - 40)
+                              Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
                               X: =(Parent.TemplateWidth - Self.Width) / 2
                               Y: =(Parent.TemplateHeight - Self.Height) / 2
                   - lblContactFinance:
@@ -337,15 +339,15 @@ Screens:
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutMinHeight: =16
                   LayoutMinWidth: =16
-                  PaddingBottom: =8
-                  PaddingLeft: =8
-                  PaddingRight: =8
-                  PaddingTop: =8
+                  PaddingBottom: =If(App.Width >= 1024, 30, 16)
+                  PaddingLeft: =If(App.Width >= 1024, 30, 16)
+                  PaddingRight: =If(App.Width >= 1024, 30, 16)
+                  PaddingTop: =If(App.Width >= 1024, 30, 16)
                   RadiusBottomLeft: =16
                   RadiusBottomRight: =16
                   RadiusTopLeft: =16
                   RadiusTopRight: =16
-                  Width: =Parent.Width/2
+                  Width: =(Parent.Width - Parent.LayoutGap) / 2
                 Children:
                   - conHRHeader:
                       Control: GroupContainer@1.5.0
@@ -406,7 +408,7 @@ Screens:
                         LayoutMinHeight: =16
                         LayoutMinWidth: =16
                         TemplatePadding: =0
-                        TemplateSize: =btnHR.Height + If(App.Width >= 1024, 24, 16)
+                        TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
                       Children:
                         - btnHR:
                             Control: Classic/Button@2.2.0
@@ -418,7 +420,7 @@ Screens:
                               DisabledBorderColor: =RGBA(166, 166, 166, 1)
                               Fill: =RGBA(255, 255, 255, 1)
                               Font: =Font.'Open Sans'
-                              Height: =If(App.Width >= 1024, 80, 60)
+                              Height: =If(App.Width >= 1024, 100, 60)
                               HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
                               HoverColor: =RGBA(163, 32, 53, 1)
                               HoverFill: =RGBA(163, 32, 53, 0.08)
@@ -448,7 +450,7 @@ Screens:
                               RadiusTopRight: =12
                               Size: =If(App.Width >= 1024, 18, 14)
                               Text: =ThisItem.DisplayName
-                              Width: =If(App.Width >= 1024, Parent.TemplateWidth * 0.7, Parent.TemplateWidth - 40)
+                              Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
                               X: =(Parent.TemplateWidth - Self.Width) / 2
                               Y: =(Parent.TemplateHeight - Self.Height) / 2
                   - lblContactHR:

@@ -9911,7 +9911,7 @@ Screens:
                         DataField: ="mserp_deexcostcenter"
                         Default: =varSelectedExpenseDoc.CostCenter
                         DisplayName: ="Budget"
-                        Required: "=If(\r\n    // Salary Advance (가불/급여 선지급) 유형이면 Cost Center 숨김\r\n    varAppMode = \"SalaryAdvance\" || varAppMode = \"AirfareAllowance\" || varAppMode = \"EmployeeBenefit\",\r\n    false,\r\n    \r\n    // 그 외의 경우는 정상 표시 (이후 필요에 따라 Visible 조건을 더 추가할 수 있습니다)\r\n    true\r\n)"
+                        Required: "=If(\n    // Salary Advance (가불/급여 선지급) 유형이면 Cost Center 숨김\n    varAppMode = \"SalaryAdvance\" || varAppMode = \"AirfareAllowance\" || varAppMode = \"EmployeeBenefit\",\n    false,\n    \n    // 그 외의 경우는 정상 표시 (이후 필요에 따라 Visible 조건을 더 추가할 수 있습니다)\n    true\n)"
                         Update: =ComboBox_CostCenter.Selected.'Combination display'
                         Visible: "=If(\n    // Salary Advance (가불/급여 선지급) 유형이면 Cost Center 숨김\n    varAppMode = \"SalaryAdvance\" || varAppMode = \"AirfareAllowance\" || varAppMode = \"EmployeeBenefit\",\n    false,\n    \n    // 그 외의 경우는 정상 표시 (이후 필요에 따라 Visible 조건을 더 추가할 수 있습니다)\n    true\n)"
                         Width: =Parent.Width
@@ -10136,7 +10136,7 @@ Screens:
                         DataField: ="mserp_deexproject"
                         Default: =varSelectedExpenseDoc.Project
                         DisplayName: ="Project code (required for billing trip)"
-                        Required: "=If(\r\n    // HR 경비 3가지 유형 중 하나라도 해당되면\r\n    varAppMode in [\"AirfareAllowance\", \"EmployeeBenefit\", \"SalaryAdvance\"] || \r\n    varSelectedExpenseType in [\r\n        \"Airfare & Shipping Allowance Claim\", \r\n        \"Employee Benefits Claim\", \r\n        \"Employee Benefit\", \r\n        \"Salary Advance\", \r\n        \"Airfare Allowance\"\r\n    ],\r\n    false, // 숨김 처리\r\n    \r\n    // 그 외 일반 경비 유형은 표시\r\n    true\r\n)"
+                        Required: "=If(\n    // HR 경비 3가지 유형 중 하나라도 해당되면\n    varAppMode in [\"AirfareAllowance\", \"EmployeeBenefit\", \"SalaryAdvance\"] || \n    varSelectedExpenseType in [\n        \"Airfare & Shipping Allowance Claim\", \n        \"Employee Benefits Claim\", \n        \"Employee Benefit\", \n        \"Salary Advance\", \n        \"Airfare Allowance\"\n    ],\n    false, // 숨김 처리\n    \n    // 그 외 일반 경비 유형은 표시\n    true\n)"
                         Update: |-
                           =If(
                               Self.Visible, 

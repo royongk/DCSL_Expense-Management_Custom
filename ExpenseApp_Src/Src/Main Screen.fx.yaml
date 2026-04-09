@@ -62,8 +62,8 @@
         PaddingLeft: =8
         PaddingRight: =8
         PaddingTop: =8
-        Width: =Parent.Width - 40
-        X: =20
+        Width: =conMainLayout.Width
+        X: =conMainLayout.X
         Y: =conMainLayout.Y + conMainLayout.Height + 30
         ZIndex: =1
 
@@ -102,21 +102,21 @@
             ZIndex: =2
 
         vidIntroVideo As videoPlayback:
-            Height: =If(App.Width >= 1024, 320, 200)
+            Height: =Self.Width * (9/16)
             LayoutMaxHeight: =0
             LayoutMaxWidth: =0
             LayoutMinHeight: =16
             LayoutMinWidth: =16
             Media: =varVideoLink
-            Width: =If(App.Width >= 1024, 640, Parent.Width - 40)
+            Width: =If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40)
             ZIndex: =3
 
     MainScreen_Logo As image:
-        Height: =If(App.Width >= 1024, 150, 100)
+        Height: =If(App.Width >= 1024, 180, 100)
         Image: =DCSL_Logo
-        Width: =If(App.Width >= 1024, 450, Parent.Width - 80)
+        Width: =If(App.Width >= 1024, 550, 300)
         X: =(Parent.Width - Self.Width) / 2
-        Y: =If(App.Width >= 1024, 40, 20)
+        Y: =If(App.Width >= 1024, App.Height * 0.08, 20)
         ZIndex: =2
 
     MainScreen_TitleLabel As label:
@@ -147,19 +147,21 @@
     conMainLayout As groupContainer.horizontalAutoLayoutContainer:
         Height: =conFinanceSection.Height
         LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutGap: =If(App.Width >= 1024, 60, 20)
         LayoutGridColumnMinWidth: =0
         LayoutGridColumns: =6
         LayoutGridRowMinHeight: =0
         LayoutGridRows: =6
-        LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+        LayoutJustifyContent: =LayoutJustifyContent.Center
         LayoutMode: =LayoutMode.Auto
+        LayoutWrap: =true
         PaddingBottom: =8
         PaddingLeft: =8
         PaddingRight: =8
         PaddingTop: =8
-        Width: =Parent.Width - 40
-        X: =20
-        Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + 30
+        Width: =App.Width - If(App.Width >= 1024, 80, 40)
+        X: =(App.Width - Self.Width) / 2
+        Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + If(App.Width >= 1024, 60, 30)
         ZIndex: =5
 
         conFinanceSection As groupContainer.verticalAutoLayoutContainer:
@@ -179,15 +181,15 @@
             LayoutMinHeight: =16
             LayoutMinWidth: =16
             LayoutMode: =LayoutMode.Auto
-            PaddingBottom: =8
-            PaddingLeft: =8
-            PaddingRight: =8
-            PaddingTop: =8
+            PaddingBottom: =If(App.Width >= 1024, 30, 16)
+            PaddingLeft: =If(App.Width >= 1024, 30, 16)
+            PaddingRight: =If(App.Width >= 1024, 30, 16)
+            PaddingTop: =If(App.Width >= 1024, 30, 16)
             RadiusBottomLeft: =16
             RadiusBottomRight: =16
             RadiusTopLeft: =16
             RadiusTopRight: =16
-            Width: =Parent.Width/2
+            Width: =(Parent.Width - Parent.LayoutGap) / 2
             ZIndex: =1
 
             conFinanceHeader As groupContainer.horizontalAutoLayoutContainer:
@@ -250,7 +252,7 @@
                 LayoutMinWidth: =16
                 LoadingSpinner: =LoadingSpinner.Data
                 TemplatePadding: =0
-                TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 24, 16)
+                TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
                 ZIndex: =2
 
                 btnFinance As button:
@@ -259,7 +261,7 @@
                     BorderThickness: =1.5
                     Color: =RGBA(163, 32, 53, 1)
                     Fill: =RGBA(255, 255, 255, 1)
-                    Height: =If(App.Width >= 1024, 80, 60)
+                    Height: =If(App.Width >= 1024, 100, 60)
                     HoverColor: =RGBA(163, 32, 53, 1)
                     HoverFill: =RGBA(163, 32, 53, 0.08)
                     OnSelect: |-
@@ -287,7 +289,7 @@
                     RadiusTopRight: =12
                     Size: =If(App.Width >= 1024, 18, 14)
                     Text: =ThisItem.DisplayName
-                    Width: =If(App.Width >= 1024, Parent.TemplateWidth * 0.7, Parent.TemplateWidth - 40)
+                    Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
                     X: =(Parent.TemplateWidth - Self.Width) / 2
                     Y: =(Parent.TemplateHeight - Self.Height) / 2
                     ZIndex: =1
@@ -326,15 +328,15 @@
             LayoutMinHeight: =16
             LayoutMinWidth: =16
             LayoutMode: =LayoutMode.Auto
-            PaddingBottom: =8
-            PaddingLeft: =8
-            PaddingRight: =8
-            PaddingTop: =8
+            PaddingBottom: =If(App.Width >= 1024, 30, 16)
+            PaddingLeft: =If(App.Width >= 1024, 30, 16)
+            PaddingRight: =If(App.Width >= 1024, 30, 16)
+            PaddingTop: =If(App.Width >= 1024, 30, 16)
             RadiusBottomLeft: =16
             RadiusBottomRight: =16
             RadiusTopLeft: =16
             RadiusTopRight: =16
-            Width: =Parent.Width/2
+            Width: =(Parent.Width - Parent.LayoutGap) / 2
             ZIndex: =2
 
             conHRHeader As groupContainer.horizontalAutoLayoutContainer:
@@ -399,7 +401,7 @@
                 LayoutMinWidth: =16
                 LoadingSpinner: =LoadingSpinner.Data
                 TemplatePadding: =0
-                TemplateSize: =btnHR.Height + If(App.Width >= 1024, 24, 16)
+                TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
                 ZIndex: =3
 
                 btnHR As button:
@@ -408,7 +410,7 @@
                     BorderThickness: =1.5
                     Color: =RGBA(163, 32, 53, 1)
                     Fill: =RGBA(255, 255, 255, 1)
-                    Height: =If(App.Width >= 1024, 80, 60)
+                    Height: =If(App.Width >= 1024, 100, 60)
                     HoverColor: =RGBA(163, 32, 53, 1)
                     HoverFill: =RGBA(163, 32, 53, 0.08)
                     OnSelect: |-
@@ -436,7 +438,7 @@
                     RadiusTopRight: =12
                     Size: =If(App.Width >= 1024, 18, 14)
                     Text: =ThisItem.DisplayName
-                    Width: =If(App.Width >= 1024, Parent.TemplateWidth * 0.7, Parent.TemplateWidth - 40)
+                    Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
                     X: =(Parent.TemplateWidth - Self.Width) / 2
                     Y: =(Parent.TemplateHeight - Self.Height) / 2
                     ZIndex: =1
