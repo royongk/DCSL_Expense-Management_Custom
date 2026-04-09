@@ -744,7 +744,12 @@
             Clear(colAttachedReceipts);
             Clear(colPendingReceipts);
             ResetForm(EditExpenseForm);
-            Navigate('Expenses - Capture Receipt Screen')
+            // 기존 캡처 화면 대신 Edit Screen으로 즉시 이동하며 초기화 컨텍스트 전달
+            Navigate(
+                'Expenses - Edit Screen', 
+                ScreenTransition.Fade, 
+                { locItemizeButtonVisibilityFlag: false }
+            )
         TabIndex: =0
         Visible: =!varCntSelect
         Width: =120

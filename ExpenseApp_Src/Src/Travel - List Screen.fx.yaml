@@ -69,6 +69,7 @@
         
         // 4. 기존 Travel - List Screen 전용 로직
         UpdateContext({varCntSelect: false});
+        UpdateContext({varcntSelectedStatus: 1});
         Refresh('Travel requisition (mserp)');
         Set(varSelectedTravelReq, Blank());
         Reset(scrTravel_Gallery);
@@ -117,9 +118,17 @@
                         Employee = userRecord.CreatingWorker,
                         'Reconciliation status' = 'Reconciliation status (mserp)'.Closed
                     ),
+                    
+                    // Case 3: 대리인(위임자)의 문서 조회 (신규 추가)
+                    3,
+                    Filter(
+                        'Travel requisition (mserp)',
+                        ReferenceDataAreaId = Upper(varSelectedLegalEntity),
+                        // 본인이 아닌, 대리 위임 컬렉션에 포함된 사용자의 문서를 조회
+                        Employee in colActiveDelegations.Employee
+                    ),
             
-                    // Default: 1, 2가 아닐 경우 (전체 조회)
-                    // Reconciliation status 조건을 뺍니다.
+                    // Default: 전체 조회
                     Filter(
                         'Travel requisition (mserp)',
                         'Approval status' = 'Approval status (mserp)'.Approved,
@@ -290,21 +299,32 @@
                     LayoutMinHeight: =112
                     LayoutMinWidth: =250
                     LayoutMode: =LayoutMode.Auto
-                    Width: =200
+                    Width: =250
                     ZIndex: =5
+
+                    lbl_TotalAmount_Title As label:
+                        Align: =Align.Center
+                        Color: =RGBA(102, 102, 102, 1)
+                        Height: =30
+                        LayoutMaxHeight: =0
+                        LayoutMaxWidth: =0
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        Text: ="Total Amount"
+                        Width: =Parent.Width
+                        ZIndex: =1
 
                     Label5_Amount As label:
                         Align: =Align.Center
                         AutoHeight: =true
                         Font: =Font.'Segoe UI'
                         FontWeight: =FontWeight.Bold
-                        Height: =70
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         LayoutMinHeight: =70
                         LayoutMinWidth: =560
                         OnSelect: =Select(scrTravel_shp_SelectRegion)
-                        Size: =21
+                        Size: =18
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
                             =Concatenate(
@@ -312,31 +332,42 @@
                                     Value(
                                         Substitute(Substitute(ThisItem.Amount, "KRW", ""), ",", "")
                                     ),
-                                    "#,##0.00", 
+                                    "#,##0", 
                                     varDefaultLanguage
                                 ),
                                 " ",
                                 varDefaultCurrency
                             )
                         Width: =Parent.Width
-                        ZIndex: =1
+                        ZIndex: =2
+
+                    lbl_RemainingAmount_Title As label:
+                        Align: =Align.Center
+                        Color: =RGBA(102, 102, 102, 1)
+                        Height: =30
+                        LayoutMaxHeight: =0
+                        LayoutMaxWidth: =0
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        Text: ="Remaining Amount"
+                        Width: =Parent.Width
+                        ZIndex: =3
 
                     Label6_RemainingAmount As label:
                         Align: =Align.Center
                         AutoHeight: =true
                         Font: =Font.'Segoe UI'
-                        Height: =70
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         LayoutMinHeight: =70
                         LayoutMinWidth: =560
                         OnSelect: =Select(scrTravel_shp_SelectRegion)
-                        Size: =21
+                        Size: =18
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
-                            =Concatenate(Text(Value(ThisItem.'Amount to reconcile'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                            =Concatenate(Text(Value(ThisItem.'Amount to reconcile'),"#,#0", varDefaultLanguage), " ", varDefaultCurrency)
                         Width: =Parent.Width
-                        ZIndex: =2
+                        ZIndex: =4
 
                 Icon3_Travel As icon.ChevronRight:
                     AlignInContainer: =AlignInContainer.Center
@@ -584,25 +615,54 @@
         Y: =scr16_btn_FakeButton_1.Y
         ZIndex: =11
 
+    scr16_btn_Delegate_1 As button:
+        BorderStyle: =BorderStyle.None
+        Color: =If(varcntSelectedStatus=3, RGBA(255, 255, 255, 1), RGBA(64, 64, 64, 1))
+        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+        DisabledColor: =RGBA(166, 166, 166, 1)
+        DisabledFill: =RGBA(244, 244, 244, 1)
+        Fill: =If(varcntSelectedStatus=3, RGBA(34, 102, 227, 1), scr16_btn_FakeButton_1.Fill)
+        FontWeight: =FontWeight.Semibold
+        Height: =44
+        HoverFill: =Self.Fill
+        OnSelect: |-
+            =UpdateContext({varcntSelectedStatus: 3});
+            UpdateContext({varCntSelect: false});
+            UpdateContext({varcntShowFilter: false});
+            Clear(colSelectedReportIds);
+        PressedColor: =Self.Color
+        PressedFill: =Self.Fill
+        RadiusBottomLeft: =50
+        RadiusBottomRight: =50
+        RadiusTopLeft: =50
+        RadiusTopRight: =50
+        Size: =13.5
+        Text: ="Other user's"
+        Visible: =CountRows(colActiveDelegations) > 0
+        Width: =150
+        X: =scr16_btn_Submitted_1.X + scr16_btn_Submitted_1.Width + 22
+        Y: =scr16_btn_FakeButton_1.Y
+        ZIndex: =12
+
     scr16_shp_Rectangle_3 As rectangle:
         Fill: =Color.White
         Height: =105
         Visible: =varCntSelect
         Width: =Parent.Width
         Y: =213
-        ZIndex: =12
+        ZIndex: =13
 
     scr16_rct_seprator_1 As rectangle:
         Fill: =RGBA(200, 200, 200, 1)
         Height: =0.85
         Width: =Parent.Width
         Y: =scr16_shp_Rectangle.Y+scr16_shp_Rectangle.Height
-        ZIndex: =13
+        ZIndex: =14
 
     scr16_rct_seprator_2 As rectangle:
         Fill: =RGBA(200, 200, 200, 1)
         Height: =0.85
         Width: =Parent.Width
         Y: =scr16_shp_Rectangle.Y
-        ZIndex: =14
+        ZIndex: =15
 
