@@ -8,19 +8,34 @@
             varUserEmail in ["PowerApps.Admin@dulwich-seoul.kr"]
         );
         
-        // 2. [성능 최적화] Office 365 그룹 권한 체크를 '병렬(Concurrent)'로 동시에 실행하여 로딩 속도 대폭 향상
+        // 2. [성능 최적화 및 속성 예외 처리] Office 365 그룹 권한 체크
         Concurrent(
             Set(
                 varIsLocal, 
-                !IsBlank(LookUp(Office365그룹.ListGroupMembers("b9c7b018-c604-4a68-b9ab-e61b0a265f23").value, mail = varUserEmail))
+                !IsBlank(
+                    LookUp(
+                        Office365그룹.ListGroupMembers("b9c7b018-c604-4a68-b9ab-e61b0a265f23").value, 
+                        Lower(userPrincipalName) = Lower(varUserEmail) Or Lower(mail) = Lower(varUserEmail)
+                    )
+                )
             ),
             Set(
                 varIsFull, 
-                !IsBlank(LookUp(Office365그룹.ListGroupMembers("f135e183-009e-48d8-b88a-71850795b8cf").value, mail = varUserEmail))
+                !IsBlank(
+                    LookUp(
+                        Office365그룹.ListGroupMembers("f135e183-009e-48d8-b88a-71850795b8cf").value, 
+                        Lower(userPrincipalName) = Lower(varUserEmail) Or Lower(mail) = Lower(varUserEmail)
+                    )
+                )
             ),
             Set(
                 varIsExpat, 
-                !IsBlank(LookUp(Office365그룹.ListGroupMembers("f7691104-2166-43db-a229-fbb15179fc47").value, mail = varUserEmail))
+                !IsBlank(
+                    LookUp(
+                        Office365그룹.ListGroupMembers("f7691104-2166-43db-a229-fbb15179fc47").value, 
+                        Lower(userPrincipalName) = Lower(varUserEmail) Or Lower(mail) = Lower(varUserEmail)
+                    )
+                )
             )
         );
         
@@ -36,7 +51,6 @@
         );
         
         // 4. [동적 설정 데이터 로드] 설정 테이블에서 5개의 필수 필드값 가져오기
-        // 'AppConfigSettings' 테이블의 첫 번째(단일) 행 데이터를 기준으로 변수 할당 (성능 최적화)
         With(
             { globalSettings: LookUp('Expense management parameters (mserp)','Company Code' = varSelectedLegalEntity) },
             Concurrent(

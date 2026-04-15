@@ -645,7 +645,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_datefrom"
                         Default: =ThisItem.'Per diem from date'
-                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,mserp_datefrom)
+                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,'Per diem from date')
                         Required: =false
                         Update: =If(Not IsBlank(DateValue5.SelectedDate), DateValue5.SelectedDate + Time(Value(HourValue5.Selected.Value), Value(MinuteValue5.Selected.Value), 0))
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.'Per diem'
@@ -862,7 +862,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_dateto"
                         Default: =ThisItem.'Per diem to date'
-                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,mserp_dateto)
+                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,'Per diem to date')
                         Required: =false
                         Update: =If(Not IsBlank(DateValue6.SelectedDate), DateValue6.SelectedDate + Time(Value(HourValue6.Selected.Value), Value(MinuteValue6.Selected.Value), 0))
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.'Per diem'
@@ -1164,7 +1164,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deduktionbreakfest"
                         Default: =ThisItem.Breakfast
-                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,mserp_deduktionbreakfest)
+                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,Breakfast)
                         Required: =false
                         Update: =Value(DataCardValue12.Text)
                         Visible: |-
@@ -1252,7 +1252,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deduktionlunch"
                         Default: =ThisItem.Lunch
-                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,mserp_deduktionlunch)
+                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,Lunch)
                         Required: =false
                         Update: =Value(DataCardValue13.Text)
                         Visible: |-
@@ -1340,7 +1340,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deduktiondinner"
                         Default: =ThisItem.Dinner
-                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,mserp_deduktiondinner)
+                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,Dinner)
                         Required: =false
                         Update: =Value(DataCardValue14.Text)
                         Visible: |-
@@ -1427,8 +1427,8 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_trvlocations_location"
                         Default: =ThisItem.Location
-                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,mserp_trvlocations_location)
-                        MaxLength: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'], DataSourceInfo.MaxLength, mserp_trvlocations_location)
+                        DisplayName: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'],DataSourceInfo.DisplayName,Location)
+                        MaxLength: =DataSourceInfo([@'View/Approve/Reject Expense Lines for Approvals (mserp)'], DataSourceInfo.MaxLength, Location)
                         Required: =false
                         Update: =DataCardValue15.Text
                         Visible: =currExpenseType = 'TrvExpType (mserp)'.'Per diem'
@@ -2276,7 +2276,7 @@ Screens:
                           Filter(
                               'Expense payment method (mserp)',
                               'Company Code' = varSelectedLegalEntity
-                          ),mserp_paymethod)
+                          ),'Payment method')
                         BorderColor: =gblParams.dropDownBorderColor
                         DataField: ="mserp_paymethod"
                         Default: =varSelectedLineItem.'Payment method'
