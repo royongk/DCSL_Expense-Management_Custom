@@ -1208,6 +1208,7 @@
                 UpdateContext({varLoadingSpinner: true});
                 Clear(colErrorLog);
                 
+                /*
                 // 4. 첨부 파일 연결 처리 (네트워크 취소 방지 및 완벽한 순차 동기화 아키텍처)
                 If(
                     !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
@@ -1271,13 +1272,13 @@
                     )
                 
                     // 모든 순차 처리가 끝난 후, 데이터 소스에 에러가 남아있는지 일괄 체크
-                    /*
                     If(
                         !IsEmpty(Errors('Expense Mobile Unattached Document Entity (mserp)')),
                         Notify("일부 첨부 파일 연결 중 네트워크 오류가 발생했습니다. 다시 시도해 주세요.", NotificationType.Error)
                     )
-                    */
+                
                 );
+                */
                 
                 // 5. 에러 처리 및 알림
                 /*
@@ -1290,6 +1291,46 @@
                     )
                 );
                 */
+                // 4. 첨부 파일 연결 처리 (최종 교정본)
+                If(
+                    !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
+                    
+                    // [4-1] 기존 변수 타입 충돌 방지를 위해 변수명을 새롭게(locNewJsonPayload 등) 사용하거나 명시적 변환
+                    UpdateContext({
+                        locNewJsonPayload: JSON(
+                            ForAll(
+                                colPendingReceipts,
+                                {
+                                    FileName: Coalesce(mserp_filename, "Receipt"),
+                                    FileExtension: Coalesce(mserp_fileextension, "jpeg"),
+                                    FileContent: If(
+                                        Find("base64,", Text(mserp_captureddocument)) > 0,
+                                        Mid(Text(mserp_captureddocument), Find("base64,", Text(mserp_captureddocument)) + 7),
+                                        Text(mserp_captureddocument)
+                                    )
+                                }
+                            ), 
+                            JSONFormat.IgnoreUnsupportedTypes
+                        )
+                    });
+                    
+                    // [4-2] D365 Action 호출 (엔터티 이름을 반드시 확인하세요!)
+                    // 아래 'DCSL Apps Action Entity (mserp)' 부분을 실제 데이터 소스 이름으로 바꾸세요.
+                    UpdateContext({
+                        locNewReturnedIds: 'DCSL Apps Action Entity (mserp)'.uploadMultipleAttachment({
+                            _jsonPayload: locNewJsonPayload
+                        }).return 
+                    });
+                    
+                    // [4-3] 반환된 ID가 있을 경우에만 최종 연결 액션 수행
+                    If(
+                        !IsBlank(locNewReturnedIds),
+                        'DCSL Apps Action Entity (mserp)'.linkDocuRefToExpenseLine({
+                            _expTransNumber: varTargetExpTransNumber,
+                            _docuRefRecId: locNewReturnedIds
+                        })
+                    )
+                );
                 
                 // 6. 첨부 파일 목록 갱신 (서버 조회를 생략하여 무한 로딩 및 에러 원천 차단)
                 If(
