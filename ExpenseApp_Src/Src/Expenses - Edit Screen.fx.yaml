@@ -1,7 +1,43 @@
 "'Expenses - Edit Screen' As screen.'phoneDetailEditLayout_ver3.0'":
     Fill: =RGBA(248, 248, 248, 1)
     OnVisible: |-
-        =// 통화 데이터를 가져와서 미리 정렬한 뒤 'colSortedCurrencies'라는 컬렉션에 저장합니다.
+        =// OnVisible 최상단에 조건문 추가
+        If(
+            !varIsAddingReceipt, // 첨부 파일 추가 중이 아닐 때만(즉, 처음 진입 시에만) 초기화
+            UpdateContext({ 
+                locCurrentSetup: Blank(),
+                dirtyTransAmount: Blank(),
+                locIsEditingAmount: false,
+                locCategoryChange: false,
+                varViewOnly: false,
+                varStateSelected: Blank(),
+                varZipCodeSelectedRecId: -1,
+                varProjectHierarchyId: Blank(),
+                onReloadButtonClick: false,
+                // LCY 계산 결과 저장 변수 초기화 (기존 값이 있으면 사용, 없으면 빈 값)
+                // 1. 기존 LCY에 문자열로 저장된 값("100.00 USD")에서 공백(" ")을 기준으로 금액과 통화를 분리
+                locOriginalAmount: If(
+                    !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
+                    Left(varSelectedExpenseDoc.LCY, Find(" ", varSelectedExpenseDoc.LCY) - 1),
+                    Blank()
+                ),
+                locOriginalCurrency: If(
+                    !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
+                    Right(varSelectedExpenseDoc.LCY, Len(varSelectedExpenseDoc.LCY) - Find(" ", varSelectedExpenseDoc.LCY)),
+                    Blank()
+                ),
+                // 2. locCalculatedLCY에는 Value() 오류 방지를 위해, 실제로 환산된 '숫자'인 Transaction amount(예: 137601)를 저장
+                locCalculatedLCY: If(
+                    !varIsCreate, 
+                    Text(varSelectedExpenseDoc.'Transaction amount'), 
+                    Blank()
+                )
+            })
+        );
+        
+        // 로직 수행 후 플래그는 항상 초기화 (다음에 다시 들어올 때를 위해)
+        UpdateContext({ varIsAddingReceipt: false });
+        // 통화 데이터를 가져와서 미리 정렬한 뒤 'colSortedCurrencies'라는 컬렉션에 저장합니다.
         ClearCollect(
             colCurrencies,
             'Currencies (mserp)'
@@ -23,18 +59,6 @@
         // 환율 정보 조회
         ClearCollect(colExchangeRates, 'Currency table (mserp)');
         
-        // --- [신규 추가] 고정 금액/최대 금액 관련 상태 및 컨트롤 초기화 ---
-        UpdateContext({ 
-            locCurrentSetup: Blank(),     // 카테고리 설정 정보(고정 금액/한도) 비우기
-            dirtyTransAmount: Blank(),    // 사용자가 입력하던 임시 금액 비우기
-            locIsEditingAmount: false,    // 금액 편집 상태 해제
-            locCategoryChange: false      // 카테고리 변경 상태 해제
-        });
-        UpdateContext({varViewOnly: false});
-        UpdateContext({varStateSelected: Blank()});
-        UpdateContext({varZipCodeSelectedRecId: -1 });
-        UpdateContext({varProjectHierarchyId: Blank()});
-        UpdateContext({onReloadButtonClick: false});
         // 3-level category selection variables
         UpdateContext({
             varSelectedExpenseType: 
@@ -195,30 +219,6 @@
             )
         );
         
-        // 
-        // LCY 계산 결과 저장 변수 초기화 (기존 값이 있으면 사용, 없으면 빈 값)
-        // 1. 기존 LCY에 문자열로 저장된 값("100.00 USD")에서 공백(" ")을 기준으로 금액과 통화를 분리
-        UpdateContext({
-            locOriginalAmount: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
-                Left(varSelectedExpenseDoc.LCY, Find(" ", varSelectedExpenseDoc.LCY) - 1),
-                Blank()
-            ),
-            locOriginalCurrency: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
-                Right(varSelectedExpenseDoc.LCY, Len(varSelectedExpenseDoc.LCY) - Find(" ", varSelectedExpenseDoc.LCY)),
-                Blank()
-            )
-        });
-        
-        // 2. locCalculatedLCY에는 Value() 오류 방지를 위해, 실제로 환산된 '숫자'인 Transaction amount(예: 137601)를 저장
-        UpdateContext({ 
-            locCalculatedLCY: If(
-                !varIsCreate, 
-                Text(varSelectedExpenseDoc.'Transaction amount'), 
-                Blank()
-            ) 
-        });
         UpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')});
         UpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.'Intercompany project category'});
         UpdateContext({curProjIdSelected: varSelectedExpenseDoc.'Project ID'});
@@ -784,6 +784,8 @@
         Height: =Parent.Height / 4
         OnSelect: |-
             =Set(varSelectedReceiptNumber, Blank()); // [추가] 초기화
+            // 기존 Navigate 코드에 컨텍스트 변수 추가
+            UpdateContext({ varIsAddingReceipt: true });
             Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
             UpdateContext(
                 {
@@ -999,6 +1001,8 @@
         HoverFill: =RGBA(204, 222, 255, 1)
         OnSelect: |-
             =Set(varSelectedReceiptNumber, Blank()); // [추가] 이전 영수증 ID 초기화
+            // 기존 Navigate 코드에 컨텍스트 변수 추가
+            UpdateContext({ varIsAddingReceipt: true });
             Navigate('Expenses - Capture Receipt Screen', ScreenTransition.None);
             UpdateContext(
                 {
@@ -1317,17 +1321,17 @@
                     // [4-2] D365 Action 호출 (엔터티 이름을 반드시 확인하세요!)
                     // 아래 'DCSL Apps Action Entity (mserp)' 부분을 실제 데이터 소스 이름으로 바꾸세요.
                     UpdateContext({
-                        locNewReturnedIds: 'DCSL Apps Action Entity (mserp)'.uploadMultipleAttachment({
+                        locNewReturnedIds: 'DCSL Apps Action Entity (mserp)'.mserp_uploadmultipleattachment({
                             _jsonPayload: locNewJsonPayload
-                        }).return 
+                        })
                     });
                     
                     // [4-3] 반환된 ID가 있을 경우에만 최종 연결 액션 수행
                     If(
                         !IsBlank(locNewReturnedIds),
-                        'DCSL Apps Action Entity (mserp)'.linkDocuRefToExpenseLine({
+                        'DCSL Apps Action Entity (mserp)'.mserp_linkdocureftoexpenseline({
                             _expTransNumber: varTargetExpTransNumber,
-                            _docuRefRecId: locNewReturnedIds
+                            _docuRefRecId: locNewReturnedIds.return
                         })
                     )
                 );
