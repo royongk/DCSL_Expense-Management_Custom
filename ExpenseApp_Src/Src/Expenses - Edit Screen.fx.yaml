@@ -757,7 +757,9 @@
         RadiusBottomRight: =18
         RadiusTopLeft: =18
         RadiusTopRight: =18
-        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
+        Visible: |-
+            =// [수정 후] 영수증 변수도 비어있고(! 대신 IsBlank 사용), 컬렉션도 비어있을 때만 표시
+            IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage)
         Width: |
             =Parent.Width -  Self.X*2
         X: =24
@@ -835,7 +837,9 @@
         TabIndex: =0
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
-        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
+        Visible: |-
+            =// [수정 후] 영수증 변수도 비어있고(! 대신 IsBlank 사용), 컬렉션도 비어있을 때만 표시
+            IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage)
         Width: =scr03_img_NoReceiptOuter_1.Width+1
         X: =scr03_img_NoReceiptOuter_1.X
         Y: =scr03_img_NoReceiptOuter_1.Y + (scr03_img_NoReceiptOuter_1.Height -Self.Height)+1
@@ -855,7 +859,9 @@
                 }
             )
         TabIndex: =0
-        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
+        Visible: |-
+            =// [수정 후] 영수증 변수도 비어있고(! 대신 IsBlank 사용), 컬렉션도 비어있을 때만 표시
+            IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage)
         Width: =18
         X: =scr03_lbl_ChangeReceipt_1.X + 25
         Y: =scr03_lbl_ChangeReceipt_1.Y + (scr03_lbl_ChangeReceipt_1.Height-scr03_ico_ViewReceipt_1.Height)/2
