@@ -37,6 +37,12 @@
         
         // 로직 수행 후 플래그는 항상 초기화 (다음에 다시 들어올 때를 위해)
         UpdateContext({ varIsAddingReceipt: false });
+        // 신규 경비 작성 모드 진입 시(영수증 추가를 위한 리프레시 상태가 아닐 때) 임시 영수증 비우기
+        If(
+            varIsCreate && !varIsAddingReceipt,
+            Clear(colPendingReceipts);
+            Clear(colAttachedReceipts)
+        );
         // 통화 데이터를 가져와서 미리 정렬한 뒤 'colSortedCurrencies'라는 컬렉션에 저장합니다.
         ClearCollect(
             colCurrencies,
