@@ -106,11 +106,17 @@
             curCategory: If(
                 !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
                 varSelectedExpenseDoc.'Expense category (mserp_costtype)',
-                // 신규 생성 시: "Dummy for Expense" 조회
+                // 신규 생성 시: 매핑 엔티티에서 3가지 조건으로 올바른 카테고리 실시간 조회
                 If(
-                    varIsCreate && !IsBlank(varSelectedLegalEntity),
+                    varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedItemOrService),
                     Coalesce(
-                        LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
+                        LookUp(
+                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                            'Expense Type' = varSelectedExpenseType &&
+                            'Purchase Category' = varSelectedPurchaseCategory &&
+                            'Item or Service' = varSelectedItemOrService,
+                            'Expense category'
+                        ),
                         Blank()
                     ),
                     Blank()
@@ -2131,34 +2137,13 @@
                         !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
                         varSelectedExpenseDoc.'Expense category (mserp_costtype)',
                         If(
-                            varIsCreate && !IsBlank(varSelectedLegalEntity),
-                            With(
-                                {
-                                    dummyCategory: LookUp(
-                                        'Expense category (mserp)',
-                                        'Expense category' = "Dummy for Expense" &&
-                                        'Company Code' = varSelectedLegalEntity
-                                    ),
-                                    firstCategory: First(
-                                        SortByColumns(
-                                            Filter(
-                                                'Expense category (mserp)',
-                                                'Company Code' = varSelectedLegalEntity
-                                            ),
-                                            "mserp_expensecategory",
-                                            SortOrder.Ascending
-                                        )
-                                    )
-                                },
-                                If(
-                                    !IsBlank(dummyCategory),
-                                    dummyCategory.'Expense category',
-                                    If(
-                                        !IsBlank(firstCategory),
-                                        firstCategory.'Expense category',
-                                        Blank()
-                                    )
-                                )
+                            varIsCreate,
+                            LookUp(
+                                'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                'Expense Type' = varSelectedExpenseType &&
+                                'Purchase Category' = varSelectedPurchaseCategory &&
+                                'Item or Service' = varSelectedItemOrService,
+                                'Expense category'
                             ),
                             Blank()
                         )
@@ -2173,11 +2158,10 @@
                         {
                             // Existing category from the current expense line (edit mode only)
                             currentCategory: varSelectedExpenseDoc.'Expense category (mserp_costtype)',
-                            // Mapped category from 3-level selection + legal entity
+                            // Mapped category from 3-level selection
                             mappedCategory: 
                                 LookUp(
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                    'Company Code' = varSelectedLegalEntity &&
                                     'Expense Type' = varSelectedExpenseType &&
                                     'Purchase Category' = varSelectedPurchaseCategory &&
                                     'Item or Service' = varSelectedItemOrService,
@@ -2303,33 +2287,25 @@
                                 'Company Code' = varSelectedLegalEntity
                             ),
                             If(
-                                varIsCreate && !IsBlank(varSelectedLegalEntity),
+                                varIsCreate,
                                 With(
                                     {
-                                        dummyCategory: LookUp(
-                                            'Expense category (mserp)',
-                                            'Expense category' = "Dummy for Expense" &&
-                                            'Company Code' = varSelectedLegalEntity
-                                        ),
-                                        firstCategory: First(
-                                            SortByColumns(
-                                                Filter(
-                                                    'Expense category (mserp)',
-                                                    'Company Code' = varSelectedLegalEntity
-                                                ),
-                                                "mserp_expensecategory",
-                                                SortOrder.Ascending
-                                            )
+                                        mappedCategory: LookUp(
+                                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                            'Expense Type' = varSelectedExpenseType &&
+                                            'Purchase Category' = varSelectedPurchaseCategory &&
+                                            'Item or Service' = varSelectedItemOrService,
+                                            'Expense category'
                                         )
                                     },
                                     If(
-                                        !IsBlank(dummyCategory),
-                                        dummyCategory,
-                                        If(
-                                            !IsBlank(firstCategory),
-                                            firstCategory,
-                                            Blank()
-                                        )
+                                        !IsBlank(mappedCategory),
+                                        LookUp(
+                                            'Expense category (mserp)',
+                                            'Expense category' = mappedCategory &&
+                                            'Company Code' = varSelectedLegalEntity
+                                        ),
+                                        Blank()
                                     )
                                 ),
                                 Blank()
