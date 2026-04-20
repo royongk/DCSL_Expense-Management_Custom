@@ -295,7 +295,9 @@
                     If(
                         !IsBlank(varSelectedTravelReq) &&
                         (CountRows(colAttachedExpenses) > 0 || CountRows(Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number')) > 0) &&
-                        Value(varSelectedReport.'Amount (mserp_deextrvrequisitiontotalestimate)') > Value(varSelectedTravelReq.'Amount to reconcile'),
+                        
+                        // 👇 수정된 부분: "3,000,000.00 KRW"에서 "3,000,000.00"만 추출 후 Value 변환
+                        Value(First(Split(Text(varSelectedReport.'Amount (mserp_deextrvrequisitiontotalestimate)'), " ")).Value) > Value(varSelectedTravelReq.'Amount to reconcile'),
                         
                         UpdateContext({varAmountValidationFailed: true});
                         Notify(
