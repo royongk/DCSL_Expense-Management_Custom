@@ -41,8 +41,6 @@
             Clear(colAttachedReceipts)
         );
         
-        // 로직 수행 후 플래그는 항상 초기화 (다음에 다시 들어올 때를 위해)
-        UpdateContext({ varIsAddingReceipt: false });
         
         // 통화 데이터를 가져와서 미리 정렬한 뒤 'colSortedCurrencies'라는 컬렉션에 저장합니다.
         ClearCollect(
@@ -66,139 +64,143 @@
         // 환율 정보 조회
         ClearCollect(colExchangeRates, 'Currency table (mserp)');
         
-        // 3-level category selection variables
-        UpdateContext({
-            varSelectedExpenseType: 
-            If(
-                varIsCreate, 
-                // 신규 생성 시 varAppMode에 따라 기본값 설정
-                Switch(
-                    varAppMode,
-                    "ExpenseReport", "Expense Reimbursement",
-                    "AirfareAllowance", "Allowance",
-                    "BillingTripSettlement", "Billing Trip Settlement",
-                    "EmployeeBenefit", "Employee Benefit",
-                    Blank()
-                ),
-                // 수정 모드일 때는 초기화 (이후 로직에서 기존 값 매핑됨)
-                Coalesce(varSelectedExpenseDoc.'Expense Type', Blank())
-            )
-        });
-        // 1. Reports에서 넘겨받은 Purpose(ctxTargetPurpose)를 Item or Service에 자동 할당
-        UpdateContext({
-            varSelectedItemOrService: If(
-                varIsCreate && !IsBlank(ctxTargetPurpose),
-                ctxTargetPurpose,
-                Coalesce(varSelectedExpenseDoc.'Item or Service', Blank())
-            )
-        });
+        If(
+            !varIsAddingReceipt, // 첨부 파일 추가 후 복귀한 상태가 아닐 때만 필드 초기화 실행
         
-        // 2. 자동 할당된 Item or Service와 Expense Type을 기반으로 Purchase Category 역추적 및 매핑
-        UpdateContext({
-            varSelectedPurchaseCategory: If(
-                varIsCreate && !IsBlank(ctxTargetPurpose),
-                Coalesce(
-                    LookUp(
-                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                        'Expense Type' = varSelectedExpenseType && 'Item or Service' = ctxTargetPurpose,
-                        'Purchase Category'
-                    ),
-                    Blank()
-                ),
-                Coalesce(varSelectedExpenseDoc.'Purchase Category', Blank())
-            )
-        });
-        UpdateContext({varSelectedPurchaseCategoryValue: ""});
-        UpdateContext({
-            curCategory: If(
-                !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
-                varSelectedExpenseDoc.'Expense category (mserp_costtype)',
-                // 신규 생성 시: 매핑 엔티티에서 3가지 조건으로 올바른 카테고리 실시간 조회
+            // 3-level category selection variables
+            UpdateContext({
+                varSelectedExpenseType: 
                 If(
-                    varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedItemOrService),
+                    varIsCreate, 
+                    // 신규 생성 시 varAppMode에 따라 기본값 설정
+                    Switch(
+                        varAppMode,
+                        "ExpenseReport", "Expense Reimbursement",
+                        "AirfareAllowance", "Allowance",
+                        "BillingTripSettlement", "Billing Trip Settlement",
+                        "EmployeeBenefit", "Employee Benefit",
+                        Blank()
+                    ),
+                    // 수정 모드일 때는 초기화 (이후 로직에서 기존 값 매핑됨)
+                    Coalesce(varSelectedExpenseDoc.'Expense Type', Blank())
+                )
+            });
+            // 1. Reports에서 넘겨받은 Purpose(ctxTargetPurpose)를 Item or Service에 자동 할당
+            UpdateContext({
+                varSelectedItemOrService: If(
+                    varIsCreate && !IsBlank(ctxTargetPurpose),
+                    ctxTargetPurpose,
+                    Coalesce(varSelectedExpenseDoc.'Item or Service', Blank())
+                )
+            });
+        
+            // 2. 자동 할당된 Item or Service와 Expense Type을 기반으로 Purchase Category 역추적 및 매핑
+            UpdateContext({
+                varSelectedPurchaseCategory: If(
+                    varIsCreate && !IsBlank(ctxTargetPurpose),
                     Coalesce(
                         LookUp(
                             'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            'Expense Type' = varSelectedExpenseType &&
-                            'Purchase Category' = varSelectedPurchaseCategory &&
-                            'Item or Service' = varSelectedItemOrService,
-                            'Expense category'
+                            'Expense Type' = varSelectedExpenseType && 'Item or Service' = ctxTargetPurpose,
+                            'Purchase Category'
                         ),
                         Blank()
                     ),
-                    Blank()
+                    Coalesce(varSelectedExpenseDoc.'Purchase Category', Blank())
                 )
-            )
-        });
-        // 3. Purchase Category가 자동 세팅되었으므로, 하위 4단계인 Expense Category 컬렉션(colExpenseCategories) 미리 로드
-        If(
-            varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory),
-            ClearCollect(
-                colExpenseCategories,
-                SortByColumns(
-                    Filter(
-                        ForAll(
-                            Filter(
+            });
+            UpdateContext({varSelectedPurchaseCategoryValue: ""});
+            UpdateContext({
+                curCategory: If(
+                    !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
+                    varSelectedExpenseDoc.'Expense category (mserp_costtype)',
+                    // 신규 생성 시: 매핑 엔티티에서 3가지 조건으로 올바른 카테고리 실시간 조회
+                    If(
+                        varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedItemOrService),
+                        Coalesce(
+                            LookUp(
                                 'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                !IsBlank('Expense category') &&
                                 'Expense Type' = varSelectedExpenseType &&
                                 'Purchase Category' = varSelectedPurchaseCategory &&
-                                (
-                                    (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
-                                    (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
-                                )
-                            ) As MappingRecord,
-                            LookUp(
-                                'Expense category (mserp)',
-                                'Expense category' = MappingRecord.'Expense category' &&
-                                Inactive = 'NoYes (mserp)'.No
-                            )
+                                'Item or Service' = varSelectedItemOrService,
+                                'Expense category'
+                            ),
+                            Blank()
                         ),
-                        !IsBlank('Expense category') // 빈 레코드 제거
-                    ),
-                    "mserp_expensecategory",
-                    SortOrder.Ascending
+                        Blank()
+                    )
                 )
+            });
+            // 3. Purchase Category가 자동 세팅되었으므로, 하위 4단계인 Expense Category 컬렉션(colExpenseCategories) 미리 로드
+            If(
+                varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory),
+                ClearCollect(
+                    colExpenseCategories,
+                    SortByColumns(
+                        Filter(
+                            ForAll(
+                                Filter(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                    !IsBlank('Expense category') &&
+                                    'Expense Type' = varSelectedExpenseType &&
+                                    'Purchase Category' = varSelectedPurchaseCategory &&
+                                    (
+                                        (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                        (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                    )
+                                ) As MappingRecord,
+                                LookUp(
+                                    'Expense category (mserp)',
+                                    'Expense category' = MappingRecord.'Expense category' &&
+                                    Inactive = 'NoYes (mserp)'.No
+                                )
+                            ),
+                            !IsBlank('Expense category') // 빈 레코드 제거
+                        ),
+                        "mserp_expensecategory",
+                        SortOrder.Ascending
+                    )
+                );
+                
+                // 4. 추가로 환율 및 고정금액 처리를 위한 현재 셋업(locCurrentSetup) 데이터 메모리 로드
+                UpdateContext({
+                    locCurrentSetup: LookUp(
+                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                        'Expense Type' = varSelectedExpenseType && 
+                        'Purchase Category' = varSelectedPurchaseCategory && 
+                        'Item or Service' = varSelectedItemOrService
+                    )
+                })
             );
-            
-            // 4. 추가로 환율 및 고정금액 처리를 위한 현재 셋업(locCurrentSetup) 데이터 메모리 로드
-            UpdateContext({
-                locCurrentSetup: LookUp(
-                    'DCSL Expense Category Mapping Setup Entity (mserp)',
-                    'Expense Type' = varSelectedExpenseType && 
-                    'Purchase Category' = varSelectedPurchaseCategory && 
-                    'Item or Service' = varSelectedItemOrService
-                )
-            })
-        );
-        // Cost Center context
-        UpdateContext({varSelectedCostCenter: Blank()});
-        // TargetText context
-        UpdateContext({TargetText: ""});
-        If(
-            !varIsCreate && !IsBlank(varSelectedExpenseDoc.CostCenter),
-            UpdateContext({
-                varSelectedCostCenter: LookUp(
-                    'DCSL Financial Dimension CostCenter (mserp)',
-                    'Combination display' = varSelectedExpenseDoc.CostCenter
-                )
-            })
-        );
-        // Project context
-        UpdateContext({varSelectedProject: Blank()});
-        // Project type context (will be derived from Expense Type / Purchase Category / Item or Service)
-        UpdateContext({varSelectedProjectType: Blank()});
-        If(
-            !varIsCreate && !IsBlank(varSelectedExpenseDoc.Project),
-            UpdateContext({
-                varSelectedProject: LookUp(
-                    Filter(
-                        'DCSL Financial Dimension Master (mserp)',
-                        'Dimension name' = "Project"
-                    ),
-                    'Dimension value' = varSelectedExpenseDoc.Project
-                )
-            })
+            // Cost Center context
+            UpdateContext({varSelectedCostCenter: Blank()});
+            // TargetText context
+            UpdateContext({TargetText: ""});
+            If(
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.CostCenter),
+                UpdateContext({
+                    varSelectedCostCenter: LookUp(
+                        'DCSL Financial Dimension CostCenter (mserp)',
+                        'Combination display' = varSelectedExpenseDoc.CostCenter
+                    )
+                })
+            );
+            // Project context
+            UpdateContext({varSelectedProject: Blank()});
+            // Project type context (will be derived from Expense Type / Purchase Category / Item or Service)
+            UpdateContext({varSelectedProjectType: Blank()});
+            If(
+                !varIsCreate && !IsBlank(varSelectedExpenseDoc.Project),
+                UpdateContext({
+                    varSelectedProject: LookUp(
+                        Filter(
+                            'DCSL Financial Dimension Master (mserp)',
+                            'Dimension name' = "Project"
+                        ),
+                        'Dimension value' = varSelectedExpenseDoc.Project
+                    )
+                })
+            );
         );
         // Load existing Department and Benefit Type from Expense Category (reverse lookup)
         // [수정됨] 이미 Dataverse에서 올바른 3단계 카테고리 값(Expense Type, Purchase Category 등)을
@@ -685,6 +687,8 @@
         
         // 에러 로그 컬렉션 스키마 초기화
         Clear(colErrorLog);
+        // 로직 수행 후 플래그는 항상 초기화 (다음에 다시 들어올 때를 위해)
+        UpdateContext({ varIsAddingReceipt: false });
 
     scr03_ico_Back_4 As icon.ChevronLeft:
         Color: =icongconfig_backbutton.Color
