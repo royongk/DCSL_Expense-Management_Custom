@@ -9,6 +9,8 @@
                 dirtyTransAmount: Blank(),
                 locIsEditingAmount: false,
                 locCategoryChange: false,
+                // 👇 [신규 추가] AirfareAllowance 모드가 아닐때만 무조건 이전 Purpose 메모리를 날려버림
+                ctxTargetPurpose: If(varAppMode <> "AirfareAllowance", Blank(), ctxTargetPurpose),
                 varViewOnly: false,
                 varStateSelected: Blank(),
                 varZipCodeSelectedRecId: -1,
@@ -713,8 +715,8 @@
                 Navigate('Expenses - List Screen')
             );
             UpdateContext({
-                varNavigatedFrom:
-                Blank()
+                varNavigatedFrom: Blank(),
+                ctxTargetPurpose: Blank() // 👇 [신규 추가] 화면을 벗어날 때 초기화
             });
             UpdateContext(
                 {
@@ -1073,6 +1075,7 @@
             );
             UpdateContext({dirtyTransAmount: Blank()});
             UpdateContext({varSalesTaxAmount: Blank()});
+            UpdateContext({ctxTargetPurpose: Blank()}); // 👇 [신규 추가] 화면을 벗어날 때 초기화
             Set(
                 gblNavigationDrawerVisibility,
                 false
@@ -1412,6 +1415,8 @@
                 Set(isExpenseReceiptAttached, false);
                 Set(OCRresponse, Blank());
                 Set(gblNavigationDrawerVisibility, false);
+                // 👇 [신규 추가] 폼 제출이 완료되면 자동 할당 변수를 비워 다음 신규 작성 시 영향이 없도록 함
+                UpdateContext({ctxTargetPurpose: Blank()});
                 
                 // 8. 컬렉션 정리
                 If(IsEmpty(colErrorLog), Clear(colPendingReceipts));
