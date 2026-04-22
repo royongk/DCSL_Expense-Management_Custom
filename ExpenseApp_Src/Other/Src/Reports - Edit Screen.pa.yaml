@@ -225,10 +225,9 @@ Screens:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
                   FillPortions: =0
-                  Height: =175
+                  Height: =If('Reports - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
-                  LayoutGap: =10
-                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutGap: =5
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
                   PaddingLeft: =25
@@ -300,11 +299,10 @@ Screens:
                               LayoutMaxWidth: =
                               PaddingBottom: =0
                               PaddingTop: =0
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: |-
                                 =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_DescriptionLabel'
                                 "Name of the report"
-                              VerticalAlign: =VerticalAlign.Top
                               Width: =126
                               X: |-
                                 =scr17_img_Description_1.X + scr17_img_Description_1.Width + 
@@ -323,7 +321,7 @@ Screens:
                           )
                         FocusedBorderThickness: =0
                         Font: =Font.'Segoe UI'
-                        Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                        Height: =If('Reports - Edit Screen'.Width <= 1024, 45, 60)
                         HintText: |-
                           =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportDescriptionPlaceholderLabel'
                           "Enter Name of report"
@@ -359,7 +357,7 @@ Screens:
                         RadiusTopLeft: =0
                         RadiusTopRight: =0
                         Reset: =true
-                        Size: =24
+                        Size: =If('Reports - Edit Screen'.Width <= 1024, 16, 24)
                         Width: |
                           =Parent.Width -  Self.X*2
                         X: =40
@@ -371,10 +369,9 @@ Screens:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
                   FillPortions: =0
-                  Height: =175
+                  Height: =If('Reports - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
-                  LayoutGap: =10
-                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutGap: =5
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
                   LayoutMinWidth: =Parent.Width
@@ -422,8 +419,10 @@ Screens:
                               Width: =22
                               X: =ComboBox_Purpose.X
                               Y: |-
-                                =ComboBox_Purpose.Y - 
+                                =/*
+                                ComboBox_Purpose.Y - 
                                 (15 + Self.Height)
+                                */
                         - scr17_img_Title_1:
                             Control: Image@2.2.3
                             Properties:
@@ -436,8 +435,10 @@ Screens:
                               Width: =22
                               X: =ComboBox_Purpose.X
                               Y: |-
-                                =ComboBox_Purpose.Y - 
+                                =/*
+                                ComboBox_Purpose.Y - 
                                 (15 + Self.Height)
+                                */
                         - scr17_lbl_Title_1:
                             Control: Label@2.5.1
                             Properties:
@@ -449,14 +450,13 @@ Screens:
                               LayoutMaxWidth: =
                               PaddingBottom: =0
                               PaddingTop: =0
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportPurpose'
-                              VerticalAlign: =VerticalAlign.Top
                               Width: '=121 '
                               X: |-
                                 =scr17_img_Title_1.X + scr17_img_Title_1.Width + 
                                 8
-                              Y: =scr17_img_Title_1.Y - 5
+                              Y: =//scr17_img_Title_1.Y - 5
                   - ComboBox_Purpose:
                       Control: Classic/ComboBox@2.4.0
                       Properties:
@@ -471,7 +471,7 @@ Screens:
                         DisplayFields: =["mserp_value"]
                         DisplayMode: "=If(\n    // 신규 생성 모드이면서 varAppMode 값이 존재하여 자동 선택된 경우 수정 불가 (읽기 전용 모드)\n    !IsBlank(ComboBox_Purpose.SelectedItems) && !IsBlank(varAppMode),\n    DisplayMode.View, // 입력 필드를 잠급니다. 회색으로 비활성화하려면 DisplayMode.Disabled를 사용할 수도 있습니다.\n    \n    // 그 외의 경우 (AppMode가 없거나, '수정 모드'로 진입하여 기존 값을 변경해야 할 때) 수정 가능\n    DisplayMode.Edit\n)"
                         Font: =Font.'Open Sans'
-                        Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                        Height: =If('Reports - Edit Screen'.Width <= 1024, 45, 60)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Purpose"
                         Items: |
@@ -499,7 +499,7 @@ Screens:
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
-                        Size: =24
+                        Size: =If('Reports - Edit Screen'.Width <= 1024, 16, 24)
                         Width: =Parent.Width -  Self.X*2
                         X: =40
                         Y: =scr17_hdr_TopHeader_1.Height + 66
@@ -510,10 +510,9 @@ Screens:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
                   FillPortions: =0
-                  Height: =175
+                  Height: =If('Reports - Edit Screen'.Width <= 1024, 110, 150)
                   LayoutDirection: =LayoutDirection.Vertical
-                  LayoutGap: =10
-                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutGap: =5
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
                   LayoutMinWidth: =Parent.Width
@@ -584,9 +583,8 @@ Screens:
                               LayoutMaxWidth: =
                               PaddingBottom: =0
                               PaddingTop: =0
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="Delegate Employee"
-                              VerticalAlign: =VerticalAlign.Top
                               Width: '=121 '
                               X: |-
                                 =scr17_img_Employee.X + scr17_img_Employee.Width + 
@@ -618,7 +616,7 @@ Screens:
                           )
                         DisplayFields: =["WorkerName"]
                         Font: =Font.'Open Sans'
-                        Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                        Height: =If('Reports - Edit Screen'.Width <= 1024, 45, 60)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: |-
                           ="Select Employee (Default: Myself)"
@@ -646,7 +644,7 @@ Screens:
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
-                        Size: =24
+                        Size: =If('Reports - Edit Screen'.Width <= 1024, 16, 24)
                         Width: =Parent.Width -  Self.X*2
                         X: =40
                         Y: =scr17_hdr_TopHeader_1.Height + 66
@@ -1089,10 +1087,9 @@ Screens:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
                   FillPortions: =0
-                  Height: =230
+                  Height: =TravelMapToReqContainer_1.Height + TravelReqAmountContainer_1.Height + TravelRemainingAmountContainer_1.Height + 10
                   LayoutDirection: =LayoutDirection.Vertical
-                  LayoutGap: =10
-                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutGap: =5
                   LayoutMaxHeight: =
                   LayoutMaxWidth: =
                   LayoutOverflowY: =LayoutOverflow.Scroll
@@ -1112,7 +1109,7 @@ Screens:
                         AlignInContainer: =AlignInContainer.SetByContainer
                         DropShadow: =DropShadow.None
                         FillPortions: =0
-                        Height: =50
+                        Height: =If('Reports - Edit Screen'.Width <= 1024, 35, 50)
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Horizontal
                         LayoutMaxHeight: =
@@ -1123,7 +1120,7 @@ Screens:
                         RadiusTopLeft: =0
                         RadiusTopRight: =0
                         Visible: =false
-                        Width: =ComboBox_Location.Width
+                        Width: =Parent.Width
                       Children:
                         - scr17_lbl_Destination_1:
                             Control: Label@2.5.1
@@ -1135,7 +1132,7 @@ Screens:
                               LayoutMaxWidth: =
                               PaddingBottom: =0
                               PaddingTop: =0
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: |-
                                 ="Destination : "
                               VerticalAlign: =VerticalAlign.Top
@@ -1153,11 +1150,11 @@ Screens:
                                 )
                               FillPortions: =1
                               Font: =Font.'Segoe UI'
-                              Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                              Height: =If('Reports - Edit Screen'.Width <= 1024, 32, 45)
                               LayoutMaxHeight: =
                               LayoutMaxWidth: =
                               LayoutMinWidth: =100
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: =varSelectedTravelReq.Destination
                               Width: =Parent.Width - Self.X*2
                               X: =40
@@ -1169,7 +1166,7 @@ Screens:
                         AlignInContainer: =AlignInContainer.SetByContainer
                         DropShadow: =DropShadow.None
                         FillPortions: =0
-                        Height: =50
+                        Height: =If('Reports - Edit Screen'.Width <= 1024, 35, 50)
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Horizontal
                         LayoutMaxHeight: =
@@ -1179,7 +1176,7 @@ Screens:
                         RadiusBottomRight: =0
                         RadiusTopLeft: =0
                         RadiusTopRight: =0
-                        Width: =ComboBox_Location.Width
+                        Width: =Parent.Width
                         Y: =scr17_lbl_DestinationValue_1.Y + scr17_lbl_DestinationValue_1.Height + 10
                       Children:
                         - scr17_lbl_MapToTravelReq_1:
@@ -1192,7 +1189,7 @@ Screens:
                               LayoutMaxWidth: =
                               PaddingBottom: =0
                               PaddingTop: =0
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: |-
                                 ="Map to travel requisition : "
                               VerticalAlign: =VerticalAlign.Top
@@ -1210,11 +1207,11 @@ Screens:
                                 )
                               FillPortions: =1
                               Font: =Font.'Segoe UI'
-                              Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                              Height: =If('Reports - Edit Screen'.Width <= 1024, 32, 45)
                               LayoutMaxHeight: =
                               LayoutMaxWidth: =
                               LayoutMinWidth: =100
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: =varSelectedTravelReq.'Travel requisition number'
                               Width: =Parent.Width - Self.X*2
                               X: =40
@@ -1226,7 +1223,7 @@ Screens:
                         AlignInContainer: =AlignInContainer.SetByContainer
                         DropShadow: =DropShadow.None
                         FillPortions: =0
-                        Height: =50
+                        Height: =If('Reports - Edit Screen'.Width <= 1024, 35, 50)
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Horizontal
                         LayoutMaxHeight: =
@@ -1236,7 +1233,7 @@ Screens:
                         RadiusBottomRight: =0
                         RadiusTopLeft: =0
                         RadiusTopRight: =0
-                        Width: =ComboBox_Location.Width
+                        Width: =Parent.Width
                         Y: =scr17_lbl_MapToTravelReqValue_1.Y + scr17_lbl_MapToTravelReqValue_1.Height + 10
                       Children:
                         - scr17_lbl_TravelReqAmount_1:
@@ -1249,7 +1246,7 @@ Screens:
                               LayoutMaxWidth: =
                               PaddingBottom: =0
                               PaddingTop: =0
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: |-
                                 ="Travel requisition amount : "
                               VerticalAlign: =VerticalAlign.Top
@@ -1267,11 +1264,11 @@ Screens:
                                 )
                               FillPortions: =1
                               Font: =Font.'Segoe UI'
-                              Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                              Height: =If('Reports - Edit Screen'.Width <= 1024, 32, 45)
                               LayoutMaxHeight: =
                               LayoutMaxWidth: =
                               LayoutMinWidth: =200
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: =varSelectedTravelReq.Amount
                               Width: =Parent.Width - Self.X*2
                               X: =40
@@ -1283,7 +1280,7 @@ Screens:
                         AlignInContainer: =AlignInContainer.SetByContainer
                         DropShadow: =DropShadow.None
                         FillPortions: =0
-                        Height: =50
+                        Height: =If('Reports - Edit Screen'.Width <= 1024, 35, 50)
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Horizontal
                         LayoutMaxHeight: =
@@ -1293,7 +1290,7 @@ Screens:
                         RadiusBottomRight: =0
                         RadiusTopLeft: =0
                         RadiusTopRight: =0
-                        Width: =ComboBox_Location.Width
+                        Width: =Parent.Width
                         Y: =scr17_lbl_TravelReqAmountValue_1.Y + scr17_lbl_TravelReqAmountValue_1.Height + 10
                       Children:
                         - scr17_lbl_RemainingAmount_1:
@@ -1306,7 +1303,7 @@ Screens:
                               LayoutMaxWidth: =
                               PaddingBottom: =0
                               PaddingTop: =0
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: |-
                                 ="Remaining amount : "
                               VerticalAlign: =VerticalAlign.Top
@@ -1324,11 +1321,11 @@ Screens:
                                 )
                               FillPortions: =1
                               Font: =Font.'Segoe UI'
-                              Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                              Height: =If('Reports - Edit Screen'.Width <= 1024, 32, 45)
                               LayoutMaxHeight: =
                               LayoutMaxWidth: =
                               LayoutMinWidth: =200
-                              Size: =18
+                              Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                               Text: =Concatenate(Text(Value(varSelectedTravelReq.'Amount to reconcile'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
                               Width: =Parent.Width - Self.X*2
                               X: =40
