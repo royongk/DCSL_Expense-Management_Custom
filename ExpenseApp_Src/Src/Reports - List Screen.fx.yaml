@@ -1,7 +1,9 @@
 "'Reports - List Screen' As screen.'phoneBrowseLayout_ver3.0'":
     Fill: =Color.White
     OnVisible: |+
-        =UpdateContext({varCntSelect: false});
+        =// 값이 비어있을 경우 명시적으로 0(All)을 할당
+        If(IsBlank(varcntSelectedStatus), UpdateContext({varcntSelectedStatus: 0}));
+        UpdateContext({varCntSelect: false});
         //UpdateContext({varIsDelegateSelected: false});
         UpdateContext({isExpReportDirty : false});
         Concurrent(
@@ -158,42 +160,34 @@
                         // 상태별 필터링
                         Switch(
                             varcntSelectedStatus,
-                            0, 'DCSL Expense Moblie Report (mserp)', // 💡 추가: 전체 조회 시 원본 테이블 자체를 반환
+                            0, 'DCSL Expense Moblie Report (mserp)', 
                             1, Filter('DCSL Expense Moblie Report (mserp)', 'Document Status' = 'Document Status (mserp)'.Draft),
                             2, Filter('DCSL Expense Moblie Report (mserp)', 'Document Status' = 'Document Status (mserp)'.Submitted),
-                            // 💡 상태 3: Finance Approved
                             3, Filter('DCSL Expense Moblie Report (mserp)', 
                                     'Document Status' = 'Document Status (mserp)'.Approved && 
-                                    /* 예시: 승인 단계 필드 추가 */ 
                                     ('Document status' = 'Document status (mserp)'.Draft || 'Document status' = 'Document status (mserp)'.Submitted || 'Document status' = 'Document status (mserp)'.'In review')
                                 ),
-                            // 💡 상태 4: Budget holder Approved
                             4, Filter('DCSL Expense Moblie Report (mserp)', 
                                     'Document Status' = 'Document Status (mserp)'.Approved && 
-                                    /* 예시: 승인 단계 필드 추가 */ 
                                     'Document status' = 'Document status (mserp)'.Approved
                                 ),
-                            // 💡 상태 5: Finance Rejected
                             5, Filter('DCSL Expense Moblie Report (mserp)', 
                                     'Document Status' = 'Document Status (mserp)'.Rejected && 
-                                    /* 예시: 승인 단계 필드 추가 */ 
                                     'Document status' = 'Document status (mserp)'.Draft
                                 ),
-                            // 💡 상태 6: Budget holder Rejected
                             6, Filter('DCSL Expense Moblie Report (mserp)', 
                                     'Document Status' = 'Document Status (mserp)'.Rejected && 
-                                    /* 예시: 승인 단계 필드 추가 */ 
                                     'Document status' = 'Document status (mserp)'.Rejected
-                                )
+                                ),
+                            
+                            // 💡 [핵심 수정] 기본값 추가: varcntSelectedStatus가 0이거나 빈 값(Blank)일 경우 전체 테이블 반환
+                            'DCSL Expense Moblie Report (mserp)' 
                         ),
                         
                         // 법인(Legal Entity) 필터링
                         LegalEntity_DataArea = Upper(varSelectedLegalEntity),
                         
-                        // 💡 3. [수정됨] 대리인/본인 상시 조회 필터링
-                        // If문 없이 무조건 컬렉션 배열에 포함된 WorkerID를 조회합니다.
-                        // 대리인이 없으면 본인 ID만 1개 있으므로 본인 데이터만 나오고,
-                        // 대리인이 있으면 본인+대리인 ID가 모두 있으므로 통합되어 출력됩니다.
+                        // 대리인/본인 상시 조회 필터링
                         Employee in colCreatingWorkerOptions.WorkerID,
                         
                         // AppMode에 따른 Purpose 필터링
@@ -659,7 +653,7 @@
         RadiusTopLeft: =0
         RadiusTopRight: =0
         Size: =21
-        Visible: =varcntSelectedStatus=3 || varcntSelectedStatus = 0
+        Visible: =varcntSelectedStatus=3
         Width: =582
         X: =58
         Y: =scr16_shp_Rectangle.Y+scr16_shp_Rectangle.Height+1

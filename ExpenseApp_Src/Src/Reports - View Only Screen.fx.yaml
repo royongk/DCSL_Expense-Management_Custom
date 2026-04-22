@@ -253,6 +253,114 @@
         Y: =82
         ZIndex: =2
 
+        "'Description - In Review' As groupContainer.verticalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =175
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            PaddingLeft: =25
+            Visible: |-
+                =true
+                /*
+                If ( locReimaginedfeatureEnabled,
+                    !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt1")),
+                    !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt1"))
+                )
+                */
+            Width: =Parent.Width
+            ZIndex: =1
+
+            DescriptionContainer_2 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                Width: =scr20_txt_Description_1.Width
+                ZIndex: =1
+
+                scr20_img_Description_1 As image:
+                    Height: =22
+                    Image: =ShapeDescription
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Width: =22
+                    X: =scr20_txt_Description_1.X
+                    Y: =scr20_txt_Description_1.Y - (15 + scr20_img_Description_1.Height)
+                    ZIndex: =1
+
+                scr20_lbl_Description_1 As label:
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: ="Name of the report"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =126
+                    X: |-
+                        =scr20_img_Description_1.X + scr20_img_Description_1.Width + 
+                        8
+                    Y: =scr20_img_Description_1.Y - 5
+                    ZIndex: =2
+
+            scr20_txt_Description_1 As text:
+                AccessibleLabel: ="Report description"
+                BorderColor: =RGBA(255, 255, 255, 1)
+                BorderThickness: =0
+                Color: =RGBA(145, 145, 145, 1)
+                Default: =varSelectedReport.Description
+                DisabledFill: =RGBA(229, 229, 229, 1)
+                DisplayMode: =DisplayMode.View
+                Fill: =RGBA(0, 0, 0, 0)
+                FocusedBorderThickness: =0
+                Font: =Font.'Segoe UI'
+                Height: ='Reports - View Only Screen'.Height*Value(0.0616,"en-US")
+                HoverFill: =
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =560
+                OnSelect: |
+                    =UpdateContext({ctLabel1 : false});
+                    UpdateContext({ctLabel2 : false});
+                    UpdateContext({ctLabel3 : true});
+                RadiusBottomLeft: =0
+                RadiusBottomRight: =0
+                RadiusTopLeft: =0
+                RadiusTopRight: =0
+                Size: =22.5
+                Width: =560
+                X: =40
+                Y: =scr20_hdr_ViewReport_1.Height + 332
+                ZIndex: =3
+
         "'Title - In Review' As groupContainer.verticalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
             FillPortions: =0
@@ -277,7 +385,7 @@
                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
                 )
             Width: =Parent.Width
-            ZIndex: =1
+            ZIndex: =2
 
             PurposeContainer_2 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -365,6 +473,506 @@
                 Y: =scr20_hdr_ViewReport_1.Height + 66
                 ZIndex: =4
 
+        "'Employee - In Review' As groupContainer.horizontalAutoLayoutContainer":
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =175
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =Parent.Width
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Visible: =!IsEmpty(colActiveDelegations)
+            Width: =Parent.Width
+            ZIndex: =3
+
+            EmployeeContainer_1 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =ComboBox_Employee_1.Width
+                ZIndex: =1
+
+                scr17_img_EmployeeSelected_1 As image:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                    DisabledFill: =RGBA(244, 244, 244, 1)
+                    Height: =22
+                    Image: =ShapeTitleSelected
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =ctLabel8
+                    Width: =22
+                    X: =ComboBox_Employee_1.X
+                    Y: |-
+                        =ComboBox_Employee_1.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =1
+
+                scr17_img_Employee_1 As image:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                    DisabledFill: =RGBA(244, 244, 244, 1)
+                    Height: =22
+                    Image: =ShapeTitle
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =320
+                    LayoutMinWidth: =320
+                    Visible: =!scr17_img_EmployeeSelected_1.Visible
+                    Width: =22
+                    X: =ComboBox_Employee_1.X
+                    Y: |-
+                        =ComboBox_Employee_1.Y - 
+                        (15 + Self.Height)
+                    ZIndex: =2
+
+                scr17_lbl_Employee_1 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: ="Delegate Employee"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =121 
+                    X: |-
+                        =scr17_img_Employee_1.X + scr17_img_Employee_1.Width + 
+                        8
+                    Y: =scr17_img_Employee_1.Y - 5
+                    ZIndex: =3
+
+            ComboBox_Employee_1 As combobox:
+                AccessibleLabel: ="Dropdown to enter delegate Employee"
+                BorderColor: =RGBA(0, 18, 107, 1)
+                ChevronBackground: =RGBA(56, 96, 178, 1)
+                ChevronDisabledBackground: =RGBA(166, 166, 166, 1)
+                ChevronDisabledFill: =RGBA(244, 244, 244, 1)
+                ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                Color: =RGBA(145, 145, 145, 1)
+                Default: =Blank()
+                DefaultSelectedItems: |-
+                    =If(
+                        !IsBlank(varSelectedReport.Employee),
+                        // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
+                        LookUp(
+                            colCreatingWorkerOptions, 
+                            WorkerID = varSelectedReport.Employee
+                        ),
+                        // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
+                        LookUp(
+                            colCreatingWorkerOptions, 
+                            WorkerID = userRecord.CreatingWorker
+                        )
+                    )
+                DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                DisabledColor: =RGBA(166, 166, 166, 1)
+                DisabledFill: =RGBA(229, 229, 229, 1)
+                DisplayFields: =["WorkerName"]
+                DisplayMode: =DisplayMode.View
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                HoverColor: =RGBA(0, 0, 0, 1)
+                HoverFill: =RGBA(186, 202, 226, 1)
+                InputTextPlaceholder: |-
+                    ="Select Employee (Default: Myself)"
+                Items: =colCreatingWorkerOptions
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =70
+                LayoutMinWidth: =575
+                OnChange: |-
+                    =If(
+                        ComboBox_Employee_1.Selected.WorkerID <> varSelectedReport.Employee,
+                            UpdateContext({isExpReportDirty : true})
+                    );
+                OnSelect: |-
+                    =UpdateContext({ctLabel1 : false});
+                    UpdateContext({ctLabel2 : false});
+                    UpdateContext({ctLabel3 : false});
+                    UpdateContext({ctLabel4 : false});
+                    UpdateContext({ctLabel5: false});
+                    UpdateContext({ctLabel6: false});
+                    UpdateContext({ctLabel7: false});
+                    UpdateContext({ctLabel8 : true})
+                PaddingBottom: =10
+                PaddingLeft: =10
+                PaddingRight: =10
+                PaddingTop: =10
+                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedFill: =RGBA(0, 18, 107, 1)
+                Reset: =true
+                SearchFields: =["WorkerName"]
+                SearchItems: =Search(colCreatingWorkerOptions,ComboBox_Employee_1.SearchText,WorkerName)
+                SelectionFill: =RGBA(56, 96, 178, 1)
+                SelectMultiple: =false
+                Size: =24
+                Width: =Parent.Width -  Self.X*2
+                X: =40
+                Y: =scr17_hdr_TopHeader_1.Height + 66
+                ZIndex: =2
+
+        CashAdvance_Container_gp_1 As groupContainer.horizontalAutoLayoutContainer:
+            Height: =225
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =16
+            LayoutMinWidth: =16
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingBottom: =8
+            PaddingLeft: =8
+            PaddingRight: =8
+            PaddingTop: =8
+            Visible: |-
+                =If(
+                    !IsBlank(varAppMode) && varAppMode = "CashAdvance",
+                    true,
+                    false
+                )
+            Width: =Parent.Width
+            ZIndex: =4
+
+            "'Settlment - In Review' As groupContainer.horizontalAutoLayoutContainer":
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =175
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGap: =10
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.Center
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                LayoutOverflowY: =LayoutOverflow.Scroll
+                maximumHeight: =11360
+                maximumWidth: =640
+                PaddingLeft: =25
+                Visible: |-
+                    =If ( locReimaginedfeatureEnabled,
+                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
+                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
+                    )
+                Width: =Parent.Width/2
+                ZIndex: =1
+
+                SettlmentContainer_4 As groupContainer.horizontalAutoLayoutContainer:
+                    AlignInContainer: =AlignInContainer.SetByContainer
+                    FillPortions: =0
+                    Height: =50
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGridColumnMinWidth: =0
+                    LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
+                    LayoutGridRows: =6
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =112
+                    LayoutMinWidth: =Parent.Width
+                    LayoutMode: =LayoutMode.Auto
+                    maximumHeight: =11360
+                    maximumWidth: =640
+                    Width: =Parent.Width -  Self.X*2
+                    ZIndex: =1
+
+                    scr17_img_SettlmentSelected_3 As image:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        DisabledFill: =RGBA(244, 244, 244, 1)
+                        Height: =22
+                        Image: =ShapeProjIDSelected
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =320
+                        LayoutMinWidth: =320
+                        Visible: =ctLabel6
+                        Width: =22
+                        X: =Toggle_Settlment_2.X
+                        Y: |-
+                            =Toggle_Settlment_2.Y - 
+                            (15 + Self.Height)
+                        ZIndex: =1
+
+                    scr17_img_Settlment_3 As image:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        DisabledFill: =RGBA(244, 244, 244, 1)
+                        Height: =22
+                        Image: =ShapeProjID
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =320
+                        LayoutMinWidth: =320
+                        Visible: =!scr17_img_SettlmentSelected_3.Visible
+                        Width: =22
+                        X: =Toggle_Settlment_2.X
+                        Y: |-
+                            =Toggle_Settlment_2.Y - 
+                            (15 + Self.Height)
+                        ZIndex: =2
+
+                    scr17_lbl_Settlment_3 As label:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(0, 0, 0, 1)
+                        DisabledColor: =RGBA(166, 166, 166, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        Height: =32
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =270
+                        PaddingBottom: =0
+                        PaddingTop: =0
+                        Size: =18
+                        Text: ="Settlement from Cash"
+                        VerticalAlign: =VerticalAlign.Top
+                        Width: =Parent.Width
+                        X: |-
+                            =scr17_img_Settlment_3.X + scr17_img_Settlment_3.Width + 
+                            8
+                        Y: =scr17_img_Settlment_3.Y - 5
+                        ZIndex: =3
+
+                Toggle_Settlment_2 As toggleSwitch:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisplayMode: =DisplayMode.View
+                    FalseFill: =RGBA(128, 130, 133, 1)
+                    FalseText: ="No"
+                    HandleFill: =RGBA(255, 255, 255, 1)
+                    Height: =49
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    OnChange: =Reset(ComboBox_MaptoCashAdvance_1)
+                    OnSelect: |-
+                        =UpdateContext({ctLabel1 : false});
+                        UpdateContext({ctLabel2 : false});
+                        UpdateContext({ctLabel3 : false});
+                        UpdateContext({ctLabel4 : false});
+                        UpdateContext({ctLabel5: false});
+                        UpdateContext({ctLabel6: true});
+                        UpdateContext({ctLabel7: false})
+                    Size: =21
+                    TrueFill: =RGBA(56, 96, 178, 1)
+                    TrueText: ="Yes"
+                    Width: =154
+                    ZIndex: =2
+
+            "'MaptoCashAdvance- In Review' As groupContainer.horizontalAutoLayoutContainer":
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =175
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGap: =10
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutJustifyContent: =LayoutJustifyContent.Center
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                LayoutOverflowY: =LayoutOverflow.Scroll
+                maximumHeight: =11360
+                maximumWidth: =640
+                PaddingLeft: =25
+                Visible: |-
+                    =If ( locReimaginedfeatureEnabled,
+                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
+                         !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
+                    )
+                Width: =Parent.Width/2
+                ZIndex: =2
+
+                MaptoCashAdvanceContainer_2 As groupContainer.horizontalAutoLayoutContainer:
+                    AlignInContainer: =AlignInContainer.SetByContainer
+                    FillPortions: =0
+                    Height: =50
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGridColumnMinWidth: =0
+                    LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
+                    LayoutGridRows: =6
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =112
+                    LayoutMinWidth: =Parent.Width
+                    LayoutMode: =LayoutMode.Auto
+                    maximumHeight: =11360
+                    maximumWidth: =640
+                    Width: =Parent.Width -  Self.X*2
+                    ZIndex: =1
+
+                    scr17_img_MaptoCashAdvanceSelected_2 As image:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        DisabledFill: =RGBA(244, 244, 244, 1)
+                        Height: =22
+                        Image: =ShapeProjIDSelected
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =320
+                        LayoutMinWidth: =320
+                        Visible: =ctLabel7
+                        Width: =22
+                        X: =ComboBox_MaptoCashAdvance_1.X
+                        Y: |-
+                            =ComboBox_MaptoCashAdvance_1.Y - 
+                            (15 + Self.Height)
+                        ZIndex: =1
+
+                    scr17_img_MaptoCashAdvance_2 As image:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        DisabledFill: =RGBA(244, 244, 244, 1)
+                        Height: =22
+                        Image: =ShapeProjID
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =320
+                        LayoutMinWidth: =320
+                        Visible: =!scr17_img_MaptoCashAdvanceSelected_2.Visible
+                        Width: =22
+                        X: =ComboBox_MaptoCashAdvance_1.X
+                        Y: |-
+                            =ComboBox_MaptoCashAdvance_1.Y - 
+                            (15 + Self.Height)
+                        ZIndex: =2
+
+                    scr17_lbl_MaptoCashAdvance_2 As label:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(0, 0, 0, 1)
+                        DisabledColor: =RGBA(166, 166, 166, 1)
+                        FillPortions: =1
+                        Font: =Font.'Segoe UI'
+                        Height: =32
+                        LayoutMaxHeight: =
+                        LayoutMaxWidth: =
+                        LayoutMinHeight: =70
+                        LayoutMinWidth: =270
+                        PaddingBottom: =0
+                        PaddingTop: =0
+                        Size: =18
+                        Text: ="Map to Cash Advance"
+                        VerticalAlign: =VerticalAlign.Top
+                        Width: =Parent.Width
+                        X: |-
+                            =scr17_img_MaptoCashAdvance_2.X + scr17_img_MaptoCashAdvance_2.Width + 
+                            8
+                        Y: =scr17_img_MaptoCashAdvance_2.Y - 5
+                        ZIndex: =3
+
+                ComboBox_MaptoCashAdvance_1 As combobox:
+                    AccessibleLabel: ="Dropdown to enter Cash Advance"
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    ChevronBackground: =RGBA(56, 96, 178, 1)
+                    ChevronDisabledBackground: =RGBA(166, 166, 166, 1)
+                    ChevronDisabledFill: =RGBA(244, 244, 244, 1)
+                    ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                    ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                    Default: =Blank()
+                    DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance)
+                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    DisabledFill: =RGBA(244, 244, 244, 1)
+                    DisplayFields: =["mserp_cashadvancenumber"]
+                    DisplayMode: =DisplayMode.View
+                    Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                    HoverColor: =RGBA(0, 0, 0, 1)
+                    HoverFill: =RGBA(186, 202, 226, 1)
+                    InputTextPlaceholder: ="Select Cash Advance"
+                    Items: |
+                        =Filter(
+                            'DCSL TrvCash Advance Entity  (mserp)', 
+                            'Company Code' = Lower(varSelectedLegalEntity) &&
+                            'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
+                            Balance > 0 &&
+                            Employee = userRecord.CreatingWorker
+                        )
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =575
+                    OnChange: |-
+                        =If(
+                            ComboBox_MaptoCashAdvance_1.Selected.'Cash advance number' <> varSelectedReport.DEEXMapToCashAdvance,
+                                UpdateContext({isExpReportDirty : true})
+                        );
+                    OnSelect: |-
+                        =UpdateContext({ctLabel1 : false});
+                        UpdateContext({ctLabel2 : false});
+                        UpdateContext({ctLabel3 : false});
+                        UpdateContext({ctLabel4 : false});
+                        UpdateContext({ctLabel5: false});
+                        UpdateContext({ctLabel6: false});
+                        UpdateContext({ctLabel7: true})
+                    PaddingBottom: =10
+                    PaddingLeft: =10
+                    PaddingRight: =10
+                    PaddingTop: =10
+                    PressedColor: =RGBA(255, 255, 255, 1)
+                    PressedFill: =RGBA(0, 18, 107, 1)
+                    Reset: =true
+                    SearchFields: =["mserp_cashadvancenumber"]
+                    SearchItems: =Search(Filter('DCSL TrvCash Advance Entity  (mserp)','Company Code'=Lower(varSelectedLegalEntity)&&'Cash advance status'='Cash advance status (mserp)'.Paid&&Balance>0&&Employee=userRecord.CreatingWorker),ComboBox_MaptoCashAdvance_1.SearchText,mserp_cashadvancenumber)
+                    SelectionFill: =RGBA(56, 96, 178, 1)
+                    SelectMultiple: =false
+                    Size: =21
+                    Width: =Parent.Width -  Self.X*2
+                    X: =40
+                    Y: =scr17_hdr_TopHeader_1.Height + 66
+                    ZIndex: =2
+
         "'Location - In Review' As groupContainer.verticalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
             FillPortions: =0
@@ -384,12 +992,15 @@
             LayoutOverflowY: =LayoutOverflow.Scroll
             PaddingLeft: =25
             Visible: |-
-                =If ( locReimaginedfeatureEnabled,
+                =false
+                /*
+                If ( locReimaginedfeatureEnabled,
                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Destination")),
                     !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Destination")
                 ))
+                */
             Width: =Parent.Width
-            ZIndex: =2
+            ZIndex: =5
 
             LocationContainer_2 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -474,6 +1085,284 @@
                 Y: =scr20_hdr_ViewReport_1.Height + 202
                 ZIndex: =3
 
+        TravelRequisitionContainer_2 As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            FillPortions: =0
+            Height: =230
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutMaxHeight: =
+            LayoutMaxWidth: =
+            LayoutMinHeight: =112
+            LayoutMinWidth: =250
+            LayoutMode: =LayoutMode.Auto
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Visible: =varAppMode = "AirfareAllowance" && !IsBlank(varSelectedTravelReq)
+            Width: =Parent.Width
+            Y: =ComboBox_Location.Y + ComboBox_Location.Height + 60
+            ZIndex: =6
+
+            TravelDestinationContainer_2 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Visible: =false
+                Width: =ComboBox_Location.Width
+                ZIndex: =1
+
+                scr17_lbl_Destination_2 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        ="Destination : "
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =300
+                    X: =40
+                    ZIndex: =1
+
+                scr17_lbl_DestinationValue_2 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: |-
+                        =If(
+                            IsBlank(varSelectedTravelReq.Destination),
+                            RGBA(145, 145, 145, 1),
+                            RGBA(0, 0, 0, 1)
+                        )
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =100
+                    Size: =18
+                    Text: =varSelectedTravelReq.Destination
+                    Width: =Parent.Width - Self.X*2
+                    X: =40
+                    Y: =scr17_lbl_Destination_2.Y + scr17_lbl_Destination_2.Height + 8
+                    ZIndex: =2
+
+            TravelMapToReqContainer_2 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =ComboBox_Location.Width
+                Y: =scr17_lbl_DestinationValue_2.Y + scr17_lbl_DestinationValue_2.Height + 10
+                ZIndex: =2
+
+                scr17_lbl_MapToTravelReq_2 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        ="Map to travel requisition : "
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =300
+                    X: =40
+                    ZIndex: =1
+
+                scr17_lbl_MapToTravelReqValue_2 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: |-
+                        =If(
+                            IsBlank(varSelectedTravelReq.'Travel requisition number'),
+                            RGBA(145, 145, 145, 1),
+                            RGBA(0, 0, 0, 1)
+                        )
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =100
+                    Size: =18
+                    Text: =varSelectedTravelReq.'Travel requisition number'
+                    Width: =Parent.Width - Self.X*2
+                    X: =40
+                    Y: =scr17_lbl_MapToTravelReq_2.Y + scr17_lbl_MapToTravelReq_2.Height + 8
+                    ZIndex: =2
+
+            TravelReqAmountContainer_2 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =ComboBox_Location.Width
+                Y: =scr17_lbl_MapToTravelReqValue_2.Y + scr17_lbl_MapToTravelReqValue_2.Height + 10
+                ZIndex: =3
+
+                scr17_lbl_TravelReqAmount_2 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        ="Travel requisition amount : "
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =300
+                    X: =40
+                    ZIndex: =1
+
+                scr17_lbl_TravelReqAmountValue_2 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: |-
+                        =If(
+                            IsBlank(varSelectedTravelReq.Amount),
+                            RGBA(145, 145, 145, 1),
+                            RGBA(0, 0, 0, 1)
+                        )
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =200
+                    Size: =18
+                    Text: =varSelectedTravelReq.Amount
+                    Width: =Parent.Width - Self.X*2
+                    X: =40
+                    Y: =scr17_lbl_TravelReqAmount_2.Y + scr17_lbl_TravelReqAmount_2.Height + 8
+                    ZIndex: =2
+
+            TravelRemainingAmountContainer_2 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                FillPortions: =0
+                Height: =50
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =
+                LayoutMaxWidth: =
+                LayoutMinHeight: =112
+                LayoutMinWidth: =Parent.Width
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =ComboBox_Location.Width
+                Y: =scr17_lbl_TravelReqAmountValue_2.Y + scr17_lbl_TravelReqAmountValue_2.Height + 10
+                ZIndex: =4
+
+                scr17_lbl_RemainingAmount_2 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =560
+                    PaddingBottom: =0
+                    PaddingTop: =0
+                    Size: =18
+                    Text: |-
+                        ="Remaining amount : "
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =300
+                    X: =40
+                    ZIndex: =1
+
+                scr17_lbl_RemainingAmountValue_2 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: |-
+                        =If(
+                            IsBlank(varSelectedTravelReq.'Amount to reconcile'),
+                            RGBA(145, 145, 145, 1),
+                            RGBA(0, 0, 0, 1)
+                        )
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FillPortions: =1
+                    Font: =Font.'Segoe UI'
+                    Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                    LayoutMaxHeight: =
+                    LayoutMaxWidth: =
+                    LayoutMinHeight: =70
+                    LayoutMinWidth: =200
+                    Size: =18
+                    Text: |-
+                        =Concatenate(Text(Value(varSelectedTravelReq.'Amount to reconcile'),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
+                    Width: =Parent.Width - Self.X*2
+                    X: =40
+                    Y: =scr17_lbl_RemainingAmount_2.Y + scr17_lbl_RemainingAmount_2.Height + 8
+                    ZIndex: =2
+
         "'Legal Entity - In Review' As groupContainer.verticalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
             FillPortions: =0
@@ -499,7 +1388,7 @@
                 
                 
             Width: =Parent.Width
-            ZIndex: =3
+            ZIndex: =7
 
             LegalEntityContainer_2 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -581,113 +1470,6 @@
                 Y: =scr20_hdr_ViewReport_1.Height + 202
                 ZIndex: =3
 
-        "'Description - In Review' As groupContainer.verticalAutoLayoutContainer":
-            AlignInContainer: =AlignInContainer.SetByContainer
-            FillPortions: =0
-            Height: =225
-            LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =10
-            LayoutGridColumnMinWidth: =0
-            LayoutGridColumns: =6
-            LayoutGridRowMinHeight: =0
-            LayoutGridRows: =6
-            LayoutJustifyContent: =LayoutJustifyContent.Center
-            LayoutMaxHeight: =
-            LayoutMaxWidth: =
-            LayoutMinHeight: =112
-            LayoutMinWidth: =250
-            LayoutMode: =LayoutMode.Auto
-            PaddingLeft: =25
-            Visible: |-
-                =If ( locReimaginedfeatureEnabled,
-                    !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt1")),
-                    !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt1"))
-                )
-            Width: =Parent.Width
-            ZIndex: =5
-
-            DescriptionContainer_2 As groupContainer.horizontalAutoLayoutContainer:
-                AlignInContainer: =AlignInContainer.SetByContainer
-                FillPortions: =0
-                Height: =50
-                LayoutAlignItems: =LayoutAlignItems.Center
-                LayoutGridColumnMinWidth: =0
-                LayoutGridColumns: =6
-                LayoutGridRowMinHeight: =0
-                LayoutGridRows: =6
-                LayoutMaxHeight: =
-                LayoutMaxWidth: =
-                LayoutMinHeight: =112
-                LayoutMinWidth: =Parent.Width
-                LayoutMode: =LayoutMode.Auto
-                Width: =scr20_txt_Description_1.Width
-                ZIndex: =1
-
-                scr20_img_Description_1 As image:
-                    Height: =22
-                    Image: =ShapeDescription
-                    LayoutMaxHeight: =
-                    LayoutMaxWidth: =
-                    LayoutMinHeight: =320
-                    LayoutMinWidth: =320
-                    Width: =22
-                    X: =scr20_txt_Description_1.X
-                    Y: =scr20_txt_Description_1.Y - (15 + scr20_img_Description_1.Height)
-                    ZIndex: =1
-
-                scr20_lbl_Description_1 As label:
-                    FillPortions: =1
-                    Font: =Font.'Segoe UI'
-                    Height: =32
-                    LayoutMaxHeight: =
-                    LayoutMaxWidth: =
-                    LayoutMinHeight: =70
-                    LayoutMinWidth: =560
-                    PaddingBottom: =0
-                    PaddingTop: =0
-                    Size: =18
-                    Text: |-
-                        =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DescriptionLabel'
-                    VerticalAlign: =VerticalAlign.Top
-                    Width: =126
-                    X: |-
-                        =scr20_img_Description_1.X + scr20_img_Description_1.Width + 
-                        8
-                    Y: =scr20_img_Description_1.Y - 5
-                    ZIndex: =2
-
-            scr20_txt_Description_1 As text:
-                AccessibleLabel: ="Report description"
-                BorderColor: =RGBA(255, 255, 255, 1)
-                BorderThickness: =0
-                Color: =RGBA(145, 145, 145, 1)
-                Default: =varSelectedReport.Description
-                DisabledFill: =RGBA(229, 229, 229, 1)
-                DisplayMode: =DisplayMode.View
-                Fill: =RGBA(0, 0, 0, 0)
-                FocusedBorderThickness: =0
-                Font: =Font.'Segoe UI'
-                Height: =105
-                HoverFill: =
-                LayoutMaxHeight: =
-                LayoutMaxWidth: =
-                LayoutMinHeight: =70
-                LayoutMinWidth: =560
-                Mode: =TextMode.MultiLine
-                OnSelect: |
-                    =UpdateContext({ctLabel1 : false});
-                    UpdateContext({ctLabel2 : false});
-                    UpdateContext({ctLabel3 : true});
-                RadiusBottomLeft: =0
-                RadiusBottomRight: =0
-                RadiusTopLeft: =0
-                RadiusTopRight: =0
-                Size: =22.5
-                Width: =560
-                X: =40
-                Y: =scr20_hdr_ViewReport_1.Height + 332
-                ZIndex: =3
-
         "'AttachedExpenses - In Review' As groupContainer.verticalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
             Height: =225
@@ -704,7 +1486,7 @@
             LayoutOverflowY: =LayoutOverflow.Scroll
             PaddingTop: =10
             Width: =Parent.Width
-            ZIndex: =6
+            ZIndex: =8
 
             Container23_2 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
