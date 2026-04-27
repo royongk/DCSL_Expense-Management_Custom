@@ -283,10 +283,12 @@ Screens:
                               LayoutJustifyContent: =LayoutJustifyContent.Center
                               LayoutMaxHeight: =
                               LayoutMaxWidth: =
+                              LayoutMinWidth: =100
                               RadiusBottomLeft: =0
                               RadiusBottomRight: =0
                               RadiusTopLeft: =0
                               RadiusTopRight: =0
+                              Width: =0
                             Children:
                               - Label5_2:
                                   Control: Label@2.5.1
@@ -296,6 +298,7 @@ Screens:
                                     Font: =Font.'Segoe UI'
                                     LayoutMaxHeight: =
                                     LayoutMaxWidth: =
+                                    LayoutMinWidth: =10
                                     OnSelect: =Select(scr16_shp_SelectRegion_4)
                                     PaddingLeft: =15
                                     PaddingRight: =0
@@ -307,26 +310,40 @@ Screens:
                                   Properties:
                                     AutoHeight: =true
                                     BorderColor: =RGBA(0, 18, 107, 1)
-                                    Color: |
-                                      =If(
-                                          ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected,
-                                          RGBA(165, 33, 33, 1),
-                                          RGBA(102, 102, 102, 1)
-                                      )
+                                    Color: =RGBA(102, 102, 102, 1)
                                     Font: =Font.'Segoe UI'
                                     LayoutMaxHeight: =
                                     LayoutMaxWidth: =
+                                    LayoutMinWidth: =10
                                     OnSelect: =Select(scr16_shp_SelectRegion_4)
                                     PaddingLeft: =15
                                     PaddingRight: =0
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                                    Text: |-
-                                      =If(
-                                          ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected,
-                                          GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportRejectedLabel',
-                                          ThisItem.Description
-                                      )
+                                    Text: =ThisItem.Description
                                     Width: =Parent.Width
+                        - lbl_DocumentStatus:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: |-
+                                =Switch(
+                                    ThisItem.'Document Status',
+                                    'Document Status (mserp)'.Draft, RGBA(102, 102, 102, 1),       // 회색 (Draft)
+                                    'Document Status (mserp)'.Submitted, RGBA(255, 140, 0, 1),     // 주황색 (Submitted)
+                                    'Document Status (mserp)'.Approved, RGBA(16, 124, 16, 1),      // 녹색 (Approved)
+                                    'Document Status (mserp)'.Rejected, RGBA(195, 39, 39, 1),      // 빨간색 (Rejected)
+                                    RGBA(0, 0, 0, 1) // 기본 검정색
+                                )
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =120
+                              OnSelect: =Select(scr16_shp_SelectRegion_4)
+                              Size: =If(App.Width >= 1024, 18, 14)
+                              Text: =Text(ThisItem.'Document Status')
+                              Width: =120
                         - Container9_1:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
@@ -338,6 +355,7 @@ Screens:
                               LayoutJustifyContent: =LayoutJustifyContent.Center
                               LayoutMaxHeight: =
                               LayoutMaxWidth: =
+                              LayoutMinWidth: =110
                               RadiusBottomLeft: =0
                               RadiusBottomRight: =0
                               RadiusTopLeft: =0
@@ -354,6 +372,7 @@ Screens:
                                     FontWeight: =FontWeight.Bold
                                     LayoutMaxHeight: =
                                     LayoutMaxWidth: =
+                                    LayoutMinWidth: =10
                                     OnSelect: =Select(scr16_shp_SelectRegion_4)
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
                                     Text: =Concatenate(Text(Value(ThisItem.AmountTotal),"#,#0.00", varDefaultLanguage), " ", varDefaultCurrency)
@@ -367,6 +386,7 @@ Screens:
                                     Font: =Font.'Segoe UI'
                                     LayoutMaxHeight: =
                                     LayoutMaxWidth: =
+                                    LayoutMinWidth: =10
                                     OnSelect: =Select(scr16_shp_SelectRegion_4)
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
                                     Text: |-

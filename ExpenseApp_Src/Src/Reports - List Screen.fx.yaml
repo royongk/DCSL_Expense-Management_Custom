@@ -330,9 +330,10 @@
                     LayoutMaxHeight: =
                     LayoutMaxWidth: =
                     LayoutMinHeight: =112
-                    LayoutMinWidth: =250
+                    LayoutMinWidth: =100
                     LayoutMode: =LayoutMode.Auto
-                    ZIndex: =4
+                    Width: =0
+                    ZIndex: =3
 
                     Label5_2 As label:
                         AutoHeight: =true
@@ -341,7 +342,7 @@
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         LayoutMinHeight: =70
-                        LayoutMinWidth: =560
+                        LayoutMinWidth: =10
                         OnSelect: =Select(scr16_shp_SelectRegion_4)
                         PaddingLeft: =15
                         PaddingRight: =0
@@ -353,31 +354,45 @@
 
                     Label6_2 As label:
                         AutoHeight: =true
-                        Color: |
-                            =If(
-                                ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected,
-                                RGBA(165, 33, 33, 1),
-                                RGBA(102, 102, 102, 1)
-                            )
+                        Color: =RGBA(102, 102, 102, 1)
                         Font: =Font.'Segoe UI'
                         Height: =70
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         LayoutMinHeight: =70
-                        LayoutMinWidth: =560
+                        LayoutMinWidth: =10
                         OnSelect: =Select(scr16_shp_SelectRegion_4)
                         PaddingLeft: =15
                         PaddingRight: =0
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
-                        Text: |-
-                            =If(
-                                ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected,
-                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReportRejectedLabel',
-                                ThisItem.Description
-                            )
+                        Text: =ThisItem.Description
                         Width: =Parent.Width
                         ZIndex: =2
+
+                lbl_DocumentStatus As label:
+                    Align: =Align.Center
+                    AlignInContainer: =AlignInContainer.Center
+                    Color: |-
+                        =Switch(
+                            ThisItem.'Document Status',
+                            'Document Status (mserp)'.Draft, RGBA(102, 102, 102, 1),       // 회색 (Draft)
+                            'Document Status (mserp)'.Submitted, RGBA(255, 140, 0, 1),     // 주황색 (Submitted)
+                            'Document Status (mserp)'.Approved, RGBA(16, 124, 16, 1),      // 녹색 (Approved)
+                            'Document Status (mserp)'.Rejected, RGBA(195, 39, 39, 1),      // 빨간색 (Rejected)
+                            RGBA(0, 0, 0, 1) // 기본 검정색
+                        )
+                    FontWeight: =FontWeight.Bold
+                    Height: =70
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =120
+                    OnSelect: =Select(scr16_shp_SelectRegion_4)
+                    Size: =If(App.Width >= 1024, 18, 14)
+                    Text: =Text(ThisItem.'Document Status')
+                    Width: =120
+                    ZIndex: =4
 
                 Container9_1 As groupContainer.verticalAutoLayoutContainer:
                     FillPortions: =0
@@ -392,7 +407,7 @@
                     LayoutMaxHeight: =
                     LayoutMaxWidth: =
                     LayoutMinHeight: =112
-                    LayoutMinWidth: =250
+                    LayoutMinWidth: =110
                     LayoutMode: =LayoutMode.Auto
                     Width: =200
                     ZIndex: =5
@@ -406,7 +421,7 @@
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         LayoutMinHeight: =70
-                        LayoutMinWidth: =560
+                        LayoutMinWidth: =10
                         OnSelect: =Select(scr16_shp_SelectRegion_4)
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
@@ -423,7 +438,7 @@
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         LayoutMinHeight: =70
-                        LayoutMinWidth: =560
+                        LayoutMinWidth: =10
                         OnSelect: =Select(scr16_shp_SelectRegion_4)
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
