@@ -2556,8 +2556,13 @@
                     */
                     ClearCollect(
                         colAttachedReceipts,
-                        Filter('Expense Mobile Attached Document Entity (mserp)', 
-                            ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                        SortByColumns(
+                            Filter(
+                                'Expense Mobile Attached Document Entity (mserp)',
+                                'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                            ),
+                            "mserp_documentcreateddatetime",
+                            SortOrder.Descending
                         )
                     );
                     

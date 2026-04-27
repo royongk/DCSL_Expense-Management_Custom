@@ -177,7 +177,7 @@ Screens:
           Variant: AutoLayout
           Properties:
             DropShadow: =DropShadow.None
-            Height: =conFinanceSection.Height
+            Height: =Max(conFinanceSection.Height, conHRSection.Height)
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Horizontal
             LayoutGap: =If(App.Width >= 1024, 60, 20)
@@ -204,7 +204,11 @@ Screens:
                   BorderThickness: =1
                   DropShadow: =DropShadow.None
                   Fill: =RGBA(255, 255, 255, 1)
-                  Height: =conFinanceHeader.Height + galFinanceMenu.Height + lblContactFinance.Height + 40
+                  Height: |-
+                    =Max(
+                        conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
+                        conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
+                    )
                   LayoutAlignItems: =LayoutAlignItems.Center
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutMinHeight: =16
@@ -323,6 +327,17 @@ Screens:
                               Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
                               X: =(Parent.TemplateWidth - Self.Width) / 2
                               Y: =(Parent.TemplateHeight - Self.Height) / 2
+                  - lblFinanceSpaceLabel:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        FillPortions: =1
+                        Font: =Font.'Open Sans'
+                        Height: =0
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        Text: =""
+                        Width: =Parent.Width
                   - lblContactFinance:
                       Control: Label@2.5.1
                       Properties:
@@ -348,7 +363,11 @@ Screens:
                   BorderThickness: =1
                   DropShadow: =DropShadow.None
                   Fill: =RGBA(255, 255, 255, 1)
-                  Height: =conHRHeader.Height + galHRMenu.Height + lblContactHR.Height + 40
+                  Height: |-
+                    =Max(
+                        conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
+                        conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
+                    )
                   LayoutAlignItems: =LayoutAlignItems.Center
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutMinHeight: =16
@@ -467,6 +486,17 @@ Screens:
                               Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
                               X: =(Parent.TemplateWidth - Self.Width) / 2
                               Y: =(Parent.TemplateHeight - Self.Height) / 2
+                  - lblHRSpaceLabel:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        FillPortions: =1
+                        Font: =Font.'Open Sans'
+                        Height: =0
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        Text: =""
+                        Width: =Parent.Width
                   - lblContactHR:
                       Control: Label@2.5.1
                       Properties:
