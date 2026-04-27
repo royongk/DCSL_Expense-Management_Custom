@@ -92,81 +92,22 @@
                     },
                     If(
                         !IsBlank(selectedReceipt),
-                        // [조건 강화] 신규 생성 모드이거나, 경비 번호가 없는 경우 -> 무조건 Pending에 추가
+                        
+                        // [수정됨] 신규/수정 모드 상관없이 무조건 임시 컬렉션(Pending)에 추가합니다.
+                        // Edit 화면으로 돌아갔을 때 갤러리에 즉시 표시되며, Edit 화면에서 최종 저장할 때 한꺼번에 서버와 연결(Link)됩니다.
                         If(
-                            varIsCreate || IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                            
-                            // CASE 1: 신규 생성 (Pending 컬렉션에 추가)
-                            If(
-                                IsBlank(LookUp(colPendingReceipts, mserp_entrecid = selectedReceipt.EntRecId)),
-                                Collect(
-                                    colPendingReceipts,
-                                    {
-                                        mserp_entrecid: selectedReceipt.EntRecId,
-                                        mserp_captureddocument: selectedReceipt.CapturedDocument,
-                                        mserp_fileextension: selectedReceipt.FileExtension,
-                                        mserp_filename: Coalesce(
-                                            selectedReceipt.Description,
-                                            Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
-                                        )
-                                    }
-                                )
-                            ),
-            
-                            // CASE 2: 기존 경비 수정 (즉시 DB 연결 및 Attached 컬렉션 갱신)
-                            // 4. 첨부 파일 연결 처리 (일괄 패치 방식으로 우회)
-                            If(
-                                !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
-                                
-                                // 1단계: Dataverse에서 원본 레코드들을 순차적으로 조회하여 로컬 컬렉션에 담기
-                                ClearCollect(
-                                    colRecordsToUpdate,
-                                    ForAll(
-                                        colPendingReceipts As CurrentReceiptItem,
-                                        
-                                        // [수정된 부분] With 함수를 사용하여 Value() 형변환을 LookUp 외부에서 먼저 수행합니다.
-                                        With(
-                                            {
-                                                // 현재 루프의 아이디를 순수 숫자형(Scalar) 변수로 미리 치환
-                                                numReceiptId: Value(CurrentReceiptItem.mserp_entrecid)
-                                            },
-                                            
-                                            // LookUp 조건에는 어떠한 함수도 없이 [필드 = 순수 변수] 형태만 남깁니다.
-                                            LookUp(
-                                                'Expense Mobile Unattached Document Entity (mserp)',
-                                                EntRecId = numReceiptId
-                                            )
-                                        )
+                            IsBlank(LookUp(colPendingReceipts, mserp_entrecid = selectedReceipt.EntRecId)),
+                            Collect(
+                                colPendingReceipts,
+                                {
+                                    mserp_entrecid: selectedReceipt.EntRecId,
+                                    mserp_captureddocument: selectedReceipt.CapturedDocument,
+                                    mserp_fileextension: selectedReceipt.FileExtension,
+                                    mserp_filename: Coalesce(
+                                        selectedReceipt.Description,
+                                        Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
                                     )
-                                );
-                                
-                                // 조회가 실패한(Blank) 데이터가 있다면 안전을 위해 제거
-                                RemoveIf(colRecordsToUpdate, IsBlank(EntRecId));
-            
-                                // 2단계: 로컬 컬렉션 데이터의 경비 번호를 메모리 상에서 일괄 변경
-                                UpdateIf(
-                                    colRecordsToUpdate,
-                                    true, // 컬렉션 내의 모든 레코드에 적용
-                                    {
-                                        ExpTransNumber: varTargetExpTransNumber
-                                    }
-                                );
-                                
-                                // 3단계: 단 한 번의 Patch 호출로 Dataverse에 일괄(Batch) 저장
-                                IfError(
-                                    Patch(
-                                        'Expense Mobile Unattached Document Entity (mserp)',
-                                        colRecordsToUpdate
-                                    ),
-                                    // 일괄 업데이트 실패 시 에러 로깅
-                                    Collect(
-                                        colErrorLog,
-                                        {
-                                            FailedRecordId: "BulkPatchError",
-                                            ErrorMessage: FirstError.Message
-                                        }
-                                    )
-                                )
+                                }
                             )
                         )
                     )
