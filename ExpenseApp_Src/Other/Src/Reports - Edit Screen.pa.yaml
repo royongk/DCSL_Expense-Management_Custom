@@ -1735,13 +1735,18 @@ Screens:
                               Set(
                                   varSelectedExpenseDoc,
                                   Blank()
-                              )
+                              ),
+                              // [추가된 부분] 화면 진입 시 초기화 방지 플래그를 false로 초기화하여 OnVisible 로직이 정상 작동하게 함
+                              Set(varIsAddingReceipt, false)
                           );
                           //assign the expense to a varSelectedExpenseDoc
                           Set(
                               varSelectedExpenseDoc,
                               LookUp('DCSL Expense Line Expense Moblie Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
                           );
+                          // [추가된 부분] 이전 항목의 영수증 목록이 갤러리에 중복 표시되지 않도록 컬렉션 초기화
+                          Clear(colAttachedReceipts);
+                          /*
                           Set(
                               varReceiptImage,
                               LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)
@@ -1750,6 +1755,14 @@ Screens:
                               varFileFormat,
                               LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
                           );
+                          */
+                          ClearCollect(
+                              colAttachedReceipts,
+                              Filter('Expense Mobile Attached Document Entity (mserp)', 
+                                  ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
+                              )
+                          );
+
                           Set(
                               varExpenseAgainstWorkItem,
                               Blank()
