@@ -376,22 +376,25 @@
                     Color: |-
                         =Switch(
                             ThisItem.'Document Status',
-                            'Document Status (mserp)'.Draft, RGBA(102, 102, 102, 1),       // 회색 (Draft)
-                            'Document Status (mserp)'.Submitted, RGBA(255, 140, 0, 1),     // 주황색 (Submitted)
-                            'Document Status (mserp)'.Approved, RGBA(16, 124, 16, 1),      // 녹색 (Approved)
-                            'Document Status (mserp)'.Rejected, RGBA(195, 39, 39, 1),      // 빨간색 (Rejected)
-                            RGBA(0, 0, 0, 1) // 기본 검정색
+                            'Document Status (mserp)'.Rejected, Color.Red,      // Rejected: Red
+                            'Document Status (mserp)'.Submitted, Color.Blue,     // Submitted: Blue
+                            'Document Status (mserp)'.Approved, Color.Green,    // Approved: Green
+                            
+                            // 'In Review' 상태 처리 (주의사항 확인)
+                            'Document Status (mserp)'.'In Review', Color.Yellow, 
+                            
+                            // 나머지 상태 (Draft 등) 처리
+                            'Document Status (mserp)'.Draft, RGBA(102, 102, 102, 1), 
+                            Color.Black // 기본값
                         )
                     FontWeight: =FontWeight.Bold
                     Height: =70
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
                     LayoutMinHeight: =16
-                    LayoutMinWidth: =120
                     OnSelect: =Select(scr16_shp_SelectRegion_4)
                     Size: =If(App.Width >= 1024, 18, 14)
                     Text: =Text(ThisItem.'Document Status')
-                    Width: =120
                     ZIndex: =4
 
                 Container9_1 As groupContainer.verticalAutoLayoutContainer:
@@ -407,9 +410,9 @@
                     LayoutMaxHeight: =
                     LayoutMaxWidth: =
                     LayoutMinHeight: =112
-                    LayoutMinWidth: =110
+                    LayoutMinWidth: =If(App.Width >= 650, 300, 200)
                     LayoutMode: =LayoutMode.Auto
-                    Width: =200
+                    Width: =If(App.Width >= 650, 300, 200)
                     ZIndex: =5
 
                     Label5_3 As label:
