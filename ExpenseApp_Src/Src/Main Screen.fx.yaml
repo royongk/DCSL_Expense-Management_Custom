@@ -63,7 +63,7 @@
         );
 
     conFooterLayout As groupContainer.verticalAutoLayoutContainer:
-        Height: =lblTechSupport.Height + lblInstructionLink.Height + vidIntroVideo.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
+        Height: =lblTechSupport.Height + lblInstructionLink.Height + conVideoWrapper.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
         LayoutAlignItems: =LayoutAlignItems.Center
         LayoutDirection: =LayoutDirection.Vertical
         LayoutGap: =20
@@ -115,15 +115,38 @@
             Width: =Parent.Width
             ZIndex: =2
 
-        vidIntroVideo As videoPlayback:
+        conVideoWrapper As groupContainer.manualLayoutContainer:
             Height: =Self.Width * (9/16)
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
             LayoutMaxHeight: =0
             LayoutMaxWidth: =0
-            LayoutMinHeight: =16
+            LayoutMinHeight: =Self.Width * (9/16)
             LayoutMinWidth: =16
-            Media: =varVideoLink
             Width: =If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40)
-            ZIndex: =3
+            ZIndex: =4
+
+            vidIntroVideo As videoPlayback:
+                BorderColor: =RGBA(0, 18, 107, 1)
+                Fill: =RGBA(56, 96, 178, 1)
+                Height: =Parent.Height
+                Media: =varVideoLink
+                Width: =Parent.Width
+                ZIndex: =5
+
+            btnMobileVideoPlay As button:
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =Parent.Height
+                HoverFill: =RGBA(0, 0, 0, 0.1)
+                OnSelect: =Launch(varVideoLink & "?web=1")
+                PressedFill: =RGBA(0, 0, 0, 0.2)
+                Size: =24
+                Text: =""
+                Visible: =Host.OSType = "iOS" Or Host.OSType = "Android"
+                Width: =Parent.Width
+                ZIndex: =6
 
     MainScreen_Logo As image:
         Height: =If(App.Width >= 1024, 180, 100)

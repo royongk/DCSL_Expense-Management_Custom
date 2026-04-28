@@ -78,7 +78,7 @@ Screens:
           Variant: AutoLayout
           Properties:
             DropShadow: =DropShadow.None
-            Height: =lblTechSupport.Height + lblInstructionLink.Height + vidIntroVideo.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
+            Height: =lblTechSupport.Height + lblInstructionLink.Height + conVideoWrapper.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =20
@@ -125,16 +125,47 @@ Screens:
                     ="Instruction material:" & Char(10) & "Link to more instruction material: SharePoint folder"
                   Underline: =true
                   Width: =Parent.Width
-            - vidIntroVideo:
-                Control: Video@2.4.2
+            - conVideoWrapper:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
                 Properties:
-                  BorderColor: =RGBA(0, 18, 107, 1)
-                  Fill: =RGBA(56, 96, 178, 1)
+                  DropShadow: =DropShadow.None
                   Height: =Self.Width * (9/16)
-                  LayoutMinHeight: =16
+                  LayoutMinHeight: =Self.Width * (9/16)
                   LayoutMinWidth: =16
-                  Media: =varVideoLink
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
                   Width: =If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40)
+                Children:
+                  - vidIntroVideo:
+                      Control: Video@2.4.2
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Fill: =RGBA(56, 96, 178, 1)
+                        Height: =Parent.Height
+                        Media: =varVideoLink
+                        Width: =Parent.Width
+                  - btnMobileVideoPlay:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderColor: =ColorFade(Self.Fill, -15%)
+                        Color: =RGBA(255, 255, 255, 1)
+                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                        Fill: =RGBA(0, 0, 0, 0)
+                        Font: =Font.'Open Sans'
+                        Height: =Parent.Height
+                        HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                        HoverColor: =RGBA(255, 255, 255, 1)
+                        HoverFill: =RGBA(0, 0, 0, 0.1)
+                        OnSelect: =Launch(varVideoLink & "?web=1")
+                        PressedBorderColor: =Self.Fill
+                        PressedColor: =Self.Fill
+                        PressedFill: =RGBA(0, 0, 0, 0.2)
+                        Text: =""
+                        Visible: =Host.OSType = "iOS" Or Host.OSType = "Android"
+                        Width: =Parent.Width
       - MainScreen_Logo:
           Control: Image@2.2.3
           Properties:
