@@ -3491,7 +3491,7 @@ Screens:
                         Default: =ThisItem.LCY
                         DisplayMode: =DisplayMode.View
                         DisplayName: ="Converted KRW amount (automatic)"
-                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, mserp_deexcurrencyamountview)
+                        MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, LCY)
                         Required: =false
                         Update: "=/*\nIf(\n    !IsBlank(locCalculatedLCY),\n    locCalculatedLCY,                 // 새로 계산된 순수 숫자 전송\n    Value(varSelectedExpenseDoc.LCY)  // 새로 계산된 적이 없다면 기존 문서의 순수 숫자 전송\n)\n*/\nIf(\n    // 사용자가 금액과 통화를 모두 입력/선택한 상태라면\n    !IsBlank(DataCardValue4_1.Text) && !IsBlank(ComboBox1_12.Selected.mserp_currencycode),\n    // \"입력금액 통화코드\" 형태로 결합하여 텍스트로 저장 (예: \"100 USD\")\n    DataCardValue4_1.Text & \" \" & ComboBox1_12.Selected.mserp_currencycode,\n    \n    // 신규 작성이 아니거나 값이 비어있는 경우 기존 문서의 LCY 값 유지\n    varSelectedExpenseDoc.LCY\n)"
                         WidthFit: =true
@@ -10162,8 +10162,8 @@ Screens:
                                             'Project Type' = varSelectedProjectType &&
                                             'Company Code' = Lower(varSelectedLegalEntity)
                                         ),
-                                        mserp_projectvalue,
-                                        mserp_projectname
+                                        Project,
+                                        Description
                                     ),
                                     "mserp_projectvalue",      // 4. GroupBy 결과에 존재하는 열 이름을 문자열로 지정
                                     SortOrder.Ascending
@@ -10230,7 +10230,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deexdelegatedworker"
                         Default: =ThisItem.'Delegated Worker'
-                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,mserp_deexdelegatedworker)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Delegated Worker')
                         Required: =false
                         Update: |-
                           =If(
@@ -10340,7 +10340,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deexbeneficiary"
                         Default: "=If(\n    // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용\n    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.\n    \n    // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지\n    ThisItem.'Expense Beneficiary'\n)"
-                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,mserp_deexbeneficiary)
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
                         Height: =ErrorMessage24.Y + ErrorMessage24.Height + 5
                         Required: =false
                         Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n\n        // 3. 다른 직원 숫자 선택 (숫자 변환 실패 시 0)\n        valNoOfOtherStaff: IfError(Value(txt_NoOfOtherStaff.Text), 0),\n        \n        // 4. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 5. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, Name, \",\"), \n            NumberOfOtherStaff: valNoOfOtherStaff,\n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
