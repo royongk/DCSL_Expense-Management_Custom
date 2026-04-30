@@ -1353,6 +1353,8 @@
                 Set(OCRresponse, Blank());
                 Set(gblNavigationDrawerVisibility, false);
                 UpdateContext({ctxTargetPurpose: Blank()});
+                // 👇 [신규 추가] 다음 경비 작성 시 이전 매핑 ID가 딸려 들어가는 것 방지
+                UpdateContext({ctxTargetReqLineRecId: Blank()});
                 
                 // 8. 컬렉션 정리 [수정됨: colErrorLog 검증 조건 삭제하고 즉시 비움]
                 Clear(colPendingReceipts);
@@ -1452,6 +1454,79 @@
             Width: =Parent.Width
             Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
             ZIndex: =1
+
+            Reference_DataCard1 As typedDataCard.numberEditCard:
+                BorderStyle: =BorderStyle.Solid
+                DataField: ="mserp_mappedtorequisitionline"
+                Default: =ThisItem.Reference
+                DisplayMode: =Parent.DisplayMode
+                DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_mappedtorequisitionline')
+                Fill: =RGBA(0, 0, 0, 0)
+                Height: =50
+                Required: =false
+                Update: =Value(ctxTargetReqLineRecId)
+                Visible: =false
+                Width: =640
+                X: =0
+                Y: =63
+                ZIndex: =1
+
+                DataCardKey27 As label:
+                    AutoHeight: =true
+                    Height: =48
+                    Size: =21
+                    Text: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    Wrap: =false
+                    X: =30
+                    Y: =10
+                    ZIndex: =1
+
+                DataCardValue19 As text:
+                    BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                    Default: =Parent.Default
+                    DelayOutput: =true
+                    DisplayMode: =Parent.DisplayMode
+                    Format: =TextFormat.Number
+                    Height: =70
+                    PaddingLeft: =5
+                    RadiusBottomLeft: =0
+                    RadiusBottomRight: =0
+                    RadiusTopLeft: =0
+                    RadiusTopRight: =0
+                    Size: =21
+                    Tooltip: =Parent.DisplayName
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =DataCardKey27.Y + DataCardKey27.Height + 5
+                    ZIndex: =2
+
+                ErrorMessage27 As label:
+                    AutoHeight: =true
+                    Height: =10
+                    Live: =Live.Assertive
+                    PaddingBottom: =0
+                    PaddingLeft: =0
+                    PaddingRight: =0
+                    PaddingTop: =0
+                    Size: =24
+                    Text: =Parent.Error
+                    Visible: =Parent.DisplayMode=DisplayMode.Edit
+                    Width: =Parent.Width - 60
+                    X: =30
+                    Y: =DataCardValue19.Y + DataCardValue19.Height
+                    ZIndex: =3
+
+                StarVisible27 As label:
+                    Align: =Align.Center
+                    Height: =DataCardKey27.Height
+                    Size: =21
+                    Text: ="*"
+                    Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                    Width: =30
+                    Wrap: =false
+                    Y: =DataCardKey27.Y
+                    ZIndex: =4
 
             ExpenseType_DataCard As typedDataCard.allowedValuesStringEditCard:
                 AllowedValues: |-
@@ -6881,7 +6956,7 @@
                         =UpdateContext({isDirty : true});
                     Reset: =true
                     SearchFields: =["mserp_activitynumber","mserp_purpose"]
-                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,'Activity number',Purpose)
+                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,ProjectCheckbox_Entity.Selected.HierarchyId)),ComboBox1_14.SearchText,mserp_activitynumber,mserp_purpose)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -7903,7 +7978,7 @@
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_salestaxgroup","mserp_description"]
-                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,'Sales tax group',Description)
+                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),ComboBox1_15.SearchText,mserp_salestaxgroup,mserp_description)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -11711,7 +11786,7 @@
                             ),
                             Blank()
                         )
-                    DisplayFields: =["mserp_projectvalue", "mserp_projectname"]
+                    DisplayFields: =["mserp_projectvalue","mserp_projectname"]
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -11740,7 +11815,7 @@
                                 isDirty: true
                             }
                         )
-                    SearchFields: =["mserp_projectvalue", "mserp_projectname"]
+                    SearchFields: =["mserp_projectvalue","mserp_projectname"]
                     SearchItems: =Search(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),Project,Description),"mserp_projectvalue",SortOrder.Ascending),ComboBox_Project.SearchText,mserp_projectvalue,mserp_projectname)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
