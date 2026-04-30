@@ -531,6 +531,617 @@ Screens:
                   Width: =Parent.Width
                   Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
                 Children:
+                  - Employee_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicNumberEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_deexdelegatedworker"
+                        Default: =ThisItem.'Delegated Worker'
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Delegated Worker')
+                        Required: =false
+                        Update: |-
+                          =If(
+                              !IsBlank(cmb_Employee.Selected),
+                              Text(cmb_Employee.Selected.WorkerID),  // Value() 제거, 확실한 텍스트 전달을 위해 Text() 사용 권장
+                              Text(userRecord.CreatingWorker)
+                          )
+                        Visible: =!IsEmpty(colActiveDelegations)
+                        Width: =Parent.Width
+                        X: =1
+                        Y: =61
+                      Children:
+                        - DataCardKey26:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              Font: =Font.'Segoe UI'
+                              Height: =48
+                              Text: ="Delegate Employee"
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - cmb_Employee:
+                            Control: Classic/ComboBox@2.4.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              BorderThickness: =0
+                              ChevronBackground: =RGBA(56, 96, 178, 1)
+                              ChevronFill: =RGBA(255, 255, 255, 1)
+                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              DefaultSelectedItems: |-
+                                =If(
+                                    !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),
+                                    // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
+                                    LookUp(
+                                        colCreatingWorkerOptions, 
+                                        WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'
+                                    ),
+                                    // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
+                                    LookUp(
+                                        colCreatingWorkerOptions, 
+                                        WorkerID = userRecord.CreatingWorker
+                                    )
+                                )
+                              DisplayFields: =["WorkerName","WorkerName"]
+                              Font: =Font.'Segoe UI'
+                              Height: =gblParams.dropDownHeight
+                              HoverFill: =gblParams.dropDownHoverFill
+                              InputTextPlaceholder: |-
+                                ="Select Dlegate Employee. (Default: Myself)"
+                              Items: =colCreatingWorkerOptions
+                              PressedColor: =RGBA(255, 255, 255, 1)
+                              PressedFill: =RGBA(0, 18, 107, 1)
+                              SearchFields: =["WorkerName"]
+                              SelectMultiple: =false
+                              SelectionColor: =RGBA(255, 255, 255, 1)
+                              SelectionFill: =RGBA(56, 96, 178, 1)
+                              Size: =24
+                              Width: =Parent.Width - 2 * Self.X
+                              X: =DataCardKey26.X
+                              Y: =DataCardKey26.Y + DataCardKey26.Height
+                        - ErrorMessage26:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =gblParams.errorMessageSize
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =cmb_Employee.Y + cmb_Employee.Height
+                        - StarVisible26:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey26.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey26.Y
+                  - Expense Beneficiary_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicTextualMultilineEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_deexbeneficiary"
+                        Default: "=If(\n    // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용\n    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.\n    \n    // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지\n    ThisItem.'Expense Beneficiary'\n)"
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
+                        Height: =ErrorMessage24.Y + ErrorMessage24.Height + 5
+                        Required: =false
+                        Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n\n        // 3. 다른 직원 숫자 선택 (숫자 변환 실패 시 0)\n        valNoOfOtherStaff: IfError(Value(txt_NoOfOtherStaff.Text), 0),\n        \n        // 4. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 5. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, Name, \",\"), \n            NumberOfOtherStaff: valNoOfOtherStaff,\n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
+                        Visible: |-
+                          =If(
+                              varAppMode in ["EmployeeBenefit", "AirfareAllowance"],
+                              false,
+                              true
+                          )
+                        Width: =Parent.Width
+                        X: =0
+                        Y: =62
+                      Children:
+                        - con_Beneficiary_Layout:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Fill: =RGBA(248, 248, 248, 1)
+                              Height: "=With({\n    _gap: 15,\n    _padding: 10, // con_Beneficiary_Layout 자체의 위아래 패딩(5 + 5)\n    c1: If(DataCardKey_MySelf.Visible, DataCardKey_MySelf.Height, 0),\n    c2: If(Toggle_MySelf.Visible, Toggle_MySelf.Height, 0),\n    c3: If(DataCardKey_OtherStaff.Visible, DataCardKey_OtherStaff.Height, 0),\n    c4: If(cmb_OtherStaff.Visible, cmb_OtherStaff.Height, 0),\n    c5: If(DataCardKey_NoOfOtherStaff.Visible, DataCardKey_NoOfOtherStaff.Height, 0),\n    c6: If(txt_NoOfOtherStaff.Visible, txt_NoOfOtherStaff.Height, 0),\n    \n    // 핵심 수정: 하위 컨테이너의 Height 속성을 믿지 않고, 실제 컨트롤(Label, TextInput) 높이를 직접 계산\n    c7: If(con_Student_Row.Visible, \n           Max(\n               DataCardKey_StudentPrimary.Height + txt_StudentPrimary.Height + 16, // 16은 Primary 컨테이너 자체 패딩\n               DataCardKey_StudentSenior.Height + txt_StudentSenior.Height + 16    // 16은 Senior 컨테이너 자체 패딩\n           ) + 16, // 16은 con_Student_Row 자체의 상하 패딩 (8 + 8)\n           0)\n},\n    // 모든 컨트롤의 높이 합산\n    c1 + c2 + c3 + c4 + c5 + c6 + c7 + \n    // 보여지는 컨트롤 개수에 따른 Gap 정확히 계산\n    (Max(0, (If(c1>0, 1, 0) + If(c2>0, 1, 0) + If(c3>0, 1, 0) + If(c4>0, 1, 0) + If(c5>0, 1, 0) + If(c6>0, 1, 0) + If(c7>0, 1, 0)) - 1) * _gap) + \n    // 메인 컨테이너 위아래 여백\n    _padding\n)"
+                              LayoutDirection: =LayoutDirection.Vertical
+                              LayoutGap: =15
+                              PaddingBottom: =5
+                              PaddingLeft: =25
+                              PaddingRight: =5
+                              PaddingTop: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Visible: =Parent.Visible
+                              Width: =Parent.Width
+                              Y: =lbl_ExpenseBeneficiaries_title.Y + lbl_ExpenseBeneficiaries_title.Height + 10
+                            Children:
+                              - DataCardKey_MySelf:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =gblParams.dropDownLabelColor
+                                    Font: =Font.'Open Sans'
+                                    Height: =48
+                                    PaddingLeft: =20
+                                    Text: ="MySelf"
+                                    Width: =Parent.Width - 60
+                                    Wrap: =false
+                                    X: =30
+                                    Y: =10
+                              - Toggle_MySelf:
+                                  Control: Classic/Toggle@2.1.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Start
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Default: |-
+                                      =If(
+                                          !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                          IfError(Boolean(ParseJSON('Expense Beneficiary_DataCard1'.Default).MySelf), false),
+                                          true
+                                      )
+                                    FalseText: ="No"
+                                    Font: =Font.'Open Sans'
+                                    LabelPaddingLeft: =10
+                                    TrueFill: =RGBA(56, 96, 178, 1)
+                                    TrueText: ="Yes"
+                                    X: =30
+                                    Y: =40
+                              - DataCardKey_OtherStaff:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =gblParams.dropDownLabelColor
+                                    Font: =Font.'Open Sans'
+                                    Height: =48
+                                    PaddingLeft: =20
+                                    Text: ="Staff (Select up to 10 staff members this expense was for)"
+                                    Width: =Parent.Width - 60
+                                    Wrap: =false
+                                    X: =30
+                                    Y: =10
+                              - cmb_OtherStaff:
+                                  Control: Classic/ComboBox@2.4.0
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Center
+                                    BorderColor: =gblParams.dropDownBorderColor
+                                    BorderThickness: =0
+                                    ChevronBackground: =RGBA(56, 96, 178, 1)
+                                    ChevronFill: =RGBA(255, 255, 255, 1)
+                                    ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                                    ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                                    DefaultSelectedItems: |-
+                                      =If(
+                                          !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                          ForAll(
+                                              Split(Text(ParseJSON('Expense Beneficiary_DataCard1'.Default).OtherStaff), ",") As StaffData,
+                                              // 1. With 함수를 사용하여 Trim 연산을 먼저 수행하고 그 결과를 'CleanID'에 저장
+                                              With(
+                                                  { CleanID: Trim(StaffData.Value) },
+                                                  // 2. LookUp 조건에서는 함수 없이 순수한 텍스트 값인 'CleanID'와 비교
+                                                  LookUp(
+                                                      'DCSL EmployeeV2 Entity (mserp)',
+                                                      Name = CleanID
+                                                  )
+                                              )
+                                          ),
+                                          Blank()
+                                      )
+                                    DisplayFields: =["mserp_name"]
+                                    FocusedBorderThickness: =2
+                                    Font: =Font.'Open Sans'
+                                    Height: =gblParams.dropDownHeight
+                                    HoverFill: =gblParams.dropDownHoverFill
+                                    InputTextPlaceholder: ="Select names of staff"
+                                    IsSearchable: =false
+                                    Items: |-
+                                      =//'Expense mobile master data (mserp)'
+
+                                      SortByColumns(
+                                          'DCSL EmployeeV2 Entity (mserp)',
+                                          "mserp_name",      // 정렬 기준
+                                          SortOrder.Ascending
+                                      )
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =400
+                                    NoSelectionText: ="Select names of staff"
+                                    OnChange: |-
+                                      =// 기존에 OnChange에 수식이 있다면 그 뒤에 세미콜론(;)을 붙이고 아래 코드를 추가하세요.
+                                      If(
+                                          CountRows(Self.SelectedItems) > 10,
+                                          Notify(
+                                              "You can select a maximum of 10 other staff members.", 
+                                              NotificationType.Warning, 
+                                              3000 // 3초간 표시
+                                          )
+                                      )
+                                    PressedColor: =RGBA(255, 255, 255, 1)
+                                    PressedFill: =RGBA(0, 18, 107, 1)
+                                    SearchFields: =["mserp_name"]
+                                    SelectionColor: =Color.Black
+                                    SelectionFill: =gblParams.dropDownBorderColor
+                                    Size: =20
+                                    Width: =Parent.Width - 60
+                              - DataCardKey_NoOfOtherStaff:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Stretch
+                                    AutoHeight: =true
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =gblParams.dropDownLabelColor
+                                    Font: =Font.'Open Sans'
+                                    Height: =48
+                                    PaddingLeft: =20
+                                    Text: ="External attendees"
+                                    Width: =Parent.Width - 60
+                                    Wrap: =false
+                                    X: =30
+                                    Y: =10
+                              - txt_NoOfOtherStaff:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AlignInContainer: =AlignInContainer.Center
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    BorderThickness: =0
+                                    Default: |-
+                                      =If(
+                                          !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                          IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).NumberOfOtherStaff)), ""),
+                                          ""
+                                      )
+                                    Font: =Font.'Open Sans'
+                                    Format: =TextFormat.Number
+                                    HintText: ="Enter number of external attendees"
+                                    HoverBorderColor: =RGBA(0, 18, 107, 1)
+                                    HoverFill: =RGBA(186, 202, 226, 1)
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =400
+                                    PaddingBottom: =10
+                                    PaddingLeft: =10
+                                    PaddingRight: =10
+                                    PaddingTop: =10
+                                    VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
+                                    Width: =Parent.Width - 60
+                              - con_Student_Row:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: AutoLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    Height: =If(Self.Visible, Max(con_Student_Primary.Height, con_Student_Senior.Height) + 16, 0)
+                                    LayoutAlignItems: =LayoutAlignItems.Center
+                                    LayoutDirection: =LayoutDirection.Horizontal
+                                    LayoutGap: =10
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingBottom: =8
+                                    PaddingLeft: =8
+                                    PaddingRight: =8
+                                    PaddingTop: =8
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                    Width: =Parent.Width - 60
+                                    Y: =cmb_OtherStaff.Y + cmb_OtherStaff.Height
+                                  Children:
+                                    - con_Student_Primary:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.None
+                                          Height: =If(Self.Visible, DataCardKey_StudentPrimary.Height + txt_StudentPrimary.Height + 16, 0)
+                                          LayoutAlignItems: =LayoutAlignItems.Center
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          PaddingBottom: =8
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PaddingTop: =8
+                                          RadiusBottomLeft: =0
+                                          RadiusBottomRight: =0
+                                          RadiusTopLeft: =0
+                                          RadiusTopRight: =0
+                                        Children:
+                                          - DataCardKey_StudentPrimary:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Start
+                                                AutoHeight: =true
+                                                BorderColor: =RGBA(0, 0, 0, 1)
+                                                Color: =gblParams.dropDownLabelColor
+                                                Font: =Font.'Open Sans'
+                                                Height: =48
+                                                LayoutMinWidth: =100
+                                                PaddingLeft: =0
+                                                Text: ="Primary Students"
+                                                Width: =Parent.Width - 60
+                                                Wrap: =false
+                                                X: =30
+                                                Y: =10
+                                          - txt_StudentPrimary:
+                                              Control: Classic/TextInput@2.3.2
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Stretch
+                                                BorderColor: =RGBA(0, 18, 107, 1)
+                                                BorderThickness: =0
+                                                Default: |-
+                                                  =If(
+                                                      !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                                      IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).StudentPrimary)), ""),
+                                                      ""
+                                                  )
+                                                Font: =Font.'Open Sans'
+                                                Format: =TextFormat.Number
+                                                HintText: ="Enter number of students"
+                                                HoverBorderColor: =RGBA(0, 18, 107, 1)
+                                                HoverFill: =RGBA(186, 202, 226, 1)
+                                                LayoutMinHeight: =16
+                                                LayoutMinWidth: =16
+                                                PaddingLeft: =5
+                                                VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
+                                                Width: =Parent.Width - 60
+                                    - con_Student_Senior:
+                                        Control: GroupContainer@1.5.0
+                                        Variant: AutoLayout
+                                        Properties:
+                                          DropShadow: =DropShadow.None
+                                          Height: =If(Self.Visible, DataCardKey_StudentSenior.Height + txt_StudentSenior.Height + 16, 0)
+                                          LayoutAlignItems: =LayoutAlignItems.Center
+                                          LayoutDirection: =LayoutDirection.Vertical
+                                          LayoutMinHeight: =16
+                                          LayoutMinWidth: =16
+                                          PaddingBottom: =8
+                                          PaddingLeft: =8
+                                          PaddingRight: =8
+                                          PaddingTop: =8
+                                          RadiusBottomLeft: =0
+                                          RadiusBottomRight: =0
+                                          RadiusTopLeft: =0
+                                          RadiusTopRight: =0
+                                        Children:
+                                          - DataCardKey_StudentSenior:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Start
+                                                AutoHeight: =true
+                                                BorderColor: =RGBA(0, 0, 0, 1)
+                                                Color: =gblParams.dropDownLabelColor
+                                                Font: =Font.'Open Sans'
+                                                Height: =48
+                                                LayoutMinWidth: =100
+                                                Text: ="Senior Students"
+                                                Width: =Parent.Width - 60
+                                                Wrap: =false
+                                                X: =30
+                                                Y: =10
+                                          - txt_StudentSenior:
+                                              Control: Classic/TextInput@2.3.2
+                                              Properties:
+                                                AlignInContainer: =AlignInContainer.Stretch
+                                                BorderColor: =RGBA(0, 18, 107, 1)
+                                                BorderThickness: =0
+                                                Default: |-
+                                                  =If(
+                                                      !IsBlank('Expense Beneficiary_DataCard1'.Default),
+                                                      IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).StudentSenior)), ""),
+                                                      ""
+                                                  )
+                                                Font: =Font.'Open Sans'
+                                                Format: =TextFormat.Number
+                                                HintText: ="Enter number of students"
+                                                HoverBorderColor: =RGBA(0, 18, 107, 1)
+                                                HoverFill: =RGBA(186, 202, 226, 1)
+                                                LayoutMinHeight: =16
+                                                LayoutMinWidth: =16
+                                                PaddingLeft: =5
+                                                VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
+                                                Width: =Parent.Width - 60
+                        - lbl_ExpenseBeneficiaries_title:
+                            Control: Label@2.5.1
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              FocusedBorderThickness: =
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =48
+                              Size: =24
+                              Text: ="4. Expense Beneficiaries - who was involved?"
+                              Underline: =true
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardKey24:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =gblParams.dropDownLabelColor
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Visible: =false
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardValue17:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Height: =140
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              Mode: =TextMode.MultiLine
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Tooltip: =Parent.DisplayName
+                              Visible: =false
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardKey24.Y + DataCardKey24.Height + 5
+                        - ErrorMessage24:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =con_Beneficiary_Layout.Y + con_Beneficiary_Layout.Height
+                        - StarVisible24:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey24.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey24.Y
+                  - Reference_DataCard1:
+                      Control: TypedDataCard@1.0.7
+                      Variant: ClassicNumberEdit
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        DataField: ="mserp_mappedtorequisitionline"
+                        Default: =ThisItem.Reference
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_mappedtorequisitionline')
+                        Required: =false
+                        Update: =Value(ctxTargetReqLineRecId)
+                        Visible: =false
+                        X: =0
+                        Y: =63
+                      Children:
+                        - DataCardKey27:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldName
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =48
+                              Text: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              Wrap: =false
+                              X: =30
+                              Y: =10
+                        - DataCardValue19:
+                            Control: Classic/TextInput@2.3.2
+                            MetadataKey: FieldValue
+                            Properties:
+                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
+                              Default: =Parent.Default
+                              DelayOutput: =true
+                              DisplayMode: =Parent.DisplayMode
+                              Font: =Font.'Open Sans'
+                              Format: =TextFormat.Number
+                              HoverBorderColor: =RGBA(0, 18, 107, 1)
+                              HoverFill: =RGBA(186, 202, 226, 1)
+                              PaddingLeft: =5
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Tooltip: =Parent.DisplayName
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardKey27.Y + DataCardKey27.Height + 5
+                        - ErrorMessage27:
+                            Control: Label@2.5.1
+                            MetadataKey: ErrorMessage
+                            Properties:
+                              AutoHeight: =true
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(168, 0, 0, 1)
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =10
+                              Live: =Live.Assertive
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =24
+                              Text: =Parent.Error
+                              Visible: =Parent.DisplayMode=DisplayMode.Edit
+                              Width: =Parent.Width - 60
+                              X: =30
+                              Y: =DataCardValue19.Y + DataCardValue19.Height
+                        - StarVisible27:
+                            Control: Label@2.5.1
+                            MetadataKey: FieldRequired
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 0, 0, 1)
+                              Color: =RGBA(0, 18, 107, 1)
+                              Font: =Font.'Open Sans'
+                              Height: =DataCardKey27.Height
+                              Text: ="*"
+                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
+                              Width: =30
+                              Wrap: =false
+                              Y: =DataCardKey27.Y
                   - ExpenseType_DataCard:
                       Control: TypedDataCard@1.0.7
                       Variant: ClassicAllowedValuesStringEdit
@@ -10146,7 +10757,7 @@ Screens:
                                     ),
                                     Blank()
                                 )
-                              DisplayFields: =["mserp_projectvalue","mserp_projectname"]
+                              DisplayFields: =["DisplayName"]
                               DisplayMode: =Parent.DisplayMode
                               FocusedBorderThickness: =2
                               Font: =Font.'Open Sans'
@@ -10155,18 +10766,23 @@ Screens:
                               InputTextPlaceholder: ="Select Project"
                               IsSearchable: =false
                               Items: |-
-                                =SortByColumns(
-                                    GroupBy(
-                                        Filter(
-                                            'DCSL ProjectTypeProjectValue Entity (mserp)',
-                                            'Project Type' = varSelectedProjectType &&
-                                            'Company Code' = Lower(varSelectedLegalEntity)
+                                =AddColumns(
+                                    SortByColumns(
+                                        GroupBy(
+                                            Filter(
+                                                'DCSL ProjectTypeProjectValue Entity (mserp)',
+                                                'Project Type' = varSelectedProjectType &&
+                                                'Company Code' = Lower(varSelectedLegalEntity)
+                                            ),
+                                            Project,          // 기존 열: 표시 이름 사용, 따옴표 제거
+                                            Description,      // 기존 열: 표시 이름 사용, 따옴표 제거
+                                            GroupedRecords    // 신규 그룹 열: 따옴표 제거
                                         ),
-                                        Project,
-                                        Description
+                                        "mserp_projectvalue",              // 정렬 열: 표시 이름 사용, 따옴표 제거
+                                        SortOrder.Ascending
                                     ),
-                                    "mserp_projectvalue",      // 4. GroupBy 결과에 존재하는 열 이름을 문자열로 지정
-                                    SortOrder.Ascending
+                                    DisplayName,              // 신규 결합 열: 따옴표 제거
+                                    mserp_projectvalue & " - " & mserp_projectname 
                                 )
                               NoSelectionText: ="Select Project"
                               OnChange: |-
@@ -10182,7 +10798,7 @@ Screens:
                               PaddingTop: =5
                               PressedColor: =RGBA(255, 255, 255, 1)
                               PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =["mserp_projectvalue","mserp_projectname"]
+                              SearchFields: =["mserp_projectvalue","mserp_projectname","DisplayName"]
                               SelectMultiple: =false
                               SelectionColor: =Color.Black
                               SelectionFill: =gblParams.dropDownBorderColor
@@ -10223,617 +10839,6 @@ Screens:
                               Width: =30
                               Wrap: =false
                               Y: =Project_DataCardKey.Y
-                  - Employee_DataCard1:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicNumberEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_deexdelegatedworker"
-                        Default: =ThisItem.'Delegated Worker'
-                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Delegated Worker')
-                        Required: =false
-                        Update: |-
-                          =If(
-                              !IsBlank(cmb_Employee.Selected),
-                              Text(cmb_Employee.Selected.WorkerID),  // Value() 제거, 확실한 텍스트 전달을 위해 Text() 사용 권장
-                              Text(userRecord.CreatingWorker)
-                          )
-                        Visible: =!IsEmpty(colActiveDelegations)
-                        Width: =Parent.Width
-                        X: =1
-                        Y: =61
-                      Children:
-                        - DataCardKey26:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldName
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Segoe UI'
-                              Height: =48
-                              Text: ="Delegate Employee"
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - cmb_Employee:
-                            Control: Classic/ComboBox@2.4.0
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              BorderThickness: =0
-                              ChevronBackground: =RGBA(56, 96, 178, 1)
-                              ChevronFill: =RGBA(255, 255, 255, 1)
-                              ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                              ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              DefaultSelectedItems: |-
-                                =If(
-                                    !IsBlank(varSelectedExpenseDoc.'Employee (mserp_creatingworker)'),
-                                    // 1. 기존 데이터가 있을 때: 로드된 컬렉션 내에서 기존 작업자 ID와 일치하는 레코드 찾기
-                                    LookUp(
-                                        colCreatingWorkerOptions, 
-                                        WorkerID = varSelectedExpenseDoc.'Employee (mserp_creatingworker)'
-                                    ),
-                                    // 2. 신규 데이터일 때: 기본 작업자(본인) 레코드 찾기
-                                    LookUp(
-                                        colCreatingWorkerOptions, 
-                                        WorkerID = userRecord.CreatingWorker
-                                    )
-                                )
-                              DisplayFields: =["WorkerName","WorkerName"]
-                              Font: =Font.'Segoe UI'
-                              Height: =gblParams.dropDownHeight
-                              HoverFill: =gblParams.dropDownHoverFill
-                              InputTextPlaceholder: |-
-                                ="Select Dlegate Employee. (Default: Myself)"
-                              Items: =colCreatingWorkerOptions
-                              PressedColor: =RGBA(255, 255, 255, 1)
-                              PressedFill: =RGBA(0, 18, 107, 1)
-                              SearchFields: =["WorkerName"]
-                              SelectMultiple: =false
-                              SelectionColor: =RGBA(255, 255, 255, 1)
-                              SelectionFill: =RGBA(56, 96, 178, 1)
-                              Size: =24
-                              Width: =Parent.Width - 2 * Self.X
-                              X: =DataCardKey26.X
-                              Y: =DataCardKey26.Y + DataCardKey26.Height
-                        - ErrorMessage26:
-                            Control: Label@2.5.1
-                            MetadataKey: ErrorMessage
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(168, 0, 0, 1)
-                              Font: =Font.'Segoe UI'
-                              FontWeight: =FontWeight.Semibold
-                              Height: =10
-                              Live: =Live.Assertive
-                              PaddingBottom: =0
-                              PaddingLeft: =0
-                              PaddingRight: =0
-                              PaddingTop: =0
-                              Size: =gblParams.errorMessageSize
-                              Text: =Parent.Error
-                              Visible: =Parent.DisplayMode=DisplayMode.Edit
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =cmb_Employee.Y + cmb_Employee.Height
-                        - StarVisible26:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldRequired
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =DataCardKey26.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =DataCardKey26.Y
-                  - Expense Beneficiary_DataCard1:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicTextualMultilineEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_deexbeneficiary"
-                        Default: "=If(\n    // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용\n    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.\n    \n    // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지\n    ThisItem.'Expense Beneficiary'\n)"
-                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
-                        Height: =ErrorMessage24.Y + ErrorMessage24.Height + 5
-                        Required: =false
-                        Update: "=With(\n    {\n        // 1. 본인 포함 여부 (true면 1, false면 0)\n        valMySelf: If(Toggle_MySelf.Value, 1, 0),\n        \n        // 2. 다른 직원 선택 수 (선택 항목이 없거나 오류 발생 시 0)\n        valOtherStaffCount: IfError(CountRows(cmb_OtherStaff.SelectedItems), 0),\n\n        // 3. 다른 직원 숫자 선택 (숫자 변환 실패 시 0)\n        valNoOfOtherStaff: IfError(Value(txt_NoOfOtherStaff.Text), 0),\n        \n        // 4. 학생(Primary) 수 (숫자 변환 실패 시 0)\n        valStudentPrimary: IfError(Value(txt_StudentPrimary.Text), 0),\n        \n        // 5. 학생(Senior) 수 (숫자 변환 실패 시 0)\n        valStudentSenior: IfError(Value(txt_StudentSenior.Text), 0)\n    },\n    JSON(\n        {\n            TotalBeneficiaries: valMySelf + valOtherStaffCount + valStudentPrimary + valStudentSenior,\n            MySelf: Toggle_MySelf.Value,\n            OtherStaff: Concat(cmb_OtherStaff.SelectedItems, Name, \",\"), \n            NumberOfOtherStaff: valNoOfOtherStaff,\n            StudentPrimary: valStudentPrimary,\n            StudentSenior: valStudentSenior\n        },\n        JSONFormat.Compact\n    )\n)"
-                        Visible: |-
-                          =If(
-                              varAppMode in ["EmployeeBenefit", "AirfareAllowance"],
-                              false,
-                              true
-                          )
-                        Width: =Parent.Width
-                        X: =0
-                        Y: =62
-                      Children:
-                        - con_Beneficiary_Layout:
-                            Control: GroupContainer@1.5.0
-                            Variant: AutoLayout
-                            Properties:
-                              DropShadow: =DropShadow.None
-                              Fill: =RGBA(248, 248, 248, 1)
-                              Height: "=With({\n    _gap: 15,\n    _padding: 10, // con_Beneficiary_Layout 자체의 위아래 패딩(5 + 5)\n    c1: If(DataCardKey_MySelf.Visible, DataCardKey_MySelf.Height, 0),\n    c2: If(Toggle_MySelf.Visible, Toggle_MySelf.Height, 0),\n    c3: If(DataCardKey_OtherStaff.Visible, DataCardKey_OtherStaff.Height, 0),\n    c4: If(cmb_OtherStaff.Visible, cmb_OtherStaff.Height, 0),\n    c5: If(DataCardKey_NoOfOtherStaff.Visible, DataCardKey_NoOfOtherStaff.Height, 0),\n    c6: If(txt_NoOfOtherStaff.Visible, txt_NoOfOtherStaff.Height, 0),\n    \n    // 핵심 수정: 하위 컨테이너의 Height 속성을 믿지 않고, 실제 컨트롤(Label, TextInput) 높이를 직접 계산\n    c7: If(con_Student_Row.Visible, \n           Max(\n               DataCardKey_StudentPrimary.Height + txt_StudentPrimary.Height + 16, // 16은 Primary 컨테이너 자체 패딩\n               DataCardKey_StudentSenior.Height + txt_StudentSenior.Height + 16    // 16은 Senior 컨테이너 자체 패딩\n           ) + 16, // 16은 con_Student_Row 자체의 상하 패딩 (8 + 8)\n           0)\n},\n    // 모든 컨트롤의 높이 합산\n    c1 + c2 + c3 + c4 + c5 + c6 + c7 + \n    // 보여지는 컨트롤 개수에 따른 Gap 정확히 계산\n    (Max(0, (If(c1>0, 1, 0) + If(c2>0, 1, 0) + If(c3>0, 1, 0) + If(c4>0, 1, 0) + If(c5>0, 1, 0) + If(c6>0, 1, 0) + If(c7>0, 1, 0)) - 1) * _gap) + \n    // 메인 컨테이너 위아래 여백\n    _padding\n)"
-                              LayoutDirection: =LayoutDirection.Vertical
-                              LayoutGap: =15
-                              PaddingBottom: =5
-                              PaddingLeft: =25
-                              PaddingRight: =5
-                              PaddingTop: =5
-                              RadiusBottomLeft: =0
-                              RadiusBottomRight: =0
-                              RadiusTopLeft: =0
-                              RadiusTopRight: =0
-                              Visible: =Parent.Visible
-                              Width: =Parent.Width
-                              Y: =lbl_ExpenseBeneficiaries_title.Y + lbl_ExpenseBeneficiaries_title.Height + 10
-                            Children:
-                              - DataCardKey_MySelf:
-                                  Control: Label@2.5.1
-                                  Properties:
-                                    AlignInContainer: =AlignInContainer.Stretch
-                                    AutoHeight: =true
-                                    BorderColor: =RGBA(0, 0, 0, 1)
-                                    Color: =gblParams.dropDownLabelColor
-                                    Font: =Font.'Open Sans'
-                                    Height: =48
-                                    PaddingLeft: =20
-                                    Text: ="MySelf"
-                                    Width: =Parent.Width - 60
-                                    Wrap: =false
-                                    X: =30
-                                    Y: =10
-                              - Toggle_MySelf:
-                                  Control: Classic/Toggle@2.1.0
-                                  Properties:
-                                    AlignInContainer: =AlignInContainer.Start
-                                    BorderColor: =RGBA(0, 18, 107, 1)
-                                    Default: |-
-                                      =If(
-                                          !IsBlank('Expense Beneficiary_DataCard1'.Default),
-                                          IfError(Boolean(ParseJSON('Expense Beneficiary_DataCard1'.Default).MySelf), false),
-                                          true
-                                      )
-                                    FalseText: ="No"
-                                    Font: =Font.'Open Sans'
-                                    LabelPaddingLeft: =10
-                                    TrueFill: =RGBA(56, 96, 178, 1)
-                                    TrueText: ="Yes"
-                                    X: =30
-                                    Y: =40
-                              - DataCardKey_OtherStaff:
-                                  Control: Label@2.5.1
-                                  Properties:
-                                    AlignInContainer: =AlignInContainer.Stretch
-                                    AutoHeight: =true
-                                    BorderColor: =RGBA(0, 0, 0, 1)
-                                    Color: =gblParams.dropDownLabelColor
-                                    Font: =Font.'Open Sans'
-                                    Height: =48
-                                    PaddingLeft: =20
-                                    Text: ="Staff (Select up to 10 staff members this expense was for)"
-                                    Width: =Parent.Width - 60
-                                    Wrap: =false
-                                    X: =30
-                                    Y: =10
-                              - cmb_OtherStaff:
-                                  Control: Classic/ComboBox@2.4.0
-                                  Properties:
-                                    AlignInContainer: =AlignInContainer.Center
-                                    BorderColor: =gblParams.dropDownBorderColor
-                                    BorderThickness: =0
-                                    ChevronBackground: =RGBA(56, 96, 178, 1)
-                                    ChevronFill: =RGBA(255, 255, 255, 1)
-                                    ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
-                                    ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                                    DefaultSelectedItems: |-
-                                      =If(
-                                          !IsBlank('Expense Beneficiary_DataCard1'.Default),
-                                          ForAll(
-                                              Split(Text(ParseJSON('Expense Beneficiary_DataCard1'.Default).OtherStaff), ",") As StaffData,
-                                              // 1. With 함수를 사용하여 Trim 연산을 먼저 수행하고 그 결과를 'CleanID'에 저장
-                                              With(
-                                                  { CleanID: Trim(StaffData.Value) },
-                                                  // 2. LookUp 조건에서는 함수 없이 순수한 텍스트 값인 'CleanID'와 비교
-                                                  LookUp(
-                                                      'DCSL EmployeeV2 Entity (mserp)',
-                                                      Name = CleanID
-                                                  )
-                                              )
-                                          ),
-                                          Blank()
-                                      )
-                                    DisplayFields: =["mserp_name"]
-                                    FocusedBorderThickness: =2
-                                    Font: =Font.'Open Sans'
-                                    Height: =gblParams.dropDownHeight
-                                    HoverFill: =gblParams.dropDownHoverFill
-                                    InputTextPlaceholder: ="Select names of staff"
-                                    IsSearchable: =false
-                                    Items: |-
-                                      =//'Expense mobile master data (mserp)'
-
-                                      SortByColumns(
-                                          'DCSL EmployeeV2 Entity (mserp)',
-                                          "mserp_name",      // 정렬 기준
-                                          SortOrder.Ascending
-                                      )
-                                    LayoutMinHeight: =16
-                                    LayoutMinWidth: =400
-                                    NoSelectionText: ="Select names of staff"
-                                    OnChange: |-
-                                      =// 기존에 OnChange에 수식이 있다면 그 뒤에 세미콜론(;)을 붙이고 아래 코드를 추가하세요.
-                                      If(
-                                          CountRows(Self.SelectedItems) > 10,
-                                          Notify(
-                                              "You can select a maximum of 10 other staff members.", 
-                                              NotificationType.Warning, 
-                                              3000 // 3초간 표시
-                                          )
-                                      )
-                                    PressedColor: =RGBA(255, 255, 255, 1)
-                                    PressedFill: =RGBA(0, 18, 107, 1)
-                                    SearchFields: =["mserp_name"]
-                                    SelectionColor: =Color.Black
-                                    SelectionFill: =gblParams.dropDownBorderColor
-                                    Size: =20
-                                    Width: =Parent.Width - 60
-                              - DataCardKey_NoOfOtherStaff:
-                                  Control: Label@2.5.1
-                                  Properties:
-                                    AlignInContainer: =AlignInContainer.Stretch
-                                    AutoHeight: =true
-                                    BorderColor: =RGBA(0, 0, 0, 1)
-                                    Color: =gblParams.dropDownLabelColor
-                                    Font: =Font.'Open Sans'
-                                    Height: =48
-                                    PaddingLeft: =20
-                                    Text: ="External attendees"
-                                    Width: =Parent.Width - 60
-                                    Wrap: =false
-                                    X: =30
-                                    Y: =10
-                              - txt_NoOfOtherStaff:
-                                  Control: Classic/TextInput@2.3.2
-                                  Properties:
-                                    AlignInContainer: =AlignInContainer.Center
-                                    BorderColor: =RGBA(0, 18, 107, 1)
-                                    BorderThickness: =0
-                                    Default: |-
-                                      =If(
-                                          !IsBlank('Expense Beneficiary_DataCard1'.Default),
-                                          IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).NumberOfOtherStaff)), ""),
-                                          ""
-                                      )
-                                    Font: =Font.'Open Sans'
-                                    Format: =TextFormat.Number
-                                    HintText: ="Enter number of external attendees"
-                                    HoverBorderColor: =RGBA(0, 18, 107, 1)
-                                    HoverFill: =RGBA(186, 202, 226, 1)
-                                    LayoutMinHeight: =16
-                                    LayoutMinWidth: =400
-                                    PaddingBottom: =10
-                                    PaddingLeft: =10
-                                    PaddingRight: =10
-                                    PaddingTop: =10
-                                    VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
-                                    Width: =Parent.Width - 60
-                              - con_Student_Row:
-                                  Control: GroupContainer@1.5.0
-                                  Variant: AutoLayout
-                                  Properties:
-                                    DropShadow: =DropShadow.None
-                                    Height: =If(Self.Visible, Max(con_Student_Primary.Height, con_Student_Senior.Height) + 16, 0)
-                                    LayoutAlignItems: =LayoutAlignItems.Center
-                                    LayoutDirection: =LayoutDirection.Horizontal
-                                    LayoutGap: =10
-                                    LayoutMinHeight: =16
-                                    LayoutMinWidth: =16
-                                    PaddingBottom: =8
-                                    PaddingLeft: =8
-                                    PaddingRight: =8
-                                    PaddingTop: =8
-                                    RadiusBottomLeft: =0
-                                    RadiusBottomRight: =0
-                                    RadiusTopLeft: =0
-                                    RadiusTopRight: =0
-                                    Width: =Parent.Width - 60
-                                    Y: =cmb_OtherStaff.Y + cmb_OtherStaff.Height
-                                  Children:
-                                    - con_Student_Primary:
-                                        Control: GroupContainer@1.5.0
-                                        Variant: AutoLayout
-                                        Properties:
-                                          DropShadow: =DropShadow.None
-                                          Height: =If(Self.Visible, DataCardKey_StudentPrimary.Height + txt_StudentPrimary.Height + 16, 0)
-                                          LayoutAlignItems: =LayoutAlignItems.Center
-                                          LayoutDirection: =LayoutDirection.Vertical
-                                          LayoutMinHeight: =16
-                                          LayoutMinWidth: =16
-                                          PaddingBottom: =8
-                                          PaddingLeft: =8
-                                          PaddingRight: =8
-                                          PaddingTop: =8
-                                          RadiusBottomLeft: =0
-                                          RadiusBottomRight: =0
-                                          RadiusTopLeft: =0
-                                          RadiusTopRight: =0
-                                        Children:
-                                          - DataCardKey_StudentPrimary:
-                                              Control: Label@2.5.1
-                                              Properties:
-                                                AlignInContainer: =AlignInContainer.Start
-                                                AutoHeight: =true
-                                                BorderColor: =RGBA(0, 0, 0, 1)
-                                                Color: =gblParams.dropDownLabelColor
-                                                Font: =Font.'Open Sans'
-                                                Height: =48
-                                                LayoutMinWidth: =100
-                                                PaddingLeft: =0
-                                                Text: ="Primary Students"
-                                                Width: =Parent.Width - 60
-                                                Wrap: =false
-                                                X: =30
-                                                Y: =10
-                                          - txt_StudentPrimary:
-                                              Control: Classic/TextInput@2.3.2
-                                              Properties:
-                                                AlignInContainer: =AlignInContainer.Stretch
-                                                BorderColor: =RGBA(0, 18, 107, 1)
-                                                BorderThickness: =0
-                                                Default: |-
-                                                  =If(
-                                                      !IsBlank('Expense Beneficiary_DataCard1'.Default),
-                                                      IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).StudentPrimary)), ""),
-                                                      ""
-                                                  )
-                                                Font: =Font.'Open Sans'
-                                                Format: =TextFormat.Number
-                                                HintText: ="Enter number of students"
-                                                HoverBorderColor: =RGBA(0, 18, 107, 1)
-                                                HoverFill: =RGBA(186, 202, 226, 1)
-                                                LayoutMinHeight: =16
-                                                LayoutMinWidth: =16
-                                                PaddingLeft: =5
-                                                VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
-                                                Width: =Parent.Width - 60
-                                    - con_Student_Senior:
-                                        Control: GroupContainer@1.5.0
-                                        Variant: AutoLayout
-                                        Properties:
-                                          DropShadow: =DropShadow.None
-                                          Height: =If(Self.Visible, DataCardKey_StudentSenior.Height + txt_StudentSenior.Height + 16, 0)
-                                          LayoutAlignItems: =LayoutAlignItems.Center
-                                          LayoutDirection: =LayoutDirection.Vertical
-                                          LayoutMinHeight: =16
-                                          LayoutMinWidth: =16
-                                          PaddingBottom: =8
-                                          PaddingLeft: =8
-                                          PaddingRight: =8
-                                          PaddingTop: =8
-                                          RadiusBottomLeft: =0
-                                          RadiusBottomRight: =0
-                                          RadiusTopLeft: =0
-                                          RadiusTopRight: =0
-                                        Children:
-                                          - DataCardKey_StudentSenior:
-                                              Control: Label@2.5.1
-                                              Properties:
-                                                AlignInContainer: =AlignInContainer.Start
-                                                AutoHeight: =true
-                                                BorderColor: =RGBA(0, 0, 0, 1)
-                                                Color: =gblParams.dropDownLabelColor
-                                                Font: =Font.'Open Sans'
-                                                Height: =48
-                                                LayoutMinWidth: =100
-                                                Text: ="Senior Students"
-                                                Width: =Parent.Width - 60
-                                                Wrap: =false
-                                                X: =30
-                                                Y: =10
-                                          - txt_StudentSenior:
-                                              Control: Classic/TextInput@2.3.2
-                                              Properties:
-                                                AlignInContainer: =AlignInContainer.Stretch
-                                                BorderColor: =RGBA(0, 18, 107, 1)
-                                                BorderThickness: =0
-                                                Default: |-
-                                                  =If(
-                                                      !IsBlank('Expense Beneficiary_DataCard1'.Default),
-                                                      IfError(Text(Value(ParseJSON('Expense Beneficiary_DataCard1'.Default).StudentSenior)), ""),
-                                                      ""
-                                                  )
-                                                Font: =Font.'Open Sans'
-                                                Format: =TextFormat.Number
-                                                HintText: ="Enter number of students"
-                                                HoverBorderColor: =RGBA(0, 18, 107, 1)
-                                                HoverFill: =RGBA(186, 202, 226, 1)
-                                                LayoutMinHeight: =16
-                                                LayoutMinWidth: =16
-                                                PaddingLeft: =5
-                                                VirtualKeyboardMode: =VirtualKeyboardMode.Numeric
-                                                Width: =Parent.Width - 60
-                        - lbl_ExpenseBeneficiaries_title:
-                            Control: Label@2.5.1
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              FocusedBorderThickness: =
-                              Font: =Font.'Segoe UI'
-                              FontWeight: =FontWeight.Bold
-                              Height: =48
-                              Size: =24
-                              Text: ="4. Expense Beneficiaries - who was involved?"
-                              Underline: =true
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - DataCardKey24:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldName
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =gblParams.dropDownLabelColor
-                              Font: =Font.'Open Sans'
-                              Height: =48
-                              Text: =Parent.DisplayName
-                              Visible: =false
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - DataCardValue17:
-                            Control: Classic/TextInput@2.3.2
-                            MetadataKey: FieldValue
-                            Properties:
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              Default: =Parent.Default
-                              DelayOutput: =true
-                              DisplayMode: =Parent.DisplayMode
-                              Font: =Font.'Open Sans'
-                              Height: =140
-                              HoverBorderColor: =RGBA(0, 18, 107, 1)
-                              HoverFill: =RGBA(186, 202, 226, 1)
-                              Mode: =TextMode.MultiLine
-                              PaddingLeft: =5
-                              RadiusBottomLeft: =0
-                              RadiusBottomRight: =0
-                              RadiusTopLeft: =0
-                              RadiusTopRight: =0
-                              Tooltip: =Parent.DisplayName
-                              Visible: =false
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =DataCardKey24.Y + DataCardKey24.Height + 5
-                        - ErrorMessage24:
-                            Control: Label@2.5.1
-                            MetadataKey: ErrorMessage
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(168, 0, 0, 1)
-                              Font: =Font.'Open Sans'
-                              FontWeight: =FontWeight.Semibold
-                              Height: =10
-                              Live: =Live.Assertive
-                              PaddingBottom: =0
-                              PaddingLeft: =0
-                              PaddingRight: =0
-                              PaddingTop: =0
-                              Size: =24
-                              Text: =Parent.Error
-                              Visible: =Parent.DisplayMode=DisplayMode.Edit
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =con_Beneficiary_Layout.Y + con_Beneficiary_Layout.Height
-                        - StarVisible24:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldRequired
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =DataCardKey24.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =DataCardKey24.Y
-                  - Reference_DataCard1:
-                      Control: TypedDataCard@1.0.7
-                      Variant: ClassicNumberEdit
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DataField: ="mserp_mappedtorequisitionline"
-                        Default: =ThisItem.Reference
-                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_mappedtorequisitionline')
-                        Required: =false
-                        Update: =Value(ctxTargetReqLineRecId)
-                        Visible: =false
-                        X: =0
-                        Y: =63
-                      Children:
-                        - DataCardKey27:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldName
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =48
-                              Text: =Parent.DisplayName
-                              Width: =Parent.Width - 60
-                              Wrap: =false
-                              X: =30
-                              Y: =10
-                        - DataCardValue19:
-                            Control: Classic/TextInput@2.3.2
-                            MetadataKey: FieldValue
-                            Properties:
-                              BorderColor: =If(IsBlank(Parent.Error), Parent.BorderColor, Color.Red)
-                              Default: =Parent.Default
-                              DelayOutput: =true
-                              DisplayMode: =Parent.DisplayMode
-                              Font: =Font.'Open Sans'
-                              Format: =TextFormat.Number
-                              HoverBorderColor: =RGBA(0, 18, 107, 1)
-                              HoverFill: =RGBA(186, 202, 226, 1)
-                              PaddingLeft: =5
-                              RadiusBottomLeft: =0
-                              RadiusBottomRight: =0
-                              RadiusTopLeft: =0
-                              RadiusTopRight: =0
-                              Tooltip: =Parent.DisplayName
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =DataCardKey27.Y + DataCardKey27.Height + 5
-                        - ErrorMessage27:
-                            Control: Label@2.5.1
-                            MetadataKey: ErrorMessage
-                            Properties:
-                              AutoHeight: =true
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(168, 0, 0, 1)
-                              Font: =Font.'Open Sans'
-                              FontWeight: =FontWeight.Semibold
-                              Height: =10
-                              Live: =Live.Assertive
-                              PaddingBottom: =0
-                              PaddingLeft: =0
-                              PaddingRight: =0
-                              PaddingTop: =0
-                              Size: =24
-                              Text: =Parent.Error
-                              Visible: =Parent.DisplayMode=DisplayMode.Edit
-                              Width: =Parent.Width - 60
-                              X: =30
-                              Y: =DataCardValue19.Y + DataCardValue19.Height
-                        - StarVisible27:
-                            Control: Label@2.5.1
-                            MetadataKey: FieldRequired
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 0, 0, 1)
-                              Color: =RGBA(0, 18, 107, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =DataCardKey27.Height
-                              Text: ="*"
-                              Visible: =And(Parent.Required, Parent.DisplayMode=DisplayMode.Edit)
-                              Width: =30
-                              Wrap: =false
-                              Y: =DataCardKey27.Y
       - formModeRectangle:
           Control: Rectangle@2.3.0
           Properties:

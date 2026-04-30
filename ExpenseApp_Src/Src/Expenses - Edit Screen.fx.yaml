@@ -11786,7 +11786,7 @@
                             ),
                             Blank()
                         )
-                    DisplayFields: =["mserp_projectvalue","mserp_projectname"]
+                    DisplayFields: =["DisplayName"]
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -11794,18 +11794,23 @@
                     InputTextPlaceholder: ="Select Project"
                     IsSearchable: =false
                     Items: |-
-                        =SortByColumns(
-                            GroupBy(
-                                Filter(
-                                    'DCSL ProjectTypeProjectValue Entity (mserp)',
-                                    'Project Type' = varSelectedProjectType &&
-                                    'Company Code' = Lower(varSelectedLegalEntity)
+                        =AddColumns(
+                            SortByColumns(
+                                GroupBy(
+                                    Filter(
+                                        'DCSL ProjectTypeProjectValue Entity (mserp)',
+                                        'Project Type' = varSelectedProjectType &&
+                                        'Company Code' = Lower(varSelectedLegalEntity)
+                                    ),
+                                    Project,          // 기존 열: 표시 이름 사용, 따옴표 제거
+                                    Description,      // 기존 열: 표시 이름 사용, 따옴표 제거
+                                    GroupedRecords    // 신규 그룹 열: 따옴표 제거
                                 ),
-                                Project,
-                                Description
+                                "mserp_projectvalue",              // 정렬 열: 표시 이름 사용, 따옴표 제거
+                                SortOrder.Ascending
                             ),
-                            "mserp_projectvalue",      // 4. GroupBy 결과에 존재하는 열 이름을 문자열로 지정
-                            SortOrder.Ascending
+                            DisplayName,              // 신규 결합 열: 따옴표 제거
+                            mserp_projectvalue & " - " & mserp_projectname 
                         )
                     NoSelectionText: ="Select Project"
                     OnChange: |-
@@ -11815,14 +11820,13 @@
                                 isDirty: true
                             }
                         )
-                    SearchFields: =["mserp_projectvalue","mserp_projectname"]
-                    SearchItems: =Search(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),Project,Description),"mserp_projectvalue",SortOrder.Ascending),ComboBox_Project.SearchText,mserp_projectvalue,mserp_projectname)
+                    SearchFields: =["mserp_projectvalue","mserp_projectname","DisplayName"]
+                    SearchItems: =Search(AddColumns(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),Project,Description,GroupedRecords),"mserp_projectvalue",SortOrder.Ascending),DisplayName,mserp_projectvalue&" - "&mserp_projectname),ComboBox_Project.SearchText,mserp_projectvalue,mserp_projectname,DisplayName)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
                     SelectMultiple: =false
                     Size: =20
-                    Template: =ListItemTemplate.Double
                     Width: =Parent.Width - 2 * Self.X
                     X: =30
                     Y: =Project_DataCardKey.Y + Project_DataCardKey.Height + 5
