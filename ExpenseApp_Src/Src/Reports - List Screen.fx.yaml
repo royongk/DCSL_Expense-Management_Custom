@@ -1,8 +1,8 @@
 "'Reports - List Screen' As screen.'phoneBrowseLayout_ver3.0'":
     Fill: =Color.White
     OnVisible: |+
-        =// 값이 비어있을 경우 명시적으로 0(All)을 할당
-        If(IsBlank(varcntSelectedStatus), UpdateContext({varcntSelectedStatus: 0}));
+        =// 화면 진입 시 무조건 명시적으로 0(All)을 할당
+        UpdateContext({varcntSelectedStatus: 0});
         UpdateContext({varCntSelect: false});
         //UpdateContext({varIsDelegateSelected: false});
         UpdateContext({isExpReportDirty : false});
@@ -374,18 +374,37 @@
                     Align: =Align.Center
                     AlignInContainer: =AlignInContainer.Center
                     Color: |-
-                        =Switch(
-                            ThisItem.'Document Status',
-                            'Document Status (mserp)'.Rejected, Color.Red,      // Rejected: Red
-                            'Document Status (mserp)'.Submitted, Color.Blue,     // Submitted: Blue
-                            'Document Status (mserp)'.Approved, Color.Green,    // Approved: Green
-                            
-                            // 'In Review' 상태 처리 (주의사항 확인)
-                            'Document Status (mserp)'.'In Review', Color.Yellow, 
-                            
-                            // 나머지 상태 (Draft 등) 처리
-                            'Document Status (mserp)'.Draft, RGBA(102, 102, 102, 1), 
-                            Color.Black // 기본값
+                        =If(
+                            // 1. Draft (회색)
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Draft, 
+                            RGBA(102, 102, 102, 1),
+                        
+                            // 2. Submitted (파란색)
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Submitted, 
+                            RGBA(34, 102, 227, 1),
+                        
+                            // 3. Finance Approved (연두색/밝은 녹색)
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && 
+                            (ThisItem.'Document status' = 'Document status (mserp)'.Draft || ThisItem.'Document status' = 'Document status (mserp)'.Submitted || ThisItem.'Document status' = 'Document status (mserp)'.'In review'), 
+                            Color.MediumSeaGreen,
+                        
+                            // 4. Budget holder Approved (짙은 녹색 - Finance와 구분)
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && 
+                            ThisItem.'Document status' = 'Document status (mserp)'.Approved, 
+                            Color.ForestGreen,
+                        
+                            // 5. Finance Rejected (주황색/다홍색)
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && 
+                            ThisItem.'Document status' = 'Document status (mserp)'.Draft, 
+                            Color.OrangeRed,
+                        
+                            // 6. Budget holder Rejected (짙은 빨간색 - Finance와 구분)
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && 
+                            ThisItem.'Document status' = 'Document status (mserp)'.Rejected, 
+                            Color.DarkRed,
+                        
+                            // 예외 처리: 불특정 상태 (흰색 바탕에 잘 보이는 머스타드 노란색)
+                            RGBA(218, 165, 32, 1)
                         )
                     FontWeight: =FontWeight.Bold
                     Height: =70
@@ -394,7 +413,39 @@
                     LayoutMinHeight: =16
                     OnSelect: =Select(scr16_shp_SelectRegion_4)
                     Size: =If(App.Width >= 1024, 18, 14)
-                    Text: =Text(ThisItem.'Document Status')
+                    Text: |-
+                        =If(
+                            // 1. Draft
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Draft, 
+                            "Draft",
+                        
+                            // 2. Submitted
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Submitted, 
+                            "Submitted",
+                        
+                            // 3. Finance Approved
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && 
+                            (ThisItem.'Document status' = 'Document status (mserp)'.Draft || ThisItem.'Document status' = 'Document status (mserp)'.Submitted || ThisItem.'Document status' = 'Document status (mserp)'.'In review'), 
+                            "Finance Approved",
+                        
+                            // 4. Budget holder Approved
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && 
+                            ThisItem.'Document status' = 'Document status (mserp)'.Approved, 
+                            "Budget holder Approved",
+                        
+                            // 5. Finance Rejected
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && 
+                            ThisItem.'Document status' = 'Document status (mserp)'.Draft, 
+                            "Finance Rejected",
+                        
+                            // 6. Budget holder Rejected
+                            ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && 
+                            ThisItem.'Document status' = 'Document status (mserp)'.Rejected, 
+                            "Budget holder Rejected",
+                        
+                            // 예외 처리 (In Review 등 위 조건에 명확히 매칭되지 않는 경우 기존처럼 출력)
+                            Text(ThisItem.'Document status')
+                        )
                     ZIndex: =4
 
                 Container9_1 As groupContainer.verticalAutoLayoutContainer:
@@ -555,7 +606,7 @@
         OnReportsButtonClick: |
             =UpdateContext({varcntShowFilter : false});
             Set(varSelectedTab, 3); 
-            Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:1})
+            Navigate('Reports - List Screen', ScreenTransition.Fade ,{varcntSelectedStatus:0})
         paramInDefaultAppMode: =varAppMode
         paramInDefaultSelectedTab: =3
         ReportText: |-

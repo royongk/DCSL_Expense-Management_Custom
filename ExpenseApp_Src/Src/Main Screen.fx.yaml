@@ -46,7 +46,7 @@
             //{ DisplayName: "School Trip Expense Settlement", Category: "Finance", AppMode: "BillingTripSettlement", IsVisible: varIsOwner Or varIsLocal Or varIsFull Or varIsExpat },
             { DisplayName: "Cash Advance / Settlement", Category: "Finance", AppMode: "CashAdvance", IsVisible: varIsOwner Or varIsFull },
             { DisplayName: "Airfare & Shipping Allowance Claim", Category: "HR", AppMode: "AirfareAllowance", IsVisible: varIsOwner Or varIsExpat Or varIsFull },
-            { DisplayName: "Employee Benefits Claim", Category: "HR", AppMode: "EmployeeBenefit", IsVisible: varIsOwner Or varIsLocal Or varIsFull },
+            { DisplayName: "Employee Benefits Claim", Category: "HR", AppMode: "EmployeeBenefit", IsVisible: varIsOwner Or varIsFull },
             { DisplayName: "Salary Advance", Category: "HR", AppMode: "SalaryAdvance", IsVisible: varIsOwner Or varIsFull }
         );
         
@@ -81,12 +81,10 @@
 
         GlobalLabels As Localization:
             DisplayMode: =DisplayMode.Edit
-            Height: =350
+            Height: =0
             LayoutMaxHeight: =0
             LayoutMaxWidth: =0
-            LayoutMinHeight: =350
-            LayoutMinWidth: =350
-            Width: =350
+            Width: =0
             X: =40
             Y: =40
             ZIndex: =1
@@ -246,35 +244,6 @@
                         Wrap: =false
                         ZIndex: =2
 
-                lblFinanceSpaceLabel As label:
-                    FillPortions: =1
-                    Height: =0
-                    LayoutMaxHeight: =0
-                    LayoutMaxWidth: =0
-                    LayoutMinHeight: =16
-                    LayoutMinWidth: =16
-                    Size: =21
-                    Text: =""
-                    Width: =Parent.Width
-                    ZIndex: =3
-
-                lblContactFinance As label:
-                    Align: =Align.Center
-                    Color: =RGBA(0, 100, 255, 1)
-                    Font: =FontWeight.Semibold
-                    HoverColor: =RGBA(0, 50, 150, 1)
-                    LayoutMaxHeight: =0
-                    LayoutMaxWidth: =0
-                    LayoutMinHeight: =16
-                    LayoutMinWidth: =16
-                    OnSelect: |-
-                        =Launch("mailto:" & varFinanceEmail)
-                    Size: =If(App.Width >= 1024, 14, 12)
-                    Text: |-
-                        ="Contact Finance: " & Char(10) & Coalesce(varFinanceEmail, "Loading...")
-                    Width: =Parent.Width
-                    ZIndex: =4
-
                 galFinanceMenu As gallery.galleryVertical:
                     '#CopilotOverlayLabel': ="필터링됨"
                     FillPortions: =0
@@ -293,7 +262,7 @@
                     LoadingSpinner: =LoadingSpinner.Data
                     TemplatePadding: =0
                     TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
-                    ZIndex: =10
+                    ZIndex: =2
 
                     btnFinance As button:
                         Align: =Align.Left
@@ -333,6 +302,35 @@
                         X: =(Parent.TemplateWidth - Self.Width) / 2
                         Y: =(Parent.TemplateHeight - Self.Height) / 2
                         ZIndex: =1
+
+                lblFinanceSpaceLabel As label:
+                    FillPortions: =1
+                    Height: =0
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Size: =21
+                    Text: =""
+                    Width: =Parent.Width
+                    ZIndex: =3
+
+                lblContactFinance As label:
+                    Align: =Align.Center
+                    Color: =RGBA(0, 100, 255, 1)
+                    Font: =FontWeight.Semibold
+                    HoverColor: =RGBA(0, 50, 150, 1)
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    OnSelect: |-
+                        =Launch("mailto:" & varFinanceEmail)
+                    Size: =If(App.Width >= 1024, 14, 12)
+                    Text: |-
+                        ="Contact Finance: " & Char(10) & Coalesce(varFinanceEmail, "Loading...")
+                    Width: =Parent.Width
+                    ZIndex: =4
 
             conHRSection As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.Start
@@ -418,35 +416,6 @@
                         Wrap: =false
                         ZIndex: =2
 
-                lblHRSpaceLabel As label:
-                    FillPortions: =1
-                    Height: =0
-                    LayoutMaxHeight: =0
-                    LayoutMaxWidth: =0
-                    LayoutMinHeight: =16
-                    LayoutMinWidth: =16
-                    Size: =21
-                    Text: =""
-                    Width: =Parent.Width
-                    ZIndex: =3
-
-                lblContactHR As label:
-                    Align: =Align.Center
-                    Color: =RGBA(0, 100, 255, 1)
-                    Font: =FontWeight.Semibold
-                    HoverColor: =RGBA(0, 50, 150, 1)
-                    LayoutMaxHeight: =0
-                    LayoutMaxWidth: =0
-                    LayoutMinHeight: =16
-                    LayoutMinWidth: =16
-                    OnSelect: |-
-                        =Launch("mailto:" & varHREmail)
-                    Size: =If(App.Width >= 1024, 14, 12)
-                    Text: |-
-                        ="Contact HR: " & Char(10) & Coalesce(varHREmail, "Loading...")
-                    Width: =Parent.Width
-                    ZIndex: =4
-
                 galHRMenu As gallery.galleryVertical:
                     '#CopilotOverlayLabel': ="필터링됨"
                     FillPortions: =0
@@ -465,7 +434,7 @@
                     LoadingSpinner: =LoadingSpinner.Data
                     TemplatePadding: =0
                     TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
-                    ZIndex: =11
+                    ZIndex: =2
 
                     btnHR As button:
                         Align: =Align.Left
@@ -506,6 +475,35 @@
                         Y: =(Parent.TemplateHeight - Self.Height) / 2
                         ZIndex: =1
 
+                lblHRSpaceLabel As label:
+                    FillPortions: =1
+                    Height: =0
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Size: =21
+                    Text: =""
+                    Width: =Parent.Width
+                    ZIndex: =3
+
+                lblContactHR As label:
+                    Align: =Align.Center
+                    Color: =RGBA(0, 100, 255, 1)
+                    Font: =FontWeight.Semibold
+                    HoverColor: =RGBA(0, 50, 150, 1)
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    OnSelect: |-
+                        =Launch("mailto:" & varHREmail)
+                    Size: =If(App.Width >= 1024, 14, 12)
+                    Text: |-
+                        ="Contact HR: " & Char(10) & Coalesce(varHREmail, "Loading...")
+                    Width: =Parent.Width
+                    ZIndex: =4
+
         conFooterLayout As groupContainer.horizontalAutoLayoutContainer:
             Height: =lblTechSupport.Height + lblInstructionLink.Height + conVideoWrapper.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
             LayoutAlignItems: =LayoutAlignItems.Center
@@ -544,7 +542,7 @@
                     =Launch("mailto:" & varTechEmail)
                 Size: =If(App.Width >= 1024, 22, 16)
                 Text: |-
-                    ="Contact for technical support: " & Coalesce(varTechEmail, "Loading...")
+                    ="Contact for technical support: " & Char(10) & Coalesce(varTechEmail, "Loading...")
                 Width: =Parent.Width
                 ZIndex: =1
 

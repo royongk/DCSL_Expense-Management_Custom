@@ -57,7 +57,7 @@ Screens:
             //{ DisplayName: "School Trip Expense Settlement", Category: "Finance", AppMode: "BillingTripSettlement", IsVisible: varIsOwner Or varIsLocal Or varIsFull Or varIsExpat },
             { DisplayName: "Cash Advance / Settlement", Category: "Finance", AppMode: "CashAdvance", IsVisible: varIsOwner Or varIsFull },
             { DisplayName: "Airfare & Shipping Allowance Claim", Category: "HR", AppMode: "AirfareAllowance", IsVisible: varIsOwner Or varIsExpat Or varIsFull },
-            { DisplayName: "Employee Benefits Claim", Category: "HR", AppMode: "EmployeeBenefit", IsVisible: varIsOwner Or varIsLocal Or varIsFull },
+            { DisplayName: "Employee Benefits Claim", Category: "HR", AppMode: "EmployeeBenefit", IsVisible: varIsOwner Or varIsFull },
             { DisplayName: "Salary Advance", Category: "HR", AppMode: "SalaryAdvance", IsVisible: varIsOwner Or varIsFull }
         );
 
@@ -96,6 +96,10 @@ Screens:
                 Control: CodeComponent
                 ComponentName: msdyn_ExpenseMobile.Controls.Localization
                 Properties:
+                  Height: =0
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =0
+                  Width: =0
                   X: =40
                   Y: =40
             - MainScreen_Logo:
@@ -234,33 +238,6 @@ Screens:
                                     Text: ="Finance Review"
                                     Width: =If(App.Width >= 1024, 220, 180)
                                     Wrap: =false
-                        - lblFinanceSpaceLabel:
-                            Control: Label@2.5.1
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              FillPortions: =1
-                              Font: =Font.'Open Sans'
-                              Height: =0
-                              LayoutMinHeight: =16
-                              LayoutMinWidth: =16
-                              Text: =""
-                              Width: =Parent.Width
-                        - lblContactFinance:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Color: =RGBA(0, 100, 255, 1)
-                              Font: =FontWeight.Semibold
-                              Height: =40
-                              HoverColor: =RGBA(0, 50, 150, 1)
-                              LayoutMinHeight: =16
-                              LayoutMinWidth: =16
-                              OnSelect: =Launch("mailto:" & varFinanceEmail)
-                              Size: =If(App.Width >= 1024, 14, 12)
-                              Text: |-
-                                ="Contact Finance: " & Char(10) & Coalesce(varFinanceEmail, "Loading...")
-                              Width: =Parent.Width
                         - galFinanceMenu:
                             Control: Gallery@2.15.0
                             Variant: Vertical
@@ -323,6 +300,33 @@ Screens:
                                     Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
                                     X: =(Parent.TemplateWidth - Self.Width) / 2
                                     Y: =(Parent.TemplateHeight - Self.Height) / 2
+                        - lblFinanceSpaceLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Open Sans'
+                              Height: =0
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              Text: =""
+                              Width: =Parent.Width
+                        - lblContactFinance:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(0, 100, 255, 1)
+                              Font: =FontWeight.Semibold
+                              Height: =40
+                              HoverColor: =RGBA(0, 50, 150, 1)
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              OnSelect: =Launch("mailto:" & varFinanceEmail)
+                              Size: =If(App.Width >= 1024, 14, 12)
+                              Text: |-
+                                ="Contact Finance: " & Char(10) & Coalesce(varFinanceEmail, "Loading...")
+                              Width: =Parent.Width
                   - conHRSection:
                       Control: GroupContainer@1.5.0
                       Variant: AutoLayout
@@ -399,33 +403,6 @@ Screens:
                                     Text: ="HR Review"
                                     Width: =If(App.Width >= 1024, 180, 140)
                                     Wrap: =false
-                        - lblHRSpaceLabel:
-                            Control: Label@2.5.1
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              FillPortions: =1
-                              Font: =Font.'Open Sans'
-                              Height: =0
-                              LayoutMinHeight: =16
-                              LayoutMinWidth: =16
-                              Text: =""
-                              Width: =Parent.Width
-                        - lblContactHR:
-                            Control: Label@2.5.1
-                            Properties:
-                              Align: =Align.Center
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Color: =RGBA(0, 100, 255, 1)
-                              Font: =FontWeight.Semibold
-                              Height: =40
-                              HoverColor: =RGBA(0, 50, 150, 1)
-                              LayoutMinHeight: =16
-                              LayoutMinWidth: =16
-                              OnSelect: =Launch("mailto:" & varHREmail)
-                              Size: =If(App.Width >= 1024, 14, 12)
-                              Text: |-
-                                ="Contact HR: " & Char(10) & Coalesce(varHREmail, "Loading...")
-                              Width: =Parent.Width
                         - galHRMenu:
                             Control: Gallery@2.15.0
                             Variant: Vertical
@@ -488,6 +465,33 @@ Screens:
                                     Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
                                     X: =(Parent.TemplateWidth - Self.Width) / 2
                                     Y: =(Parent.TemplateHeight - Self.Height) / 2
+                        - lblHRSpaceLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Open Sans'
+                              Height: =0
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              Text: =""
+                              Width: =Parent.Width
+                        - lblContactHR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(0, 100, 255, 1)
+                              Font: =FontWeight.Semibold
+                              Height: =40
+                              HoverColor: =RGBA(0, 50, 150, 1)
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              OnSelect: =Launch("mailto:" & varHREmail)
+                              Size: =If(App.Width >= 1024, 14, 12)
+                              Text: |-
+                                ="Contact HR: " & Char(10) & Coalesce(varHREmail, "Loading...")
+                              Width: =Parent.Width
             - conFooterLayout:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
@@ -522,7 +526,7 @@ Screens:
                         OnSelect: =Launch("mailto:" & varTechEmail)
                         Size: =If(App.Width >= 1024, 22, 16)
                         Text: |-
-                          ="Contact for technical support: " & Coalesce(varTechEmail, "Loading...")
+                          ="Contact for technical support: " & Char(10) & Coalesce(varTechEmail, "Loading...")
                         Width: =Parent.Width
                   - lblInstructionLink:
                       Control: Label@2.5.1
