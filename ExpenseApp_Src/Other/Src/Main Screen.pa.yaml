@@ -73,12 +73,6 @@ Screens:
             )
         );
     Children:
-      - GlobalLabels:
-          Control: CodeComponent
-          ComponentName: msdyn_ExpenseMobile.Controls.Localization
-          Properties:
-            X: =40
-            Y: =40
       - conRootScroll:
           Control: GroupContainer@1.5.0
           Variant: AutoLayout
@@ -98,6 +92,12 @@ Screens:
             RadiusTopRight: =0
             Width: =Parent.Width
           Children:
+            - GlobalLabels:
+                Control: CodeComponent
+                ComponentName: msdyn_ExpenseMobile.Controls.Localization
+                Properties:
+                  X: =40
+                  Y: =40
             - MainScreen_Logo:
                 Control: Image@2.2.3
                 Properties:
@@ -266,10 +266,16 @@ Screens:
                             Variant: Vertical
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
+                              DelayItemLoading: =false
                               FillPortions: =0
-                              Height: =CountRows(Self.AllItems) * Self.TemplateHeight
+                              Height: |-
+                                =If(
+                                    IsEmpty(Self.AllItems) Or CountRows(Self.AllItems) = 0,
+                                    200,
+                                    CountRows(Self.AllItems) * Coalesce(Self.TemplateHeight, 0)
+                                )
                               Items: =Filter(colLandingMenu, Category = "Finance", IsVisible = true)
-                              LayoutMinHeight: =16
+                              LayoutMinHeight: =200
                               LayoutMinWidth: =16
                               TemplatePadding: =0
                               TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
@@ -425,10 +431,16 @@ Screens:
                             Variant: Vertical
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
+                              DelayItemLoading: =false
                               FillPortions: =0
-                              Height: =CountRows(Self.AllItems) * Self.TemplateHeight
+                              Height: |-
+                                =If(
+                                    IsEmpty(Self.AllItems) Or CountRows(Self.AllItems) = 0,
+                                    200,
+                                    CountRows(Self.AllItems) * Coalesce(Self.TemplateHeight, 0)
+                                )
                               Items: =Filter(colLandingMenu, Category = "HR", IsVisible = true)
-                              LayoutMinHeight: =16
+                              LayoutMinHeight: =200
                               LayoutMinWidth: =16
                               TemplatePadding: =0
                               TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)

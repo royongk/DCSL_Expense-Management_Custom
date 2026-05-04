@@ -62,14 +62,6 @@
             )
         );
 
-    GlobalLabels As Localization:
-        DisplayMode: =DisplayMode.Edit
-        Height: =350
-        Width: =350
-        X: =40
-        Y: =40
-        ZIndex: =1
-
     conRootScroll As groupContainer.verticalAutoLayoutContainer:
         Height: =Parent.Height
         LayoutAlignItems: =LayoutAlignItems.Center
@@ -87,10 +79,19 @@
         Width: =Parent.Width
         ZIndex: =3
 
+        GlobalLabels As Localization:
+            DisplayMode: =DisplayMode.Edit
+            Height: =350
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =350
+            LayoutMinWidth: =350
+            Width: =350
+            X: =40
+            Y: =40
+            ZIndex: =1
+
         MainScreen_Logo As image:
-            BorderColor: =RGBA(0, 18, 107, 1)
-            DisabledBorderColor: =RGBA(166, 166, 166, 1)
-            DisabledFill: =RGBA(244, 244, 244, 1)
             Height: =If(App.Width >= 1024, 180, 100)
             Image: =DCSL_Logo
             LayoutMaxHeight: =0
@@ -100,13 +101,11 @@
             Width: =If(App.Width >= 1024, 550, 300)
             X: =(Parent.Width - Self.Width) / 2
             Y: =If(App.Width >= 1024, App.Height * 0.08, 20)
-            ZIndex: =1
+            ZIndex: =2
 
         MainScreen_TitleLabel As label:
             Align: =Align.Center
-            BorderColor: =RGBA(0, 18, 107, 1)
             Color: =RGBA(30, 30, 30, 1)
-            DisabledColor: =RGBA(166, 166, 166, 1)
             Font: =Font.'Segoe UI'
             FontWeight: =FontWeight.Bold
             Height: =If(App.Width >= 1024, 60, 50)
@@ -119,13 +118,11 @@
             Width: =Parent.Width - 40
             X: =(Parent.Width - Self.Width) / 2
             Y: =MainScreen_Logo.Y + MainScreen_Logo.Height + 40
-            ZIndex: =2
+            ZIndex: =3
 
         MainScreen_WelcomeLabel As label:
             Align: =Align.Center
-            BorderColor: =RGBA(0, 18, 107, 1)
             Color: =RGBA(80, 80, 80, 1)
-            DisabledColor: =RGBA(166, 166, 166, 1)
             Font: =Font.'Segoe UI'
             Height: =35
             LayoutMaxHeight: =0
@@ -137,7 +134,7 @@
             Width: =Parent.Width - 40
             X: =(Parent.Width - Self.Width) / 2
             Y: =MainScreen_TitleLabel.Y + MainScreen_TitleLabel.Height + 10
-            ZIndex: =3
+            ZIndex: =4
 
         conMainLayout As groupContainer.horizontalAutoLayoutContainer:
             Height: =Max(conFinanceSection.Height, conHRSection.Height)
@@ -163,7 +160,7 @@
             Width: =App.Width - If(App.Width >= 1024, 80, 40)
             X: =(App.Width - Self.Width) / 2
             Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + If(App.Width >= 1024, 60, 30)
-            ZIndex: =4
+            ZIndex: =5
 
             conFinanceSection As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.Start
@@ -226,9 +223,6 @@
                     ZIndex: =1
 
                     imgFinanceHeader As image:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                        DisabledFill: =RGBA(244, 244, 244, 1)
                         Height: =If(App.Width >= 1024, 32, 24)
                         Image: ='Receipt--Streamline-Core'
                         LayoutMaxHeight: =0
@@ -239,9 +233,7 @@
                         ZIndex: =1
 
                     lblFinance As label:
-                        BorderColor: =RGBA(0, 18, 107, 1)
                         Color: =RGBA(30, 30, 30, 1)
-                        DisabledColor: =RGBA(166, 166, 166, 1)
                         FontWeight: =FontWeight.Bold
                         Height: =Parent.Height
                         LayoutMaxHeight: =0
@@ -255,9 +247,6 @@
                         ZIndex: =2
 
                 lblFinanceSpaceLabel As label:
-                    BorderColor: =RGBA(0, 18, 107, 1)
-                    Color: =RGBA(0, 0, 0, 1)
-                    DisabledColor: =RGBA(166, 166, 166, 1)
                     FillPortions: =1
                     Height: =0
                     LayoutMaxHeight: =0
@@ -271,9 +260,7 @@
 
                 lblContactFinance As label:
                     Align: =Align.Center
-                    BorderColor: =RGBA(0, 18, 107, 1)
                     Color: =RGBA(0, 100, 255, 1)
-                    DisabledColor: =RGBA(166, 166, 166, 1)
                     Font: =FontWeight.Semibold
                     HoverColor: =RGBA(0, 50, 150, 1)
                     LayoutMaxHeight: =0
@@ -290,15 +277,18 @@
 
                 galFinanceMenu As gallery.galleryVertical:
                     '#CopilotOverlayLabel': ="필터링됨"
-                    BorderColor: =RGBA(0, 18, 107, 1)
-                    DelayItemLoading: =true
                     FillPortions: =0
-                    Height: =CountRows(Self.AllItems) * Self.TemplateHeight
+                    Height: |-
+                        =If(
+                            IsEmpty(Self.AllItems) Or CountRows(Self.AllItems) = 0,
+                            200,
+                            CountRows(Self.AllItems) * Coalesce(Self.TemplateHeight, 0)
+                        )
                     Items: =Filter(colLandingMenu, Category = "Finance", IsVisible = true)
                     Layout: =Layout.Vertical
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    LayoutMinHeight: =16
+                    LayoutMinHeight: =200
                     LayoutMinWidth: =16
                     LoadingSpinner: =LoadingSpinner.Data
                     TemplatePadding: =0
@@ -310,11 +300,7 @@
                         BorderColor: =RGBA(163, 32, 53, 0.3)
                         BorderThickness: =1.5
                         Color: =RGBA(163, 32, 53, 1)
-                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                        DisabledColor: =RGBA(166, 166, 166, 1)
-                        DisabledFill: =RGBA(244, 244, 244, 1)
                         Fill: =RGBA(255, 255, 255, 1)
-                        FontWeight: =FontWeight.Semibold
                         Height: =If(App.Width >= 1024, 100, 60)
                         HoverColor: =RGBA(163, 32, 53, 1)
                         HoverFill: =RGBA(163, 32, 53, 0.08)
@@ -409,9 +395,6 @@
                     ZIndex: =1
 
                     imgHRHeader As image:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                        DisabledFill: =RGBA(244, 244, 244, 1)
                         Height: =If(App.Width >= 1024, 32, 24)
                         Image: ='User-Multiple-Group--Streamline-Core'
                         LayoutMaxHeight: =0
@@ -422,9 +405,7 @@
                         ZIndex: =1
 
                     lblHR As label:
-                        BorderColor: =RGBA(0, 18, 107, 1)
                         Color: =RGBA(30, 30, 30, 1)
-                        DisabledColor: =RGBA(166, 166, 166, 1)
                         FontWeight: =FontWeight.Bold
                         Height: =Parent.Height
                         LayoutMaxHeight: =0
@@ -438,9 +419,6 @@
                         ZIndex: =2
 
                 lblHRSpaceLabel As label:
-                    BorderColor: =RGBA(0, 18, 107, 1)
-                    Color: =RGBA(0, 0, 0, 1)
-                    DisabledColor: =RGBA(166, 166, 166, 1)
                     FillPortions: =1
                     Height: =0
                     LayoutMaxHeight: =0
@@ -454,9 +432,7 @@
 
                 lblContactHR As label:
                     Align: =Align.Center
-                    BorderColor: =RGBA(0, 18, 107, 1)
                     Color: =RGBA(0, 100, 255, 1)
-                    DisabledColor: =RGBA(166, 166, 166, 1)
                     Font: =FontWeight.Semibold
                     HoverColor: =RGBA(0, 50, 150, 1)
                     LayoutMaxHeight: =0
@@ -473,15 +449,18 @@
 
                 galHRMenu As gallery.galleryVertical:
                     '#CopilotOverlayLabel': ="필터링됨"
-                    BorderColor: =RGBA(0, 18, 107, 1)
-                    DelayItemLoading: =true
                     FillPortions: =0
-                    Height: =CountRows(Self.AllItems) * Self.TemplateHeight
+                    Height: |-
+                        =If(
+                            IsEmpty(Self.AllItems) Or CountRows(Self.AllItems) = 0,
+                            200,
+                            CountRows(Self.AllItems) * Coalesce(Self.TemplateHeight, 0)
+                        )
                     Items: =Filter(colLandingMenu, Category = "HR", IsVisible = true)
                     Layout: =Layout.Vertical
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    LayoutMinHeight: =16
+                    LayoutMinHeight: =200
                     LayoutMinWidth: =16
                     LoadingSpinner: =LoadingSpinner.Data
                     TemplatePadding: =0
@@ -493,11 +472,7 @@
                         BorderColor: =RGBA(163, 32, 53, 0.3)
                         BorderThickness: =1.5
                         Color: =RGBA(163, 32, 53, 1)
-                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                        DisabledColor: =RGBA(166, 166, 166, 1)
-                        DisabledFill: =RGBA(244, 244, 244, 1)
                         Fill: =RGBA(255, 255, 255, 1)
-                        FontWeight: =FontWeight.Semibold
                         Height: =If(App.Width >= 1024, 100, 60)
                         HoverColor: =RGBA(163, 32, 53, 1)
                         HoverFill: =RGBA(163, 32, 53, 0.08)
@@ -554,13 +529,11 @@
             Width: =conMainLayout.Width
             X: =conMainLayout.X
             Y: =40
-            ZIndex: =5
+            ZIndex: =6
 
             lblTechSupport As label:
                 Align: =Align.Center
-                BorderColor: =RGBA(0, 18, 107, 1)
                 Color: =RGBA(80, 80, 80, 1)
-                DisabledColor: =RGBA(166, 166, 166, 1)
                 FontWeight: =FontWeight.Bold
                 Height: =70
                 LayoutMaxHeight: =0
@@ -577,9 +550,7 @@
 
             lblInstructionLink As label:
                 Align: =Align.Center
-                BorderColor: =RGBA(0, 18, 107, 1)
                 Color: =RGBA(0, 100, 255, 1)
-                DisabledColor: =RGBA(166, 166, 166, 1)
                 FontWeight: =FontWeight.Bold
                 Height: =70
                 LayoutMaxHeight: =0
@@ -620,21 +591,14 @@
                 ZIndex: =3
 
                 vidIntroVideo As videoPlayback:
-                    BorderColor: =RGBA(0, 18, 107, 1)
-                    Fill: =RGBA(56, 96, 178, 1)
                     Height: =Parent.Height
                     Media: =varVideoLink
                     Width: =Parent.Width
                     ZIndex: =1
 
                 btnMobileVideoPlay As button:
-                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                    DisabledColor: =RGBA(166, 166, 166, 1)
-                    DisabledFill: =RGBA(244, 244, 244, 1)
                     Fill: =RGBA(0, 0, 0, 0)
-                    FontWeight: =FontWeight.Semibold
                     Height: =Parent.Height
-                    HoverColor: =RGBA(255, 255, 255, 1)
                     HoverFill: =RGBA(0, 0, 0, 0.1)
                     OnSelect: =Launch(varVideoLink & "?web=1")
                     PressedFill: =RGBA(0, 0, 0, 0.2)
