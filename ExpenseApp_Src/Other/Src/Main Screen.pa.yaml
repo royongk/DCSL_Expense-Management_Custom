@@ -73,480 +73,509 @@ Screens:
             )
         );
     Children:
-      - conFooterLayout:
-          Control: GroupContainer@1.5.0
-          Variant: AutoLayout
-          Properties:
-            DropShadow: =DropShadow.None
-            Height: =lblTechSupport.Height + lblInstructionLink.Height + conVideoWrapper.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
-            LayoutAlignItems: =LayoutAlignItems.Center
-            LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =20
-            PaddingBottom: =8
-            PaddingLeft: =8
-            PaddingRight: =8
-            PaddingTop: =8
-            RadiusBottomLeft: =0
-            RadiusBottomRight: =0
-            RadiusTopLeft: =0
-            RadiusTopRight: =0
-            Width: =conMainLayout.Width
-            X: =conMainLayout.X
-            Y: =conMainLayout.Y + conMainLayout.Height + 30
-          Children:
-            - lblTechSupport:
-                Control: Label@2.5.1
-                Properties:
-                  Align: =Align.Center
-                  BorderColor: =RGBA(0, 18, 107, 1)
-                  Color: =RGBA(80, 80, 80, 1)
-                  Font: =Font.'Open Sans'
-                  FontWeight: =FontWeight.Bold
-                  LayoutMinHeight: =16
-                  LayoutMinWidth: =16
-                  OnSelect: =Launch("mailto:" & varTechEmail)
-                  Size: =If(App.Width >= 1024, 22, 16)
-                  Text: |-
-                    ="Contact for technical support: " & Coalesce(varTechEmail, "Loading...")
-                  Width: =Parent.Width
-            - lblInstructionLink:
-                Control: Label@2.5.1
-                Properties:
-                  Align: =Align.Center
-                  BorderColor: =RGBA(0, 18, 107, 1)
-                  Color: =RGBA(0, 100, 255, 1)
-                  Font: =Font.'Open Sans'
-                  FontWeight: =FontWeight.Bold
-                  LayoutMinHeight: =16
-                  LayoutMinWidth: =16
-                  OnSelect: =Launch(varInstructionLink)
-                  Size: =If(App.Width >= 1024, 22, 16)
-                  Text: |-
-                    ="Instruction material:" & Char(10) & "Link to more instruction material: SharePoint folder"
-                  Underline: =true
-                  Width: =Parent.Width
-            - conVideoWrapper:
-                Control: GroupContainer@1.5.0
-                Variant: ManualLayout
-                Properties:
-                  DropShadow: =DropShadow.None
-                  Height: =Self.Width * (9/16)
-                  LayoutMinHeight: =Self.Width * (9/16)
-                  LayoutMinWidth: =16
-                  RadiusBottomLeft: =0
-                  RadiusBottomRight: =0
-                  RadiusTopLeft: =0
-                  RadiusTopRight: =0
-                  Width: =If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40)
-                Children:
-                  - vidIntroVideo:
-                      Control: Video@2.4.2
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        Fill: =RGBA(56, 96, 178, 1)
-                        Height: =Parent.Height
-                        Media: =varVideoLink
-                        Width: =Parent.Width
-                  - btnMobileVideoPlay:
-                      Control: Classic/Button@2.2.0
-                      Properties:
-                        BorderColor: =ColorFade(Self.Fill, -15%)
-                        Color: =RGBA(255, 255, 255, 1)
-                        DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                        Fill: =RGBA(0, 0, 0, 0)
-                        Font: =Font.'Open Sans'
-                        Height: =Parent.Height
-                        HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-                        HoverColor: =RGBA(255, 255, 255, 1)
-                        HoverFill: =RGBA(0, 0, 0, 0.1)
-                        OnSelect: =Launch(varVideoLink & "?web=1")
-                        PressedBorderColor: =Self.Fill
-                        PressedColor: =Self.Fill
-                        PressedFill: =RGBA(0, 0, 0, 0.2)
-                        Text: =""
-                        Visible: =Host.OSType = "iOS" Or Host.OSType = "Android"
-                        Width: =Parent.Width
-      - MainScreen_Logo:
-          Control: Image@2.2.3
-          Properties:
-            BorderColor: =RGBA(0, 18, 107, 1)
-            Height: =If(App.Width >= 1024, 180, 100)
-            Image: =DCSL_Logo
-            Width: =If(App.Width >= 1024, 550, 300)
-            X: =(Parent.Width - Self.Width) / 2
-            Y: =If(App.Width >= 1024, App.Height * 0.08, 20)
-      - MainScreen_TitleLabel:
-          Control: Label@2.5.1
-          Properties:
-            Align: =Align.Center
-            BorderColor: =RGBA(0, 18, 107, 1)
-            Color: =RGBA(30, 30, 30, 1)
-            Font: =Font.'Segoe UI'
-            FontWeight: =FontWeight.Bold
-            Height: =If(App.Width >= 1024, 60, 50)
-            Size: =If(App.Width >= 1024, 36, 28)
-            Text: ="Expense Management"
-            Width: =Parent.Width - 40
-            X: =(Parent.Width - Self.Width) / 2
-            Y: =MainScreen_Logo.Y + MainScreen_Logo.Height + 40
-      - MainScreen_WelcomeLabel:
-          Control: Label@2.5.1
-          Properties:
-            Align: =Align.Center
-            BorderColor: =RGBA(0, 18, 107, 1)
-            Color: =RGBA(80, 80, 80, 1)
-            Font: =Font.'Segoe UI'
-            Height: =35
-            Size: =If(App.Width >= 1024, 22, 16)
-            Text: |-
-              ="Welcome back, " & First(Split(User().FullName, " ")).Value & " 👋"
-            Width: =Parent.Width - 40
-            X: =(Parent.Width - Self.Width) / 2
-            Y: =MainScreen_TitleLabel.Y + MainScreen_TitleLabel.Height + 10
-      - conMainLayout:
-          Control: GroupContainer@1.5.0
-          Variant: AutoLayout
-          Properties:
-            DropShadow: =DropShadow.None
-            Height: =Max(conFinanceSection.Height, conHRSection.Height)
-            LayoutAlignItems: =LayoutAlignItems.Center
-            LayoutDirection: =LayoutDirection.Horizontal
-            LayoutGap: =If(App.Width >= 1024, 60, 20)
-            LayoutJustifyContent: =LayoutJustifyContent.Center
-            LayoutWrap: =true
-            PaddingBottom: =8
-            PaddingLeft: =8
-            PaddingRight: =8
-            PaddingTop: =8
-            RadiusBottomLeft: =0
-            RadiusBottomRight: =0
-            RadiusTopLeft: =0
-            RadiusTopRight: =0
-            Width: =App.Width - If(App.Width >= 1024, 80, 40)
-            X: =(App.Width - Self.Width) / 2
-            Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + If(App.Width >= 1024, 60, 30)
-          Children:
-            - conFinanceSection:
-                Control: GroupContainer@1.5.0
-                Variant: AutoLayout
-                Properties:
-                  AlignInContainer: =AlignInContainer.Start
-                  BorderColor: =RGBA(0,0,0,0.05)
-                  BorderThickness: =1
-                  DropShadow: =DropShadow.None
-                  Fill: =RGBA(255, 255, 255, 1)
-                  Height: |-
-                    =Max(
-                        conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
-                        conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
-                    )
-                  LayoutAlignItems: =LayoutAlignItems.Center
-                  LayoutDirection: =LayoutDirection.Vertical
-                  LayoutMinHeight: =16
-                  LayoutMinWidth: =16
-                  PaddingBottom: =If(App.Width >= 1024, 30, 16)
-                  PaddingLeft: =If(App.Width >= 1024, 30, 16)
-                  PaddingRight: =If(App.Width >= 1024, 30, 16)
-                  PaddingTop: =If(App.Width >= 1024, 30, 16)
-                  RadiusBottomLeft: =16
-                  RadiusBottomRight: =16
-                  RadiusTopLeft: =16
-                  RadiusTopRight: =16
-                  Width: =(Parent.Width - Parent.LayoutGap) / 2
-                Children:
-                  - conFinanceHeader:
-                      Control: GroupContainer@1.5.0
-                      Variant: AutoLayout
-                      Properties:
-                        DropShadow: =DropShadow.None
-                        FillPortions: =0
-                        Height: =If(App.Width >= 1024, 60, 40)
-                        LayoutAlignItems: =LayoutAlignItems.Center
-                        LayoutDirection: =LayoutDirection.Horizontal
-                        LayoutGap: =10
-                        LayoutJustifyContent: =LayoutJustifyContent.Center
-                        LayoutMinHeight: =16
-                        LayoutMinWidth: =16
-                        PaddingBottom: =8
-                        PaddingLeft: =8
-                        PaddingRight: =8
-                        PaddingTop: =8
-                        RadiusBottomLeft: =0
-                        RadiusBottomRight: =0
-                        RadiusTopLeft: =0
-                        RadiusTopRight: =0
-                        Width: =Parent.Width
-                        X: =40
-                        Y: =40
-                      Children:
-                        - imgFinanceHeader:
-                            Control: Image@2.2.3
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Height: =If(App.Width >= 1024, 32, 24)
-                              Image: ='Receipt--Streamline-Core'
-                              LayoutMinHeight: =16
-                              LayoutMinWidth: =16
-                              Width: =If(App.Width >= 1024, 32, 24)
-                        - lblFinance:
-                            Control: Label@2.5.1
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Color: =RGBA(30, 30, 30, 1)
-                              Font: =Font.'Open Sans'
-                              FontWeight: =FontWeight.Bold
-                              Height: =Parent.Height
-                              LayoutMinHeight: =16
-                              LayoutMinWidth: =Self.Width
-                              Size: =If(App.Width >= 1024, 18, 14)
-                              Text: ="Finance Review"
-                              Width: =If(App.Width >= 1024, 220, 180)
-                              Wrap: =false
-                  - galFinanceMenu:
-                      Control: Gallery@2.15.0
-                      Variant: Vertical
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        FillPortions: =0
-                        Height: =CountRows(Self.AllItems) * Self.TemplateHeight
-                        Items: =Filter(colLandingMenu, Category = "Finance", IsVisible = true)
-                        LayoutMinHeight: =16
-                        LayoutMinWidth: =16
-                        TemplatePadding: =0
-                        TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
-                      Children:
-                        - btnFinance:
-                            Control: Classic/Button@2.2.0
-                            Properties:
-                              Align: =Align.Left
-                              BorderColor: =RGBA(163, 32, 53, 0.3)
-                              BorderThickness: =1.5
-                              Color: =RGBA(163, 32, 53, 1)
-                              DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                              Fill: =RGBA(255, 255, 255, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =If(App.Width >= 1024, 100, 60)
-                              HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-                              HoverColor: =RGBA(163, 32, 53, 1)
-                              HoverFill: =RGBA(163, 32, 53, 0.08)
-                              OnSelect: |-
-                                =Set(varAppMode, ThisItem.AppMode);
-                                If(
-                                    ThisItem.AppMode in ["CashAdvance", "SalaryAdvance"], // CashAdvance와 SalaryAdvance 모두 처리
-                                    Set(varSelectedTab, 4);
-                                    Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
-
-                                    // [추가된 로직] Airfare 메뉴일 경우 Travel 화면으로 이동
-                                    ThisItem.AppMode = "AirfareAllowance",
-                                    Set(varSelectedTab, 4); 
-                                    Navigate('Travel - List Screen', ScreenTransition.Fade),
-
-                                    // 기본 Expenses 화면 이동
-                                    Set(varSelectedTab, 2);
-                                    Navigate('Expenses - List Screen', ScreenTransition.Fade)
-                                )
-                              PaddingLeft: =20
-                              PressedBorderColor: =Self.Fill
-                              PressedColor: =RGBA(255, 255, 255, 1)
-                              PressedFill: =RGBA(163, 32, 53, 1)
-                              RadiusBottomLeft: =12
-                              RadiusBottomRight: =12
-                              RadiusTopLeft: =12
-                              RadiusTopRight: =12
-                              Size: =If(App.Width >= 1024, 18, 14)
-                              Text: =ThisItem.DisplayName
-                              Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
-                              X: =(Parent.TemplateWidth - Self.Width) / 2
-                              Y: =(Parent.TemplateHeight - Self.Height) / 2
-                  - lblFinanceSpaceLabel:
-                      Control: Label@2.5.1
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =0
-                        LayoutMinHeight: =16
-                        LayoutMinWidth: =16
-                        Text: =""
-                        Width: =Parent.Width
-                  - lblContactFinance:
-                      Control: Label@2.5.1
-                      Properties:
-                        Align: =Align.Center
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        Color: =RGBA(0, 100, 255, 1)
-                        Font: =FontWeight.Semibold
-                        Height: =40
-                        HoverColor: =RGBA(0, 50, 150, 1)
-                        LayoutMinHeight: =16
-                        LayoutMinWidth: =16
-                        OnSelect: =Launch("mailto:" & varFinanceEmail)
-                        Size: =If(App.Width >= 1024, 14, 12)
-                        Text: |-
-                          ="Contact Finance: " & Char(10) & Coalesce(varFinanceEmail, "Loading...")
-                        Width: =Parent.Width
-            - conHRSection:
-                Control: GroupContainer@1.5.0
-                Variant: AutoLayout
-                Properties:
-                  AlignInContainer: =AlignInContainer.Start
-                  BorderColor: =RGBA(0,0,0,0.05)
-                  BorderThickness: =1
-                  DropShadow: =DropShadow.None
-                  Fill: =RGBA(255, 255, 255, 1)
-                  Height: |-
-                    =Max(
-                        conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
-                        conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
-                    )
-                  LayoutAlignItems: =LayoutAlignItems.Center
-                  LayoutDirection: =LayoutDirection.Vertical
-                  LayoutMinHeight: =16
-                  LayoutMinWidth: =16
-                  PaddingBottom: =If(App.Width >= 1024, 30, 16)
-                  PaddingLeft: =If(App.Width >= 1024, 30, 16)
-                  PaddingRight: =If(App.Width >= 1024, 30, 16)
-                  PaddingTop: =If(App.Width >= 1024, 30, 16)
-                  RadiusBottomLeft: =16
-                  RadiusBottomRight: =16
-                  RadiusTopLeft: =16
-                  RadiusTopRight: =16
-                  Width: =(Parent.Width - Parent.LayoutGap) / 2
-                Children:
-                  - conHRHeader:
-                      Control: GroupContainer@1.5.0
-                      Variant: AutoLayout
-                      Properties:
-                        DropShadow: =DropShadow.None
-                        FillPortions: =0
-                        Height: =If(App.Width >= 1024, 60, 40)
-                        LayoutAlignItems: =LayoutAlignItems.Center
-                        LayoutDirection: =LayoutDirection.Horizontal
-                        LayoutGap: =10
-                        LayoutJustifyContent: =LayoutJustifyContent.Center
-                        LayoutMinHeight: =16
-                        LayoutMinWidth: =16
-                        PaddingBottom: =8
-                        PaddingLeft: =8
-                        PaddingRight: =8
-                        PaddingTop: =8
-                        RadiusBottomLeft: =0
-                        RadiusBottomRight: =0
-                        RadiusTopLeft: =0
-                        RadiusTopRight: =0
-                        Width: =Parent.Width
-                        X: =40
-                        Y: =40
-                      Children:
-                        - imgHRHeader:
-                            Control: Image@2.2.3
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Height: =If(App.Width >= 1024, 32, 24)
-                              Image: ='User-Multiple-Group--Streamline-Core'
-                              LayoutMinHeight: =16
-                              LayoutMinWidth: =16
-                              Width: =If(App.Width >= 1024, 32, 24)
-                        - lblHR:
-                            Control: Label@2.5.1
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Color: =RGBA(30, 30, 30, 1)
-                              Font: =Font.'Open Sans'
-                              FontWeight: =FontWeight.Bold
-                              Height: =Parent.Height
-                              LayoutMinHeight: =16
-                              LayoutMinWidth: =Self.Width
-                              Size: =If(App.Width >= 1024, 18, 14)
-                              Text: ="HR Review"
-                              Width: =If(App.Width >= 1024, 180, 140)
-                              Wrap: =false
-                  - galHRMenu:
-                      Control: Gallery@2.15.0
-                      Variant: Vertical
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        FillPortions: =0
-                        Height: =CountRows(Self.AllItems) * Self.TemplateHeight
-                        Items: =Filter(colLandingMenu, Category = "HR", IsVisible = true)
-                        LayoutMinHeight: =16
-                        LayoutMinWidth: =16
-                        TemplatePadding: =0
-                        TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
-                      Children:
-                        - btnHR:
-                            Control: Classic/Button@2.2.0
-                            Properties:
-                              Align: =Align.Left
-                              BorderColor: =RGBA(163, 32, 53, 0.3)
-                              BorderThickness: =1.5
-                              Color: =RGBA(163, 32, 53, 1)
-                              DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                              Fill: =RGBA(255, 255, 255, 1)
-                              Font: =Font.'Open Sans'
-                              Height: =If(App.Width >= 1024, 100, 60)
-                              HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-                              HoverColor: =RGBA(163, 32, 53, 1)
-                              HoverFill: =RGBA(163, 32, 53, 0.08)
-                              OnSelect: |-
-                                =Set(varAppMode, ThisItem.AppMode);
-                                If(
-                                    ThisItem.AppMode in ["CashAdvance", "SalaryAdvance"], // CashAdvance와 SalaryAdvance 모두 처리
-                                    Set(varSelectedTab, 4);
-                                    Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
-
-                                    // [추가된 로직] Airfare 메뉴일 경우 Travel 화면으로 이동
-                                    ThisItem.AppMode = "AirfareAllowance",
-                                    Set(varSelectedTab, 4); 
-                                    Navigate('Travel - List Screen', ScreenTransition.Fade),
-
-                                    // 기본 Expenses 화면 이동
-                                    Set(varSelectedTab, 2);
-                                    Navigate('Expenses - List Screen', ScreenTransition.Fade)
-                                )
-                              PaddingLeft: =20
-                              PressedBorderColor: =Self.Fill
-                              PressedColor: =RGBA(255, 255, 255, 1)
-                              PressedFill: =RGBA(163, 32, 53, 1)
-                              RadiusBottomLeft: =12
-                              RadiusBottomRight: =12
-                              RadiusTopLeft: =12
-                              RadiusTopRight: =12
-                              Size: =If(App.Width >= 1024, 18, 14)
-                              Text: =ThisItem.DisplayName
-                              Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
-                              X: =(Parent.TemplateWidth - Self.Width) / 2
-                              Y: =(Parent.TemplateHeight - Self.Height) / 2
-                  - lblHRSpaceLabel:
-                      Control: Label@2.5.1
-                      Properties:
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =0
-                        LayoutMinHeight: =16
-                        LayoutMinWidth: =16
-                        Text: =""
-                        Width: =Parent.Width
-                  - lblContactHR:
-                      Control: Label@2.5.1
-                      Properties:
-                        Align: =Align.Center
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        Color: =RGBA(0, 100, 255, 1)
-                        Font: =FontWeight.Semibold
-                        Height: =40
-                        HoverColor: =RGBA(0, 50, 150, 1)
-                        LayoutMinHeight: =16
-                        LayoutMinWidth: =16
-                        OnSelect: =Launch("mailto:" & varHREmail)
-                        Size: =If(App.Width >= 1024, 14, 12)
-                        Text: |-
-                          ="Contact HR: " & Char(10) & Coalesce(varHREmail, "Loading...")
-                        Width: =Parent.Width
       - GlobalLabels:
           Control: CodeComponent
           ComponentName: msdyn_ExpenseMobile.Controls.Localization
           Properties:
             X: =40
             Y: =40
+      - conRootScroll:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =Parent.Height
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =8
+            PaddingLeft: =8
+            PaddingRight: =8
+            PaddingTop: =8
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+          Children:
+            - MainScreen_Logo:
+                Control: Image@2.2.3
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Height: =If(App.Width >= 1024, 180, 100)
+                  Image: =DCSL_Logo
+                  Width: =If(App.Width >= 1024, 550, 300)
+                  X: =(Parent.Width - Self.Width) / 2
+                  Y: =If(App.Width >= 1024, App.Height * 0.08, 20)
+            - MainScreen_TitleLabel:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(30, 30, 30, 1)
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Bold
+                  Height: =If(App.Width >= 1024, 60, 50)
+                  Size: =If(App.Width >= 1024, 36, 28)
+                  Text: ="Expense Management"
+                  Width: =Parent.Width - 40
+                  X: =(Parent.Width - Self.Width) / 2
+                  Y: =MainScreen_Logo.Y + MainScreen_Logo.Height + 40
+            - MainScreen_WelcomeLabel:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(80, 80, 80, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =35
+                  Size: =If(App.Width >= 1024, 22, 16)
+                  Text: |-
+                    ="Welcome back, " & First(Split(User().FullName, " ")).Value & " 👋"
+                  Width: =Parent.Width - 40
+                  X: =(Parent.Width - Self.Width) / 2
+                  Y: =MainScreen_TitleLabel.Y + MainScreen_TitleLabel.Height + 10
+            - conMainLayout:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Height: =Max(conFinanceSection.Height, conHRSection.Height)
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =If(App.Width >= 1024, 60, 20)
+                  LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutWrap: =true
+                  PaddingBottom: =8
+                  PaddingLeft: =8
+                  PaddingRight: =8
+                  PaddingTop: =8
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =App.Width - If(App.Width >= 1024, 80, 40)
+                  X: =(App.Width - Self.Width) / 2
+                  Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + If(App.Width >= 1024, 60, 30)
+                Children:
+                  - conFinanceSection:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Start
+                        BorderColor: =RGBA(0,0,0,0.05)
+                        BorderThickness: =1
+                        DropShadow: =DropShadow.None
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: |-
+                          =Max(
+                              conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
+                              conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
+                          )
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        PaddingBottom: =If(App.Width >= 1024, 30, 16)
+                        PaddingLeft: =If(App.Width >= 1024, 30, 16)
+                        PaddingRight: =If(App.Width >= 1024, 30, 16)
+                        PaddingTop: =If(App.Width >= 1024, 30, 16)
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        Width: =(Parent.Width - Parent.LayoutGap) / 2
+                      Children:
+                        - conFinanceHeader:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =If(App.Width >= 1024, 60, 40)
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =10
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              PaddingBottom: =8
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =8
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width
+                              X: =40
+                              Y: =40
+                            Children:
+                              - imgFinanceHeader:
+                                  Control: Image@2.2.3
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =If(App.Width >= 1024, 32, 24)
+                                    Image: ='Receipt--Streamline-Core'
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    Width: =If(App.Width >= 1024, 32, 24)
+                              - lblFinance:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: =RGBA(30, 30, 30, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =Self.Width
+                                    Size: =If(App.Width >= 1024, 18, 14)
+                                    Text: ="Finance Review"
+                                    Width: =If(App.Width >= 1024, 220, 180)
+                                    Wrap: =false
+                        - lblFinanceSpaceLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Open Sans'
+                              Height: =0
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              Text: =""
+                              Width: =Parent.Width
+                        - lblContactFinance:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(0, 100, 255, 1)
+                              Font: =FontWeight.Semibold
+                              Height: =40
+                              HoverColor: =RGBA(0, 50, 150, 1)
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              OnSelect: =Launch("mailto:" & varFinanceEmail)
+                              Size: =If(App.Width >= 1024, 14, 12)
+                              Text: |-
+                                ="Contact Finance: " & Char(10) & Coalesce(varFinanceEmail, "Loading...")
+                              Width: =Parent.Width
+                        - galFinanceMenu:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =0
+                              Height: =CountRows(Self.AllItems) * Self.TemplateHeight
+                              Items: =Filter(colLandingMenu, Category = "Finance", IsVisible = true)
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              TemplatePadding: =0
+                              TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
+                            Children:
+                              - btnFinance:
+                                  Control: Classic/Button@2.2.0
+                                  Properties:
+                                    Align: =Align.Left
+                                    BorderColor: =RGBA(163, 32, 53, 0.3)
+                                    BorderThickness: =1.5
+                                    Color: =RGBA(163, 32, 53, 1)
+                                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =If(App.Width >= 1024, 100, 60)
+                                    HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                                    HoverColor: =RGBA(163, 32, 53, 1)
+                                    HoverFill: =RGBA(163, 32, 53, 0.08)
+                                    OnSelect: |-
+                                      =Set(varAppMode, ThisItem.AppMode);
+                                      If(
+                                          ThisItem.AppMode in ["CashAdvance", "SalaryAdvance"], // CashAdvance와 SalaryAdvance 모두 처리
+                                          Set(varSelectedTab, 4);
+                                          Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
+
+                                          // [추가된 로직] Airfare 메뉴일 경우 Travel 화면으로 이동
+                                          ThisItem.AppMode = "AirfareAllowance",
+                                          Set(varSelectedTab, 4); 
+                                          Navigate('Travel - List Screen', ScreenTransition.Fade),
+
+                                          // 기본 Expenses 화면 이동
+                                          Set(varSelectedTab, 2);
+                                          Navigate('Expenses - List Screen', ScreenTransition.Fade)
+                                      )
+                                    PaddingLeft: =20
+                                    PressedBorderColor: =Self.Fill
+                                    PressedColor: =RGBA(255, 255, 255, 1)
+                                    PressedFill: =RGBA(163, 32, 53, 1)
+                                    RadiusBottomLeft: =12
+                                    RadiusBottomRight: =12
+                                    RadiusTopLeft: =12
+                                    RadiusTopRight: =12
+                                    Size: =If(App.Width >= 1024, 18, 14)
+                                    Text: =ThisItem.DisplayName
+                                    Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
+                                    X: =(Parent.TemplateWidth - Self.Width) / 2
+                                    Y: =(Parent.TemplateHeight - Self.Height) / 2
+                  - conHRSection:
+                      Control: GroupContainer@1.5.0
+                      Variant: AutoLayout
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Start
+                        BorderColor: =RGBA(0,0,0,0.05)
+                        BorderThickness: =1
+                        DropShadow: =DropShadow.None
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: |-
+                          =Max(
+                              conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
+                              conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
+                          )
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutDirection: =LayoutDirection.Vertical
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        PaddingBottom: =If(App.Width >= 1024, 30, 16)
+                        PaddingLeft: =If(App.Width >= 1024, 30, 16)
+                        PaddingRight: =If(App.Width >= 1024, 30, 16)
+                        PaddingTop: =If(App.Width >= 1024, 30, 16)
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        Width: =(Parent.Width - Parent.LayoutGap) / 2
+                      Children:
+                        - conHRHeader:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =If(App.Width >= 1024, 60, 40)
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =10
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              PaddingBottom: =8
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =8
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width
+                              X: =40
+                              Y: =40
+                            Children:
+                              - imgHRHeader:
+                                  Control: Image@2.2.3
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =If(App.Width >= 1024, 32, 24)
+                                    Image: ='User-Multiple-Group--Streamline-Core'
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    Width: =If(App.Width >= 1024, 32, 24)
+                              - lblHR:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: =RGBA(30, 30, 30, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =Parent.Height
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =Self.Width
+                                    Size: =If(App.Width >= 1024, 18, 14)
+                                    Text: ="HR Review"
+                                    Width: =If(App.Width >= 1024, 180, 140)
+                                    Wrap: =false
+                        - lblHRSpaceLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =1
+                              Font: =Font.'Open Sans'
+                              Height: =0
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              Text: =""
+                              Width: =Parent.Width
+                        - lblContactHR:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: =RGBA(0, 100, 255, 1)
+                              Font: =FontWeight.Semibold
+                              Height: =40
+                              HoverColor: =RGBA(0, 50, 150, 1)
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              OnSelect: =Launch("mailto:" & varHREmail)
+                              Size: =If(App.Width >= 1024, 14, 12)
+                              Text: |-
+                                ="Contact HR: " & Char(10) & Coalesce(varHREmail, "Loading...")
+                              Width: =Parent.Width
+                        - galHRMenu:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              FillPortions: =0
+                              Height: =CountRows(Self.AllItems) * Self.TemplateHeight
+                              Items: =Filter(colLandingMenu, Category = "HR", IsVisible = true)
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              TemplatePadding: =0
+                              TemplateSize: =btnFinance.Height + If(App.Width >= 1024, 30, 16)
+                            Children:
+                              - btnHR:
+                                  Control: Classic/Button@2.2.0
+                                  Properties:
+                                    Align: =Align.Left
+                                    BorderColor: =RGBA(163, 32, 53, 0.3)
+                                    BorderThickness: =1.5
+                                    Color: =RGBA(163, 32, 53, 1)
+                                    DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    Font: =Font.'Open Sans'
+                                    Height: =If(App.Width >= 1024, 100, 60)
+                                    HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                                    HoverColor: =RGBA(163, 32, 53, 1)
+                                    HoverFill: =RGBA(163, 32, 53, 0.08)
+                                    OnSelect: |-
+                                      =Set(varAppMode, ThisItem.AppMode);
+                                      If(
+                                          ThisItem.AppMode in ["CashAdvance", "SalaryAdvance"], // CashAdvance와 SalaryAdvance 모두 처리
+                                          Set(varSelectedTab, 4);
+                                          Navigate('Cash Advance - List Screen', ScreenTransition.Fade),
+
+                                          // [추가된 로직] Airfare 메뉴일 경우 Travel 화면으로 이동
+                                          ThisItem.AppMode = "AirfareAllowance",
+                                          Set(varSelectedTab, 4); 
+                                          Navigate('Travel - List Screen', ScreenTransition.Fade),
+
+                                          // 기본 Expenses 화면 이동
+                                          Set(varSelectedTab, 2);
+                                          Navigate('Expenses - List Screen', ScreenTransition.Fade)
+                                      )
+                                    PaddingLeft: =20
+                                    PressedBorderColor: =Self.Fill
+                                    PressedColor: =RGBA(255, 255, 255, 1)
+                                    PressedFill: =RGBA(163, 32, 53, 1)
+                                    RadiusBottomLeft: =12
+                                    RadiusBottomRight: =12
+                                    RadiusTopLeft: =12
+                                    RadiusTopRight: =12
+                                    Size: =If(App.Width >= 1024, 18, 14)
+                                    Text: =ThisItem.DisplayName
+                                    Width: =Parent.TemplateWidth - If(App.Width >= 1024, 80, 40)
+                                    X: =(Parent.TemplateWidth - Self.Width) / 2
+                                    Y: =(Parent.TemplateHeight - Self.Height) / 2
+            - conFooterLayout:
+                Control: GroupContainer@1.5.0
+                Variant: AutoLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Height: =lblTechSupport.Height + lblInstructionLink.Height + conVideoWrapper.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =20
+                  PaddingBottom: =8
+                  PaddingLeft: =8
+                  PaddingRight: =8
+                  PaddingTop: =8
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =conMainLayout.Width
+                  X: =conMainLayout.X
+                  Y: =40
+                Children:
+                  - lblTechSupport:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(80, 80, 80, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        OnSelect: =Launch("mailto:" & varTechEmail)
+                        Size: =If(App.Width >= 1024, 22, 16)
+                        Text: |-
+                          ="Contact for technical support: " & Coalesce(varTechEmail, "Loading...")
+                        Width: =Parent.Width
+                  - lblInstructionLink:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(0, 100, 255, 1)
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Bold
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        OnSelect: =Launch(varInstructionLink)
+                        Size: =If(App.Width >= 1024, 22, 16)
+                        Text: |-
+                          ="Instruction material:" & Char(10) & "Link to more instruction material: SharePoint folder"
+                        Underline: =true
+                        Width: =Parent.Width
+                  - conVideoWrapper:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Height: |-
+                          =Min(
+                              /* 1. 기존 너비 기반 16:9 이상적 높이 */
+                              (If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40)) * (9/16),
+                              /* 2. 화면에 남은 실제 가용 높이 (여백 포함) */
+                              Max(100, App.Height - conFooterLayout.Y - 216)
+                          )
+                        LayoutMinHeight: =Self.Height
+                        LayoutMinWidth: =Self.Width
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: |-
+                          =Min(
+                              If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40),
+                              Max(100, App.Height - conFooterLayout.Y - 216) * (16/9)
+                          )
+                      Children:
+                        - vidIntroVideo:
+                            Control: Video@2.4.2
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =RGBA(56, 96, 178, 1)
+                              Height: =Parent.Height
+                              Media: =varVideoLink
+                              Width: =Parent.Width
+                        - btnMobileVideoPlay:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =ColorFade(Self.Fill, -15%)
+                              Color: =RGBA(255, 255, 255, 1)
+                              DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                              Fill: =RGBA(0, 0, 0, 0)
+                              Font: =Font.'Open Sans'
+                              Height: =Parent.Height
+                              HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                              HoverColor: =RGBA(255, 255, 255, 1)
+                              HoverFill: =RGBA(0, 0, 0, 0.1)
+                              OnSelect: =Launch(varVideoLink & "?web=1")
+                              PressedBorderColor: =Self.Fill
+                              PressedColor: =Self.Fill
+                              PressedFill: =RGBA(0, 0, 0, 0.2)
+                              Text: =""
+                              Visible: =Host.OSType = "iOS" Or Host.OSType = "Android"
+                              Width: =Parent.Width
