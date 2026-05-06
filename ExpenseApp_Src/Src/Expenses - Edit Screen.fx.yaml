@@ -12074,12 +12074,14 @@
                         Height: =gblParams.dropDownHeight
                         HoverFill: =gblParams.dropDownHoverFill
                         InputTextPlaceholder: ="Select names of staff"
-                        IsSearchable: =false
                         Items: |-
-                            =//'Expense mobile master data (mserp)'
-                            
-                            SortByColumns(
-                                'DCSL EmployeeV2 Entity (mserp)',
+                            =SortByColumns(
+                                Filter(
+                                    'DCSL EmployeeV2 Entity (mserp)',
+                                    // 1. 고용 종료일이 비어있거나 (아직 퇴사일이 지정되지 않음)
+                                    // 2. 고용 종료일이 오늘 날짜와 같거나 미래인 경우 (진행 중인 고용)
+                                    IsBlank(mserp_employmentenddate) Or mserp_employmentenddate >= Today()
+                                ),
                                 "mserp_name",      // 정렬 기준
                                 SortOrder.Ascending
                             )
@@ -12098,8 +12100,8 @@
                                     3000 // 3초간 표시
                                 )
                             )
-                        SearchFields: =["mserp_name"]
-                        SearchItems: =Search(SortByColumns('DCSL EmployeeV2 Entity (mserp)',"mserp_name",SortOrder.Ascending),cmb_OtherStaff.SearchText,Name)
+                        SearchFields: =["mserp_primaryfield"]
+                        SearchItems: =Search(SortByColumns(Filter('DCSL EmployeeV2 Entity (mserp)',IsBlank(mserp_employmentenddate) Or mserp_employmentenddate>=Today()),"mserp_name",SortOrder.Ascending),cmb_OtherStaff.SearchText,mserp_primaryfield)
                         SelectionColor: =Color.Black
                         SelectionFill: =gblParams.dropDownBorderColor
                         Size: =20
