@@ -1232,11 +1232,11 @@
                 UpdateContext({varLoadingSpinner: true});
                 // [삭제됨] Clear(colErrorLog); -> 불필요하여 삭제
                 
-                // 4. 첨부 파일 연결 처리 (최종 교정본 - D365 Action 활용)
+                // 4. 첨부 파일 업로드 처리
                 If(
                     !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),
                     
-                    // [4-1] 기존 변수 타입 충돌 방지를 위해 변수명을 새롭게 사용하거나 명시적 변환
+                    // [4-1] JSON 페이로드 생성
                     UpdateContext({
                         locNewJsonPayload: JSON(
                             ForAll(
@@ -1255,41 +1255,20 @@
                         )
                     });
                     
-                    // [4-2] D365 Action 호출
+                    // [4-2] D365 Action 호출 (업로드만 실행)
                     UpdateContext({
                         locNewReturnedIds: 'DCSL Apps Action Entity (mserp)'.mserp_uploadmultipleattachment({
                             _jsonPayload: locNewJsonPayload
                         })
                     });
                     
-                    // [4-3] 반환된 ID가 있을 경우에만 최종 연결 액션 수행
+                    // [4-3] 반환된 ID가 있을 경우 D365 트랜잭션 커밋을 기다리기 위해 타이머 시작
                     If(
                         !IsBlank(locNewReturnedIds),
+                        UpdateContext({ varStartAttachTimer: true }), // 타이머 시작
                         
-                        // 동시성 충돌(0x80048d0b) 등 에러 발생 시 앱이 죽지 않고 자동 재시도하도록 IfError 사용
-                        IfError(
-                            'DCSL Apps Action Entity (mserp)'.mserp_linkdocureftoexpenseline({
-                                _expTransNumber: varTargetExpTransNumber,
-                                _docuRefRecId: locNewReturnedIds.return
-                            }),
-                            
-                            // [에러 발생 시 처리 로직]
-                            // F&O 트랜잭션이 완료될 수 있도록 아주 짧은 딜레이(Delay)와 서버 상태 동기화를 유발함
-                            With(
-                                { 
-                                    syncRecordDelay: LookUp(
-                                        'DCSL Expense Line Expense Moblie Entity (mserp)', 
-                                        'Expense transaction number (mserp_exptransnumber)' = varTargetExpTransNumber
-                                    ) 
-                                },
-                                
-                                // 다시 한번 액션 호출 (사용자가 '다시 시도'하는 것과 동일한 효과를 백그라운드에서 즉시 수행)
-                                'DCSL Apps Action Entity (mserp)'.mserp_linkdocureftoexpenseline({
-                                    _expTransNumber: varTargetExpTransNumber,
-                                    _docuRefRecId: locNewReturnedIds.return
-                                })
-                            )
-                        )
+                        // 업로드 자체가 실패한 경우 에러 알림
+                        Notify("Uploading the attachment failed. Please try again.", NotificationType.Error, 5000)
                     )
                 );
                 
@@ -13530,4 +13509,46 @@
                 X: =Parent.Width - Self.Width - 20
                 Y: =20
                 ZIndex: =2
+
+    tmrAttachReceiptDelay As timer:
+        Duration: =2500
+        Height: =70
+        OnTimerEnd: |-
+            =// 1. 타이머를 다시 끌 수 있도록 변수 초기화
+            UpdateContext({ varStartAttachTimer: false });
+            
+            // 2. 최종 연결 액션 수행 및 성공 여부 확인
+            UpdateContext({
+                varLinkSuccess: IfError(
+                    'DCSL Apps Action Entity (mserp)'.mserp_linkdocureftoexpenseline({
+                        _expTransNumber: varTargetExpTransNumber,
+                        _docuRefRecId: locNewReturnedIds.return
+                    });
+                    true,  // 에러 없이 성공하면 true 반환
+                    false  // 에러가 발생하면 false 반환
+                )
+            });
+            
+            // 3. 성공/실패에 따른 분기 처리
+            If(
+                varLinkSuccess,
+                
+                // [성공 시 로직]
+                // 여기서 메모리 컬렉션(colAttachedReceipts) 업데이트 및 임시 컬렉션(colPendingReceipts) 초기화
+                Clear(colPendingReceipts); 
+                Notify("The document and attachment have been saved successfully.", NotificationType.Success, 3000);
+                // TODO: 이후 화면 이동 로직 (예: Navigate('Expenses - List Screen', ...))
+                ,
+                
+                // [실패 시 로직 - 핵심 포인트]
+                // ❌ Clear(colPendingReceipts); 를 절대 실행하지 않습니다! 
+                // 임시 파일 목록을 유지하여, 사용자가 다시 'Save' 버튼을 눌렀을 때 재시도 할 수 있게 합니다.
+                Notify("The attachment connection failed due to system delay. Please press the 'Save' button again.", NotificationType.Error, 5000)
+            )
+        Start: =varStartAttachTimer
+        Visible: =false
+        Width: =280
+        X: =40
+        Y: =40
+        ZIndex: =26
 
