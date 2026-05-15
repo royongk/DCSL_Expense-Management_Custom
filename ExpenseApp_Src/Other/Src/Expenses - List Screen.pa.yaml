@@ -1017,8 +1017,9 @@ Screens:
           Properties:
             Height: =App.Height
             LegalEntity: ="Text"
-            OnLeftButtonClick: =true
-            OnRightButtonClick: ="텍스트"
+            OnLeftButtonClick: |-
+              =UpdateContext({varCntDelete: false});
+            OnRightButtonClick: "=Clear(deleteErrorsList);\r\n            \r\n// Deleting the selected reports\r\nForAll(\r\n    collSelectedExpenseIds,\r\n    IfError(\r\n        Remove(\r\n            'DCSL Expense Line Expense Moblie Entity (mserp)',\r\n            LookUp(\r\n                'DCSL Expense Line Expense Moblie Entity (mserp)',\r\n                'Expense transaction number (mserp_exptransnumber)' = collSelectedExpenseIds[@transactionId]\r\n            )\r\n        ),\r\n        Collect(\r\n            deleteErrorsList,\r\n            {\r\n                message : Last(Split(FirstError.Message, \":\")).Value\r\n            }\r\n        )\r\n    )\r\n);\r\nIf(\r\n    CountRows(deleteErrorsList) = 0,\r\n    Notify(\r\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseDeleteMessageLabel',\r\n        NotificationType.Success,\r\n        gblParams.notificationTime\r\n    ),\r\n    ForAll(\r\n        Distinct(deleteErrorsList,message),\r\n        Notify(\r\n            ThisRecord.Value,\r\n            NotificationType.Error,\r\n            gblParams.notificationTime\r\n        )\r\n    )\r\n);\r\n\r\nUpdateContext({varCntDelete: false});\r\nUpdateContext({varCntSelect: false});\r\nClear(collSelectedExpenseIds);"
             SelectedExpense: =
             SelectedList: ="Text"
             SelectedReceiptNumber: =
