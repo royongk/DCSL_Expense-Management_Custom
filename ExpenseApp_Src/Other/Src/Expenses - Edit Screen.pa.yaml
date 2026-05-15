@@ -9912,7 +9912,7 @@ Screens:
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
                               DefaultSelectedItems: "=If(\n    // [1순위] 신규 생성 모드이면서, 복사된 원본 데이터(Copy)가 존재하는 경우\n    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    \n    // 원본 문서의 CostCenter 텍스트 값을 이용하여 마스터 데이터에서 정확한 레코드를 찾아 반환합니다.\n    LookUp(\n        'DCSL HPRCostShareApproval Entity (mserp)', \n        'Dimension value' = varSelectedExpenseDoc.CostCenter // ※ 실제 필드명 확인 필요\n    ),\n    \n    // [2순위] 복사 모드가 아닌 일반 신규 작성(New)이거나 수정(Edit) 모드인 경우 (기존 로직 유지)\n    Switch(\n        varAppMode,\n        \n        // 1. Employee Benefits Claim\n        \"EmployeeBenefit\",\n        LookUp('DCSL HPRCostShareApproval Entity (mserp)', 'Dimension value' = \"6104\"),\n        \n        // 2. Airfare & Shipping Allowance Claim\n        \"AirfareAllowance\",\n        If(\n            !IsBlank(varSelectedCostCenter),\n            varSelectedCostCenter,\n            Blank()\n        ),\n        \n        // 3. 기본값 (일반적인 경우)\n        If(\n            !IsBlank(varSelectedCostCenter),\n            varSelectedCostCenter,\n            Blank()\n        )\n    )\n)"
-                              DisplayFields: =["mserp_dimensionvaluefir"]
+                              DisplayFields: =["mserp_dimensionvaluefir","mserp_description"]
                               DisplayMode: =Parent.DisplayMode
                               FocusedBorderThickness: =2
                               Font: =Font.'Open Sans'
