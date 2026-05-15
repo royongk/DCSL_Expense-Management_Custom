@@ -241,12 +241,10 @@
                     =RGBA(34, 102, 227, 1)
                 DisplayMode: |-
                     =If(
-                        CountRows(
-                            Filter(
-                                'DCSL Expense Line Expense Moblie Entity (mserp)',
-                                'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number'
-                            )
-                        ) > 0,
+                        // 1. 라인 데이터 존재 여부 확인 (화면에 임시로 추가된 컬렉션 또는 서버에 저장된 데이터)
+                        (CountRows(colAttachedExpenses) > 0 Or CountRows(Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number')) > 0)
+                        // 2. 총 금액(Total Amount)이 0 초과인지 확인
+                        And (Value(Coalesce(varSelectedReport.AmountTotal, "0")) > 0),
                         DisplayMode.Edit,
                         DisplayMode.Disabled
                     )
@@ -302,6 +300,17 @@
                         UpdateContext({varAmountValidationFailed: true});
                         Notify(
                             "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        )
+                    );
+                    
+                    // 4-1. 경비 연결 누락 및 0원 데이터 생성 방지 유효성 검사
+                    If(
+                        (CountRows(colAttachedExpenses) = 0 And CountRows(Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number')) = 0) Or Value(Coalesce(varSelectedReport.AmountTotal, "0")) <= 0,
+                        UpdateContext({varAmountValidationFailed: true});
+                        Notify(
+                            "There is no associated Expense or the total amount is W0. Please add your expense details and try again.",
                             NotificationType.Error,
                             gblParams.notificationTime
                         )
@@ -412,6 +421,13 @@
                 ZIndex: =1
 
             scr17_btn_SaveDraft_1 As button:
+                DisplayMode: |-
+                    =If(
+                        (CountRows(colAttachedExpenses) > 0 Or CountRows(Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number')) > 0)
+                        And (Value(Coalesce(varSelectedReport.AmountTotal, "0")) > 0),
+                        DisplayMode.Edit,
+                        DisplayMode.Disabled
+                    )
                 Fill: =RGBA(34, 102, 227, 1)
                 Font: =Font.'Segoe UI'
                 Height: =76
@@ -462,6 +478,17 @@
                         UpdateContext({varAmountValidationFailed: true}); // 💡 수정: 알림만 띄우고 넘어가던 것을 방지
                         Notify(
                             "The Expense Total Amount exceeds the Remaining Amount of the Travel Requisition. Please submit a claim within the remaining balance.",
+                            NotificationType.Error,
+                            gblParams.notificationTime
+                        )
+                    );
+                    
+                    // 4-1. 경비 연결 누락 및 0원 데이터 생성 방지 유효성 검사
+                    If(
+                        (CountRows(colAttachedExpenses) = 0 And CountRows(Filter('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense report number (mserp_expnumber)' = varSelectedReport.'Expense report number')) = 0) Or Value(Coalesce(varSelectedReport.AmountTotal, "0")) <= 0,
+                        UpdateContext({varAmountValidationFailed: true});
+                        Notify(
+                            "There is no associated Expense or the total amount is W0. Please add your expense details and try again.",
                             NotificationType.Error,
                             gblParams.notificationTime
                         )
