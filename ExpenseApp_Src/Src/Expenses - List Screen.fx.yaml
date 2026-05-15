@@ -533,6 +533,70 @@
                         Width: =Parent.Width
                         ZIndex: =2
 
+                Container_Attachment As groupContainer.horizontalAutoLayoutContainer:
+                    AlignInContainer: =AlignInContainer.Center
+                    FillPortions: =0
+                    Height: =Parent.Height
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGridColumnMinWidth: =0
+                    LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
+                    LayoutGridRows: =6
+                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    LayoutMode: =LayoutMode.Auto
+                    PaddingBottom: =8
+                    PaddingLeft: =8
+                    PaddingRight: =8
+                    PaddingTop: =8
+                    Width: =80
+                    ZIndex: =5
+
+                    Icon_PaperClip As icon.Attachment:
+                        Color: =RGBA(110, 110, 110, 1)
+                        Height: =25
+                        Icon: =Icon.PaperClip
+                        LayoutMaxHeight: =0
+                        LayoutMaxWidth: =0
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        Width: =25
+                        ZIndex: =1
+
+                    Label_AttachmentCount As label:
+                        FillPortions: =1
+                        FontWeight: =FontWeight.Bold
+                        Height: =35
+                        LayoutMaxHeight: =0
+                        LayoutMaxWidth: =0
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        PaddingLeft: =0
+                        Size: =16
+                        Text: |-
+                            =With(
+                                {
+                                    // 이미 완전히 연결된 첨부파일(Attached) 개수만 필터링
+                                    AttachedCount: CountRows(
+                                        Filter(
+                                            'Expense Mobile Attached Document Entity (mserp)',
+                                            'Reference record ID' = Value(ThisItem.ExpenseRecId)
+                                        )
+                                    )
+                                },
+                                // 개수가 0보다 클 때만 (숫자) 형태로 표시
+                                If(
+                                    AttachedCount > 0,
+                                    "(" & AttachedCount & ")",
+                                    "0"
+                                )
+                            )
+                        Width: =40
+                        ZIndex: =2
+
                 Container9 As groupContainer.verticalAutoLayoutContainer:
                     FillPortions: =0
                     Height: =225
@@ -549,7 +613,7 @@
                     LayoutMinWidth: =250
                     LayoutMode: =LayoutMode.Auto
                     Width: =200
-                    ZIndex: =5
+                    ZIndex: =6
 
                     Label5_1 As label:
                         Align: =Align.Center

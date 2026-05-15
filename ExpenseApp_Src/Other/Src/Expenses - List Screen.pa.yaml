@@ -516,6 +516,70 @@ Screens:
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
                                     Text: =ThisItem.'Additional information'
                                     Width: =Parent.Width
+                        - Container_Attachment:
+                            Control: GroupContainer@1.5.0
+                            Variant: AutoLayout
+                            Properties:
+                              AlignInContainer: =AlignInContainer.Center
+                              DropShadow: =DropShadow.None
+                              FillPortions: =0
+                              Height: =Parent.Height
+                              LayoutAlignItems: =LayoutAlignItems.Center
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutJustifyContent: =LayoutJustifyContent.Center
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =16
+                              PaddingBottom: =8
+                              PaddingLeft: =8
+                              PaddingRight: =8
+                              PaddingTop: =8
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =80
+                            Children:
+                              - Icon_PaperClip:
+                                  Control: Classic/Icon@2.5.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: =RGBA(110, 110, 110, 1)
+                                    Height: =25
+                                    Icon: =Icon.PaperClip
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    Width: =25
+                              - Label_AttachmentCount:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    FillPortions: =1
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =35
+                                    LayoutMinHeight: =16
+                                    LayoutMinWidth: =16
+                                    PaddingLeft: =0
+                                    Size: =16
+                                    Text: |-
+                                      =With(
+                                          {
+                                              // 이미 완전히 연결된 첨부파일(Attached) 개수만 필터링
+                                              AttachedCount: CountRows(
+                                                  Filter(
+                                                      'Expense Mobile Attached Document Entity (mserp)',
+                                                      'Reference record ID' = Value(ThisItem.ExpenseRecId)
+                                                  )
+                                              )
+                                          },
+                                          // 개수가 0보다 클 때만 (숫자) 형태로 표시
+                                          If(
+                                              AttachedCount > 0,
+                                              "(" & AttachedCount & ")",
+                                              "0"
+                                          )
+                                      )
+                                    Width: =40
                         - Container9:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
@@ -1019,7 +1083,7 @@ Screens:
             LegalEntity: ="Text"
             OnLeftButtonClick: |-
               =UpdateContext({varCntDelete: false});
-            OnRightButtonClick: "=Clear(deleteErrorsList);\r\n            \r\n// Deleting the selected reports\r\nForAll(\r\n    collSelectedExpenseIds,\r\n    IfError(\r\n        Remove(\r\n            'DCSL Expense Line Expense Moblie Entity (mserp)',\r\n            LookUp(\r\n                'DCSL Expense Line Expense Moblie Entity (mserp)',\r\n                'Expense transaction number (mserp_exptransnumber)' = collSelectedExpenseIds[@transactionId]\r\n            )\r\n        ),\r\n        Collect(\r\n            deleteErrorsList,\r\n            {\r\n                message : Last(Split(FirstError.Message, \":\")).Value\r\n            }\r\n        )\r\n    )\r\n);\r\nIf(\r\n    CountRows(deleteErrorsList) = 0,\r\n    Notify(\r\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseDeleteMessageLabel',\r\n        NotificationType.Success,\r\n        gblParams.notificationTime\r\n    ),\r\n    ForAll(\r\n        Distinct(deleteErrorsList,message),\r\n        Notify(\r\n            ThisRecord.Value,\r\n            NotificationType.Error,\r\n            gblParams.notificationTime\r\n        )\r\n    )\r\n);\r\n\r\nUpdateContext({varCntDelete: false});\r\nUpdateContext({varCntSelect: false});\r\nClear(collSelectedExpenseIds);"
+            OnRightButtonClick: "=Clear(deleteErrorsList);\n            \n// Deleting the selected reports\nForAll(\n    collSelectedExpenseIds,\n    IfError(\n        Remove(\n            'DCSL Expense Line Expense Moblie Entity (mserp)',\n            LookUp(\n                'DCSL Expense Line Expense Moblie Entity (mserp)',\n                'Expense transaction number (mserp_exptransnumber)' = collSelectedExpenseIds[@transactionId]\n            )\n        ),\n        Collect(\n            deleteErrorsList,\n            {\n                message : Last(Split(FirstError.Message, \":\")).Value\n            }\n        )\n    )\n);\nIf(\n    CountRows(deleteErrorsList) = 0,\n    Notify(\n        GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseDeleteMessageLabel',\n        NotificationType.Success,\n        gblParams.notificationTime\n    ),\n    ForAll(\n        Distinct(deleteErrorsList,message),\n        Notify(\n            ThisRecord.Value,\n            NotificationType.Error,\n            gblParams.notificationTime\n        )\n    )\n);\n\nUpdateContext({varCntDelete: false});\nUpdateContext({varCntSelect: false});\nClear(collSelectedExpenseIds);"
             SelectedExpense: =
             SelectedList: ="Text"
             SelectedReceiptNumber: =
