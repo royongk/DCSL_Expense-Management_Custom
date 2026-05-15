@@ -182,8 +182,8 @@
                 !varIsCreate && !IsBlank(varSelectedExpenseDoc.CostCenter),
                 UpdateContext({
                     varSelectedCostCenter: LookUp(
-                        'DCSL Financial Dimension CostCenter (mserp)',
-                        'Combination display' = varSelectedExpenseDoc.CostCenter
+                        'DCSL HPRCostShareApproval Entity (mserp)',
+                        'Dimension value' = varSelectedExpenseDoc.CostCenter
                     )
                 })
             );
@@ -1243,11 +1243,20 @@
                                 colPendingReceipts,
                                 {
                                     FileName: Coalesce(mserp_filename, "Receipt"),
-                                    FileExtension: Coalesce(mserp_fileextension, "jpeg"),
-                                    FileContent: If(
-                                        Find("base64,", Text(mserp_captureddocument)) > 0,
-                                        Mid(Text(mserp_captureddocument), Find("base64,", Text(mserp_captureddocument)) + 7),
-                                        Text(mserp_captureddocument)
+                                    FileExtension: Coalesce(mserp_fileextension, "jpg"), // 확장자 누락 시 대비 (PDF가 자주 쓰인다면 pdf를 기본값으로 고려 가능)
+                                    
+                                    // 👇 [핵심 수정 부분] JSON 함수를 사용하여 바이너리를 올바른 Base64 문자열로 강제 변환합니다.
+                                    FileContent: With(
+                                        {
+                                            // JSON 함수는 데이터 양 끝에 큰따옴표("")를 붙여서 반환하므로 Substitute로 제거합니다.
+                                            varBase64String: Substitute(JSON(mserp_captureddocument, JSONFormat.IncludeBinaryData), """", "")
+                                        },
+                                        // "data:application/pdf;base64,"와 같은 헤더가 포함되어 있으면 그 뒷부분의 순수 데이터만 잘라냅니다.
+                                        If(
+                                            Find("base64,", varBase64String) > 0,
+                                            Mid(varBase64String, Find("base64,", varBase64String) + 7),
+                                            varBase64String
+                                        )
                                     )
                                 }
                             ), 
@@ -5006,10 +5015,12 @@
                 Required: =false
                 Update: =VehicleTypeCombobox.Selected.Value
                 Visible: |
-                    =If(IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate  && 'Rate type' = 'Rate type (mserp)'.Mileage).'To date'),
+                    =/*If(IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate  && 'Rate type' = 'Rate type (mserp)'.Mileage).'To date'),
                     currExpenseType = 'TrvExpType (mserp)'.Mileage && !IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate && 'Rate type' = 'Rate type (mserp)'.Mileage)),
                     currExpenseType = 'TrvExpType (mserp)'.Mileage && !IsBlank(LookUp('Mileage rate tiers (mserp)', 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate && ('To date' >= DatePickerCanvas1_18.SelectedDate) && 'Rate type' = 'Rate type (mserp)'.Mileage))
                     )
+                    */
+                    false
                 Width: =Parent.Width
                 X: =0
                 Y: =vehicleTypeFieldOrder_Y
@@ -5119,11 +5130,14 @@
                 Height: =50
                 Required: =false
                 Update: =Value(DataCardValue63.Text)
-                Visible: |
-                    =If(IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate  && 'Rate type' = 'Rate type (mserp)'.Passenger).'To date'),
+                Visible: |-
+                    =/*
+                    If(IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate  && 'Rate type' = 'Rate type (mserp)'.Passenger).'To date'),
                     currExpenseType = 'TrvExpType (mserp)'.Mileage && !IsBlank(LookUp(Sort('Mileage rate tiers (mserp)','From date',SortOrder.Descending), 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate && 'Rate type' = 'Rate type (mserp)'.Passenger)),
                     currExpenseType = 'TrvExpType (mserp)'.Mileage && !IsBlank(LookUp('Mileage rate tiers (mserp)', 'Company Code' = varSelectedLegalEntity && 'From date' <=  DatePickerCanvas1_18.SelectedDate && ('To date' >= DatePickerCanvas1_18.SelectedDate) && 'Rate type' = 'Rate type (mserp)'.Passenger))
                     )
+                    */
+                    false
                 Width: =Parent.Width
                 X: =0
                 Y: =noOfPassengerFieldOrder_Y
@@ -11332,7 +11346,7 @@
                     ZIndex: =6
 
             CostCenter_DataCard As typedDataCard.allowedValuesStringEditCard:
-                AllowedValues: ='DCSL Financial Dimension CostCenter (mserp)'
+                AllowedValues: ='DCSL HPRCostShareApproval Entity (mserp)'
                 BorderColor: =gblParams.dropDownBorderColor
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_deexcostcenter"
@@ -11350,7 +11364,7 @@
                         // 그 외의 경우는 정상 표시 (이후 필요에 따라 Visible 조건을 더 추가할 수 있습니다)
                         true
                     )
-                Update: =ComboBox_CostCenter.Selected.'Combination display'
+                Update: =ComboBox_CostCenter.Selected.'Dimension value'
                 Visible: |-
                     =If(
                         // Salary Advance (가불/급여 선지급) 유형이면 Cost Center 숨김
@@ -11404,8 +11418,8 @@
                             
                             // 원본 문서의 CostCenter 텍스트 값을 이용하여 마스터 데이터에서 정확한 레코드를 찾아 반환합니다.
                             LookUp(
-                                'DCSL Financial Dimension CostCenter (mserp)', 
-                                'Combination display' = varSelectedExpenseDoc.CostCenter // ※ 실제 필드명 확인 필요
+                                'DCSL HPRCostShareApproval Entity (mserp)', 
+                                'Dimension value' = varSelectedExpenseDoc.CostCenter // ※ 실제 필드명 확인 필요
                             ),
                             
                             // [2순위] 복사 모드가 아닌 일반 신규 작성(New)이거나 수정(Edit) 모드인 경우 (기존 로직 유지)
@@ -11414,7 +11428,7 @@
                                 
                                 // 1. Employee Benefits Claim
                                 "EmployeeBenefit",
-                                LookUp('DCSL Financial Dimension CostCenter (mserp)', 'Combination display' = "6104"),
+                                LookUp('DCSL HPRCostShareApproval Entity (mserp)', 'Dimension value' = "6104"),
                                 
                                 // 2. Airfare & Shipping Allowance Claim
                                 "AirfareAllowance",
@@ -11432,7 +11446,7 @@
                                 )
                             )
                         )
-                    DisplayFields: =["mserp_dimensionvalue","mserp_description"]
+                    DisplayFields: =["mserp_dimensionvaluefir"]
                     DisplayMode: =Parent.DisplayMode
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
@@ -11440,8 +11454,8 @@
                     InputTextPlaceholder: ="Select Budget"
                     Items: |-
                         =SortByColumns(
-                            'DCSL Financial Dimension CostCenter (mserp)',
-                            "mserp_dimensionvalue",
+                            'DCSL HPRCostShareApproval Entity (mserp)',
+                            "mserp_dimensionvaluefir",
                             SortOrder.Ascending
                         )
                     NoSelectionText: ="Select Budget"
@@ -11452,8 +11466,8 @@
                                 isDirty: true
                             }
                         )
-                    SearchFields: =["mserp_dimensionvalue","mserp_description"]
-                    SearchItems: =Search(SortByColumns('DCSL Financial Dimension CostCenter (mserp)',"mserp_dimensionvalue",SortOrder.Ascending),ComboBox_CostCenter.SearchText,'Combination display',Name)
+                    SearchFields: =["mserp_dimensionvaluefir"]
+                    SearchItems: =Search(SortByColumns('DCSL HPRCostShareApproval Entity (mserp)',"mserp_dimensionvaluefir",SortOrder.Ascending),ComboBox_CostCenter.SearchText,mserp_dimensionvaluefir)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -12059,7 +12073,7 @@
                                     'DCSL EmployeeV2 Entity (mserp)',
                                     // 1. 고용 종료일이 비어있거나 (아직 퇴사일이 지정되지 않음)
                                     // 2. 고용 종료일이 오늘 날짜와 같거나 미래인 경우 (진행 중인 고용)
-                                    IsBlank(mserp_employmentenddate) Or mserp_employmentenddate >= Today()
+                                    IsBlank('Employment end date') Or 'Employment end date' >= Today()
                                 ),
                                 "mserp_name",      // 정렬 기준
                                 SortOrder.Ascending
@@ -12080,7 +12094,7 @@
                                 )
                             )
                         SearchFields: =["mserp_primaryfield"]
-                        SearchItems: =Search(SortByColumns(Filter('DCSL EmployeeV2 Entity (mserp)',IsBlank(mserp_employmentenddate) Or mserp_employmentenddate>=Today()),"mserp_name",SortOrder.Ascending),cmb_OtherStaff.SearchText,mserp_primaryfield)
+                        SearchItems: =Search(SortByColumns(Filter('DCSL EmployeeV2 Entity (mserp)',IsBlank('Employment end date') Or 'Employment end date'>=Today()),"mserp_name",SortOrder.Ascending),cmb_OtherStaff.SearchText,'Primary Field')
                         SelectionColor: =Color.Black
                         SelectionFill: =gblParams.dropDownBorderColor
                         Size: =20
