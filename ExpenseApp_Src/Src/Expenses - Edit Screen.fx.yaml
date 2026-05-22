@@ -13242,11 +13242,12 @@
                     =// 현재 사용자의 기존 Expense 목록 불러오기 (조건은 비즈니스 로직에 맞게 조정 가능)
                     SortByColumns(
                         Filter(
-                            'DCSL Expense Line Expense Moblie Entity (mserp)', 
-                            'Company (mserp_company)' = varSelectedLegalEntity &&
-                            'Expense Type' = varTargetExpenseType
+                            'DCSL Expense Line Expense Moblie Entity (mserp)',
+                            'Company (mserp_company)' = varSelectedLegalEntity && 
+                            'Expense Type' = varTargetExpenseType &&
+                            'Employee (mserp_creatingworker)' = userRecord.CreatingWorker
                         ),
-                        "mserp_transdate", 
+                        "mserp_transdate",
                         SortOrder.Descending
                     )
                 Layout: =Layout.Vertical
