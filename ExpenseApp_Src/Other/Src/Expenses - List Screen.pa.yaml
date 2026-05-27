@@ -996,13 +996,20 @@ Screens:
                   )
               );
             Width: =Max(App.Width, App.MinScreenWidth)
-            firstIcon: =If(CountRows(collSelectedExpenseIds)=0, AttachIconDisabled,AttachIconEnabled)
-            firstIconAccessibleLabel: =If(Self.firstIcon = AttachIconEnabled, "Attach to report", "Disabled attach to report")
+            firstIcon: |-
+              =//If(CountRows(collSelectedExpenseIds)=0, AttachIconDisabled,AttachIconEnabled)
+              Blank()
+            firstIconAccessibleLabel: |-
+              =//If(Self.firstIcon = AttachIconEnabled, "Attach to report", "Disabled attach to report")
+              Blank()
             firstIconAction: |-
-              =If(
+              =false
+              /*
+              If(
                   CountRows(collSelectedExpenseIds) > 0,
                   Navigate('Expenses - Select Report Screen')
               )
+              */
             homeIcon: ="텍스트"
             homeIconAccessibleLabel: ="텍스트"
             homeIconAction: =Navigate('Main Screen', ScreenTransition.Fade)
