@@ -9,7 +9,7 @@
         UpdateContext({ctLabel6 : false});
         UpdateContext({ctLabel7 : false});
         UpdateContext({ctLabel8 : false});
-        
+        UpdateContext({ctVarSubmitConfirm: false});
         UpdateContext({ctVarReportDetailsBack:false});
         UpdateContext({isExpReportDirty : false});
         If(
@@ -319,96 +319,7 @@
                     // 5. 모든 유효성 검사를 통과했을 때만 제출 로직 실행
                     If(
                         !varPurposeValidationFailed && !varAmountValidationFailed,
-                        
-                        // 5-1. 보고서 데이터 업데이트 및 제출(Submit)
-                        With(
-                            {
-                                patchedReport: IfError(
-                                    Patch(
-                                        'DCSL Expense Moblie Report (mserp)',
-                                        LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
-                                        {
-                                            Purpose: locTargetPurpose,
-                                            Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
-                                            Description: scr17_txt_Description_1.Text,
-                                            'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
-                                            'Document Status': 'Document Status (mserp)'.Submitted, // 제출 상태로 변경
-                                            'Created in Apps': 'NoYes (mserp)'.Yes,
-                                            'Delegated Worker': If(!IsEmpty(colActiveDelegations) && Value(ComboBox_Employee.Selected.WorkerID) <> Value(userRecord.CreatingWorker), Value(ComboBox_Employee.Selected.WorkerID), Blank())
-                                        }
-                                    ),
-                                    Collect(
-                                        varError, 
-                                        {
-                                            Value: Coalesce(
-                                                If(
-                                                    !IsBlank(FirstError.Details.HttpResponse) && IsMatch(FirstError.Details.HttpResponse, ".*""message"":""([^""]+)"".*"), 
-                                                    Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]+)""").FullMatch, """message"":", "")
-                                                ),
-                                                FirstError.Message,
-                                                "서버 처리 중 오류가 발생했습니다."
-                                            )
-                                        }
-                                    );
-                                    Blank()
-                                )
-                            },
-                            If(!IsBlank(patchedReport) && IsEmpty(varError), Set(varSelectedReport, patchedReport))
-                        );
-                        
-                        // 5-2. 출장 요청 헤더 연결 (💡 중복 매핑 방지 및 위임 경고 해결 로직 추가)
-                        If(
-                            !IsBlank(varSelectedTravelReq) && IsEmpty(varError),
-                            With(
-                                {
-                                    freshReportReq: LookUp(
-                                        'DCSL Expense Moblie Report (mserp)', 
-                                        'Expense report number' = varSelectedReport.'Expense report number'
-                                    )
-                                },
-                                If(
-                                    !IsBlank(freshReportReq.DEEXReferenceId),
-                                    // 💡 1차 해결: 레코드의 속성을 직접 참조하지 않고, 숫자형(Value) 변수로 먼저 변환합니다.
-                                    With(
-                                        {
-                                            valRefId: Value(freshReportReq.DEEXReferenceId)
-                                        },
-                                        // 💡 2차 해결: 변환된 원시 타입 변수(valRefId)로 조회하면 위임 경고가 사라집니다.
-                                        With(
-                                            {
-                                                existingMapping: LookUp(
-                                                    'Expense Header to Travel Requisition Entity (mserp)', 
-                                                    'Reference (mserp_trvexptable)' = valRefId
-                                                )
-                                            },
-                                            // 없을 때만 새로 연결
-                                            If(
-                                                IsBlank(existingMapping),
-                                                Patch(
-                                                    'Expense Header to Travel Requisition Entity (mserp)',
-                                                    Defaults('Expense Header to Travel Requisition Entity (mserp)'),
-                                                    {
-                                                        'Reference (mserp_trvexptable)': freshReportReq.DEEXReferenceId, // Patch에 넣을 때는 원본 그대로 사용
-                                                        'Travel requisition number': varSelectedTravelReq.'Travel requisition number'
-                                                    }
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        );
-                        
-                        // 5-3. 최종 결과 처리 및 화면 이동
-                        If(
-                            !IsEmpty(varError),
-                            // 에러가 발생한 경우
-                            Notify(First(varError).Value, NotificationType.Error, gblParams.notificationTime),
-                            
-                            // 정상 처리 시
-                            Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportSubmittedSuccessfullyLabel', NotificationType.Success, gblParams.notificationTime);
-                            Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus: 0})
-                        )
+                        UpdateContext({ctVarSubmitConfirm: true})
                     )
                 Size: =19.15
                 Text: |-
@@ -2857,4 +2768,111 @@
         Visible: =ctVarReportDetailsBack
         Y: =0
         ZIndex: =5
+
+    scr17_cmp02_SubmitDialog_1 As cmp02_ConfirmationDialog:
+        ContentLanguage: =""
+        controlName: ="scr17_cmp02_CancelDialog_1"
+        EnableChildFocus: =true
+        OnLeftButtonClick: |-
+            =UpdateContext({ctVarSubmitConfirm: false});
+        OnRightButtonClick: |-
+            =// 1. 팝업 즉시 닫기
+            UpdateContext({ctVarSubmitConfirm: false});
+            
+            // 2. 보고서 데이터 업데이트 및 제출(Submit)
+            With(
+                {
+                    patchedReport: IfError(
+                        Patch(
+                            'DCSL Expense Moblie Report (mserp)',
+                            LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                            {
+                                Purpose: locTargetPurpose,
+                                Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
+                                Description: scr17_txt_Description_1.Text,
+                                'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
+                                'Document Status': 'Document Status (mserp)'.Submitted, // 제출 상태로 변경
+                                'Created in Apps': 'NoYes (mserp)'.Yes,
+                                'Delegated Worker': If(!IsEmpty(colActiveDelegations) && Value(ComboBox_Employee.Selected.WorkerID) <> Value(userRecord.CreatingWorker), Value(ComboBox_Employee.Selected.WorkerID), Blank())
+                            }
+                        ),
+                        Collect(
+                            varError, 
+                            {
+                                Value: Coalesce(
+                                    If(
+                                        !IsBlank(FirstError.Details.HttpResponse) && IsMatch(FirstError.Details.HttpResponse, ".*""message"":""([^""]+)"".*"), 
+                                        Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]+)""").FullMatch, """message"":", "")
+                                    ),
+                                    FirstError.Message,
+                                    "서버 처리 중 오류가 발생했습니다."
+                                )
+                            }
+                        );
+                        Blank()
+                    )
+                },
+                If(!IsBlank(patchedReport) && IsEmpty(varError), Set(varSelectedReport, patchedReport))
+            );
+            
+            // 3. 출장 요청 헤더 연결 (💡 중복 매핑 방지 및 위임 경고 해결 로직)
+            If(
+                !IsBlank(varSelectedTravelReq) && IsEmpty(varError),
+                With(
+                    {
+                        freshReportReq: LookUp(
+                            'DCSL Expense Moblie Report (mserp)', 
+                            'Expense report number' = varSelectedReport.'Expense report number'
+                        )
+                    },
+                    If(
+                        !IsBlank(freshReportReq.DEEXReferenceId),
+                        With(
+                            {
+                                valRefId: Value(freshReportReq.DEEXReferenceId)
+                            },
+                            With(
+                                {
+                                    existingMapping: LookUp(
+                                        'Expense Header to Travel Requisition Entity (mserp)', 
+                                        'Reference (mserp_trvexptable)' = valRefId
+                                    )
+                                },
+                                If(
+                                    IsBlank(existingMapping),
+                                    Patch(
+                                        'Expense Header to Travel Requisition Entity (mserp)',
+                                        Defaults('Expense Header to Travel Requisition Entity (mserp)'),
+                                        {
+                                            'Reference (mserp_trvexptable)': freshReportReq.DEEXReferenceId,
+                                            'Travel requisition number': varSelectedTravelReq.'Travel requisition number'
+                                        }
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+            
+            // 4. 최종 결과 처리 및 화면 이동
+            If(
+                !IsEmpty(varError),
+                // 에러가 발생한 경우
+                Notify(First(varError).Value, NotificationType.Error, gblParams.notificationTime),
+                
+                // 정상 처리 시
+                Notify(GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportSubmittedSuccessfullyLabel', NotificationType.Success, gblParams.notificationTime);
+                Navigate('Reports - List Screen', ScreenTransition.None, {varcntSelectedStatus: 0})
+            );
+        parmInDescriptionText: ="Original documents must be submitted within 30 days. You are responsible for all submitted documents. Do you agree?"
+        parmInHeaderText: ="Submit Confirmation"
+        parmInLeftButtonColor: =RGBA(145, 145, 145, 1)
+        parmInLeftButtonText: ="No"
+        parmInRightButtonColor: =RGBA(34, 102, 227, 1)
+        parmInRightButtonText: ="Yes"
+        returnFocus: ="scr17_btn_Submit_1"
+        Visible: =ctVarSubmitConfirm
+        Y: =0
+        ZIndex: =6
 
