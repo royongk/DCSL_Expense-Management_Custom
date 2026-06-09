@@ -79,37 +79,23 @@
                 )
             );
             
-            // 2. [핵심 수정 구간] 컬렉션 처리 로직
+            // 2. [핵심 수정 구간] 컬렉션 처리 로직 (Dataverse 지연 문제 해결)
             If(
                 !IsBlank(varSelectedReceiptNumber),
-                Refresh('Expense Mobile Unattached Document Entity (mserp)');
-                With(
-                    {
-                        selectedReceipt: LookUp(
-                            'Expense Mobile Unattached Document Entity (mserp)',
-                            EntRecId = varSelectedReceiptNumber
-                        )
-                    },
-                    If(
-                        !IsBlank(selectedReceipt),
-                        
-                        // [수정됨] 신규/수정 모드 상관없이 무조건 임시 컬렉션(Pending)에 추가합니다.
-                        // Edit 화면으로 돌아갔을 때 갤러리에 즉시 표시되며, Edit 화면에서 최종 저장할 때 한꺼번에 서버와 연결(Link)됩니다.
-                        If(
-                            IsBlank(LookUp(colPendingReceipts, mserp_entrecid = selectedReceipt.EntRecId)),
-                            Collect(
-                                colPendingReceipts,
-                                {
-                                    mserp_entrecid: selectedReceipt.EntRecId,
-                                    mserp_captureddocument: selectedReceipt.CapturedDocument,
-                                    mserp_fileextension: selectedReceipt.FileExtension,
-                                    mserp_filename: Coalesce(
-                                        selectedReceipt.Description,
-                                        Concatenate("Receipt-", Text(selectedReceipt.EntRecId))
-                                    )
-                                }
+                // 서버 조회를 생략하고, 메모리에 있는 데이터를 즉시 컬렉션에 담아 유실을 방지합니다.
+                If(
+                    IsBlank(LookUp(colPendingReceipts, mserp_entrecid = varSelectedReceiptNumber)),
+                    Collect(
+                        colPendingReceipts,
+                        {
+                            mserp_entrecid: varSelectedReceiptNumber,
+                            mserp_captureddocument: varReceiptImage,
+                            mserp_fileextension: Coalesce(varExtension, varFileFormat, "png"),
+                            mserp_filename: Coalesce(
+                                varReceiptFileName, 
+                                Concatenate("Receipt-", Text(varSelectedReceiptNumber))
                             )
-                        )
+                        }
                     )
                 )
             );
