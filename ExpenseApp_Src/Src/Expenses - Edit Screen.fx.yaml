@@ -87,10 +87,29 @@
                     Coalesce(varSelectedExpenseDoc.'Expense Type', Blank())
                 )
             });
+        
+            // =========================================================================
+            // 🚀 [여기에 Step 1 추가] : Purpose가 매핑 테이블에 존재하는지 실제 검증
+            // =========================================================================
+            UpdateContext({
+                locMatchedMapping: If(
+                    varIsCreate && !IsBlank(ctxTargetPurpose),
+                    LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Item or Service' = ctxTargetPurpose),
+                    Blank()
+                )
+            });
+        
+            UpdateContext({
+                // ctxTargetPurpose 값이 존재하고, 테이블 조회 결과도 빈 값이 아닐 때만 true (잠금 및 자동 주입)
+                varForceLock: varIsCreate && !IsBlank(ctxTargetPurpose) && !IsBlank(locMatchedMapping)
+            });
+            // =========================================================================
+        
             // 1. Reports에서 넘겨받은 Purpose(ctxTargetPurpose)를 Item or Service에 자동 할당
             UpdateContext({
                 varSelectedItemOrService: If(
-                    varIsCreate && !IsBlank(ctxTargetPurpose),
+                    // 👇 [전문가 팁: 여기도 수정 필요] 기존 조건에 varForceLock을 추가합니다.
+                    varForceLock, 
                     ctxTargetPurpose,
                     Coalesce(varSelectedExpenseDoc.'Item or Service', Blank())
                 )
@@ -99,7 +118,8 @@
             // 2. 자동 할당된 Item or Service와 Expense Type을 기반으로 Purchase Category 역추적 및 매핑
             UpdateContext({
                 varSelectedPurchaseCategory: If(
-                    varIsCreate && !IsBlank(ctxTargetPurpose),
+                    // 👇 [전문가 팁: 여기도 수정 필요] 기존 조건에 varForceLock을 추가합니다.
+                    varForceLock,
                     Coalesce(
                         LookUp(
                             'DCSL Expense Category Mapping Setup Entity (mserp)',
@@ -1514,15 +1534,16 @@
                     DisplayFields: =["Value"]
                     DisplayMode: |-
                         =If(
-                            // 조건 1: Reports 화면에서 넘어와 자동 세팅된 경우 (최우선 순위 -> 비활성화)
-                            varIsCreate && !IsBlank(ctxTargetPurpose), 
+                            // 조건 1: 매핑 테이블에 데이터가 완벽히 존재하여 강제 주입된 경우 -> 잠금(View)
+                            varIsCreate && varForceLock, 
                             DisplayMode.View,
                             
-                            // 조건 2: 상위 항목인 ExpenseType이 비어있는 경우 (기존 로직 유지 -> 비활성화)
+                            // 조건 2: 상위 항목인 ExpenseType이 비어있는 경우 (기존 로직 유지) -> 비활성화(Disabled)
+                            // 이유: 상위 카테고리가 없으면 하위 카테고리 목록을 불러올 수 없으므로 클릭을 막아둠
                             IsBlank(ComboBox_ExpenseType.Selected), 
                             DisplayMode.Disabled,
                             
-                            // 조건 3: 둘 다 해당하지 않는 일반적인 경우 (기존 로직 유지 -> 부모의 모드 따름)
+                            // 조건 3: "Shipping" 등 매핑에 실패하여 직접 선택해야 하거나 일반 편집 모드 -> 활성화(Edit)
                             Parent.DisplayMode
                         )
                     FocusedBorderThickness: =2
@@ -1702,30 +1723,35 @@
                         )
                     DefaultSelectedItems: |-
                         =If(
-                            // 1. 신규 모드(Create)이면서 넘겨받은 Item or Service 값이 있는 경우
-                            varIsCreate && !IsBlank(varSelectedItemOrService),
+                            // 1. 신규 모드(Create)이면서 넘겨받은 데이터가 매핑 테이블에 존재하여 '강제 주입(varForceLock)' 상태인 경우
+                            varIsCreate && varForceLock,
                             
-                            // 2. 텍스트를 콤보박스가 인식할 수 있는 {Value: "텍스트"} 형태의 테이블로 변환
-                            Table({Value: varSelectedItemOrService}),
+                            // 2. 이전 화면에서 넘어온 텍스트(ctxTargetPurpose)를 콤보박스가 인식할 수 있는 테이블 형태로 변환하여 강제 할당
+                            Table({Value: ctxTargetPurpose}),
                             
-                            // 3. 기존 편집 모드(Edit)일 경우의 기본 동작 (기존 값이 있는 경우)
+                            // 3. 매핑 테이블에 없거나("Shipping" 등), 기존 편집 모드(Edit)일 경우의 기본 동작
                             If(
                                 !IsBlank(varSelectedExpenseDoc.'Item or Service'), 
                                 Table({Value: varSelectedExpenseDoc.'Item or Service'})
+                                // 💡 핵심: 신규 생성이면서 varForceLock이 false("Shipping")인 경우,
+                                // varSelectedExpenseDoc도 비어있으므로 결과적으로 아무 값도 세팅되지 않음(Blank).
+                                // 따라서 사용자가 콤보박스를 눌러 직접 선택할 수 있는 빈칸 상태가 됩니다!
                             )
                         )
                     DisplayFields: =["Value"]
                     DisplayMode: |-
                         =If(
-                            // 1순위: 자동 입력 조건 (Reports 화면에서 목적이 전달된 경우) -> 무조건 비활성화
-                            varIsCreate && !IsBlank(ctxTargetPurpose), 
+                            // 1순위: 매핑 테이블에 데이터가 완벽히 존재하여 강제 주입된 경우 -> 무조건 비활성화(View)
+                            varIsCreate && varForceLock, 
                             DisplayMode.View,
                             
-                            // 2순위: 기존 방어 로직 (상위 항목들이 선택되지 않은 경우) -> 비활성화
-                            IsBlank(ComboBox_ExpenseType.Selected) || IsBlank(ComboBox_PurchaseCategory.Selected), 
+                            // 2순위: 최상위 항목(Expense Type)이 비어있어 아직 선택할 단계가 아닌 경우 -> 비활성화(Disabled)
+                            // 💡 [전문가 수정]: Purchase Category는 Item or Service 선택 후 채워져야 하므로, 
+                            // IsBlank(ComboBox_PurchaseCategory.Selected) 조건은 여기서 삭제하는 것이 안전합니다.
+                            IsBlank(ComboBox_ExpenseType.Selected), 
                             DisplayMode.Disabled,
                             
-                            // 3순위: 위 조건들에 해당하지 않는 일반적인 경우 -> 부모 설정(Edit/View)을 따름
+                            // 3순위: 위 조건에 해당하지 않는 경우 (예: "Shipping" 매핑 실패 또는 일반 편집 모드) -> 활성화
                             Parent.DisplayMode
                         )
                     FocusedBorderThickness: =2
