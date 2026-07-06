@@ -710,7 +710,7 @@
         // 에러 로그 컬렉션 스키마 초기화
         //Clear(colErrorLog);
         // 로직 수행 후 플래그는 항상 초기화 (다음에 다시 들어올 때를 위해)
-        UpdateContext({ varIsAddingReceipt: false });
+        //UpdateContext({ varIsAddingReceipt: false });
 
     scr03_ico_Back_4 As icon.ChevronLeft:
         Color: =icongconfig_backbutton.Color
@@ -818,6 +818,7 @@
     scr03_lbl_AddReceipt_1 As label:
         Align: =Align.Center
         Color: =RGBA(34, 102, 227, 1)
+        DisplayMode: =If(varLoadingSpinner, DisplayMode.Disabled, DisplayMode.Edit)
         Font: =Font.'Segoe UI'
         FontWeight: =FontWeight.Semibold
         Height: =Parent.Height / 4
@@ -1035,6 +1036,7 @@
     scr03_btn_AddReceipt_Always As button:
         BorderColor: =RGBA(34, 102, 227, 1)
         Color: =RGBA(34, 102, 227, 1)
+        DisplayMode: =If(varLoadingSpinner, DisplayMode.Disabled, DisplayMode.Edit)
         Fill: =Color.White
         Height: =50
         HoverFill: =RGBA(204, 222, 255, 1)
@@ -11339,7 +11341,7 @@
                             }
                         )
                     SearchFields: =["mserp_dimensionvaluefir"]
-                    SearchItems: =Search(SortByColumns('DCSL HPRCostShareApproval Entity (mserp)',"mserp_dimensionvaluefir",SortOrder.Ascending),ComboBox_CostCenter.SearchText,mserp_dimensionvaluefir)
+                    SearchItems: =Search(SortByColumns('DCSL HPRCostShareApproval Entity (mserp)',"mserp_dimensionvaluefir",SortOrder.Ascending),ComboBox_CostCenter.SearchText,'Dimension value')
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)

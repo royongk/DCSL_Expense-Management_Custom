@@ -361,7 +361,20 @@ Screens:
               );
 
 
-              Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : Blank(),varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation, varRemainingAmount: 0, locCategoryChange: false, locItemizeButtonVisibilityFlag: false});
+              // [수정 후]
+              Navigate(
+                  'Expenses - Edit Screen', 
+                  ScreenTransition.None, 
+                  {
+                      varNavigatedFrom : Blank(),
+                      varMaxViolationLevel : varMaxViolationLevel, 
+                      varNumViolation: varNumViolation, 
+                      varRemainingAmount: 0, 
+                      locCategoryChange: false, 
+                      locItemizeButtonVisibilityFlag: false,
+                      varIsAddingReceipt: false 
+                  }
+              );
 
               // Adding a warning if FnO default user language is not equal to the user's device language
               If(
@@ -785,10 +798,14 @@ Screens:
               Clear(colPendingReceipts);
               ResetForm(EditExpenseForm);
               // 기존 캡처 화면 대신 Edit Screen으로 즉시 이동하며 초기화 컨텍스트 전달
+              // [수정 후]
               Navigate(
                   'Expenses - Edit Screen', 
                   ScreenTransition.Fade, 
-                  { locItemizeButtonVisibilityFlag: false }
+                  { 
+                      locItemizeButtonVisibilityFlag: false,
+                      varIsAddingReceipt: false
+                  }
               )
             TabIndex: =0
             Visible: =!varCntSelect
