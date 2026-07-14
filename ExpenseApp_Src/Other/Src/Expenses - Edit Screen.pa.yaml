@@ -140,7 +140,9 @@ Screens:
                   }
               )
             TabIndex: =0
-            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
+            Text: |-
+              =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
+              "Add Boarding pass, Itinerary, Receipt"
             Visible: '=IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage) '
             Width: |
               =Parent.Width -  Self.X*2
@@ -371,7 +373,9 @@ Screens:
             RadiusTopLeft: =8
             RadiusTopRight: =8
             Size: =18
-            Text: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
+            Text: |-
+              =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
+              "Add Boarding pass, Itinerary, Receipt"
             Visible: =!IsEmpty(colAttachedReceipts) || !IsEmpty(colPendingReceipts)
             Width: =Parent.Width - 48
             X: =24
@@ -7547,7 +7551,7 @@ Screens:
                                   Control: Classic/DropDown@2.3.1
                                   Properties:
                                     AllowEmptySelection: =true
-                                    BorderColor: "=If(\r\n    !IsBlank('Purchase Date_DataCard1_3'.Error), \r\n    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우\r\n\r\n    'Purchase Date_DataCard1_3'.Visible && 'Purchase Date_DataCard1_3'.Required && IsBlank(drpPurchaseMonth.Selected.Value), \r\n    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우\r\n    \r\n    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)\r\n)"
+                                    BorderColor: "=If(\n    !IsBlank('Purchase Date_DataCard1_3'.Error), \n    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우\n\n    'Purchase Date_DataCard1_3'.Visible && 'Purchase Date_DataCard1_3'.Required && IsBlank(drpPurchaseMonth.Selected.Value), \n    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우\n    \n    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)\n)"
                                     BorderThickness: |-
                                       =If(
                                           !IsBlank('Purchase Date_DataCard1_3'.Error) || ('Purchase Date_DataCard1_3'.Visible && 'Purchase Date_DataCard1_3'.Required && IsBlank('Purchase Date_DataCard1_3'.Update)), 
@@ -7581,7 +7585,7 @@ Screens:
                                   Control: Classic/DropDown@2.3.1
                                   Properties:
                                     AllowEmptySelection: =true
-                                    BorderColor: "=If(\r\n    !IsBlank('Purchase Date_DataCard1_3'.Error), \r\n    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우\r\n\r\n    'Purchase Date_DataCard1_3'.Visible && 'Purchase Date_DataCard1_3'.Required && IsBlank(drpPurchaseDay.Selected.Value), \r\n    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우\r\n    \r\n    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)\r\n)"
+                                    BorderColor: "=If(\n    !IsBlank('Purchase Date_DataCard1_3'.Error), \n    Color.Red,  // 조건 1: 저장 시도 후 시스템/유효성 검사 에러가 발생한 경우\n\n    'Purchase Date_DataCard1_3'.Visible && 'Purchase Date_DataCard1_3'.Required && IsBlank(drpPurchaseDay.Selected.Value), \n    Color.Red,  // 조건 2: 화면에 보이고 필수 항목인데 아직 값을 입력하지 않은 경우\n    \n    RGBA(166, 166, 166, 1) // 기본값: 위 두 조건에 모두 해당하지 않는 경우 (정상 상태)\n)"
                                     BorderThickness: |-
                                       =If(
                                           !IsBlank('Purchase Date_DataCard1_3'.Error) || ('Purchase Date_DataCard1_3'.Visible && 'Purchase Date_DataCard1_3'.Required && IsBlank('Purchase Date_DataCard1_3'.Update)), 
