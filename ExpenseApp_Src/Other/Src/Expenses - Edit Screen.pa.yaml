@@ -412,7 +412,7 @@ Screens:
             Fill: =icongconfig_backbutton.Fill
             Height: =icongconfig_backbutton.Height
             Icon: =Icon.ChevronLeft
-            OnSelect: "=If(\n    varExpenseButtonClicked,\n    UpdateContext({varCntSelect: false});\n    Navigate('Expenses - List Screen'),\n    If(\n        varIsCreate || isDirty,\n        UpdateContext({ctVarExpenseDetailsBack: true}),\n        Select(scr03_ico_Back_4)\n    );\n    \n);\nUpdateContext({dirtyTransAmount: Blank()});\nUpdateContext({varSalesTaxAmount: Blank()});\nUpdateContext({ctxTargetPurpose: Blank()}); // \U0001F447 [신규 추가] 화면을 벗어날 때 초기화\nSet(\n    gblNavigationDrawerVisibility,\n    false\n);"
+            OnSelect: "=If(\n    varExpenseButtonClicked,\n    UpdateContext({varCntSelect: false});\n    Navigate('Expenses - List Screen'),\n    If(\n        varIsCreate || isDirty,\n        UpdateContext({ctVarExpenseDetailsBack: true}),\n        Select(scr03_ico_Back_4)\n    );\n    \n);\nUpdateContext({dirtyTransAmount: Blank()});\nUpdateContext({varSalesTaxAmount: Blank()});\nUpdateContext({ctxTargetPurpose: Blank()}); // \U0001F447 [신규 추가] 화면을 벗어날 때 초기화\nSet(varIsCopyMode, false);\nSet(\n    gblNavigationDrawerVisibility,\n    false\n);"
             TabIndex: =0
             Width: =icongconfig_backbutton.Width
             X: =22.5
@@ -540,7 +540,7 @@ Screens:
                         )
                     );
                     UpdateContext({msCallStartedForSalestaxCalculation: false});
-                  OnSuccess: "=// [신규 추가] 폼 제출 완료 직후의 생성 상태를 보존 (중간에 varIsCreate가 false로 바뀌는 버그 방지)\nUpdateContext({locWasCreate: varIsCreate});\n\n// 1. 새로 생성된 경비 번호(ExpTransNumber) 확보\nSet(\n    varTargetExpTransNumber,\n    Self.LastSubmit.'Expense transaction number (mserp_exptransnumber)'\n);\n\n// 2. RecId 확보\nUpdateContext({varSubmittedExpRecId: Self.LastSubmit.ExpenseRecId});\n\n// [수정됨] F&O 엔터티에 대한 무거운 Refresh() 호출 제거\nIf(\n    IsBlank(varSubmittedExpRecId) || varSubmittedExpRecId = 0,\n    UpdateContext({\n        varSubmittedExpRecId: LookUp(\n            'DCSL Expense Line Expense Moblie Entity (mserp)', \n            'Expense transaction number (mserp_exptransnumber)' = varTargetExpTransNumber\n        ).ExpenseRecId\n    })\n);\n\n// 3. 진행 표시 시작\nUpdateContext({varLoadingSpinner: true});\n\n// 4. 첨부 파일 업로드 처리\nIf(\n    !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),\n    \n    // [4-1] JSON 페이로드 생성\n    UpdateContext({\n        locNewJsonPayload: JSON(\n            ForAll(\n                colPendingReceipts,\n                {\n                    FileName: Coalesce(mserp_filename, \"Receipt\"),\n                    FileExtension: Coalesce(mserp_fileextension, \"jpg\"), \n                    \n                    FileContent: With(\n                        {\n                            varBase64String: Substitute(JSON(mserp_captureddocument, JSONFormat.IncludeBinaryData), \"\"\"\", \"\")\n                        },\n                        If(\n                            Find(\"base64,\", varBase64String) > 0,\n                            Mid(varBase64String, Find(\"base64,\", varBase64String) + 7),\n                            varBase64String\n                        )\n                    )\n                }\n            ), \n            JSONFormat.IgnoreUnsupportedTypes\n        )\n    });\n    \n    // [4-2] D365 Action 호출 (업로드만 실행)\n    UpdateContext({\n        locNewReturnedIds: 'DCSL Apps Action Entity (mserp)'.mserp_uploadmultipleattachment({\n            _jsonPayload: locNewJsonPayload\n        })\n    });\n    \n    // [4-3] 반환된 ID가 있을 경우 D365 트랜잭션 커밋을 기다리기 위해 타이머 시작\n    If(\n        !IsBlank(locNewReturnedIds),\n        UpdateContext({ varStartAttachTimer: true }), // 타이머 시작\n        \n        // 업로드 자체가 실패한 경우 에러 알림 및 스피너 닫기\n        UpdateContext({varLoadingSpinner: false});\n        Notify(\"Uploading the attachment failed. Please try again.\", NotificationType.Error, 5000)\n    )\n);\n\n// \U0001F4A1 [핵심 수정 분기점]\n// 케이스 A: 처리할 첨부 파일이 없다면 곧바로 공통 마무리 로직 버튼(btn_ExecutePostSubmit)을 호출하여 화면을 이동시킵니다.\n// 케이스 B: 첨부 파일이 있다면 여기서 식을 끝내고, 화면 이동 없이 타이머(tmrAttachReceiptDelay)가 끝나기를 차분히 기다립니다.\nIf(\n    IsEmpty(colPendingReceipts),\n    Select(btn_ExecutePostSubmit)\n)"
+                  OnSuccess: "=// [신규 추가] 폼 제출 완료 직후의 생성 상태를 보존 (중간에 varIsCreate가 false로 바뀌는 버그 방지)\nUpdateContext({locWasCreate: varIsCreate});\n\n// 1. 새로 생성된 경비 번호(ExpTransNumber) 확보\nSet(\n    varTargetExpTransNumber,\n    Self.LastSubmit.'Expense transaction number (mserp_exptransnumber)'\n);\n\n// 2. RecId 확보\nUpdateContext({varSubmittedExpRecId: Self.LastSubmit.ExpenseRecId});\n\n// [수정됨] F&O 엔터티에 대한 무거운 Refresh() 호출 제거\nIf(\n    IsBlank(varSubmittedExpRecId) || varSubmittedExpRecId = 0,\n    UpdateContext({\n        varSubmittedExpRecId: LookUp(\n            'DCSL Expense Line Expense Moblie Entity (mserp)', \n            'Expense transaction number (mserp_exptransnumber)' = varTargetExpTransNumber\n        ).ExpenseRecId\n    })\n);\n\n// 3. 진행 표시 시작\nUpdateContext({varLoadingSpinner: true});\n\n// 4. 첨부 파일 업로드 처리\nIf(\n    !IsEmpty(colPendingReceipts) && !IsBlank(varTargetExpTransNumber),\n    \n    // [4-1] JSON 페이로드 생성\n    UpdateContext({\n        locNewJsonPayload: JSON(\n            ForAll(\n                colPendingReceipts,\n                {\n                    FileName: Coalesce(mserp_filename, \"Receipt\"),\n                    FileExtension: Coalesce(mserp_fileextension, \"jpg\"), \n                    \n                    FileContent: With(\n                        {\n                            varBase64String: Substitute(JSON(mserp_captureddocument, JSONFormat.IncludeBinaryData), \"\"\"\", \"\")\n                        },\n                        If(\n                            Find(\"base64,\", varBase64String) > 0,\n                            Mid(varBase64String, Find(\"base64,\", varBase64String) + 7),\n                            varBase64String\n                        )\n                    )\n                }\n            ), \n            JSONFormat.IgnoreUnsupportedTypes\n        )\n    });\n    \n    // [4-2] D365 Action 호출 (업로드만 실행)\n    UpdateContext({\n        locNewReturnedIds: 'DCSL Apps Action Entity (mserp)'.mserp_uploadmultipleattachment({\n            _jsonPayload: locNewJsonPayload\n        })\n    });\n    \n    // [4-3] 반환된 ID가 있을 경우 D365 트랜잭션 커밋을 기다리기 위해 타이머 시작\n    If(\n        !IsBlank(locNewReturnedIds),\n        UpdateContext({ varStartAttachTimer: true }), // 타이머 시작\n        \n        // 업로드 자체가 실패한 경우 에러 알림 및 스피너 닫기\n        UpdateContext({varLoadingSpinner: false});\n        Notify(\"Uploading the attachment failed. Please try again.\", NotificationType.Error, 5000)\n    )\n);\n\nSet(varIsCopyMode, false);\n\n// \U0001F4A1 [핵심 수정 분기점]\n// 케이스 A: 처리할 첨부 파일이 없다면 곧바로 공통 마무리 로직 버튼(btn_ExecutePostSubmit)을 호출하여 화면을 이동시킵니다.\n// 케이스 B: 첨부 파일이 있다면 여기서 식을 끝내고, 화면 이동 없이 타이머(tmrAttachReceiptDelay)가 끝나기를 차분히 기다립니다.\nIf(\n    IsEmpty(colPendingReceipts),\n    Select(btn_ExecutePostSubmit)\n)"
                   SnapToColumns: =false
                   Width: =Parent.Width
                   Y: =scr03_img_NoReceiptOuter_1.Y + scr03_img_NoReceiptOuter_1.Height + 30
@@ -7538,14 +7538,19 @@ Screens:
                                     ChevronHoverFill: =RGBA(255, 255, 255, 1)
                                     Default: |-
                                       =If(
-                                          varIsCreate, 
-                                          Text(Year(Today())), 
-                                          Text(Year('Purchase Date_DataCard1_3'.Default))
+                                          varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
+                                          Text(Year(varSelectedExpenseDoc.'Purchase Date')),
+                                          Text(Year(Today()))
                                       )
                                     FillPortions: =1.5
                                     Font: =Font.'Open Sans'
                                     HoverFill: =RGBA(186, 202, 226, 1)
-                                    Items: =ForAll(Sequence(11, Year(Today()) - 5), Text(Value))
+                                    Items: |-
+                                      =[
+                                          Text(Year(Today()) - 1), 
+                                          Text(Year(Today())), 
+                                          Text(Year(Today()) + 1)
+                                      ]
                                     Items.Value: =Value
                                     LayoutMinWidth: =90
                                     PressedColor: =RGBA(255, 255, 255, 1)
@@ -7572,9 +7577,9 @@ Screens:
                                     ChevronHoverFill: =RGBA(255, 255, 255, 1)
                                     Default: |-
                                       =If(
-                                          varIsCreate, 
-                                          Blank(), 
-                                          Text(Month('Purchase Date_DataCard1_3'.Default), "00")
+                                          varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
+                                          Text(Month(varSelectedExpenseDoc.'Purchase Date'), "00"),
+                                          Blank()
                                       )
                                     FillPortions: =1
                                     Font: =Font.'Open Sans'
@@ -7606,9 +7611,9 @@ Screens:
                                     ChevronHoverFill: =RGBA(255, 255, 255, 1)
                                     Default: |-
                                       =If(
-                                          varIsCreate, 
-                                          Blank(), 
-                                          Text(Day('Purchase Date_DataCard1_3'.Default), "00")
+                                          varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
+                                          Text(Day(varSelectedExpenseDoc.'Purchase Date'), "00"),
+                                          Blank()
                                       )
                                     FillPortions: =1
                                     Font: =Font.'Open Sans'
@@ -10299,18 +10304,14 @@ Screens:
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: |-
-                                =If(
-                                    !IsBlank(varSelectedExpenseDoc.Project) && !IsBlank(varSelectedLegalEntity),
-                                    LookUp(
-                                        'DCSL ProjectTypeProjectValue Entity (mserp)',
-                                        Project = varSelectedExpenseDoc.Project &&
-                                        'Company Code' = Lower(varSelectedLegalEntity)
-                                    ),
-                                    Blank()
-                                )
+                              DefaultSelectedItems: "=If(\n    // 1. 복사 모드이면서 원본 데이터에 Project 정보가 있는 경우 (※ 필드명은 실제 원본 데이터에 맞게 조정: 예: 'Project code')\n    varIsCopyMode && !IsBlank(varSelectedExpenseDoc.Project),\n    \n    // 2. With 함수로 Items와 동일한 원본 가상 엔터티에서 해당 프로젝트 레코드를 1건 찾음\n    With(\n        {\n            matchedProj: LookUp(\n                'DCSL ProjectTypeProjectValue Entity (mserp)',\n                mserp_projectvalue = varSelectedExpenseDoc.Project && // 원본 식별자와 매핑\n                'Company Code' = Lower(varSelectedLegalEntity)\n            )\n        },\n        If(\n            !IsBlank(matchedProj),\n            // 3. \U0001F680 핵심: Items 속성의 AddColumns 결과와 완벽하게 동일한 구조의 테이블 생성\n            Table(\n                {\n                    mserp_projectvalue: matchedProj.mserp_projectvalue,\n                    mserp_projectname: matchedProj.mserp_projectname,\n                    DisplayName: matchedProj.mserp_projectvalue & \" - \" & matchedProj.mserp_projectname\n                }\n            ),\n            Blank()\n        )\n    ),\n    \n    // 4. 복사 모드가 아닐 경우의 기존 로직\n    Blank()\n)"
                               DisplayFields: =["DisplayName"]
-                              DisplayMode: =Parent.DisplayMode
+                              DisplayMode: |-
+                                =If(
+                                    varIsCopyMode, 
+                                    DisplayMode.Edit,       // 복사 모드일 때는 강제로 활성화(편집 가능)
+                                    Parent.DisplayMode      // 그 외의 경우는 기존처럼 폼의 모드를 따라감
+                                )
                               FocusedBorderThickness: =2
                               Font: =Font.'Open Sans'
                               Height: =gblParams.dropDownHeight
@@ -10507,7 +10508,7 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_deexbeneficiary"
-                        Default: "=If(\n    // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용\n    varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),\n    varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.\n    \n    // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지\n    ThisItem.'Expense Beneficiary'\n)"
+                        Default: "=If(\n    // 1순위: 복사 모드일 경우 원본 레코드의 JSON 문자열 데이터를 그대로 가져옴\n    varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Expense Beneficiary'),\n    varSelectedExpenseDoc.'Expense Beneficiary', \n    \n    // 2순위: 일반 수정(Edit) 모드이거나 순수 신규(Create) 작성인 경우\n    ThisItem.'Expense Beneficiary'\n)"
                         DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Expense Beneficiary')
                         Height: =ErrorMessage24.Y + ErrorMessage24.Height + 5
                         Required: =false
@@ -11640,6 +11641,7 @@ Screens:
                         OnSelect: |-
                           =// 1. 선택한 기존 Expense 레코드를 폼의 Item으로 사용될 변수에 할당
                           Set(varSelectedExpenseDoc, ThisItem);
+                          Set(varIsCopyMode, true); // 🚀 [신규 추가] 복사 모드 플래그 활성화
 
                           // 2. 3단계 카테고리 및 주요 필드 화면 업데이트용 변수 강제 매핑
                           UpdateContext({
@@ -11647,7 +11649,16 @@ Screens:
                               varSelectedPurchaseCategory: ThisItem.'Purchase Category',
                               varSelectedItemOrService: ThisItem.'Item or Service',
                               curCategory: ThisItem.'Expense category (mserp_costtype)',
-                              dirtyTransAmount: Text(ThisItem.'Transaction amount')
+                              dirtyTransAmount: Text(ThisItem.'Transaction amount'),
+
+                              // 👇 [신규 추가] Project 콤보박스의 Items 필터링에 필수적인 변수를 매핑 테이블에서 역추적하여 초기화
+                              varSelectedProjectType: LookUp(
+                                  'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                  'Expense Type' = ThisItem.'Expense Type' &&
+                                  'Purchase Category' = ThisItem.'Purchase Category' &&
+                                  'Item or Service' = ThisItem.'Item or Service',
+                                  'Project Type'
+                              )
                           });
 
                           // 3. 영수증 등 새 항목에 불필요한 기존 데이터 초기화 (컴플라이언스 방지용)

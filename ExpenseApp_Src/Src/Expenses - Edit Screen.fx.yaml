@@ -1108,6 +1108,7 @@
             UpdateContext({dirtyTransAmount: Blank()});
             UpdateContext({varSalesTaxAmount: Blank()});
             UpdateContext({ctxTargetPurpose: Blank()}); // 👇 [신규 추가] 화면을 벗어날 때 초기화
+            Set(varIsCopyMode, false);
             Set(
                 gblNavigationDrawerVisibility,
                 false
@@ -1308,6 +1309,8 @@
                         Notify("Uploading the attachment failed. Please try again.", NotificationType.Error, 5000)
                     )
                 );
+                
+                Set(varIsCopyMode, false);
                 
                 // 💡 [핵심 수정 분기점]
                 // 케이스 A: 처리할 첨부 파일이 없다면 곧바로 공통 마무리 로직 버튼(btn_ExecutePostSubmit)을 호출하여 화면을 이동시킵니다.
@@ -8894,13 +8897,18 @@
                             )
                         Default: |-
                             =If(
-                                varIsCreate, 
-                                Text(Year(Today())), 
-                                Text(Year('Purchase Date_DataCard1_3'.Default))
+                                varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
+                                Text(Year(varSelectedExpenseDoc.'Purchase Date')),
+                                Text(Year(Today()))
                             )
                         FillPortions: =1.5
                         Height: =70
-                        Items: =ForAll(Sequence(11, Year(Today()) - 5), Text(Value))
+                        Items: |-
+                            =[
+                                Text(Year(Today()) - 1), 
+                                Text(Year(Today())), 
+                                Text(Year(Today()) + 1)
+                            ]
                         LayoutMaxHeight: =0
                         LayoutMaxWidth: =0
                         LayoutMinHeight: =70
@@ -8931,9 +8939,9 @@
                             )
                         Default: |-
                             =If(
-                                varIsCreate, 
-                                Blank(), 
-                                Text(Month('Purchase Date_DataCard1_3'.Default), "00")
+                                varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
+                                Text(Month(varSelectedExpenseDoc.'Purchase Date'), "00"),
+                                Blank()
                             )
                         FillPortions: =1
                         Height: =70
@@ -8968,9 +8976,9 @@
                             )
                         Default: |-
                             =If(
-                                varIsCreate, 
-                                Blank(), 
-                                Text(Day('Purchase Date_DataCard1_3'.Default), "00")
+                                varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
+                                Text(Day(varSelectedExpenseDoc.'Purchase Date'), "00"),
+                                Blank()
                             )
                         FillPortions: =1
                         Height: =70
@@ -11723,16 +11731,42 @@
                         )
                     DefaultSelectedItems: |-
                         =If(
-                            !IsBlank(varSelectedExpenseDoc.Project) && !IsBlank(varSelectedLegalEntity),
-                            LookUp(
-                                'DCSL ProjectTypeProjectValue Entity (mserp)',
-                                Project = varSelectedExpenseDoc.Project &&
-                                'Company Code' = Lower(varSelectedLegalEntity)
+                            // 1. 복사 모드이면서 원본 데이터에 Project 정보가 있는 경우 (※ 필드명은 실제 원본 데이터에 맞게 조정: 예: 'Project code')
+                            varIsCopyMode && !IsBlank(varSelectedExpenseDoc.Project),
+                            
+                            // 2. With 함수로 Items와 동일한 원본 가상 엔터티에서 해당 프로젝트 레코드를 1건 찾음
+                            With(
+                                {
+                                    matchedProj: LookUp(
+                                        'DCSL ProjectTypeProjectValue Entity (mserp)',
+                                        mserp_projectvalue = varSelectedExpenseDoc.Project && // 원본 식별자와 매핑
+                                        'Company Code' = Lower(varSelectedLegalEntity)
+                                    )
+                                },
+                                If(
+                                    !IsBlank(matchedProj),
+                                    // 3. 🚀 핵심: Items 속성의 AddColumns 결과와 완벽하게 동일한 구조의 테이블 생성
+                                    Table(
+                                        {
+                                            mserp_projectvalue: matchedProj.mserp_projectvalue,
+                                            mserp_projectname: matchedProj.mserp_projectname,
+                                            DisplayName: matchedProj.mserp_projectvalue & " - " & matchedProj.mserp_projectname
+                                        }
+                                    ),
+                                    Blank()
+                                )
                             ),
+                            
+                            // 4. 복사 모드가 아닐 경우의 기존 로직
                             Blank()
                         )
                     DisplayFields: =["DisplayName"]
-                    DisplayMode: =Parent.DisplayMode
+                    DisplayMode: |-
+                        =If(
+                            varIsCopyMode, 
+                            DisplayMode.Edit,       // 복사 모드일 때는 강제로 활성화(편집 가능)
+                            Parent.DisplayMode      // 그 외의 경우는 기존처럼 폼의 모드를 따라감
+                        )
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
                     HoverFill: =gblParams.dropDownHoverFill
@@ -11909,11 +11943,11 @@
                 DataField: ="mserp_deexbeneficiary"
                 Default: |-
                     =If(
-                        // 1순위: 신규 생성 모드이면서 복사된 원본 레코드가 있는 경우 -> 원본의 JSON 데이터 사용
-                        varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-                        varSelectedExpenseDoc.'Expense Beneficiary', // ※ 실제 Dataverse/F&O 필드명에 맞게 선택하세요.
+                        // 1순위: 복사 모드일 경우 원본 레코드의 JSON 문자열 데이터를 그대로 가져옴
+                        varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Expense Beneficiary'),
+                        varSelectedExpenseDoc.'Expense Beneficiary', 
                         
-                        // 2순위: 그 외의 경우 (수정 모드 또는 일반 신규 생성) -> 기존 로직 유지
+                        // 2순위: 일반 수정(Edit) 모드이거나 순수 신규(Create) 작성인 경우
                         ThisItem.'Expense Beneficiary'
                     )
                 DisplayMode: =Parent.DisplayMode
@@ -13434,6 +13468,7 @@
                 OnSelect: |-
                     =// 1. 선택한 기존 Expense 레코드를 폼의 Item으로 사용될 변수에 할당
                     Set(varSelectedExpenseDoc, ThisItem);
+                    Set(varIsCopyMode, true); // 🚀 [신규 추가] 복사 모드 플래그 활성화
                     
                     // 2. 3단계 카테고리 및 주요 필드 화면 업데이트용 변수 강제 매핑
                     UpdateContext({
@@ -13441,7 +13476,16 @@
                         varSelectedPurchaseCategory: ThisItem.'Purchase Category',
                         varSelectedItemOrService: ThisItem.'Item or Service',
                         curCategory: ThisItem.'Expense category (mserp_costtype)',
-                        dirtyTransAmount: Text(ThisItem.'Transaction amount')
+                        dirtyTransAmount: Text(ThisItem.'Transaction amount'),
+                    
+                        // 👇 [신규 추가] Project 콤보박스의 Items 필터링에 필수적인 변수를 매핑 테이블에서 역추적하여 초기화
+                        varSelectedProjectType: LookUp(
+                            'DCSL Expense Category Mapping Setup Entity (mserp)',
+                            'Expense Type' = ThisItem.'Expense Type' &&
+                            'Purchase Category' = ThisItem.'Purchase Category' &&
+                            'Item or Service' = ThisItem.'Item or Service',
+                            'Project Type'
+                        )
                     });
                     
                     // 3. 영수증 등 새 항목에 불필요한 기존 데이터 초기화 (컴플라이언스 방지용)
