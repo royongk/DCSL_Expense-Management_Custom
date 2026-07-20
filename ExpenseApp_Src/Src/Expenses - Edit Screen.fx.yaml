@@ -838,7 +838,11 @@
         TabIndex: =0
         Text: |-
             =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-            "Add Boarding pass, Itinerary, Receipt"
+            If(
+                varAppMode = "AirfareAllowance",
+                "Add Boarding pass, Itinerary, Receipt",
+                "Add Receipt"
+            )
         Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage) 
         Width: |
             =Parent.Width -  Self.X*2
@@ -1061,7 +1065,11 @@
         Size: =18
         Text: |-
             =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-            "Add Boarding pass, Itinerary, Receipt"
+            If(
+                varAppMode = "AirfareAllowance",
+                "Add Boarding pass, Itinerary, Receipt",
+                "Add Receipt"
+            )
         Visible: =!IsEmpty(colAttachedReceipts) || !IsEmpty(colPendingReceipts)
         Width: =Parent.Width - 48
         X: =24
@@ -12111,7 +12119,7 @@
                                 )
                             )
                         SearchFields: =["mserp_name"]
-                        SearchItems: =Search(SortByColumns(Filter('DCSL EmployeeV2 Entity (mserp)',IsBlank('Employment end date') Or 'Employment end date'>=Today()),"mserp_name",SortOrder.Ascending),cmb_OtherStaff.SearchText,mserp_name)
+                        SearchItems: =Search(SortByColumns(Filter('DCSL EmployeeV2 Entity (mserp)',IsBlank('Employment end date') Or 'Employment end date'>=Today()),"mserp_name",SortOrder.Ascending),cmb_OtherStaff.SearchText,Name)
                         SelectionColor: =Color.Black
                         SelectionFill: =gblParams.dropDownBorderColor
                         Size: =20

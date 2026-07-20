@@ -142,7 +142,11 @@ Screens:
             TabIndex: =0
             Text: |-
               =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-              "Add Boarding pass, Itinerary, Receipt"
+              If(
+                  varAppMode = "AirfareAllowance",
+                  "Add Boarding pass, Itinerary, Receipt",
+                  "Add Receipt"
+              )
             Visible: '=IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage) '
             Width: |
               =Parent.Width -  Self.X*2
@@ -375,7 +379,11 @@ Screens:
             Size: =18
             Text: |-
               =//GlobalLabels.Labels.'15062:LocalizedName,msdyn_AddReceiptLabel'
-              "Add Boarding pass, Itinerary, Receipt"
+              If(
+                  varAppMode = "AirfareAllowance",
+                  "Add Boarding pass, Itinerary, Receipt",
+                  "Add Receipt"
+              )
             Visible: =!IsEmpty(colAttachedReceipts) || !IsEmpty(colPendingReceipts)
             Width: =Parent.Width - 48
             X: =24
