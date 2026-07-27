@@ -1,5 +1,7 @@
 "'Expenses - View Only Screen - New' As screen.'phoneDetailEditLayout_ver3.0'":
     Fill: =RGBA(248, 248, 248, 1)
+    OnHidden: |-
+        =UpdateContext({ varRemainingAmount: 0 })
     OnVisible: |-
         =// OnVisible 최상단에 조건문 추가
         If(
@@ -9,8 +11,9 @@
                 dirtyTransAmount: Blank(),
                 locIsEditingAmount: false,
                 locCategoryChange: false,
-                // 👇 [신규 추가] AirfareAllowance 모드가 아닐때만 무조건 이전 Purpose 메모리를 날려버림
-                ctxTargetPurpose: If(varAppMode <> "AirfareAllowance", Blank(), ctxTargetPurpose),
+                
+                // 🚀 [수정됨] 에러의 원인이었던 ctxTargetPurpose 관련 자기 참조 및 초기화 삭제 완료
+                
                 varViewOnly: false,
                 varStateSelected: Blank(),
                 varZipCodeSelectedRecId: -1,
@@ -36,6 +39,7 @@
                 )
             })
         );
+        
         // 신규 경비 작성 모드 진입 시(영수증 추가를 위한 리프레시 상태가 아닐 때) 임시 영수증 비우기
         If(
             varIsCreate && !varIsAddingReceipt,
@@ -83,55 +87,26 @@
                         "EmployeeBenefit", "Employee Benefit",
                         Blank()
                     ),
-                    // 수정 모드일 때는 초기화 (이후 로직에서 기존 값 매핑됨)
+                    // 수정/조회 모드일 때는 저장된 기존 값 매핑됨
                     Coalesce(varSelectedExpenseDoc.'Expense Type', Blank())
                 )
             });
         
-            // =========================================================================
-            // 🚀 [여기에 Step 1 추가] : Purpose가 매핑 테이블에 존재하는지 실제 검증
-            // =========================================================================
+            // 🚀 [수정됨] 에러를 유발하던 locMatchedMapping 및 varForceLock 자동 주입 검증 로직 전체 삭제 완료
+        
+            // 1. 🚀 [수정됨] 저장된 Item or Service 단순 할당 (View Only 최적화)
             UpdateContext({
-                locMatchedMapping: If(
-                    varIsCreate && !IsBlank(ctxTargetPurpose),
-                    LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Item or Service' = ctxTargetPurpose),
-                    Blank()
-                )
+                varSelectedItemOrService: Coalesce(varSelectedExpenseDoc.'Item or Service', Blank())
             });
         
+            // 2. 🚀 [수정됨] 저장된 Purchase Category 단순 할당 (View Only 최적화)
             UpdateContext({
-                // ctxTargetPurpose 값이 존재하고, 테이블 조회 결과도 빈 값이 아닐 때만 true (잠금 및 자동 주입)
-                varForceLock: varIsCreate && !IsBlank(ctxTargetPurpose) && !IsBlank(locMatchedMapping)
+                varSelectedPurchaseCategory: Coalesce(varSelectedExpenseDoc.'Purchase Category', Blank())
             });
-            // =========================================================================
-        
-            // 1. Reports에서 넘겨받은 Purpose(ctxTargetPurpose)를 Item or Service에 자동 할당
-            UpdateContext({
-                varSelectedItemOrService: If(
-                    // 👇 [전문가 팁: 여기도 수정 필요] 기존 조건에 varForceLock을 추가합니다.
-                    varForceLock, 
-                    ctxTargetPurpose,
-                    Coalesce(varSelectedExpenseDoc.'Item or Service', Blank())
-                )
-            });
-        
-            // 2. 자동 할당된 Item or Service와 Expense Type을 기반으로 Purchase Category 역추적 및 매핑
-            UpdateContext({
-                varSelectedPurchaseCategory: If(
-                    // 👇 [전문가 팁: 여기도 수정 필요] 기존 조건에 varForceLock을 추가합니다.
-                    varForceLock,
-                    Coalesce(
-                        LookUp(
-                            'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            'Expense Type' = varSelectedExpenseType && 'Item or Service' = ctxTargetPurpose,
-                            'Purchase Category'
-                        ),
-                        Blank()
-                    ),
-                    Coalesce(varSelectedExpenseDoc.'Purchase Category', Blank())
-                )
-            });
+            
             UpdateContext({varSelectedPurchaseCategoryValue: ""});
+            
+            // 3. Expense category 설정
             UpdateContext({
                 curCategory: If(
                     !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
@@ -153,7 +128,8 @@
                     )
                 )
             });
-            // 3. Purchase Category가 자동 세팅되었으므로, 하위 4단계인 Expense Category 컬렉션(colExpenseCategories) 미리 로드
+            
+            // Purchase Category가 세팅되었으므로, 하위 4단계인 Expense Category 컬렉션(colExpenseCategories) 미리 로드
             If(
                 varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory),
                 ClearCollect(
@@ -209,7 +185,7 @@
             );
             // Project context
             UpdateContext({varSelectedProject: Blank()});
-            // Project type context (will be derived from Expense Type / Purchase Category / Item or Service)
+            // Project type context
             UpdateContext({varSelectedProjectType: Blank()});
             If(
                 !varIsCreate && !IsBlank(varSelectedExpenseDoc.Project),
@@ -224,9 +200,8 @@
                 })
             );
         );
+        
         // Load existing Department and Benefit Type from Expense Category (reverse lookup)
-        // [수정됨] 이미 Dataverse에서 올바른 3단계 카테고리 값(Expense Type, Purchase Category 등)을
-        // 성공적으로 불러왔다면, 부정확한 Reverse Lookup으로 덮어쓰지 않도록 방어 로직 추가
         If(
             !varIsCreate && 
             !IsBlank(varSelectedExpenseDoc.'Expense Type') &&
@@ -264,6 +239,7 @@
         UpdateContext({curBillIssuedToSelected: varSelectedExpenseDoc.'Hotel bill issued to'});
         UpdateContext({taxModifiedByUser: false});
         UpdateContext({varLoadingSpinner : true});
+        
         If(
             !varIsCreate && 
             !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)') &&
@@ -281,6 +257,7 @@
             ),
             UpdateContext({locItemizeButtonVisibilityFlag: false})
         );
+        
         If(
             !varIsCreate && gblIsProjectValidationFlag,
             Clear(colGetProjectsBasedOnResourceCategory);
@@ -330,6 +307,7 @@
                 })
             );
         );
+        
         UpdateContext({locItemizationCheck : locItemizeButtonVisibilityFlag});
         UpdateContext(
             {
@@ -341,6 +319,7 @@
                 locAllowNavigationBack: true
             }
         );
+        
         // populate the current expense type of the selected document
         UpdateContext(
             {
@@ -358,6 +337,7 @@
                 )
             }
         );
+        
         If(
             !varIsCreate,
             UpdateContext({msCallStartedForSalestaxCalculation: true});
@@ -366,6 +346,7 @@
             UpdateContext({varOnChangeTriggered: false});
             
         );
+        
         UpdateContext(
             {
                 featureEnabled: If(
@@ -374,12 +355,13 @@
                     "False"
                 ),
                 perdiemFeatureEnabled: If(
-                    userRecord.IsReImaginedPerDiemEnabled = 'NoYes (mserp)'.Yes,  //this needs to be changed to the perdiem feature enabled
+                    userRecord.IsReImaginedPerDiemEnabled = 'NoYes (mserp)'.Yes,
                     "True",
                     "False"
                 )
             }
         );
+        
         //Check if the itemization is over or under distributed
         If(
             !varIsCreate,
@@ -397,62 +379,27 @@
                 )
             )
         );
+        
         If(
             currExpenseType = 'TrvExpType (mserp)'.'Per diem' && (featureEnabled = "False" || perdiemFeatureEnabled = "False"),
             Notify(
                 GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarning',
-                //"Enable both re-imagined features to be able to edit this expense",
                 NotificationType.Warning,
                 gblParams.notificationTime
             )
         );
+        
         //if labelTableLookUp not empty
         If(
             CountRows(labelTableLookUp) <= 0,
             Collect(
                 labelTableLookUp,
-                {
-                    fieldName: "CostType",
-                    labelName: "Expense category",
-                    localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel',
-                    visible: true,
-                    required: true
-                },
-                {
-                    fieldName: "TransDate",
-                    labelName: "Transaction date",
-                    localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel',
-                    visible: true,
-                    required: true
-                },
-                {
-                    fieldName: "AmountCurr",
-                    labelName: "Transaction amount",
-                    localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel',
-                    visible: true,
-                    required: true
-                },
-                {
-                    fieldName: "ExchangeCode",
-                    labelName: "Currency",
-                    localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel',
-                    visible: true,
-                    required: true
-                },
-                {
-                    fieldName: "PayMethod",
-                    labelName: "Payment method",
-                    localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel',
-                    visible: true,
-                    required: true
-                },
-                {
-                    fieldName: "SubmitterJustification",
-                    labelName: "Employee justification",
-                    localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel',
-                    visible: false,
-                    required: false
-                }
+                { fieldName: "CostType", labelName: "Expense category", localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseCategoryLabel', visible: true, required: true },
+                { fieldName: "TransDate", labelName: "Transaction date", localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionDateLabel', visible: true, required: true },
+                { fieldName: "AmountCurr", labelName: "Transaction amount", localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_TransactionAmountLabel', visible: true, required: true },
+                { fieldName: "ExchangeCode", labelName: "Currency", localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_CurrencyLabel', visible: true, required: true },
+                { fieldName: "PayMethod", labelName: "Payment method", localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_PaymentMethodLabel', visible: true, required: true },
+                { fieldName: "SubmitterJustification", labelName: "Employee justification", localisedLabelName: GlobalLabels.Labels.'15062:LocalizedName,msdyn_EmployeeJustificationLabel', visible: false, required: false }
             );
             ForAll(
                 Filter(
@@ -506,112 +453,44 @@
                 )
             )
         );
+        
         UpdateContext({varLoadingSpinner : false});
-        Set(
-            varDefaultSalesTaxGroupCode,
-            varSelectedExpenseDoc.'Sales tax group'
-        );
-        Set(
-            varItemSalesTaxDefaultValueCode,
-            varSelectedExpenseDoc.'Item sales tax group'
-        );
-        UpdateContext(
-            {
-                varSalesTaxAmount: Coalesce(
-                    varSalesTaxAmount,
-                    varSelectedExpenseDoc.'Actual sales tax amount'
-                )
-            }
-        );
+        Set(varDefaultSalesTaxGroupCode, varSelectedExpenseDoc.'Sales tax group');
+        Set(varItemSalesTaxDefaultValueCode, varSelectedExpenseDoc.'Item sales tax group');
+        UpdateContext({varSalesTaxAmount: Coalesce(varSalesTaxAmount, varSelectedExpenseDoc.'Actual sales tax amount')});
         UpdateContext({msCallStartedForSalestaxCalculation: false});
-        Set(
-            IsreceiptALreadyCreated,
-            false
-        );
-        Set(
-            isProjIdCalledFromAttach,
-            false
-        );
+        Set(IsreceiptALreadyCreated, false);
+        Set(isProjIdCalledFromAttach, false);
+        
         Set(
             gblParams,
             {
                 dropDownHeight: 60,
                 dorpDownBorderThickness: 2,
-                dropDownBorderColor: RGBA(
-                    34,
-                    102,
-                    227,
-                    1
-                ),
+                dropDownBorderColor: RGBA(34, 102, 227, 1),
                 dropDownLabelColor: Color.Black,
-                dropDownHoverFill: RGBA(
-                    204,
-                    222,
-                    255,
-                    1
-                ),
+                dropDownHoverFill: RGBA(204, 222, 255, 1),
                 errorMessageSize: 18,
                 dropDownFontSize: 24,
-                expenseDataCardViewOnly: RGBA(
-                    110,
-                    110,
-                    110,
-                    1
-                ),
+                expenseDataCardViewOnly: RGBA(110, 110, 110, 1),
                 notificationTime: 4000
             }
         );
-        //varibale determines whether any fields were changed
-        UpdateContext({isDirty: false});
         
+        UpdateContext({isDirty: false});
         UpdateContext({categoryModified: false});
         UpdateContext({varDefaultItemSalesTaxError: ""});
         UpdateContext({varDefaultSalesTaxError: ""});
         UpdateContext({leModified: false});
         UpdateContext({varRatePerMile: ""});
         UpdateContext({varMileageTotal: ""});
-        UpdateContext(
-            {
-                locPerdiemAmountCurr: If(
-                    currExpenseType = 'TrvExpType (mserp)'.'Per diem',
-                    Text(varSelectedExpenseDoc.'Transaction amount'),
-                    Blank()
-                )
-            }
-        );
-        UpdateContext(
-            {
-                varCurrentSelectedDate: If(
-                    varIsCreate,
-                    If(
-                        IsBlank(OCRresponse),
-                        Today(),
-                        OCRresponse.transDate
-                    ),
-                    varSelectedExpenseDoc.'Transaction date'
-                )
-            }
-        );
-        Set(
-            varDefaultSalesTaxGroupCode,
-            varSelectedExpenseDoc.'Sales tax group'
-        );
-        Set(
-            varItemSalesTaxDefaultValueCode,
-            varSelectedExpenseDoc.'Item sales tax group'
-        );
-        UpdateContext(
-            {
-                varSalesTaxAmount: Coalesce(
-                    varSalesTaxAmount,
-                    varSelectedExpenseDoc.'Actual sales tax amount'
-                )
-            }
-        );
-        Set(
-            varCurMileage,
-            varSelectedExpenseDoc.Mileage
-        );
+        UpdateContext({locPerdiemAmountCurr: If(currExpenseType = 'TrvExpType (mserp)'.'Per diem', Text(varSelectedExpenseDoc.'Transaction amount'), Blank())});
+        UpdateContext({varCurrentSelectedDate: If(varIsCreate, If(IsBlank(OCRresponse), Today(), OCRresponse.transDate), varSelectedExpenseDoc.'Transaction date')});
+        
+        Set(varDefaultSalesTaxGroupCode, varSelectedExpenseDoc.'Sales tax group');
+        Set(varItemSalesTaxDefaultValueCode, varSelectedExpenseDoc.'Item sales tax group');
+        UpdateContext({varSalesTaxAmount: Coalesce(varSalesTaxAmount, varSelectedExpenseDoc.'Actual sales tax amount')});
+        Set(varCurMileage, varSelectedExpenseDoc.Mileage);
         
         UpdateContext({varCurVehicleType: varSelectedExpenseDoc.'Vehicle type'});
         UpdateContext({varCurNoOfPass: varSelectedExpenseDoc.'Number of passengers'});
@@ -623,94 +502,39 @@
         UpdateContext({varProjectChanged: false});
         UpdateContext({varShowDeleteReceiptDialog: false});
         UpdateContext({varDeleteReceiptId: Blank()});
-        // Pending receipts are used only during new expense creation (before ExpTransNumber exists).
-        // When entering edit mode for an existing expense, clear pending to avoid mixing states.
-        /*
-        If(
-            !IsBlank(varSelectedExpenseDoc) &&
-            !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
-            // Attached receipts are always loaded from Expense Mobile Attached Document Entity (mserp)
-            Refresh('Expense Mobile Attached Document Entity (mserp)');
-            ClearCollect(
-                colAttachedReceipts,
-                SortByColumns(
-                    Filter(
-                        'Expense Mobile Attached Document Entity (mserp)',
-                        'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
-                    ),
-                    "mserp_documentcreateddatetime",
-                    SortOrder.Descending
-                )
-            );
-            // 미리보기용 변수 세팅
-            Set(
-                varReceiptImage,
-                If(
-                    !IsEmpty(colAttachedReceipts),
-                    First(colAttachedReceipts).mserp_captureddocument,
-                    Blank()
-                )
-            );
-            Set(
-                varFileFormat,
-                If(
-                    !IsEmpty(colAttachedReceipts),
-                    First(colAttachedReceipts).mserp_fileextension,
-                    Blank()
-                )
-            )
-        );
-        */
         
-        // 복사 팝업창 가시성 제어 변수
         UpdateContext({ locShowCopyPopup: false });
         
-        // 1. 접속한 사용자의 마스터 정보 가져오기 (화면에 '본인' 이름을 표시하기 위함)
-        Set(
-            varCurrentD365User,
-            LookUp('Expense mobile master data (mserp)', Email = User().Email)
-        );
+        Set(varCurrentD365User, LookUp('Expense mobile master data (mserp)', Email = User().Email));
         
-        // 2. [변경됨] 가상 필드 대신, 물리적 텍스트 필드(mserp_delegateduser)로 서버에서 직접 필터링합니다.
         ClearCollect(
             colActiveDelegations,
             Filter(
                 '@DEEX:DEEX_20316 (mserp)',
-                // 텍스트 ID 끼리 비교합니다. (varCurrentD365User.mserp_userid 가 "DEEX1.ERP" 형태)
                 Delegate = varCurrentD365User.ID && 
                 'Start date' <= Today() &&
                 'End date' >= Today()
             )
         );
         
-        // 3. 콤보박스 선택지 생성 (첫 번째: 접속자 본인)
         ClearCollect(
             colCreatingWorkerOptions,
             {
-                WorkerID: userRecord.CreatingWorker, // 저장용 내 숫자 ID
-                WorkerName: varCurrentD365User.ID & " (MySelf)" // 화면 표시용 내 이름
+                WorkerID: userRecord.CreatingWorker,
+                WorkerName: varCurrentD365User.ID & " (MySelf)" 
             }
         );
         
-        // 4. 콤보박스 선택지 추가 (대리 신청 대상자)
         ForAll(
             colActiveDelegations,
             Collect(
                 colCreatingWorkerOptions,
                 {
-                    // [저장용] Expense Line 테이블에 넘겨줄 위임자의 고유 숫자 ID
                     WorkerID: ThisRecord.Employee, 
-                    
-                    // [표시용] 새로 추가된 텍스트 'ID' 필드를 이용해 마스터 테이블에서 이름을 찾아옴!
                     WorkerName: ThisRecord.ID & " (Delegate)"
                 }
             )
         );
-        
-        // 에러 로그 컬렉션 스키마 초기화
-        //Clear(colErrorLog);
-        // 로직 수행 후 플래그는 항상 초기화 (다음에 다시 들어올 때를 위해)
-        //UpdateContext({ varIsAddingReceipt: false });
 
     scr030_ico_Back_4 As icon.ChevronLeft:
         Color: =icongconfig_backbutton.Color
@@ -1002,7 +826,6 @@
                         ThisItem.mserp_filename,
                         Concatenate("Receipt-", Text(ThisItem.mserp_entrecid))
                     )
-                VerticalAlign: =VerticalAlign.Center
                 Width: =Parent.Width
                 ZIndex: =2
 
@@ -1615,20 +1438,9 @@
                         )
                     DefaultSelectedItems: |-
                         =If(
-                            // 1. 신규 모드(Create)이면서 넘겨받은 데이터가 매핑 테이블에 존재하여 '강제 주입(varForceLock)' 상태인 경우
-                            varIsCreate && varForceLock,
-                            
-                            // 2. 이전 화면에서 넘어온 텍스트(ctxTargetPurpose)를 콤보박스가 인식할 수 있는 테이블 형태로 변환하여 강제 할당
-                            Table({Value: ctxTargetPurpose}),
-                            
-                            // 3. 매핑 테이블에 없거나("Shipping" 등), 기존 편집 모드(Edit)일 경우의 기본 동작
-                            If(
-                                !IsBlank(varSelectedExpenseDoc.'Item or Service'), 
-                                Table({Value: varSelectedExpenseDoc.'Item or Service'})
-                                // 💡 핵심: 신규 생성이면서 varForceLock이 false("Shipping")인 경우,
-                                // varSelectedExpenseDoc도 비어있으므로 결과적으로 아무 값도 세팅되지 않음(Blank).
-                                // 따라서 사용자가 콤보박스를 눌러 직접 선택할 수 있는 빈칸 상태가 됩니다!
-                            )
+                            !IsBlank(varSelectedExpenseDoc.'Item or Service'), 
+                            Table({Value: varSelectedExpenseDoc.'Item or Service'}),
+                            Blank()
                         )
                     DisplayFields: =["Value"]
                     DisplayMode: =DisplayMode.View
