@@ -1,7 +1,10 @@
 "'Expenses - View Only Screen - New' As screen.'phoneDetailEditLayout_ver3.0'":
     Fill: =RGBA(248, 248, 248, 1)
     OnHidden: |-
-        =UpdateContext({ varRemainingAmount: 0 })
+        =UpdateContext({ varRemainingAmount: 0 });
+        // 화면을 벗어날 때 기존 영수증 메모리를 확실하게 비워줍니다.
+        Clear(colPendingReceipts);
+        Clear(colAttachedReceipts);
     OnVisible: |-
         =// OnVisible 최상단에 조건문 추가
         If(
@@ -40,13 +43,14 @@
             })
         );
         
+        /*
         // 신규 경비 작성 모드 진입 시(영수증 추가를 위한 리프레시 상태가 아닐 때) 임시 영수증 비우기
         If(
             varIsCreate && !varIsAddingReceipt,
             Clear(colPendingReceipts);
             Clear(colAttachedReceipts)
         );
-        
+        */
         
         // 통화 데이터를 가져와서 미리 정렬한 뒤 'colSortedCurrencies'라는 컬렉션에 저장합니다.
         ClearCollect(
@@ -573,6 +577,8 @@
                     varSalesTaxAmount: Blank()
                 }
             );
+            Clear(colPendingReceipts);
+            Clear(colAttachedReceipts);
         Visible: =false
         Width: =icongconfig_backbutton.Width
         X: =303
@@ -916,7 +922,11 @@
         Height: =icongconfig_backbutton.Height
         Icon: =Icon.ChevronLeft
         OnSelect: |-
-            =Switch(
+            =// 🚀 [추가] 화면 이동 전 영수증 메모리를 즉시 초기화
+            Clear(colPendingReceipts);
+            Clear(colAttachedReceipts);
+            
+            Switch(
                 varNavigatedFrom,
                 "scr17", Navigate('Reports - Edit Screen'),
                 "scr20", Navigate('Reports - View Only Screen'),
@@ -991,7 +1001,7 @@
         Y: |-
             =If(
                 !IsEmpty(colAttachedReceipts) || !IsEmpty(colPendingReceipts), // 수정됨: 임시 영수증(colPendingReceipts) 조건 추가
-                scr030_btn_AddReceipt_Always.Y + scr030_btn_AddReceipt_Always.Height + 15, // 15는 버튼과 폼 사이의 적절한 여백(Margin)
+                scr030_glr_ReceiptsList.Y + scr030_glr_ReceiptsList.Height + 15, // 15는 버튼과 폼 사이의 적절한 여백(Margin)
                 scr030_img_NoReceiptOuter_1.Y + scr030_img_NoReceiptOuter_1.Height + 30
             )
         ZIndex: =13
@@ -1040,7 +1050,12 @@
                 UpdateContext({msCallStartedForSalestaxCalculation: false});
             SnapToColumns: =false
             Width: =Parent.Width
-            Y: =scr030_img_NoReceiptOuter_1.Y + scr030_img_NoReceiptOuter_1.Height + 30
+            Y: |-
+                =If(
+                    !IsBlank(colAttachedReceipts),
+                    scr030_glr_ReceiptsList.Y + scr030_glr_ReceiptsList.Height + 30,
+                    scr030_img_NoReceiptOuter_1.Y + scr030_img_NoReceiptOuter_1.Height + 30
+                )
             ZIndex: =1
 
             scr030_ExpenseType_DataCard As typedDataCard.allowedValuesStringEditCard:

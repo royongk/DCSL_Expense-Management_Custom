@@ -1497,39 +1497,44 @@ Screens:
                         LayoutMaxHeight: =
                         LayoutMaxWidth: =
                         LoadingSpinner: =LoadingSpinner.None
-                        OnSelect: |
-                          =
-                          Concurrent(
-                              Set(
-                                  varIsCreate,
-                                  false
-                              ),
-                              Set(
-                                  varReceiptImage,  //set as receiptUrl of attached expense
-                                  Blank()
-                              )
+                        OnSelect: |-
+                          =Concurrent(
+                              Set(varIsCreate, false),
+                              Set(varReceiptImage, Blank())
                           );
+
                           Set(
                               varSelectedExpenseDoc,
                               LookUp('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
                           );
+
+                          // 🚀 [개선 1] 단일 파일 LookUp 대신 Edit 화면과 완벽히 동일한 다중 영수증 컬렉션 업데이트
+                          ClearCollect(
+                              colAttachedReceipts,
+                              SortByColumns(
+                                  Filter(
+                                      'Expense Mobile Attached Document Entity (mserp)',
+                                      'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                                  ),
+                                  "mserp_documentcreateddatetime",
+                                  SortOrder.Descending
+                              )
+                          );
+
+                          // 🚀 [개선 2] 미리보기 단일 이미지를 보여주는 UI를 위해, 컬렉션의 첫 번째 데이터 동기화
                           Set(
                               varReceiptImage,
-                              LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)
+                              If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_captureddocument, Blank())
                           );
                           Set(
                               varFileFormat,
-                              LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
+                              If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_fileextension, Blank())
                           );
+
                           Set(varExpenseAgainstWorkItem, Blank());
-                          Set(
-                              varSelectedReceiptNumber,
-                              Blank()
-                          );
-                          Set(
-                              varExpenseAgainstWorkItem,
-                              Blank()
-                          );
+                          Set(varSelectedReceiptNumber, Blank());
+                          Set(varExpenseAgainstWorkItem, Blank());
+
                           If(
                               varSelectedExpenseDoc.PolicyViolationCount,
                               ClearCollect(
@@ -1542,6 +1547,7 @@ Screens:
                               UpdateContext({varMaxViolationLevel : 0});
                               UpdateContext({varNumViolation : 0})
                           );
+
                           Navigate('Expenses - View Only Screen - New', ScreenTransition.None, {varNavigatedFrom : "scr20", varMaxViolationLevel : varMaxViolationLevel, varNumViolation : varNumViolation})
                         TemplateSize: =112
                         Visible: =CountRows(colAttachedExpenses) > 0
