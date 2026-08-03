@@ -8567,7 +8567,7 @@
                             )
                         Default: |-
                             =If(
-                                varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
+                                !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
                                 Text(Year(varSelectedExpenseDoc.'Purchase Date')),
                                 Text(Year(Today()))
                             )
@@ -8610,7 +8610,7 @@
                             )
                         Default: |-
                             =If(
-                                varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
+                                !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
                                 Text(Month(varSelectedExpenseDoc.'Purchase Date'), "00"),
                                 Blank()
                             )
@@ -8648,7 +8648,7 @@
                             )
                         Default: |-
                             =If(
-                                varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
+                                !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
                                 Text(Day(varSelectedExpenseDoc.'Purchase Date'), "00"),
                                 Blank()
                             )
@@ -11405,7 +11405,7 @@
                     DefaultSelectedItems: |-
                         =If(
                             // 1. 복사 모드이면서 원본 데이터에 Project 정보가 있는 경우 (※ 필드명은 실제 원본 데이터에 맞게 조정: 예: 'Project code')
-                            varIsCopyMode && !IsBlank(varSelectedExpenseDoc.Project),
+                            !IsBlank(varSelectedExpenseDoc.Project),
                             
                             // 2. With 함수로 Items와 동일한 원본 가상 엔터티에서 해당 프로젝트 레코드를 1건 찾음
                             With(
