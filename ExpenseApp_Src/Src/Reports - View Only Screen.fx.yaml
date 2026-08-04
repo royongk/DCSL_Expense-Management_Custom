@@ -1573,7 +1573,7 @@
                     Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
                     ZIndex: =6
 
-                scr20_lbl_Merchant_1 As label:
+                scr20_lbl_LineNumber_1 As label:
                     BorderColor: =RGBA(0, 0, 0, 1)
                     Font: =Font.'Segoe UI'
                     Height: =37
@@ -1586,11 +1586,7 @@
                     Size: =21
                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
                     Text: |-
-                        =If(
-                            ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
-                            Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
-                            ThisItem.Merchant
-                        )
+                        =$"Line Number: {ThisItem.'Line number'}"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =373
                     X: =71
@@ -1623,7 +1619,7 @@
                     VerticalAlign: =VerticalAlign.Top
                     Width: =250
                     X: =Parent.Width - scr20_lbl_Amount_3.Width - 15
-                    Y: =scr20_lbl_Merchant_1.Y
+                    Y: =scr20_lbl_LineNumber_1.Y
                     ZIndex: =9
 
                 scr20_lbl_Date_1 As label:
@@ -1666,9 +1662,9 @@
                     Text: =ThisItem.ProjectName
                     VerticalAlign: =VerticalAlign.Top
                     Visible: =!(scr20_lbl_Warning_1.Visible)
-                    Width: =scr20_lbl_Merchant_1.Width
-                    X: =scr20_lbl_Merchant_1.X
-                    Y: =scr20_lbl_Merchant_1.Y + scr20_lbl_Merchant_1.Height + 4
+                    Width: =scr20_lbl_LineNumber_1.Width
+                    X: =scr20_lbl_LineNumber_1.X
+                    Y: =scr20_lbl_LineNumber_1.Y + scr20_lbl_LineNumber_1.Height + 4
                     ZIndex: =11
 
                 scr20_lbl_Warning_1 As label:
@@ -1699,8 +1695,8 @@
                         Value(ThisItem.PolicyViolationCount) > 0
                     Width: =scr17_lbl_LineNumber_4.Width
                     Wrap: =false
-                    X: =scr20_lbl_Merchant_1.X
-                    Y: =scr20_lbl_Merchant_1.Y + scr20_lbl_Merchant_1.Height + 4
+                    X: =scr20_lbl_LineNumber_1.X
+                    Y: =scr20_lbl_LineNumber_1.Y + scr20_lbl_LineNumber_1.Height + 4
                     ZIndex: =12
 
     scr20_hdr_ViewReport_1 As hdr02_Header:
