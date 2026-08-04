@@ -119,12 +119,12 @@ Screens:
               =Switch
               (
                   varcntSelectedStatus,
-                  0, "No reports found", // 💡 추가: 전체 뷰에서 결과가 없을 때의 메시지
+                  0, "No reports found", 
                   1, GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateReportToGetPaidLabel',
                   2, GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubmitReportToGetPaidLabel',
-                  3, "No Finance Approved reports",
+                  3, If(varReviewCategory = "HR", "No HR Approved reports", "No Finance Approved reports"),
                   4, "No Budget holder Approved reports",
-                  5, "No Finance Rejected reports",
+                  5, If(varReviewCategory = "HR", "No HR Rejected reports", "No Finance Rejected reports"),
                   6, "No Budget holder Rejected reports"
               )
             title: =GlobalLabels.Labels.'15062:LocalizedName,msdyn_NothingHereYetLabel'
@@ -366,39 +366,7 @@ Screens:
                               LayoutMinWidth: =150
                               OnSelect: =Select(scr16_shp_SelectRegion_4)
                               Size: =If(App.Width >= 1024, 18, 14)
-                              Text: |-
-                                =If(
-                                    // 1. Draft
-                                    ThisItem.'Document Status' = 'Document Status (mserp)'.Draft, 
-                                    "Draft",
-
-                                    // 2. Submitted
-                                    ThisItem.'Document Status' = 'Document Status (mserp)'.Submitted, 
-                                    "Submitted",
-
-                                    // 3. Finance Approved
-                                    ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && 
-                                    (ThisItem.'Document status' = 'Document status (mserp)'.Draft || ThisItem.'Document status' = 'Document status (mserp)'.Submitted || ThisItem.'Document status' = 'Document status (mserp)'.'In review'), 
-                                    "Finance Approved",
-
-                                    // 4. Budget holder Approved
-                                    ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && 
-                                    ThisItem.'Document status' = 'Document status (mserp)'.Approved, 
-                                    "Budget holder Approved",
-
-                                    // 5. Finance Rejected
-                                    ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && 
-                                    ThisItem.'Document status' = 'Document status (mserp)'.Draft, 
-                                    "Finance Rejected",
-
-                                    // 6. Budget holder Rejected
-                                    ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && 
-                                    ThisItem.'Document status' = 'Document status (mserp)'.Rejected, 
-                                    "Budget holder Rejected",
-
-                                    // 예외 처리 (In Review 등 위 조건에 명확히 매칭되지 않는 경우 기존처럼 출력)
-                                    Text(ThisItem.'Document status')
-                                )
+                              Text: "=If(\n    // 1. Draft\n    ThisItem.'Document Status' = 'Document Status (mserp)'.Draft, \n    \"Draft\",\n    \n    // 2. Submitted\n    ThisItem.'Document Status' = 'Document Status (mserp)'.Submitted, \n    \"Submitted\",\n    \n    // 3. Finance / HR Approved\n    ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && \n    (ThisItem.'Document status' = 'Document status (mserp)'.Draft || ThisItem.'Document status' = 'Document status (mserp)'.Submitted || ThisItem.'Document status' = 'Document status (mserp)'.'In review'), \n    If(varReviewCategory = \"HR\", \"HR Approved\", \"Finance Approved\"),\n    \n    // 4. Budget holder Approved\n    ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && \n    ThisItem.'Document status' = 'Document status (mserp)'.Approved, \n    \"Budget holder Approved\",\n    \n    // 5. Finance / HR Rejected\n    ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && \n    ThisItem.'Document status' = 'Document status (mserp)'.Draft, \n    If(varReviewCategory = \"HR\", \"HR Rejected\", \"Finance Rejected\"),\n    \n    // 6. Budget holder Rejected\n    ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && \n    ThisItem.'Document status' = 'Document status (mserp)'.Rejected, \n    \"Budget holder Rejected\",\n    \n    // 예외 처리\n    Text(ThisItem.'Document status')\n)"
                               Width: =150
                         - Container9_1:
                             Control: GroupContainer@1.5.0
@@ -635,11 +603,11 @@ Screens:
                   0, "All",
                   1, "Draft",
                   2, "Submitted",
-                  3, "Finance Approved",
+                  3, If(varReviewCategory = "HR", "HR Approved", "Finance Approved"),
                   4, "Budget holder Approved",
-                  5, "Finance Rejected",
+                  5, If(varReviewCategory = "HR", "HR Rejected", "Finance Rejected"),
                   6, "Budget holder Rejected",
-                  "All" // 매칭되는 값이 없을 경우의 기본값을 All로 변경 (기존: "Draft")
+                  "All" 
               )
             Font: =Font.'Open Sans'
             Height: =44
@@ -649,9 +617,9 @@ Screens:
                   { ID: 0, StatusName: "All" },
                   { ID: 1, StatusName: "Draft" },
                   { ID: 2, StatusName: "Submitted" },
-                  { ID: 3, StatusName: "Finance Approved" },
+                  { ID: 3, StatusName: If(varReviewCategory = "HR", "HR Approved", "Finance Approved") },
                   { ID: 4, StatusName: "Budget holder Approved" },
-                  { ID: 5, StatusName: "Finance Rejected" },
+                  { ID: 5, StatusName: If(varReviewCategory = "HR", "HR Rejected", "Finance Rejected") },
                   { ID: 6, StatusName: "Budget holder Rejected" }
               )
             Items.Value: =StatusName

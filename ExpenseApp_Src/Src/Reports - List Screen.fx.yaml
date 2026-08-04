@@ -98,12 +98,12 @@
             =Switch
             (
                 varcntSelectedStatus,
-                0, "No reports found", // 💡 추가: 전체 뷰에서 결과가 없을 때의 메시지
+                0, "No reports found", 
                 1, GlobalLabels.Labels.'15062:LocalizedName,msdyn_CreateReportToGetPaidLabel',
                 2, GlobalLabels.Labels.'15062:LocalizedName,msdyn_SubmitReportToGetPaidLabel',
-                3, "No Finance Approved reports",
+                3, If(varReviewCategory = "HR", "No HR Approved reports", "No Finance Approved reports"),
                 4, "No Budget holder Approved reports",
-                5, "No Finance Rejected reports",
+                5, If(varReviewCategory = "HR", "No HR Rejected reports", "No Finance Rejected reports"),
                 6, "No Budget holder Rejected reports"
             )
         title: |-
@@ -418,32 +418,32 @@
                             // 1. Draft
                             ThisItem.'Document Status' = 'Document Status (mserp)'.Draft, 
                             "Draft",
-                        
+                            
                             // 2. Submitted
                             ThisItem.'Document Status' = 'Document Status (mserp)'.Submitted, 
                             "Submitted",
-                        
-                            // 3. Finance Approved
+                            
+                            // 3. Finance / HR Approved
                             ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && 
                             (ThisItem.'Document status' = 'Document status (mserp)'.Draft || ThisItem.'Document status' = 'Document status (mserp)'.Submitted || ThisItem.'Document status' = 'Document status (mserp)'.'In review'), 
-                            "Finance Approved",
-                        
+                            If(varReviewCategory = "HR", "HR Approved", "Finance Approved"),
+                            
                             // 4. Budget holder Approved
                             ThisItem.'Document Status' = 'Document Status (mserp)'.Approved && 
                             ThisItem.'Document status' = 'Document status (mserp)'.Approved, 
                             "Budget holder Approved",
-                        
-                            // 5. Finance Rejected
+                            
+                            // 5. Finance / HR Rejected
                             ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && 
                             ThisItem.'Document status' = 'Document status (mserp)'.Draft, 
-                            "Finance Rejected",
-                        
+                            If(varReviewCategory = "HR", "HR Rejected", "Finance Rejected"),
+                            
                             // 6. Budget holder Rejected
                             ThisItem.'Document Status' = 'Document Status (mserp)'.Rejected && 
                             ThisItem.'Document status' = 'Document status (mserp)'.Rejected, 
                             "Budget holder Rejected",
-                        
-                            // 예외 처리 (In Review 등 위 조건에 명확히 매칭되지 않는 경우 기존처럼 출력)
+                            
+                            // 예외 처리
                             Text(ThisItem.'Document status')
                         )
                     ZIndex: =4
@@ -657,11 +657,11 @@
                 0, "All",
                 1, "Draft",
                 2, "Submitted",
-                3, "Finance Approved",
+                3, If(varReviewCategory = "HR", "HR Approved", "Finance Approved"),
                 4, "Budget holder Approved",
-                5, "Finance Rejected",
+                5, If(varReviewCategory = "HR", "HR Rejected", "Finance Rejected"),
                 6, "Budget holder Rejected",
-                "All" // 매칭되는 값이 없을 경우의 기본값을 All로 변경 (기존: "Draft")
+                "All" 
             )
         Height: =44
         Items: |-
@@ -669,9 +669,9 @@
                 { ID: 0, StatusName: "All" },
                 { ID: 1, StatusName: "Draft" },
                 { ID: 2, StatusName: "Submitted" },
-                { ID: 3, StatusName: "Finance Approved" },
+                { ID: 3, StatusName: If(varReviewCategory = "HR", "HR Approved", "Finance Approved") },
                 { ID: 4, StatusName: "Budget holder Approved" },
-                { ID: 5, StatusName: "Finance Rejected" },
+                { ID: 5, StatusName: If(varReviewCategory = "HR", "HR Rejected", "Finance Rejected") },
                 { ID: 6, StatusName: "Budget holder Rejected" }
             )
         OnChange: |-
