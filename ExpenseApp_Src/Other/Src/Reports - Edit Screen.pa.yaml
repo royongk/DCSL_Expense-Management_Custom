@@ -1828,7 +1828,7 @@ Screens:
                               Width: =50
                               X: =16
                               Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
-                        - scr17_lbl_Merchant_4:
+                        - scr17_lbl_LineNumber_4:
                             Control: Label@2.5.1
                             Properties:
                               BorderColor: =RGBA(0, 0, 0, 1)
@@ -1842,11 +1842,7 @@ Screens:
                               PaddingTop: =0
                               TabIndex: =If(IsBlank(Self.Text), -1, 0)
                               Text: |-
-                                =If(
-                                    ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
-                                    Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
-                                    ThisItem.Merchant
-                                )
+                                =$"Line Number: {ThisItem.'Line number'}"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =373
                               Wrap: =false
@@ -1881,7 +1877,7 @@ Screens:
                               Width: =250
                               Wrap: =false
                               X: =Parent.Width - scr17_lbl_Amount_4.Width - 15
-                              Y: =scr17_lbl_Merchant_4.Y
+                              Y: =scr17_lbl_LineNumber_4.Y
                         - scr17_lbl_Date_4:
                             Control: Label@2.5.1
                             Properties:
@@ -1926,10 +1922,10 @@ Screens:
                               Text: =ThisItem.ProjectName
                               VerticalAlign: =VerticalAlign.Top
                               Visible: =!(scr17_lbl_Warning_4.Visible)
-                              Width: =scr17_lbl_Merchant_4.Width
+                              Width: =scr17_lbl_LineNumber_4.Width
                               Wrap: =false
-                              X: =scr17_lbl_Merchant_4.X
-                              Y: =scr17_lbl_Merchant_4.Y + scr17_lbl_Merchant_4.Height + 4
+                              X: =scr17_lbl_LineNumber_4.X
+                              Y: =scr17_lbl_LineNumber_4.Y + scr17_lbl_LineNumber_4.Height + 4
                         - scr17_lbl_Warning_4:
                             Control: Label@2.5.1
                             Properties:
@@ -1952,10 +1948,10 @@ Screens:
                               Text: "=If(\n    Value(ThisItem.PolicyViolationCount) > 0,\n    Substitute(GlobalLabels.Labels.'15062:LocalizedName,msdyn_FoundPolicyViolationLabel', \"$\", Text(ThisItem.PolicyViolationCount))\n)\n    "
                               VerticalAlign: =VerticalAlign.Top
                               Visible: =Value(ThisItem.PolicyViolationCount) > 0
-                              Width: =scr17_lbl_Merchant_4.Width
+                              Width: =scr17_lbl_LineNumber_4.Width
                               Wrap: =false
-                              X: =scr17_lbl_Merchant_4.X
-                              Y: =scr17_lbl_Merchant_4.Y + scr17_lbl_Merchant_4.Height + 4
+                              X: =scr17_lbl_LineNumber_4.X
+                              Y: =scr17_lbl_LineNumber_4.Y + scr17_lbl_LineNumber_4.Height + 4
       - scr17_hdr_TopHeader_1:
           Control: CanvasComponent
           ComponentName: hdr02_Header
