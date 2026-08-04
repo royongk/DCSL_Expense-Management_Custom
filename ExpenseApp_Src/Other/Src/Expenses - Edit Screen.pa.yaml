@@ -317,9 +317,7 @@ Screens:
                         Color: =RGBA(195, 39, 39, 1)
                         Height: =24
                         Icon: =Icon.Cancel
-                        OnSelect: |-
-                          =UpdateContext({varDeleteReceiptId: ThisItem.mserp_entrecid});
-                          UpdateContext({varShowDeleteReceiptDialog: true})
+                        OnSelect: "=// 1. 컬렉션에서 삭제할 레코드를 팝업 호출 시 저장된 varDeleteReceiptId로 찾기\nWith(\n    {\n        RecordToDeletePending: LookUp(colPendingReceipts, mserp_entrecid = varDeleteReceiptId),\n        RecordToDeleteAttached: LookUp(colAttachedReceipts, mserp_entrecid = varDeleteReceiptId)\n    },\n    \n    // A. 임시 파일인 경우 컬렉션에서 삭제\n    If(\n        !IsBlank(RecordToDeletePending),\n        Remove(colPendingReceipts, RecordToDeletePending)\n    );\n    \n    // B. 서버에 저장된 기존 첨부파일인 경우 로컬 컬렉션과 백엔드에서 모두 삭제\n    If(\n        !IsBlank(RecordToDeleteAttached),\n        Remove(colAttachedReceipts, RecordToDeleteAttached);\n        // 서버 원본 엔터티 삭제 로직\n        Remove('Expense Mobile Attached Document Entity (mserp)', LookUp('Expense Mobile Attached Document Entity (mserp)', mserp_entrecid = varDeleteReceiptId))\n    )\n);\n\n// 2. 팝업 상태 및 로컬(Context) 변수 초기화\nUpdateContext({ \n    varShowDeleteReceiptDialog: false,\n    varDeleteReceiptId: 0\n});\n\n// 3. 글로벌(Global) 변수 초기화\n// IsBlank() 함수가 정상적으로 동작하도록 하면서, 타입 경고(노란색 에러)를 방지하는 명시적 Blank 할당 기법\nSet(varReceiptImage, If(false, \"\", Blank()));\nSet(varFileFormat, If(false, \"\", Blank()));"
                         TabIndex: =0
                         Visible: =!varViewOnly
                         Width: =24
