@@ -1011,38 +1011,11 @@
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
                 OnSelect: |-
-                    =// 1. 컬렉션에서 삭제할 레코드를 팝업 호출 시 저장된 varDeleteReceiptId로 찾기
-                    With(
-                        {
-                            RecordToDeletePending: LookUp(colPendingReceipts, mserp_entrecid = varDeleteReceiptId),
-                            RecordToDeleteAttached: LookUp(colAttachedReceipts, mserp_entrecid = varDeleteReceiptId)
-                        },
-                        
-                        // A. 임시 파일인 경우 컬렉션에서 삭제
-                        If(
-                            !IsBlank(RecordToDeletePending),
-                            Remove(colPendingReceipts, RecordToDeletePending)
-                        );
-                        
-                        // B. 서버에 저장된 기존 첨부파일인 경우 로컬 컬렉션과 백엔드에서 모두 삭제
-                        If(
-                            !IsBlank(RecordToDeleteAttached),
-                            Remove(colAttachedReceipts, RecordToDeleteAttached);
-                            // 서버 원본 엔터티 삭제 로직
-                            Remove('Expense Mobile Attached Document Entity (mserp)', LookUp('Expense Mobile Attached Document Entity (mserp)', mserp_entrecid = varDeleteReceiptId))
-                        )
-                    );
+                    =// 1. 삭제할 아이템의 ID를 변수에 저장합니다.
+                    UpdateContext({varDeleteReceiptId: ThisItem.mserp_entrecid});
                     
-                    // 2. 팝업 상태 및 로컬(Context) 변수 초기화
-                    UpdateContext({ 
-                        varShowDeleteReceiptDialog: false,
-                        varDeleteReceiptId: 0
-                    });
-                    
-                    // 3. 글로벌(Global) 변수 초기화
-                    // IsBlank() 함수가 정상적으로 동작하도록 하면서, 타입 경고(노란색 에러)를 방지하는 명시적 Blank 할당 기법
-                    Set(varReceiptImage, If(false, "", Blank()));
-                    Set(varFileFormat, If(false, "", Blank()));
+                    // 2. 삭제 확인 팝업창을 화면에 표시합니다.
+                    UpdateContext({varShowDeleteReceiptDialog: true});
                 TabIndex: =0
                 Visible: =!varViewOnly
                 Width: =24
@@ -1979,9 +1952,10 @@
                 Update: |-
                     =With(
                         {
-                            // Existing category from the current expense line (edit mode only)
+                            // 1. 기존 문서에 저장되어 있던 카테고리 (Edit 모드용)
                             currentCategory: varSelectedExpenseDoc.'Expense category (mserp_costtype)',
-                            // Mapped category from 3-level selection
+                            
+                            // 2. 사용자가 3단계(Type -> Purchase -> Item)로 선택한 값을 바탕으로 실시간 조회한 카테고리
                             mappedCategory: 
                                 LookUp(
                                     'DCSL Expense Category Mapping Setup Entity (mserp)',
@@ -1991,40 +1965,26 @@
                                     'Expense category'
                                 )
                         },
-                        With(
-                            {
-                                // Apply mapping only when it actually changes from the existing category
-                                isCategoryChanged:
-                                    !IsBlank(currentCategory) &&
-                                    !IsBlank(mappedCategory) &&
-                                    mappedCategory <> currentCategory
-                            },
-                            Coalesce(
-                                // 1) User-selected category from ComboBox1_8
-                                If(
-                                    !IsBlank(ComboBox1_8.Selected),
-                                    ComboBox1_8.Selected.'Expense category',
-                                    Blank()
+                        Coalesce(
+                            // 1순위: 활성화된 UI 조작(OnChange 등)으로 인해 명시적으로 업데이트된 전역/로컬 변수
+                            curCategory,
+                            
+                            // 2순위: 3단계 선택값으로 백엔드에서 실시간 매핑해온 카테고리 (UI 컨트롤 참조 우회)
+                            mappedCategory,
+                            
+                            // 3순위: 위 두 값이 모두 없다면 기존 문서가 가지고 있던 원본 카테고리 유지
+                            currentCategory,
+                            
+                            // 4순위: 최후의 보루 (기존 비즈니스 룰 유지 - Dummy for Expense)
+                            If(
+                                !IsBlank(varSelectedLegalEntity),
+                                LookUp(
+                                    'Expense category (mserp)',
+                                    'Expense category' = "Dummy for Expense" &&
+                                    'Company Code' = varSelectedLegalEntity,
+                                    'Expense category'
                                 ),
-                                // 2) Mapped category when new or when 3-level selection changed
-                                If(
-                                    IsBlank(currentCategory) || isCategoryChanged,
-                                    mappedCategory,
-                                    Blank()
-                                ),
-                                // 3) Fallback to curCategory (existing behavior for backward compatibility)
-                                curCategory,
-                                // 4) Final fallback: "Dummy for Expense" lookup
-                                If(
-                                    !IsBlank(varSelectedLegalEntity),
-                                    LookUp(
-                                        'Expense category (mserp)',
-                                        'Expense category' = "Dummy for Expense" &&
-                                        'Company Code' = varSelectedLegalEntity,
-                                        'Expense category'
-                                    ),
-                                    Blank()
-                                )
+                                Blank()
                             )
                         )
                     )
@@ -2577,7 +2537,12 @@
                 Height: =50
                 MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, 'Company (mserp_company)')
                 Required: =true
-                Update: =DataCardValue14_1.Text
+                Update: |-
+                    =If(
+                        varIsCreate,
+                        Lower(varSelectedLegalEntity),
+                        ThisItem.'Company Code'
+                    )
                 Visible: =false
                 Width: =Parent.Width
                 X: =0
@@ -5147,7 +5112,16 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =true
-                Update: ="BANK"
+                Update: |-
+                    =Coalesce(
+                        ThisItem.'Payment method',
+                        LookUp(
+                            'Expense category (mserp)',
+                            'Expense category' = curCategory && 'Company Code' = varSelectedLegalEntity,
+                            'Default payment method'
+                        ),
+                        "BANK"
+                    )
                 Visible: =false
                 Width: =Parent.Width
                 X: =0
@@ -13324,95 +13298,105 @@
         LegalEntity: =Text(varSelectedLegalEntity)
         OnLeftButtonClick: |-
             =UpdateContext({varShowDeleteReceiptDialog: false});
-            UpdateContext({varDeleteReceiptId: Blank()})
+            UpdateContext({varDeleteReceiptId: 0})
         OnRightButtonClick: |-
-            =UpdateContext({varShowDeleteReceiptDialog: false});
+            =// 1. 팝업창 닫기
+            UpdateContext({varShowDeleteReceiptDialog: false});
+            
             If(
-                !IsBlank(varDeleteReceiptId),
-                // Pending receipt (new expense): just remove from pending list and stop
-                If(
-                    !IsBlank(LookUp(colPendingReceipts, mserp_entrecid = varDeleteReceiptId)),
-                    RemoveIf(colPendingReceipts, mserp_entrecid = varDeleteReceiptId);
+                varDeleteReceiptId <> 0,
+                With(
+                    {
+                        RecordToDeletePending: LookUp(colPendingReceipts, mserp_entrecid = varDeleteReceiptId),
+                        RecordToDeleteAttached: LookUp(colAttachedReceipts, mserp_entrecid = varDeleteReceiptId)
+                    },
+                    
+                    // ============================================================
+                    // [CASE A] 임시 영수증(Pending) - 아직 서버에 완전히 연결되지 않은 상태
+                    // ============================================================
+                    If(
+                        !IsBlank(RecordToDeletePending),
+                        // 로컬 컬렉션에서 삭제
+                        Remove(colPendingReceipts, RecordToDeletePending);
+            
+                        // Unattached 엔터티에서 ExpTransNumber 연결 해제
+                        IfError(
+                            Patch(
+                                'Expense Mobile Unattached Document Entity (mserp)',
+                                LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varDeleteReceiptId),
+                                { ExpTransNumber: Blank() }
+                            ),
+                            Notify(
+                                Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":""", ""),
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            );
+                            Blank() // Patch 오류 처리용 Blank 반환
+                        )
+                    );
+            
+                    // ============================================================
+                    // [CASE B] 확정된 영수증(Attached) - 핵심 수정 포인트 🚀
+                    // ============================================================
+                    If(
+                        !IsBlank(RecordToDeleteAttached),
+                        
+                        // ① UI 즉각 반응을 위해 로컬 컬렉션에서 먼저 삭제
+                        Remove(colAttachedReceipts, RecordToDeleteAttached);
+                        
+                        // ② Dataverse(D365) 'Attached' 엔터티에서 직접 레코드 삭제 (완전한 연결 끊기)
+                        IfError(
+                            // 1. 정상 실행 시: Remove 함수는 수정된 'Table'을 반환합니다.
+                            Remove(
+                                'Expense Mobile Attached Document Entity (mserp)',
+                                LookUp('Expense Mobile Attached Document Entity (mserp)', mserp_entrecid = varDeleteReceiptId)
+                            ),
+                            
+                            // 2. 에러 발생 시 (Fallback)
+                            Notify(
+                                Substitute(Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch, """message"":""", ""),
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            );
+                            Blank() // 👈 [핵심 해결책] false 대신 Blank()를 사용하여 기대되는 Table 형식에 완벽하게 대응합니다.
+                        )
+                    );
+            
+                    // ============================================================
+                    // [후속 처리] 글로벌 변수 갱신 및 캐시 초기화
+                    // ============================================================
+                    
+                    // 미리보기 이미지 복구
+                    Set(
+                        varReceiptImage,
+                        If(
+                            !IsEmpty(colAttachedReceipts),
+                            First(colAttachedReceipts).mserp_captureddocument,
+                            If(false, "", Blank())
+                        )
+                    );
+                    Set(
+                        varFileFormat,
+                        If(
+                            !IsEmpty(colAttachedReceipts),
+                            First(colAttachedReceipts).mserp_fileextension,
+                            If(false, "", Blank())
+                        )
+                    );
+            
                     Notify(
                         GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
                         NotificationType.Success,
                         gblParams.notificationTime
-                    );
-                    UpdateContext({varDeleteReceiptId: Blank()}),
-                IfError(
-                    Patch(
-                        'Expense Mobile Unattached Document Entity (mserp)',
-                        LookUp('Expense Mobile Unattached Document Entity (mserp)', EntRecId = varDeleteReceiptId),
-                        {
-                            ExpTransNumber: Blank()
-                        }
-                    ),
-                    Notify(
-                        Substitute(
-                            Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
-                            """message"":",
-                            ""
-                        ),
-                        NotificationType.Error,
-                        gblParams.notificationTime
                     )
                 );
-                // Refresh receipts collection from Expense Mobile Attached Document Entity (mserp)
-                Refresh('Expense Mobile Attached Document Entity (mserp)');
-                ClearCollect(
-                    colAttachedReceipts,
-                    SortByColumns(
-                        Filter(
-                            'Expense Mobile Attached Document Entity (mserp)',
-                            'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
-                        ),
-                        "mserp_documentcreateddatetime",
-                        SortOrder.Descending
-                    )
-                );
-                // Update AttachedReceiptId (first receipt or blank)
-                If(
-                    !IsEmpty(colAttachedReceipts),
-                    Patch(
-                        'DCSL Expense Line Expense Moblie Entity (mserp)',
-                        varSelectedExpenseDoc,
-                        {
-                            AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
-                        }
-                    ),
-                    Patch(
-                        'DCSL Expense Line Expense Moblie Entity (mserp)',
-                        varSelectedExpenseDoc,
-                        {
-                            AttachedReceiptId: Blank()
-                        }
-                    )
-                );
-                // Update varReceiptImage for backward compatibility
-                Set(
-                    varReceiptImage,
-                    If(
-                        !IsEmpty(colAttachedReceipts),
-                        First(colAttachedReceipts).mserp_captureddocument,
-                        Blank()
-                    )
-                );
-                Set(
-                    varFileFormat,
-                    If(
-                        !IsEmpty(colAttachedReceipts),
-                        First(colAttachedReceipts).mserp_fileextension,
-                        Blank()
-                    )
-                );
-                Notify(
-                    GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
-                    NotificationType.Success,
-                    gblParams.notificationTime
-                );
-                UpdateContext({varDeleteReceiptId: Blank()})
-                )
-            )
+            
+                // List Screen 복귀 시 예전 캐시 데이터가 보이지 않도록 강력하게 초기화
+                Clear(colFromAttached);
+            
+                // 다음 동작을 위해 ID 초기화
+                UpdateContext({varDeleteReceiptId: 0})
+            );
         parmInDescriptionText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachReceiptConfirmationTextLabel'
         parmInHeaderText: |-
