@@ -210,7 +210,19 @@
             // Project context
             UpdateContext({varSelectedProject: Blank()});
             // Project type context (will be derived from Expense Type / Purchase Category / Item or Service)
-            UpdateContext({varSelectedProjectType: Blank()});
+            UpdateContext({
+                varSelectedProjectType: If(
+                    !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory) && !IsBlank(varSelectedItemOrService),
+                    LookUp(
+                        'DCSL Expense Category Mapping Setup Entity (mserp)',
+                        'Expense Type' = varSelectedExpenseType &&
+                        'Purchase Category' = varSelectedPurchaseCategory &&
+                        'Item or Service' = varSelectedItemOrService,
+                        'Project Type'
+                    ),
+                    Blank()
+                )
+            });
             If(
                 !varIsCreate && !IsBlank(varSelectedExpenseDoc.Project),
                 UpdateContext({
@@ -8901,18 +8913,27 @@
                             )
                         Default: |-
                             =If(
-                                varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
-                                Text(Year(varSelectedExpenseDoc.'Purchase Date')),
+                                !IsBlank('Purchase Date_DataCard1_3'.Default),
+                                Text(Year('Purchase Date_DataCard1_3'.Default)),
                                 Text(Year(Today()))
                             )
                         FillPortions: =1.5
                         Height: =70
                         Items: |-
-                            =[
-                                Text(Year(Today()) - 1), 
-                                Text(Year(Today())), 
-                                Text(Year(Today()) + 1)
-                            ]
+                            =Distinct(
+                                Sort(
+                                    Table(
+                                        {Value: Text(Year(Today()) - 1)},
+                                        {Value: Text(Year(Today()))},
+                                        {Value: Text(Year(Today()) + 1)},
+                                        // 저장된 날짜의 연도가 리스트에 없으면 동적으로 추가
+                                        {Value: If(!IsBlank('Purchase Date_DataCard1_3'.Default), Text(Year('Purchase Date_DataCard1_3'.Default)), Text(Year(Today())))}
+                                    ),
+                                    Value,
+                                    SortOrder.Ascending
+                                ),
+                                Value
+                            )
                         LayoutMaxHeight: =0
                         LayoutMaxWidth: =0
                         LayoutMinHeight: =70
@@ -8943,8 +8964,8 @@
                             )
                         Default: |-
                             =If(
-                                varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
-                                Text(Month(varSelectedExpenseDoc.'Purchase Date'), "00"),
+                                !IsBlank('Purchase Date_DataCard1_3'.Default),
+                                Text(Month('Purchase Date_DataCard1_3'.Default), "00"),
                                 Blank()
                             )
                         FillPortions: =1
@@ -8980,8 +9001,8 @@
                             )
                         Default: |-
                             =If(
-                                varIsCopyMode && !IsBlank(varSelectedExpenseDoc.'Purchase Date'),
-                                Text(Day(varSelectedExpenseDoc.'Purchase Date'), "00"),
+                                !IsBlank('Purchase Date_DataCard1_3'.Default),
+                                Text(Day('Purchase Date_DataCard1_3'.Default), "00"),
                                 Blank()
                             )
                         FillPortions: =1
@@ -11735,21 +11756,18 @@
                         )
                     DefaultSelectedItems: |-
                         =If(
-                            // 1. 복사 모드이면서 원본 데이터에 Project 정보가 있는 경우 (※ 필드명은 실제 원본 데이터에 맞게 조정: 예: 'Project code')
-                            varIsCopyMode && !IsBlank(varSelectedExpenseDoc.Project),
-                            
-                            // 2. With 함수로 Items와 동일한 원본 가상 엔터티에서 해당 프로젝트 레코드를 1건 찾음
+                            !IsBlank(Parent.Default), // 복사/수정 모드 상관없이 저장된 값이 있으면 실행
                             With(
                                 {
                                     matchedProj: LookUp(
                                         'DCSL ProjectTypeProjectValue Entity (mserp)',
-                                        mserp_projectvalue = varSelectedExpenseDoc.Project && // 원본 식별자와 매핑
+                                        mserp_projectvalue = Parent.Default && 
                                         'Company Code' = Lower(varSelectedLegalEntity)
                                     )
                                 },
                                 If(
                                     !IsBlank(matchedProj),
-                                    // 3. 🚀 핵심: Items 속성의 AddColumns 결과와 완벽하게 동일한 구조의 테이블 생성
+                                    // Items 속성과 동일한 스키마(구조)의 테이블을 반환하여 콤보박스에 바인딩
                                     Table(
                                         {
                                             mserp_projectvalue: matchedProj.mserp_projectvalue,
@@ -11760,8 +11778,6 @@
                                     Blank()
                                 )
                             ),
-                            
-                            // 4. 복사 모드가 아닐 경우의 기존 로직
                             Blank()
                         )
                     DisplayFields: =["DisplayName"]
@@ -11785,14 +11801,14 @@
                                         'Project Type' = varSelectedProjectType &&
                                         'Company Code' = Lower(varSelectedLegalEntity)
                                     ),
-                                    Project,          // 기존 열: 표시 이름 사용, 따옴표 제거
-                                    Description,      // 기존 열: 표시 이름 사용, 따옴표 제거
-                                    GroupedRecords    // 신규 그룹 열: 따옴표 제거
+                                    Project,          
+                                    Description,      
+                                    GroupedRecords    
                                 ),
-                                "mserp_projectvalue",              // 정렬 열: 표시 이름 사용, 따옴표 제거
+                                "mserp_projectvalue",              
                                 SortOrder.Ascending
                             ),
-                            DisplayName,              // 신규 결합 열: 따옴표 제거
+                            DisplayName,              
                             mserp_projectvalue & " - " & mserp_projectname 
                         )
                     NoSelectionText: ="Select Project"
@@ -11803,8 +11819,8 @@
                                 isDirty: true
                             }
                         )
-                    SearchFields: =["mserp_projectvalue","mserp_projectname","DisplayName"]
-                    SearchItems: =Search(AddColumns(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),Project,Description,GroupedRecords),"mserp_projectvalue",SortOrder.Ascending),DisplayName,mserp_projectvalue&" - "&mserp_projectname),ComboBox_Project.SearchText,mserp_projectvalue,mserp_projectname,DisplayName)
+                    SearchFields: =["DisplayName"]
+                    SearchItems: =Search(AddColumns(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Project Type'=varSelectedProjectType&&'Company Code'=Lower(varSelectedLegalEntity)),Project,Description,GroupedRecords),"mserp_projectvalue",SortOrder.Ascending),DisplayName,mserp_projectvalue&" - "&mserp_projectname),ComboBox_Project.SearchText,DisplayName)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
