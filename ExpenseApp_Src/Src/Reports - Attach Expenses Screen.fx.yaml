@@ -555,8 +555,15 @@
 
     scr18_cmp02_CancelDialog As cmp02_ConfirmationDialog:
         controlName: ="scr18_cmp02_CancelDialog"
-        OnLeftButtonClick: =true
-        OnRightButtonClick: ="텍스트"
+        OnLeftButtonClick: |-
+            =UpdateContext({varCntBack: false});
+        OnRightButtonClick: |-
+            =UpdateContext({varCntBack: false});
+            If(
+                varCntBack_scr17,
+                Navigate('Reports - Edit Screen'),
+                Navigate('Reports - View Attached Expenses Screen')
+            )
         parmInDescriptionText: ="All unsaved changes will be lost."
         parmInHeaderText: ="Do you want to go back?"
         parmInLeftButtonColor: =RGBA(34, 102, 227, 1)

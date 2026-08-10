@@ -437,8 +437,15 @@ Screens:
           Properties:
             Height: =App.Height
             LegalEntity: ="Text"
-            OnLeftButtonClick: =true
-            OnRightButtonClick: ="텍스트"
+            OnLeftButtonClick: |-
+              =UpdateContext({varCntBack: false});
+            OnRightButtonClick: |-
+              =UpdateContext({varCntBack: false});
+              If(
+                  varCntBack_scr17,
+                  Navigate('Reports - Edit Screen'),
+                  Navigate('Reports - View Attached Expenses Screen')
+              )
             SelectedExpense: =
             SelectedList: ="Text"
             SelectedReceiptNumber: =

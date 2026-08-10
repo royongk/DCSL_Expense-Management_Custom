@@ -87,7 +87,7 @@ Screens:
                   Width: =50
                   X: =16
                   Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
-            - scr19_lbl_Merchant:
+            - scr19_lbl_LineNumber:
                 Control: Label@2.5.1
                 Properties:
                   BorderColor: =RGBA(0, 0, 0, 1)
@@ -101,11 +101,7 @@ Screens:
                   PaddingTop: =0
                   TabIndex: =If(IsBlank(Self.Text), -1, 0)
                   Text: |-
-                    =If(
-                        ThisItem.'Expense type' = 'TrvExpType (mserp)'.'Per diem',
-                        Concatenate("Perdiem - ", ThisItem.'Location (mserp_trvlocations_location)'),
-                        ThisItem.Merchant
-                    )
+                    =$"Line Number: {ThisItem.'Line number'}"
                   VerticalAlign: =VerticalAlign.Top
                   Width: =373
                   X: =71
@@ -182,9 +178,9 @@ Screens:
                   Text: =ThisItem.ProjectName
                   VerticalAlign: =VerticalAlign.Top
                   Visible: =!(scr19_lbl_Warning.Visible)
-                  Width: =scr19_lbl_Merchant.Width
-                  X: =scr19_lbl_Merchant.X
-                  Y: =scr19_lbl_Merchant.Y + scr19_lbl_Merchant.Height + 4
+                  Width: =scr19_lbl_LineNumber.Width
+                  X: =scr19_lbl_LineNumber.X
+                  Y: =scr19_lbl_LineNumber.Y + scr19_lbl_LineNumber.Height + 4
             - scr19_lbl_Warning:
                 Control: Label@2.5.1
                 Properties:
@@ -211,9 +207,9 @@ Screens:
                     )
                   VerticalAlign: =VerticalAlign.Top
                   Visible: =(Value(ThisItem.PolicyViolationCount) > 0)
-                  Width: =scr19_lbl_Merchant.Width
-                  X: =scr19_lbl_Merchant.X
-                  Y: =scr19_lbl_Merchant.Y + scr19_lbl_Merchant.Height + 4
+                  Width: =scr19_lbl_LineNumber.Width
+                  X: =scr19_lbl_LineNumber.X
+                  Y: =scr19_lbl_LineNumber.Y + scr19_lbl_LineNumber.Height + 4
       - scr19_EditAttachedExpenses:
           Control: Classic/Button@2.2.0
           Properties:
@@ -237,7 +233,15 @@ Screens:
             HoverColor: =Self.Color
             HoverFill: =
             OnSelect: |-
-              =Navigate('Reports - Attach Expenses Screen', ScreenTransition.None, {varCntBack_scr17 : false});
+              =Navigate(
+                  'Reports - Attach Expenses Screen', 
+                  ScreenTransition.None, 
+                  {
+                      varCntBack_scr17: false,
+                      ctxSelectedWorkerID: varSelectedReport.Employee, // 또는 현재 문맥에 맞는 Worker ID 변수
+                      ctxTargetPurpose: varSelectedReport.Purpose // 또는 현재 문맥에 맞는 목적 변수
+                  }
+              );
             PressedBorderColor: =Self.BorderColor
             PressedFill: =Self.Fill
             RadiusBottomLeft: =4
