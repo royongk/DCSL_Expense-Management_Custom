@@ -13379,6 +13379,25 @@
                         )
                     );
             
+                    // Update AttachedReceiptId (first receipt or blank)
+                    If(
+                        !IsEmpty(colAttachedReceipts),
+                        Patch(
+                            'DCSL Expense Line Expense Moblie Entity (mserp)',
+                            varSelectedExpenseDoc,
+                            {
+                                AttachedReceiptId: First(colAttachedReceipts).mserp_entrecid
+                            }
+                        ),
+                        Patch(
+                            'DCSL Expense Line Expense Moblie Entity (mserp)',
+                            varSelectedExpenseDoc,
+                            {
+                                AttachedReceiptId: Blank()
+                            }
+                        )
+                    );
+            
                     // ============================================================
                     // [후속 처리] 글로벌 변수 갱신 및 캐시 초기화
                     // ============================================================

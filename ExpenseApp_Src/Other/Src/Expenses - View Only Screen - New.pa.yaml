@@ -332,6 +332,37 @@ Screens:
                         TabIndex: =0
                         Visible: =false
                         Width: =24
+                  - scr030_ico_DownloadReceipt:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        AccessibleLabel: ="Download receipt"
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(34, 102, 227, 1)
+                        Height: =24
+                        Icon: =Icon.Download
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        OnSelect: |-
+                          =// 1. 선택한 영수증의 Base64 데이터와 파일명을 변수에 저장하여 숨겨진 컨테이너(scr030_img_PdfExport)에 바인딩합니다.
+                          UpdateContext({
+                              varDownloadBase64: ThisItem.mserp_captureddocument,
+                              varDownloadFileName: Coalesce(ThisItem.mserp_filename, "Receipt-" & ThisItem.mserp_entrecid)
+                          });
+
+                          // 2. 화면 밖의 숨겨진 컨테이너를 PDF로 렌더링한 후, PDF 파일로 다운로드를 실행합니다.
+                          // 수정된 수식: 두 번째 인수(파일명) 제거
+                          Download(
+                              PDF(
+                                  scr030_Container_PdfExport,
+                                  {
+                                      Orientation: PaperOrientation.Portrait,
+                                      Size: PaperSize.A4,
+                                      Margin: "0px"
+                                  }
+                              )
+                          );
+                        TabIndex: =0
+                        Width: =24
       - scr030_lbl_ValidationWarning_1:
           Control: Label@2.5.1
           Properties:
@@ -11696,3 +11727,27 @@ Screens:
             Visible: =false
             X: =60
             Y: =60
+      - scr030_Container_PdfExport:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Fill: =Color.White
+            Height: =1123
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =794
+            X: =-10000
+            Y: =-10000
+          Children:
+            - scr030_img_PdfExport:
+                Control: Image@2.2.3
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Height: =Parent.Height
+                  Image: =varDownloadBase64
+                  Width: =Parent.Width
+                  X: =40
+                  Y: =40
