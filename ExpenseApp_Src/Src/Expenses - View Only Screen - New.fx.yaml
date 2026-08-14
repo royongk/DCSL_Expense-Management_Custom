@@ -3,8 +3,8 @@
     OnHidden: |-
         =UpdateContext({ varRemainingAmount: 0 });
         // 화면을 벗어날 때 기존 영수증 메모리를 확실하게 비워줍니다.
-        Clear(colPendingReceipts);
-        Clear(colAttachedReceipts);
+        //Clear(colPendingReceipts);
+        //Clear(colAttachedReceipts);
     OnVisible: |-
         =// OnVisible 최상단에 조건문 추가
         If(
@@ -850,34 +850,23 @@
                 Width: =24
                 ZIndex: =3
 
-            scr030_ico_DownloadReceipt As icon.Download:
+            scr030_ico_ViewReceipt As icon.Download:
                 AccessibleLabel: ="Download receipt"
                 Color: =RGBA(34, 102, 227, 1)
                 Height: =24
-                Icon: =Icon.Download
+                Icon: =Icon.View
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
                 LayoutMinHeight: =16
                 LayoutMinWidth: =16
                 OnSelect: |-
-                    =// 1. 선택한 영수증의 Base64 데이터와 파일명을 변수에 저장하여 숨겨진 컨테이너(scr030_img_PdfExport)에 바인딩합니다.
-                    UpdateContext({
-                        varDownloadBase64: ThisItem.mserp_captureddocument,
-                        varDownloadFileName: Coalesce(ThisItem.mserp_filename, "Receipt-" & ThisItem.mserp_entrecid)
-                    });
+                    =// 선택된 영수증의 메타데이터를 전역 변수에 저장합니다.
+                    Set(varSelectedReceiptForView, ThisItem.mserp_entrecid);
+                    Set(varReceiptImage, ThisItem.mserp_captureddocument);
+                    Set(varFileFormat, ThisItem.mserp_fileextension);
                     
-                    // 2. 화면 밖의 숨겨진 컨테이너를 PDF로 렌더링한 후, PDF 파일로 다운로드를 실행합니다.
-                    // 수정된 수식: 두 번째 인수(파일명) 제거
-                    Download(
-                        PDF(
-                            scr030_Container_PdfExport,
-                            {
-                                Orientation: PaperOrientation.Portrait,
-                                Size: PaperSize.A4,
-                                Margin: "0px"
-                            }
-                        )
-                    );
+                    // 영수증 뷰어 화면으로 이동하며, 읽기 전용 상태 변수를 함께 전달합니다.
+                    Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly: true});
                 TabIndex: =0
                 Width: =24
                 ZIndex: =5
@@ -13270,24 +13259,4 @@
         X: =60
         Y: =60
         ZIndex: =27
-
-    scr030_Container_PdfExport As groupContainer.manualLayoutContainer:
-        Fill: =Color.White
-        Height: =1123
-        LayoutGridColumnMinWidth: =0
-        LayoutGridColumns: =6
-        LayoutGridRowMinHeight: =0
-        LayoutGridRows: =6
-        Width: =794
-        X: =-10000
-        Y: =-10000
-        ZIndex: =28
-
-        scr030_img_PdfExport As image:
-            Height: =Parent.Height
-            Image: =varDownloadBase64
-            Width: =Parent.Width
-            X: =40
-            Y: =40
-            ZIndex: =1
 
