@@ -267,6 +267,7 @@ Screens:
                   Height: =70
                   LayoutAlignItems: =LayoutAlignItems.Center
                   LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
                   PaddingLeft: =15
                   PaddingRight: =15
                   RadiusBottomLeft: =0
@@ -275,6 +276,26 @@ Screens:
                   RadiusTopRight: =0
                   Width: =Parent.Width
                 Children:
+                  - scr030_ico_ViewReceipt:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        AccessibleLabel: ="Download receipt"
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(34, 102, 227, 1)
+                        Height: =24
+                        Icon: =Icon.View
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        OnSelect: |-
+                          =// 선택된 영수증의 메타데이터를 전역 변수에 저장합니다.
+                          Set(varSelectedReceiptForView, ThisItem.mserp_entrecid);
+                          Set(varReceiptImage, ThisItem.mserp_captureddocument);
+                          Set(varFileFormat, ThisItem.mserp_fileextension);
+
+                          // 영수증 뷰어 화면으로 이동하며, 읽기 전용 상태 변수를 함께 전달합니다.
+                          Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly: true});
+                        TabIndex: =0
+                        Width: =24
                   - scr030_img_ReceiptIcon:
                       Control: Image@2.2.3
                       Properties:
@@ -331,26 +352,6 @@ Screens:
                           UpdateContext({varShowDeleteReceiptDialog: true})
                         TabIndex: =0
                         Visible: =false
-                        Width: =24
-                  - scr030_ico_ViewReceipt:
-                      Control: Classic/Icon@2.5.0
-                      Properties:
-                        AccessibleLabel: ="Download receipt"
-                        BorderColor: =RGBA(0, 18, 107, 1)
-                        Color: =RGBA(34, 102, 227, 1)
-                        Height: =24
-                        Icon: =Icon.View
-                        LayoutMinHeight: =16
-                        LayoutMinWidth: =16
-                        OnSelect: |-
-                          =// 선택된 영수증의 메타데이터를 전역 변수에 저장합니다.
-                          Set(varSelectedReceiptForView, ThisItem.mserp_entrecid);
-                          Set(varReceiptImage, ThisItem.mserp_captureddocument);
-                          Set(varFileFormat, ThisItem.mserp_fileextension);
-
-                          // 영수증 뷰어 화면으로 이동하며, 읽기 전용 상태 변수를 함께 전달합니다.
-                          Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly: true});
-                        TabIndex: =0
                         Width: =24
       - scr030_lbl_ValidationWarning_1:
           Control: Label@2.5.1

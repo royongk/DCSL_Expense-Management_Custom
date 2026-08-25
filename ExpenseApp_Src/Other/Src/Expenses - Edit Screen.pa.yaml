@@ -257,6 +257,7 @@ Screens:
                   Height: =70
                   LayoutAlignItems: =LayoutAlignItems.Center
                   LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
                   PaddingLeft: =15
                   PaddingRight: =15
                   RadiusBottomLeft: =0
@@ -265,6 +266,26 @@ Screens:
                   RadiusTopRight: =0
                   Width: =Parent.Width
                 Children:
+                  - scr030_ico_ViewReceipt_2:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        AccessibleLabel: ="Download receipt"
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(34, 102, 227, 1)
+                        Height: =24
+                        Icon: =Icon.View
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        OnSelect: |-
+                          =// 선택된 영수증의 메타데이터를 전역 변수에 저장합니다.
+                          Set(varSelectedReceiptForView, ThisItem.mserp_entrecid);
+                          Set(varReceiptImage, ThisItem.mserp_captureddocument);
+                          Set(varFileFormat, ThisItem.mserp_fileextension);
+
+                          // 영수증 뷰어 화면으로 이동하며, 읽기 전용 상태 변수를 함께 전달합니다.
+                          Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly: false});
+                        TabIndex: =0
+                        Width: =24
                   - scr03_img_ReceiptIcon:
                       Control: Image@2.2.3
                       Properties:
@@ -11465,7 +11486,7 @@ Screens:
             OnLeftButtonClick: |-
               =UpdateContext({varShowDeleteReceiptDialog: false});
               UpdateContext({varDeleteReceiptId: 0})
-            OnRightButtonClick: "=// 1. 팝업창 닫기 \nUpdateContext({varShowDeleteReceiptDialog: false});\n\n// 2. 작업 진행 중임을 사용자에게 알리기 위해 로딩 스피너 활성화\nUpdateContext({ varLoadingSpinner: true });\n\n// 3. Power Automate 흐름 호출 (오류 수정됨)\nIfError(\n    // \U0001F447 Record({}) 형태를 제거하고 단일 Text 인수로 전달합니다.\n    Remove_Attachment_test.Run(Text(varDeleteReceiptId)),\n    \n    // [에러 발생 시] \n    Notify(\"영수증 삭제 중 시스템 오류가 발생했습니다.\", NotificationType.Error, gblParams.notificationTime),\n    \n    // [정상 처리 시]\n    Notify(\"영수증이 성공적으로 삭제되었습니다.\", NotificationType.Success, gblParams.notificationTime);\n    \n    // 컬렉션에서 해당 항목 즉시 제거 (UI 동기화)\n    RemoveIf(colAttachedReceipts, mserp_entrecid = varDeleteReceiptId);\n    RemoveIf(colPendingReceipts, mserp_entrecid = varDeleteReceiptId);\n    \n    // 임시 ID 초기화\n    UpdateContext({ varDeleteReceiptId: Blank() })\n);\n\n// 4. 로딩 스피너 비활성화\nUpdateContext({ varLoadingSpinner: false });"
+            OnRightButtonClick: "=// 1. 팝업창 닫기 \nUpdateContext({varShowDeleteReceiptDialog: false});\n\n// 2. 작업 진행 중임을 사용자에게 알리기 위해 로딩 스피너 활성화\nUpdateContext({ varLoadingSpinner: true });\n\n// 3. Power Automate 흐름 호출 (오류 수정됨)\nIfError(\n    // \U0001F447 Record({}) 형태를 제거하고 단일 Text 인수로 전달합니다.\n    Remove_Attachment_test.Run(Text(varDeleteReceiptId)),\n    \n    // [에러 발생 시] \n    Notify(\"A system error occurred while deleting the receipt.\", NotificationType.Error, gblParams.notificationTime),\n    \n    // [정상 처리 시]\n    Notify(\"The receipt has been successfully deleted.\", NotificationType.Success, gblParams.notificationTime);\n    \n    // 컬렉션에서 해당 항목 즉시 제거 (UI 동기화)\n    RemoveIf(colAttachedReceipts, mserp_entrecid = varDeleteReceiptId);\n    RemoveIf(colPendingReceipts, mserp_entrecid = varDeleteReceiptId);\n    \n    // 임시 ID 초기화\n    UpdateContext({ varDeleteReceiptId: Blank() })\n);\n\n// 4. 로딩 스피너 비활성화\nUpdateContext({ varLoadingSpinner: false });"
             SelectedExpense: =
             SelectedList: ="Text"
             SelectedReceiptNumber: =

@@ -16,17 +16,30 @@
         // Load all attached receipts for this expense line
         // [1. 최상위 If 시작] 문서 정보가 있을 때만 실행
         If(
-            !varViewOnly && !IsBlank(varSelectedExpenseDoc) && !IsBlank(varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'),
+            !varViewOnly && !IsBlank(varSelectedExpenseDoc),
             
-            ClearCollect(
-                colAttachedReceipts,
-                SortByColumns(
-                    Filter(
-                        'Expense Mobile Unattached Document Entity (mserp)',
-                        ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
-                    ),
-                    "mserp_creatingdatetime",
-                    SortOrder.Descending
+            // 🚀 [핵심 수정] 신규 모드와 수정 모드를 분기하여 데이터를 수집합니다.
+            If(
+                varIsCreate,
+                // 1. 신규 모드(Unattached 단계): 가상 필드(ExpTransNumber) 에러를 피하기 위해 
+                // 서버 조회를 생략하고, 이전 화면에서 메모리에 임시로 모아둔 컬렉션을 그대로 복사합니다.
+                ClearCollect(
+                    colAttachedReceipts,
+                    colPendingReceipts
+                ),
+                
+                // 2. 수정/조회 모드(Attached 단계): 이미 저장된 문서이므로 Attached 엔터티에서
+                // 가상 필드가 아닌 '물리적 ID(ExpenseRecId)'를 사용하여 안전하게 조회합니다.
+                ClearCollect(
+                    colAttachedReceipts,
+                    SortByColumns(
+                        Filter(
+                            'Expense Mobile Attached Document Entity (mserp)',
+                            'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                        ),
+                        "mserp_documentcreateddatetime", // Attached 테이블의 실제 생성일시 필드명
+                        SortOrder.Descending
+                    )
                 )
             );
             
@@ -338,113 +351,65 @@
             Set(varCntShowConfirmationDialog,false);
             Set(varChangeCalled,false);
         OnRightButtonClick: |-
-            =//UpdateContext({varCntShowConfirmationDialog: false});
-            Set(varCntShowConfirmationDialog,false);
+            =// 1. 팝업창 닫기
+            Set(varCntShowConfirmationDialog, false);
+            
             If(
                 !IsBlank(SelectedExpense) && SelectedReceiptNumber <> "0" && !IsBlank(SelectedReceiptNumber),
+                
+                // 2. Power Automate 흐름 호출 (백엔드 삭제 및 AttachedReceiptId 갱신 처리 포함)
                 IfError(
-                    // Detach receipt by setting ExpTransNumber to Blank
-                    Patch(
-                        'Expense Mobile Unattached Document Entity (mserp)',
-                        LookUp(
-                            'Expense Mobile Unattached Document Entity (mserp)',
-                            EntRecId = Value(SelectedReceiptNumber)
-                        ),
-                        {
-                            ExpTransNumber: Blank()
-                        }
-                    ),
-                    First(
-                        ClearCollect(
-                            varError,
-                            Substitute(
-                                Match(
-                                    FirstError.Details.HttpResponse,
-                                    """message"":""([^""]*)"""
-                                ).FullMatch,
-                                """message"":",
-                                ""
-                            )
-                        )
-                    )
+                    Remove_Attachment_test.Run(Text(SelectedReceiptNumber)),
+                    
+                    // [에러 발생 시] 에러 변수에 담아 하단에서 통합 처리
+                    ClearCollect(varError, {Value: "영수증 삭제 중 시스템 오류가 발생했습니다."}),
+                    
+                    // [정상 처리 시] UI 컬렉션 즉시 동기화 및 에러 클리어
+                    RemoveIf(colAttachedReceipts, mserp_entrecid = Value(SelectedReceiptNumber));
+                    RemoveIf(colPendingReceipts, mserp_entrecid = Value(SelectedReceiptNumber));
+                    Clear(varError)
                 )
             );
+            
+            // 3. 후속 UI 업데이트 및 화면 전환 로직
             If(
-                (IsBlank(First(varError).Value) || First(varError).Value = ""),
-                // Refresh receipts collection
-                ClearCollect(
-                    colAttachedReceipts,
-                    SortByColumns(
-                        Filter(
-                            'Expense Mobile Unattached Document Entity (mserp)',
-                            ExpTransNumber = varSelectedExpenseDoc.'Expense transaction number (mserp_exptransnumber)'
-                        ),
-                        "mserp_creatingdatetime",
-                        SortOrder.Descending
-                    )
-                );
-                // Update AttachedReceiptId (first receipt or blank)
-                If(
-                    !IsEmpty(colAttachedReceipts),
-                    Patch(
-                        'DCSL Expense Line Expense Moblie Entity (mserp)',
-                        varSelectedExpenseDoc,
-                        {
-                            AttachedReceiptId: First(colAttachedReceipts).EntRecId
-                        }
-                    ),
-                    Patch(
-                        'DCSL Expense Line Expense Moblie Entity (mserp)',
-                        varSelectedExpenseDoc,
-                        {
-                            AttachedReceiptId: Blank()
-                        }
-                    )
-                );
+                IsBlank(First(varError).Value) || First(varError).Value = "",
+                
+                // [성공 케이스]
+                // 3-1. 성공 알림
                 Notify(
                     GlobalLabels.Labels.'15062:LocalizedName,msdyn_ReceiptDetachedSuccessfullyLabel',
                     NotificationType.Success,
                     gblParams.notificationTime
                 );
-                // Update current receipt display
+                
+                // 3-2. 뷰어 화면의 영수증 이미지 및 인덱스 갱신 (메모리 찌꺼기 방지)
                 If(
                     !IsEmpty(colAttachedReceipts),
-                    Set(
-                        varCurrentReceiptIndex,
-                        1
-                    );
-                    Set(
-                        varSelectedReceiptForView,
-                        First(colAttachedReceipts).EntRecId
-                    );
-                    Set(
-                        varReceiptImage,
-                        First(colAttachedReceipts).CapturedDocument
-                    );
-                    Set(
-                        varFileFormat,
-                        First(colAttachedReceipts).FileExtension
-                    ),
-                    Set(
-                        varReceiptImage,
-                        Blank()
-                    );
-                    Set(
-                        varSelectedReceiptForView,
-                        Blank()
-                    )
+                    Set(varCurrentReceiptIndex, 1);
+                    Set(varSelectedReceiptForView, First(colAttachedReceipts).mserp_entrecid);
+                    Set(varReceiptImage, Coalesce(First(colAttachedReceipts).mserp_captureddocument, First(colAttachedReceipts).mserp_captureddocument));
+                    Set(varFileFormat, Coalesce(First(colAttachedReceipts).mserp_fileextension, First(colAttachedReceipts).mserp_fileextension)),
+                    
+                    // 남은 영수증이 없을 경우 뷰어 상태 초기화
+                    Set(varReceiptImage, Blank());
+                    Set(varSelectedReceiptForView, Blank());
+                    Set(varFileFormat, Blank())
+                );
+                
+                // 3-3. 이전 화면으로 복귀
+                If(
+                    varChangeCalled,
+                    Navigate('Expenses - Capture Receipt Screen'),
+                    Navigate('Expenses - Edit Screen')
                 ),
+                
+                // [실패 케이스]
                 Notify(
-                    Substitute(First(varError).Value, """", ""),
+                    First(varError).Value,
                     NotificationType.Error,
                     gblParams.notificationTime
-                ) 
-                
-            );
-            If(
-                varChangeCalled,
-                Navigate('Expenses - Capture Receipt Screen'),
-                Navigate('Expenses - Edit Screen')
+                )
             )
         parmInDescriptionText: |-
             =If(
@@ -640,7 +605,7 @@
                 )
             )
         PressedFill: =RGBA(50, 50, 50, 1)
-        Size: =18
+        Size: =16
         Text: ="Previous"
         Visible: =!IsEmpty(colAttachedReceipts) && CountRows(colAttachedReceipts) > 1 && varCurrentReceiptIndex > 1
         Width: =100

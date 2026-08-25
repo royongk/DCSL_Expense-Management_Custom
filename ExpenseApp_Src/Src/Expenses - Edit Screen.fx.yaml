@@ -963,6 +963,7 @@
             Fill: =Color.White
             Height: =70
             LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =12
             LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
             LayoutGridRowMinHeight: =0
@@ -972,6 +973,30 @@
             PaddingRight: =15
             Width: =Parent.Width
             ZIndex: =1
+
+            scr030_ico_ViewReceipt_2 As icon:
+                AccessibleLabel: ="Download receipt"
+                BorderColor: =RGBA(0, 18, 107, 1)
+                Color: =RGBA(34, 102, 227, 1)
+                DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                DisabledColor: =RGBA(244, 244, 244, 1)
+                Height: =24
+                Icon: =Icon.View
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                OnSelect: |-
+                    =// 선택된 영수증의 메타데이터를 전역 변수에 저장합니다.
+                    Set(varSelectedReceiptForView, ThisItem.mserp_entrecid);
+                    Set(varReceiptImage, ThisItem.mserp_captureddocument);
+                    Set(varFileFormat, ThisItem.mserp_fileextension);
+                    
+                    // 영수증 뷰어 화면으로 이동하며, 읽기 전용 상태 변수를 함께 전달합니다.
+                    Navigate('Expenses - View Receipt Screen', ScreenTransition.None, {varViewOnly: false});
+                TabIndex: =0
+                Width: =24
+                ZIndex: =1
 
             scr03_img_ReceiptIcon As image:
                 Height: =40
@@ -996,7 +1021,7 @@
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
                 Width: =40
-                ZIndex: =1
+                ZIndex: =2
 
             scr03_lbl_ReceiptFileName As label:
                 Color: =Color.Black
@@ -1013,7 +1038,7 @@
                     )
                 VerticalAlign: =VerticalAlign.Center
                 Width: =Parent.Width
-                ZIndex: =2
+                ZIndex: =3
 
             scr03_ico_DeleteReceipt As icon.Trash:
                 AccessibleLabel: ="Delete receipt"
@@ -1031,7 +1056,7 @@
                 TabIndex: =0
                 Visible: =!varViewOnly
                 Width: =24
-                ZIndex: =3
+                ZIndex: =4
 
     scr03_lbl_ValidationWarning_1 As label:
         Align: =Align.Center
@@ -13328,10 +13353,10 @@
                 Remove_Attachment_test.Run(Text(varDeleteReceiptId)),
                 
                 // [에러 발생 시] 
-                Notify("영수증 삭제 중 시스템 오류가 발생했습니다.", NotificationType.Error, gblParams.notificationTime),
+                Notify("A system error occurred while deleting the receipt.", NotificationType.Error, gblParams.notificationTime),
                 
                 // [정상 처리 시]
-                Notify("영수증이 성공적으로 삭제되었습니다.", NotificationType.Success, gblParams.notificationTime);
+                Notify("The receipt has been successfully deleted.", NotificationType.Success, gblParams.notificationTime);
                 
                 // 컬렉션에서 해당 항목 즉시 제거 (UI 동기화)
                 RemoveIf(colAttachedReceipts, mserp_entrecid = varDeleteReceiptId);
