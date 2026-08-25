@@ -13338,32 +13338,44 @@
             =UpdateContext({varShowDeleteReceiptDialog: false});
             UpdateContext({varDeleteReceiptId: 0})
         OnRightButtonClick: |-
-            =// 1. 팝업창 닫기 
-            UpdateContext({varShowDeleteReceiptDialog: false});
+            =// 1. 팝업창 닫기 및 로딩 스피너 활성화 (동시 실행)
+            UpdateContext({
+                varShowDeleteReceiptDialog: false,
+                varLoadingSpinner: true
+            });
             
-            // 2. 작업 진행 중임을 사용자에게 알리기 위해 로딩 스피너 활성화
-            UpdateContext({ varLoadingSpinner: true });
-            
-            // 3. Power Automate 흐름 호출 (오류 수정됨)
+            // 2. Power Automate 흐름 호출 및 예외 처리 (순차적 실행 패턴)
             IfError(
-                // 👇 Record({}) 형태를 제거하고 단일 Text 인수로 전달합니다.
-                Remove_Attachment_test.Run(Text(varDeleteReceiptId)),
+                // ---------------- [Try 영역] ----------------
+                // 흐름을 실행합니다. 흐름 내에 'PowerApp에 응답' 액션이 있으므로 완료 시까지 대기합니다.
+                ExpenseManagementSystemApps_Remove_Attachment.Run(Text(varDeleteReceiptId));
                 
-                // [에러 발생 시] 
-                Notify("A system error occurred while deleting the receipt.", NotificationType.Error, gblParams.notificationTime),
+                // 위 흐름 호출이 실패(에러)하면 아래 코드는 무시되고 [Catch 영역]으로 넘어갑니다.
+                // 흐름이 정상적으로 끝났을 때만 아래 성공 로직이 순차적으로 실행됩니다.
+                Notify(
+                    "The receipt has been successfully deleted.", 
+                    NotificationType.Success, 
+                    gblParams.notificationTime
+                );
                 
-                // [정상 처리 시]
-                Notify("The receipt has been successfully deleted.", NotificationType.Success, gblParams.notificationTime);
-                
-                // 컬렉션에서 해당 항목 즉시 제거 (UI 동기화)
+                // 로컬 컬렉션 데이터 동기화 (앱 성능 최적화)
                 RemoveIf(colAttachedReceipts, mserp_entrecid = varDeleteReceiptId);
                 RemoveIf(colPendingReceipts, mserp_entrecid = varDeleteReceiptId);
                 
-                // 임시 ID 초기화
-                UpdateContext({ varDeleteReceiptId: Blank() })
+                // 삭제할 영수증 ID 초기화
+                UpdateContext({ varDeleteReceiptId: Blank() }),
+            
+                // ---------------- [Catch 영역] ----------------
+                // F&O 커넥터 에러, 흐름 시간 초과 등의 문제가 발생했을 때만 실행됩니다.
+                Notify(
+                    "A system error occurred while deleting the receipt. Please try again.", 
+                    NotificationType.Error, 
+                    gblParams.notificationTime
+                )
             );
             
-            // 4. 로딩 스피너 비활성화
+            // 3. 로딩 스피너 비활성화
+            // 성공, 실패 여부와 관계없이 프로세스 마지막에 항상 실행되어 화면 잠금을 해제합니다.
             UpdateContext({ varLoadingSpinner: false });
         parmInDescriptionText: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DetachReceiptConfirmationTextLabel'
