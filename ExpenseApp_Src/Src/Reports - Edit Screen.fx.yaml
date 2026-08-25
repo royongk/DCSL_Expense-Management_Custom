@@ -2494,20 +2494,10 @@
                     //assign the expense to a varSelectedExpenseDoc
                     Set(
                         varSelectedExpenseDoc,
-                        LookUp('DCSL Expense Line Expense Moblie Entity (mserp)','Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                        LookUp('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
                     );
-                    // [추가된 부분] 이전 항목의 영수증 목록이 갤러리에 중복 표시되지 않도록 컬렉션 초기화
-                    Clear(colAttachedReceipts);
-                    /*
-                    Set(
-                        varReceiptImage,
-                        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId),CapturedDocument)
-                    );
-                    Set(
-                        varFileFormat,
-                        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
-                    );
-                    */
+                    
+                    // 🚀 [개선 1] 단일 파일 LookUp 대신 Edit 화면과 완벽히 동일한 다중 영수증 컬렉션 업데이트
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
@@ -2518,6 +2508,27 @@
                             "mserp_documentcreateddatetime",
                             SortOrder.Descending
                         )
+                    );
+                    
+                    ClearCollect(
+                        colAttachedReceipts,
+                        SortByColumns(
+                            Filter(
+                                'Expense Mobile Attached Document Entity (mserp)',
+                                'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                            ),
+                            "mserp_documentcreateddatetime",
+                            SortOrder.Descending
+                        )
+                    );
+                    // 🚀 [개선 2] 미리보기 단일 이미지를 보여주는 UI를 위해, 컬렉션의 첫 번째 데이터 동기화
+                    Set(
+                        varReceiptImage,
+                        If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_captureddocument, Blank())
+                    );
+                    Set(
+                        varFileFormat,
+                        If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_fileextension, Blank())
                     );
                     
                     Set(
