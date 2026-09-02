@@ -149,7 +149,7 @@ Screens:
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_CollectionTrasferDate.Height + dtp_CollectionTrasferDate.Height + 20
+                  Height: =LblContainer_CollectionTrasferDate.Height + dtp_CollectionTrasferDate.Height + lbl_CollectionTransferDateWarning.Height + 20
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -207,6 +207,27 @@ Screens:
                         LayoutMinHeight: =40
                         LayoutMinWidth: =328
                         Size: =21
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
+                  - lbl_CollectionTransferDateWarning:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =RGBA(204, 119, 34, 1)
+                        Font: =Font.'Open Sans'
+                        Height: =30
+                        LayoutMinHeight: =16
+                        LayoutMinWidth: =16
+                        Size: =14
+                        Text: ="Date is too early and could get rejected by Finance"
+                        Visible: |-
+                          =With(
+                              { 
+                                  selectedDate: dtp_CollectionTrasferDate.SelectedDate,
+                                  limitDate: DateAdd(Today(), 7, TimeUnit.Days) 
+                              },
+                              !IsBlank(selectedDate) && selectedDate < limitDate
+                          )
                         Width: =Parent.Width - Self.X*2
                         X: =40
             - SalaryDeductionPeriod_Container:

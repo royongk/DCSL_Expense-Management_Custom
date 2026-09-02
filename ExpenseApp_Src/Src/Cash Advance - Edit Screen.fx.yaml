@@ -109,7 +109,7 @@
 
         CollectionTransferDate_Container As groupContainer.horizontalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_CollectionTrasferDate.Height + dtp_CollectionTrasferDate.Height + 20
+            Height: =LblContainer_CollectionTrasferDate.Height + dtp_CollectionTrasferDate.Height + lbl_CollectionTransferDateWarning.Height + 20
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -171,6 +171,27 @@
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =2
+
+            lbl_CollectionTransferDateWarning As label:
+                Color: =RGBA(204, 119, 34, 1)
+                Height: =30
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                Size: =14
+                Text: ="Date is too early and could get rejected by Finance"
+                Visible: |-
+                    =With(
+                        { 
+                            selectedDate: dtp_CollectionTrasferDate.SelectedDate,
+                            limitDate: DateAdd(Today(), 7, TimeUnit.Days) 
+                        },
+                        !IsBlank(selectedDate) && selectedDate < limitDate
+                    )
+                Width: =Parent.Width - Self.X*2
+                X: =40
+                ZIndex: =3
 
         SalaryDeductionPeriod_Container As groupContainer.horizontalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
