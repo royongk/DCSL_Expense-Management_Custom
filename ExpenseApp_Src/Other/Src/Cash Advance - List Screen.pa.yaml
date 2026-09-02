@@ -99,7 +99,7 @@ Screens:
         ClearCollect(
             colCashAdvanceStatusOptions,
             {
-                Value: Coalesce(Blank(), LookUp(Choices('Cash advances (mserp)'.'Cash advance status'), true, Value)), 
+                Value: Blank(),
                 DisplayName: "All"
             }
         );
@@ -110,7 +110,16 @@ Screens:
                 Choices('Cash advances (mserp)'.'Cash advance status'),
                 {
                     Value: Value,
-                    DisplayName: Text(Value)
+                    DisplayName: Switch(
+                        Value,
+                        'Cash advance status (mserp)'.Draft, "Draft",
+                        'Cash advance status (mserp)'.Submitted, "Submitted",
+                        'Cash advance status (mserp)'.'In review', "In review",
+                        'Cash advance status (mserp)'.Approved, "Approved",
+                        'Cash advance status (mserp)'.Returned, "Rejected",
+                        'Cash advance status (mserp)'.Paid, "Paid / Settled",
+                        Text(Value)
+                    )
                 }
             )
         );

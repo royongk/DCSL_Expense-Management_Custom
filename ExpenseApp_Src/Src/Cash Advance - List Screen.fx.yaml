@@ -89,7 +89,7 @@
         ClearCollect(
             colCashAdvanceStatusOptions,
             {
-                Value: Coalesce(Blank(), LookUp(Choices('Cash advances (mserp)'.'Cash advance status'), true, Value)), 
+                Value: Blank(),
                 DisplayName: "All"
             }
         );
@@ -100,7 +100,16 @@
                 Choices('Cash advances (mserp)'.'Cash advance status'),
                 {
                     Value: Value,
-                    DisplayName: Text(Value)
+                    DisplayName: Switch(
+                        Value,
+                        'Cash advance status (mserp)'.Draft, "Draft",
+                        'Cash advance status (mserp)'.Submitted, "Submitted",
+                        'Cash advance status (mserp)'.'In review', "In review",
+                        'Cash advance status (mserp)'.Approved, "Approved",
+                        'Cash advance status (mserp)'.Returned, "Rejected",
+                        'Cash advance status (mserp)'.Paid, "Paid / Settled",
+                        Text(Value)
+                    )
                 }
             )
         );
@@ -310,7 +319,6 @@
                 lbl_CashAdvanceStatus As label:
                     Align: =Align.Center
                     AlignInContainer: =AlignInContainer.Center
-                    BorderColor: =RGBA(0, 18, 107, 1)
                     Color: |-
                         =If(
                             // 1. Draft (회색)
@@ -347,7 +355,6 @@
                             // 예외 처리: 불특정 상태 (흰색 바탕에 잘 보이는 머스타드 노란색)
                             RGBA(218, 165, 32, 1)
                         )
-                    DisabledColor: =RGBA(166, 166, 166, 1)
                     FontWeight: =FontWeight.Bold
                     Height: =70
                     LayoutMaxHeight: =0
