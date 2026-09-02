@@ -187,7 +187,7 @@ Screens:
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
                               Size: =18
-                              Text: ="Collection/Transfer Date"
+                              Text: ="Collection/Transfer Date (minimum 5 working days)"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
                   - dtp_CollectionTrasferDate:
@@ -196,7 +196,7 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DefaultDate: |-
                           =If(
-                              varIsCreateCashAdvance, Today(), 
+                              varIsCreateCashAdvance, DateAdd(Today(), 7, TimeUnit.Days), 
                               varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexcollectiontransferdate)'
                           )
                         FillPortions: =1
