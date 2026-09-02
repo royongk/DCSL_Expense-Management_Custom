@@ -270,7 +270,7 @@
                     LayoutMinHeight: =112
                     LayoutMinWidth: =250
                     LayoutMode: =LayoutMode.Auto
-                    ZIndex: =4
+                    ZIndex: =3
 
                     Label_CashAdvanceNumber As label:
                         AutoHeight: =true
@@ -306,6 +306,93 @@
                         Text: =Text(DateTimeValue(ThisItem.'Requested date'), "mmm dd, yyyy")
                         Width: =Parent.Width
                         ZIndex: =2
+
+                lbl_CashAdvanceStatus As label:
+                    Align: =Align.Center
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: |-
+                        =If(
+                            // 1. Draft (회색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft, 
+                            RGBA(102, 102, 102, 1),
+                            
+                            
+                            // 2. Submitted (파란색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Submitted, 
+                            RGBA(34, 102, 227, 1),
+                        
+                            // 3. In review (노란색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.'In review', 
+                            RGBA(218, 165, 32, 1),
+                        
+                            // 4. Approved (연한 녹색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Approved, 
+                            Color.MediumSeaGreen,
+                        
+                            // 5. Ready to Settle (주황)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
+                            ThisItem.Balance > 0,
+                            Color.OrangeRed,
+                        
+                            // 6. Settlement Complete (짙은 녹색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
+                            ThisItem.Balance = 0,
+                            Color.ForestGreen,
+                        
+                            // 7. Rejected  (빨강)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Returned,
+                            Color.OrangeRed,
+                        
+                            // 예외 처리: 불특정 상태 (흰색 바탕에 잘 보이는 머스타드 노란색)
+                            RGBA(218, 165, 32, 1)
+                        )
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    FontWeight: =FontWeight.Bold
+                    Height: =70
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    OnSelect: =Select(scrCashAdvance_shp_SelectRegion)
+                    Size: =If(App.Width >= 1024, 18, 14)
+                    Text: |-
+                        =If(
+                            // 1. Draft (회색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft, 
+                            "Draft",
+                            
+                            
+                            // 2. Submitted (파란색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Submitted, 
+                            "Submitted",
+                        
+                            // 3. In review (노란색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.'In review', 
+                            "In review",
+                        
+                            // 4. Approved (연한 녹색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Approved, 
+                            "Approved",
+                        
+                            // 5. Ready to Settle (주황)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
+                            ThisItem.Balance > 0,
+                            "Ready to Settle",
+                        
+                            // 6. Settlement Complete (짙은 녹색)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
+                            ThisItem.Balance = 0,
+                            "Settlement Complete",
+                        
+                            // 7. Rejected  (빨강)
+                            ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Returned,
+                            "Rejected",
+                        
+                            // 예외 처리: 불특정 상태 (흰색 바탕에 잘 보이는 머스타드 노란색)
+                            Text(ThisItem.'Cash advance status')
+                        )
+                    Width: =100
+                    ZIndex: =4
 
                 Container9_CashAdvance As groupContainer.verticalAutoLayoutContainer:
                     FillPortions: =0

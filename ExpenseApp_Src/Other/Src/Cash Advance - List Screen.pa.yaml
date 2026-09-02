@@ -278,6 +278,21 @@ Screens:
                                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
                                     Text: =Text(DateTimeValue(ThisItem.'Requested date'), "mmm dd, yyyy")
                                     Width: =Parent.Width
+                        - lbl_CashAdvanceStatus:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              AlignInContainer: =AlignInContainer.Center
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Color: "=If(\n    // 1. Draft (회색)\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft, \n    RGBA(102, 102, 102, 1),\n    \n    \n    // 2. Submitted (파란색)\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Submitted, \n    RGBA(34, 102, 227, 1),\n\n    // 3. In review (노란색)\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.'In review', \n    RGBA(218, 165, 32, 1),\n\n    // 4. Approved (연한 녹색)\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Approved, \n    Color.MediumSeaGreen,\n\n    // 5. Ready to Settle (주황)\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Paid &&\n    ThisItem.Balance > 0,\n    Color.OrangeRed,\n\n    // 6. Settlement Complete (짙은 녹색)\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Paid &&\n    ThisItem.Balance = 0,\n    Color.ForestGreen,\n\n    // 7. Rejected  (빨강)\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Returned,\n    Color.OrangeRed,\n\n    // 예외 처리: 불특정 상태 (흰색 바탕에 잘 보이는 머스타드 노란색)\n    RGBA(218, 165, 32, 1)\n)"
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Bold
+                              LayoutMinHeight: =16
+                              LayoutMinWidth: =150
+                              OnSelect: =Select(scrCashAdvance_shp_SelectRegion)
+                              Size: =If(App.Width >= 1024, 18, 14)
+                              Text: "=If(\r\n    // 1. Draft (회색)\r\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft, \r\n    \"Draft\",\r\n    \r\n    \r\n    // 2. Submitted (파란색)\r\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Submitted, \r\n    \"Submitted\",\r\n\r\n    // 3. In review (노란색)\r\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.'In review', \r\n    \"In review\",\r\n\r\n    // 4. Approved (연한 녹색)\r\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Approved, \r\n    \"Approved\",\r\n\r\n    // 5. Ready to Settle (주황)\r\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Paid &&\r\n    ThisItem.Balance > 0,\r\n    \"Ready to Settle\",\r\n\r\n    // 6. Settlement Complete (짙은 녹색)\r\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Paid &&\r\n    ThisItem.Balance = 0,\r\n    \"Settlement Complete\",\r\n\r\n    // 7. Rejected  (빨강)\r\n    ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Returned,\r\n    \"Rejected\",\r\n\r\n    // 예외 처리: 불특정 상태 (흰색 바탕에 잘 보이는 머스타드 노란색)\r\n    Text(ThisItem.'Cash advance status')\r\n)"
+                              Width: =100
                         - Container9_CashAdvance:
                             Control: GroupContainer@1.5.0
                             Variant: AutoLayout
