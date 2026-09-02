@@ -10171,7 +10171,7 @@ Screens:
                               ChevronFill: =RGBA(255, 255, 255, 1)
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
-                              DefaultSelectedItems: "=If(\n    // 1. 복사 모드이면서 원본 데이터에 Project 정보가 있는 경우 (※ 필드명은 실제 원본 데이터에 맞게 조정: 예: 'Project code')\n    !IsBlank(varSelectedExpenseDoc.Project),\n    \n    // 2. With 함수로 Items와 동일한 원본 가상 엔터티에서 해당 프로젝트 레코드를 1건 찾음\n    With(\n        {\n            matchedProj: LookUp(\n                'DCSL ProjectTypeProjectValue Entity (mserp)',\n                mserp_projectvalue = varSelectedExpenseDoc.Project && // 원본 식별자와 매핑\n                'Company Code' = Lower(varSelectedLegalEntity)\n            )\n        },\n        If(\n            !IsBlank(matchedProj),\n            // 3. \U0001F680 핵심: Items 속성의 AddColumns 결과와 완벽하게 동일한 구조의 테이블 생성\n            Table(\n                {\n                    mserp_projectvalue: matchedProj.mserp_projectvalue,\n                    mserp_projectname: matchedProj.mserp_projectname,\n                    DisplayName: matchedProj.mserp_projectvalue & \" - \" & matchedProj.mserp_projectname\n                }\n            ),\n            Blank()\n        )\n    ),\n    \n    // 4. 복사 모드가 아닐 경우의 기존 로직\n    Blank()\n)"
+                              DefaultSelectedItems: "=If(\n    // 1. 복사 모드이면서 원본 데이터에 Project 정보가 있는 경우 (※ 필드명은 실제 원본 데이터에 맞게 조정: 예: 'Project code')\n    !IsBlank(varSelectedExpenseDoc.Project),\n    \n    // 2. With 함수로 Items와 동일한 원본 가상 엔터티에서 해당 프로젝트 레코드를 1건 찾음\n    With(\n        {\n            matchedProj: LookUp(\n                'DCSL ProjectTypeProjectValue Entity (mserp)',\n                Project = varSelectedExpenseDoc.Project && // 원본 식별자와 매핑\n                'Company Code' = Lower(varSelectedLegalEntity)\n            )\n        },\n        If(\n            !IsBlank(matchedProj),\n            // 3. \U0001F680 핵심: Items 속성의 AddColumns 결과와 완벽하게 동일한 구조의 테이블 생성\n            Table(\n                {\n                    mserp_projectvalue: matchedProj.Project,\n                    mserp_projectname: matchedProj.Description,\n                    DisplayName: matchedProj.Project & \" - \" & matchedProj.Description\n                }\n            ),\n            Blank()\n        )\n    ),\n    \n    // 4. 복사 모드가 아닐 경우의 기존 로직\n    Blank()\n)"
                               DisplayFields: =["DisplayName"]
                               DisplayMode: |-
                                 =If(
@@ -10790,8 +10790,8 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DataField: ="mserp_mappedtorequisitionline"
-                        Default: =ThisItem.Reference
-                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_mappedtorequisitionline')
+                        Default: =ThisItem.'Reference (mserp_mappedtorequisitionline)'
+                        DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Reference (mserp_mappedtorequisitionline)')
                         Required: =false
                         Update: =Value(ctxTargetReqLineRecId)
                         Visible: =false

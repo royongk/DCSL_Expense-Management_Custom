@@ -6470,7 +6470,7 @@
                         =UpdateContext({isDirty : true});
                     Reset: =true
                     SearchFields: =["mserp_activitynumber","mserp_purpose"]
-                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,scr030_ProjectCheckbox_Entity.Selected.HierarchyId)),scr030_ComboBox1_14.SearchText,mserp_activitynumber,mserp_purpose)
+                    SearchItems: =Search(Filter('Activities (mserp)','Hierarchy ID'=If(gblIsProjectValidationFlag,varProjectHierarchyId,scr030_ProjectCheckbox_Entity.Selected.HierarchyId)),scr030_ComboBox1_14.SearchText,'Activity number',Purpose)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -7492,7 +7492,7 @@
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_salestaxgroup","mserp_description"]
-                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(scr030_DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),scr030_ComboBox1_15.SearchText,mserp_salestaxgroup,mserp_description)
+                    SearchItems: =Search(Filter('Sales tax group description (mserp)','Company Code'=Coalesce(scr030_DataCardValue39_1.Selected.Value,varSelectedLegalEntity)),scr030_ComboBox1_15.SearchText,'Sales tax group',Description)
                     SelectionColor: =Color.Black
                     SelectionFill: =gblParams.dropDownBorderColor
                     SelectionTagColor: =RGBA(0, 0, 0, 1)
@@ -11449,7 +11449,7 @@
                                 {
                                     matchedProj: LookUp(
                                         'DCSL ProjectTypeProjectValue Entity (mserp)',
-                                        mserp_projectvalue = varSelectedExpenseDoc.Project && // 원본 식별자와 매핑
+                                        Project = varSelectedExpenseDoc.Project && // 원본 식별자와 매핑
                                         'Company Code' = Lower(varSelectedLegalEntity)
                                     )
                                 },
@@ -11458,9 +11458,9 @@
                                     // 3. 🚀 핵심: Items 속성의 AddColumns 결과와 완벽하게 동일한 구조의 테이블 생성
                                     Table(
                                         {
-                                            mserp_projectvalue: matchedProj.mserp_projectvalue,
-                                            mserp_projectname: matchedProj.mserp_projectname,
-                                            DisplayName: matchedProj.mserp_projectvalue & " - " & matchedProj.mserp_projectname
+                                            mserp_projectvalue: matchedProj.Project,
+                                            mserp_projectname: matchedProj.Description,
+                                            DisplayName: matchedProj.Project & " - " & matchedProj.Description
                                         }
                                     ),
                                     Blank()
@@ -12136,9 +12136,9 @@
             scr030_Reference_DataCard1 As typedDataCard.numberEditCard:
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_mappedtorequisitionline"
-                Default: =ThisItem.Reference
+                Default: =ThisItem.'Reference (mserp_mappedtorequisitionline)'
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_mappedtorequisitionline')
+                DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Reference (mserp_mappedtorequisitionline)')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false

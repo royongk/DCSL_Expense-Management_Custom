@@ -11783,7 +11783,7 @@
                                 {
                                     matchedProj: LookUp(
                                         'DCSL ProjectTypeProjectValue Entity (mserp)',
-                                        mserp_projectvalue = Parent.Default && 
+                                        Project = Parent.Default && 
                                         'Company Code' = Lower(varSelectedLegalEntity)
                                     )
                                 },
@@ -11792,9 +11792,9 @@
                                     // Items 속성과 동일한 스키마(구조)의 테이블을 반환하여 콤보박스에 바인딩
                                     Table(
                                         {
-                                            mserp_projectvalue: matchedProj.mserp_projectvalue,
-                                            mserp_projectname: matchedProj.mserp_projectname,
-                                            DisplayName: matchedProj.mserp_projectvalue & " - " & matchedProj.mserp_projectname
+                                            mserp_projectvalue: matchedProj.Project,
+                                            mserp_projectname: matchedProj.Description,
+                                            DisplayName: matchedProj.Project & " - " & matchedProj.Description
                                         }
                                     ),
                                     Blank()
@@ -12469,9 +12469,9 @@
             Reference_DataCard1 As typedDataCard.numberEditCard:
                 BorderStyle: =BorderStyle.Solid
                 DataField: ="mserp_mappedtorequisitionline"
-                Default: =ThisItem.Reference
+                Default: =ThisItem.'Reference (mserp_mappedtorequisitionline)'
                 DisplayMode: =Parent.DisplayMode
-                DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'mserp_mappedtorequisitionline')
+                DisplayName: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'],DataSourceInfo.DisplayName,'Reference (mserp_mappedtorequisitionline)')
                 Fill: =RGBA(0, 0, 0, 0)
                 Height: =50
                 Required: =false
@@ -13190,6 +13190,9 @@
         scr03_btn_Done_1 As button:
             DisplayMode: |-
                 =If(
+                    // 🚀 [신규 추가] 첨부 파일 삭제 등 비동기 처리(로딩 스피너)가 진행 중일 때
+                    varLoadingSpinner ||
+                
                     // 1. 기존 방어 로직: 세금 계산 중이거나 각종 타이머가 동작 중일 때
                     (msCallStartedForSalestaxCalculation  || timerProj || timerCostType || timerHBIT || timerCountry || timerState) ||
                     
@@ -13201,10 +13204,10 @@
                      locCurrentSetup.'Max Amount' > 0 && 
                      Value(Substitute(DataCardValue4_1.Text, ",", "")) > locCurrentSetup.'Max Amount') ||
                      
-                    // 4. 🚀 [신규 추가] 동승자(Other Staff) 10명 초과 선택 시
+                    // 4. 기존 방어 로직: 동승자(Other Staff) 10명 초과 선택 시
                     (CountRows(cmb_OtherStaff.SelectedItems) > 10),
                      
-                    // 위 네 가지 조건 중 하나라도 해당하면 버튼을 비활성화(클릭 불가 & 회색 처리)
+                    // 위 다섯 가지 조건 중 하나라도 해당하면 버튼을 비활성화(클릭 불가 & 회색 처리)
                     DisplayMode.Disabled,
                     
                     // 모두 통과하면 편집(클릭 가능) 상태로 변경
@@ -13218,38 +13221,43 @@
             LayoutMinHeight: =70
             LayoutMinWidth: =280
             OnSelect: |-
-                =// [1단계: 유효성 검사 (Guard Clause)]
+                =// 🚀 [최상단 방어 로직] 로딩 스피너가 비활성화(!false = true)일 때만 전체 로직 실행
                 If(
-                    // (1) 영수증이 필수로 필요한 항목인지 확인 (Per diem과 Mileage는 영수증 검사에서 제외)
-                    currExpenseType <> 'TrvExpType (mserp)'.'Per diem' && 
-                    currExpenseType <> 'TrvExpType (mserp)'.Mileage && 
-                    // (2) 서버에 저장된 기존 영수증(colAttachedReceipts)과 앱에서 방금 올린 임시 영수증(colPendingReceipts)이 모두 없는지 확인
-                    IsEmpty(colAttachedReceipts) && 
-                    IsEmpty(colPendingReceipts),
+                    !varLoadingSpinner,
                     
-                    // [조건 불충족] 영수증이 없으면 에러 알림 표시 (이후의 폼 저장 로직은 실행되지 않고 중단됨)
-                    Notify(
-                        "The receipt attachment is missing. Please attach at least one proof file for saving.", 
-                        NotificationType.Error, 
-                        gblParams.notificationTime
-                    ),
-                    
-                    // [2단계: 기존 저장 로직 실행] 
-                    // 영수증이 잘 첨부되어 있거나, 영수증이 필요 없는 항목(Per diem, Mileage)일 경우 기존 로직 수행
+                    // [1단계: 유효성 검사 (Guard Clause)]
                     If(
-                        currExpenseType = 'TrvExpType (mserp)'.'Per diem' && userRecord.IsReImaginedPerDiemEnabled <> 'NoYes (mserp)'.Yes,
+                        // (1) 영수증이 필수로 필요한 항목인지 확인 (Per diem과 Mileage는 영수증 검사에서 제외)
+                        currExpenseType <> 'TrvExpType (mserp)'.'Per diem' && 
+                        currExpenseType <> 'TrvExpType (mserp)'.Mileage && 
+                        // (2) 서버에 저장된 기존 영수증과 앱에서 방금 올린 임시 영수증이 모두 없는지 확인
+                        IsEmpty(colAttachedReceipts) && 
+                        IsEmpty(colPendingReceipts),
+                        
+                        // [조건 불충족] 영수증이 없으면 에러 알림 표시 (이후의 폼 저장 로직은 중단됨)
                         Notify(
-                            GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarningOnCreate',
-                            NotificationType.Error,
+                            "The receipt attachment is missing. Please attach at least one proof file for saving.", 
+                            NotificationType.Error, 
                             gblParams.notificationTime
                         ),
                         
-                        UpdateContext({msCallStartedForSalestaxCalculation: true});
-                        If( 
-                            locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,
-                            UpdateContext({locCategoryChange : true}),
-                            UpdateContext({locAllowNavigationBack:true});    
-                            SubmitForm(EditExpenseForm)
+                        // [2단계: 기존 저장 로직 실행] 
+                        // 영수증이 잘 첨부되어 있거나, 영수증이 필요 없는 항목일 경우 수행
+                        If(
+                            currExpenseType = 'TrvExpType (mserp)'.'Per diem' && userRecord.IsReImaginedPerDiemEnabled <> 'NoYes (mserp)'.Yes,
+                            Notify(
+                                GlobalLabels.Labels.'15062:LocalizedName,msdyn_PerdiemFeatureDisabledWarningOnCreate',
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            ),
+                            
+                            UpdateContext({msCallStartedForSalestaxCalculation: true});
+                            If( 
+                                locItemizationCheck && varSelectedExpenseDoc.'Expense category (mserp_costtype)' <> ComboBox1_8.Selected.'Expense category' && !varIsCreate,
+                                UpdateContext({locCategoryChange : true}),
+                                UpdateContext({locAllowNavigationBack:true});    
+                                SubmitForm(EditExpenseForm)
+                            )
                         )
                     )
                 )
