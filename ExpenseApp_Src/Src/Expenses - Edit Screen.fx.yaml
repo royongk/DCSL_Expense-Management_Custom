@@ -9,26 +9,16 @@
                 dirtyTransAmount: Blank(),
                 locIsEditingAmount: false,
                 locCategoryChange: false,
-                // 👇 [신규 추가] AirfareAllowance 모드가 아닐때만 무조건 이전 Purpose 메모리를 날려버림
                 ctxTargetPurpose: If(varAppMode <> "AirfareAllowance", Blank(), ctxTargetPurpose),
                 varViewOnly: false,
                 varStateSelected: Blank(),
                 varZipCodeSelectedRecId: -1,
                 varProjectHierarchyId: Blank(),
                 onReloadButtonClick: false,
-                // LCY 계산 결과 저장 변수 초기화 (기존 값이 있으면 사용, 없으면 빈 값)
-                // 1. 기존 LCY에 문자열로 저장된 값("100.00 USD")에서 공백(" ")을 기준으로 금액과 통화를 분리
-                locOriginalAmount: If(
-                    !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
-                    Left(varSelectedExpenseDoc.LCY, Find(" ", varSelectedExpenseDoc.LCY) - 1),
-                    Blank()
-                ),
-                locOriginalCurrency: If(
-                    !varIsCreate && !IsBlank(varSelectedExpenseDoc.LCY) && Find(" ", varSelectedExpenseDoc.LCY) > 0, 
-                    Right(varSelectedExpenseDoc.LCY, Len(varSelectedExpenseDoc.LCY) - Find(" ", varSelectedExpenseDoc.LCY)),
-                    Blank()
-                ),
-                // 2. locCalculatedLCY에는 Value() 오류 방지를 위해, 실제로 환산된 '숫자'인 Transaction amount(예: 137601)를 저장
+                
+                // 🚀 [수정됨] 오래된 데이터 롤백 버그를 유발하던 locOriginalAmount, locOriginalCurrency 파싱 로직 삭제
+                
+                // locCalculatedLCY에는 Value() 오류 방지를 위해, 실제로 환산된 '숫자'인 Transaction amount를 저장
                 locCalculatedLCY: If(
                     !varIsCreate, 
                     Text(varSelectedExpenseDoc.'Transaction amount'), 
@@ -3906,29 +3896,11 @@
                 Height: =50
                 Required: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
                 Update: |-
-                    =// 천단위 구분 기호 해제 로직 포함
-                    /*
-                    Value(
-                        // 일반 경비인 경우 입력된 텍스트 사용
-                        If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,
-                            Blank(),
-                            // [중요] 텍스트 입력값("1,000")을 숫자(1000)로 변환
-                            Substitute(DataCardValue4_1.Text, ",", "") // 입력된 텍스트에서 쉼표(,)를 모두 빈값으로 치환
-                        ),
-                        varDefaultLanguage
-                    )
-                    */
-                    Value(
+                    =Value(
                         If(
-                            // 계산된 LCY 값(locCalculatedLCY)이 존재하면 해당 환산 금액을 우선 저장
-                            !IsBlank(locCalculatedLCY),
-                            locCalculatedLCY,
-                            
-                            // 계산된 값이 없다면 기존처럼 텍스트 박스에 입력된 값을 숫자로 변환하여 저장
-                            If(IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,
-                                Blank(),
-                                Substitute(DataCardValue4_1.Text, ",", "")
-                            )
+                            IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,
+                            Blank(),
+                            Substitute(DataCardValue4_1.Text, ",", "")
                         ),
                         varDefaultLanguage
                     )
@@ -3978,10 +3950,10 @@
                             {
                                 baseAmount: If(
                                     !IsBlank(locCurrentSetup.Amount) && locCurrentSetup.'Fixed Amount' = 'NoYes (mserp)'.Yes,
-                                    locCurrentSetup.Amount, 
+                                    locCurrentSetup.Amount,
                                     
-                                    // 핵심 변경: varSelectedExpenseDoc.'Transaction amount' 보다 파싱된 locOriginalAmount(100)를 우선 사용
-                                    Value(Coalesce(dirtyTransAmount, locOriginalAmount, Text(varSelectedExpenseDoc.'Transaction amount')))
+                                    // locOriginalAmount 의존성을 제거하고 Dataverse의 실제 숫자 필드를 Source of truth로 사용
+                                    Value(Coalesce(dirtyTransAmount, Text(varSelectedExpenseDoc.'Transaction amount')))
                                 )
                             },
                             If(
@@ -4289,8 +4261,8 @@
                         =[
                             LookUp(
                                 colSortedCurrencies, 
-                                // 파싱된 원래 통화코드(locOriginalCurrency)를 최우선적으로 선택하도록 추가
-                                'Currency code' = Coalesce(locOriginalCurrency, Parent.Default, varDefaultCurrency)
+                                // locOriginalCurrency 의존성을 제거하고 Dataverse의 통화 코드 필드(Parent.Default)를 최우선 참조
+                                'Currency code' = Coalesce(Parent.Default, varDefaultCurrency)
                             )
                         ]
                     DisplayFields: =["mserp_currencycode"]
