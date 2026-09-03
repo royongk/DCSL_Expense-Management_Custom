@@ -109,7 +109,27 @@
 
         CollectionTransferDate_Container As groupContainer.horizontalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_CollectionTrasferDate.Height + dtp_CollectionTrasferDate.Height + lbl_CollectionTransferDateWarning.Height + 20
+            Height: |-
+                =With(
+                    { 
+                        todayWeekday: Weekday(Today(), StartOfWeek.Monday),
+                        selectedDate: dtp_CollectionTrasferDate.SelectedDate
+                    },
+                    With(
+                        {
+                            minValidDate: DateAdd(Today(), If(todayWeekday > 5, 12 - todayWeekday, 7), TimeUnit.Days)
+                        },
+                        LblContainer_CollectionTrasferDate.Height + 
+                        dtp_CollectionTrasferDate.Height + 
+                        If(
+                            !IsBlank(selectedDate) && selectedDate < minValidDate, 
+                            lbl_CollectionTransferDateWarning.Height + Self.LayoutGap, 
+                            0
+                        ) + 
+                        Self.LayoutGap + 
+                        10
+                    )
+                )
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -160,6 +180,7 @@
                         varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexcollectiontransferdate)'
                     )
                 FillPortions: =1
+                Format: ="yyyy-mm-dd"
                 Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
                 HoverDateFill: =App.Theme.Colors.Lighter70
                 LayoutMaxHeight: =0
@@ -184,10 +205,17 @@
                 Visible: |-
                     =With(
                         { 
-                            selectedDate: dtp_CollectionTrasferDate.SelectedDate,
-                            limitDate: DateAdd(Today(), 7, TimeUnit.Days) 
+                            // 월요일(1) ~ 일요일(7) 기준으로 오늘 요일 반환
+                            todayWeekday: Weekday(Today(), StartOfWeek.Monday),
+                            selectedDate: dtp_CollectionTrasferDate.SelectedDate
                         },
-                        !IsBlank(selectedDate) && selectedDate < limitDate
+                        With(
+                            {
+                                // 평일은 +7일(달력 기준), 토요일(6)은 +6일, 일요일(7)은 +5일을 더해 다음 주 금요일을 산출
+                                minValidDate: DateAdd(Today(), If(todayWeekday > 5, 12 - todayWeekday, 7), TimeUnit.Days)
+                            },
+                            !IsBlank(selectedDate) && selectedDate < minValidDate
+                        )
                     )
                 Width: =Parent.Width - Self.X*2
                 X: =40
