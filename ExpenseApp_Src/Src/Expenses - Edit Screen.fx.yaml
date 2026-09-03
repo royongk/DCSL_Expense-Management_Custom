@@ -71,6 +71,7 @@
                         "AirfareAllowance", "Allowance",
                         "BillingTripSettlement", "Billing Trip Settlement",
                         "EmployeeBenefit", "Employee Benefit",
+                        "CashAdvance", "Cash Advance", // 🚀 [추가됨] 화면 진입 시 변수 기본값 동기화
                         Blank()
                     ),
                     // 수정 모드일 때는 초기화 (이후 로직에서 기존 값 매핑됨)
@@ -1419,13 +1420,14 @@
                                     "AirfareAllowance", "Allowance",
                                     "BillingTripSettlement", "Billing Trip Settlement",
                                     "EmployeeBenefit", "Employee Benefit",
+                                    "CashAdvance", "Cash Advance", // 🚀 [추가됨] Cash Advance 조건 매핑
                                     Blank()
                                 )
                             },
                             // 2. Distinct 결과와 형식을 맞추기 위해 { Value: ... } 형태의 테이블 생성
                             If(
                                 !IsBlank(TargetText),
-                                Table( { Value: TargetText } ), 
+                                Table( { Value: TargetText } ),
                                 Blank()
                             )
                         )
@@ -1433,9 +1435,9 @@
                     DisplayMode: |-
                         =// 컨트롤의 DisplayMode 속성
                         If(
-                            varAppMode in ["ExpenseReport", "AirfareAllowance", "BillingTripSettlement", "EmployeeBenefit"],
-                            DisplayMode.View,
-                            DisplayMode.Edit // 또는 Parent.DisplayMode
+                            varAppMode in ["ExpenseReport", "AirfareAllowance", "BillingTripSettlement", "EmployeeBenefit", "CashAdvance"], // 🚀 [추가됨] "CashAdvance" 포함
+                            DisplayMode.View, // 조건에 맞으면 잠금(읽기 전용) 처리
+                            DisplayMode.Edit // 그 외에는 수정 가능
                         )
                     FocusedBorderThickness: =2
                     Height: =gblParams.dropDownHeight
