@@ -869,31 +869,52 @@ Screens:
                         DefaultSelectedItems: |-
                           =If(
                               !IsBlank(varSelectedCashAdvance.Project) && !IsBlank(varSelectedLegalEntity),
-                              LookUp(
-                                  'DCSL ProjectTypeProjectValue Entity (mserp)',
-                                  Project = varSelectedCashAdvance.Project &&
-                                  'Company Code' = Lower(varSelectedLegalEntity)
+                              With(
+                                  {
+                                      matchedProj: LookUp(
+                                          'DCSL ProjectTypeProjectValue Entity (mserp)',
+                                          Project = varSelectedCashAdvance.Project &&
+                                          'Company Code' = Lower(varSelectedLegalEntity)
+                                      )
+                                  },
+                                  If(
+                                      !IsBlank(matchedProj),
+                                      // Items 속성과 동일한 스키마(구조)의 테이블을 반환하여 콤보박스에 바인딩
+                                      Table(
+                                          {
+                                              mserp_projectvalue: matchedProj.Project,
+                                              mserp_projectname: matchedProj.Description,
+                                              DisplayName: matchedProj.Project & " - " & matchedProj.Description
+                                          }
+                                      ),
+                                      Blank()
+                                  )
                               ),
                               Blank()
                           )
-                        DisplayFields: =["mserp_projectvalue","mserp_projectname"]
+                        DisplayFields: =["DisplayName"]
                         FillPortions: =1
                         Font: =Font.'Open Sans'
                         Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Project Code"
                         Items: |-
-                          =SortByColumns(
-                              GroupBy(
-                                  Filter(
-                                      'DCSL ProjectTypeProjectValue Entity (mserp)',
-                                      'Company Code' = Lower(varSelectedLegalEntity)
+                          =AddColumns(
+                              SortByColumns(
+                                  GroupBy(
+                                      Filter(
+                                          'DCSL ProjectTypeProjectValue Entity (mserp)',
+                                          'Company Code' = Lower(varSelectedLegalEntity)
+                                      ),
+                                      Project,          
+                                      Description,      
+                                      GroupedRecords    
                                   ),
-                                  Project,  // 첫 번째 그룹 기준 (프로젝트 ID)
-                                  Description   // 두 번째 그룹 기준 (프로젝트 이름)
+                                  "mserp_projectvalue",              
+                                  SortOrder.Ascending
                               ),
-                              "mserp_projectvalue",      // 정렬 기준
-                              SortOrder.Ascending
+                              DisplayName,              
+                              mserp_projectvalue & " - " & mserp_projectname 
                           )
                         LayoutMinHeight: =40
                         LayoutMinWidth: =328
@@ -903,7 +924,7 @@ Screens:
                         PaddingTop: =5
                         PressedColor: =RGBA(255, 255, 255, 1)
                         PressedFill: =RGBA(0, 18, 107, 1)
-                        SearchFields: =["mserp_projectvalue"]
+                        SearchFields: =["DisplayName"]
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
