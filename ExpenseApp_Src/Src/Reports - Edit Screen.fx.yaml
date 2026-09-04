@@ -27,6 +27,9 @@
             Reset(ComboBox_Purpose);
             Reset(scr17_txt_Description_1);
             Reset(ComboBox_LegalEntity_ExpReport);
+            // 💡 [추가] 신규 생성 모드 진입 시 Cash Advance 관련 컨트롤 초기화
+            Reset(Toggle_Settlment_1);
+            Reset(ComboBox_MaptoCashAdvance)
             //If( 
             //    gblIsProjectValidationFlag,
             //    Reset(ComboBox_ProjectId_ExpReport_odata),
@@ -262,7 +265,8 @@
                             varSelectedReport.Purpose
                         ),
                         varPurposeValidationFailed: false,
-                        varAmountValidationFailed: false
+                        varAmountValidationFailed: false,
+                        varCashAdvanceValidationFailed: false // 💡 [추가] Cash Advance 검증용 플래그
                     });
                     
                     Clear(varError);
@@ -316,9 +320,39 @@
                         )
                     );
                     
+                    // 💡 [추가] 4-2. Cash Advance 전용 유효성 검사
+                    If(
+                        varAppMode = "CashAdvance",
+                    
+                        // a) Approved Cash Advance 맵핑 여부 검증
+                        If(
+                            Toggle_Settlment_1.Value = false Or IsBlank(ComboBox_MaptoCashAdvance.Selected.'Cash advance number'),
+                            UpdateContext({varCashAdvanceValidationFailed: true});
+                            Notify(
+                                "Please map to an approved Cash Advance.",
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            )
+                        );
+                    
+                        // c) 경비 총액이 Cash Advance 잔액 이하인지 검증 (맵핑된 항목이 있을 때만 계산)
+                        If(
+                            !IsBlank(ComboBox_MaptoCashAdvance.Selected.'Cash advance number') &&
+                            Value(Coalesce(varSelectedReport.AmountTotal, "0")) > Value(ComboBox_MaptoCashAdvance.Selected.Balance),
+                            UpdateContext({varCashAdvanceValidationFailed: true});
+                            Notify(
+                                "Expense total cannot exceed the Cash Advance balance.",
+                                NotificationType.Error,
+                                gblParams.notificationTime
+                            )
+                        )
+                    );
+                    
                     // 5. 모든 유효성 검사를 통과했을 때만 제출 로직 실행
                     If(
-                        !varPurposeValidationFailed && !varAmountValidationFailed,
+                        !varPurposeValidationFailed && 
+                        !varAmountValidationFailed && 
+                        !varCashAdvanceValidationFailed, // 💡 [변경] Cash Advance 플래그 조건 추가
                         UpdateContext({ctVarSubmitConfirm: true})
                     )
                 Size: =19.15
@@ -1313,7 +1347,18 @@
                 ComboBox_MaptoCashAdvance As combobox:
                     AccessibleLabel: ="Dropdown to enter Cash Advance"
                     Default: =Blank()
-                    DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance)
+                    DefaultSelectedItems: |-
+                        =If(
+                            // 💡 [변경] 신규 생성 모드일 경우 무조건 빈 값 반환
+                            varIsCreateReport, 
+                            Blank(),
+                            
+                            // 기존 수정 모드일 경우 저장된 값 불러오기
+                            LookUp(
+                                'DCSL TrvCash Advance Entity  (mserp)', 
+                                'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance
+                            )
+                        )
                     DisplayFields: =["mserp_cashadvancenumber"]
                     DisplayMode: |-
                         =If(
@@ -1362,6 +1407,137 @@
                     Y: =scr17_hdr_TopHeader_1.Height + 66
                     ZIndex: =15
 
+        CashAdvance_Amounts_gp As groupContainer.horizontalAutoLayoutContainer:
+            FillPortions: =0
+            Height: =If('Reports - Edit Screen'.Width <= 1024, 75, 95)
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =16
+            LayoutMinWidth: =16
+            LayoutMode: =LayoutMode.Auto
+            PaddingBottom: =10
+            PaddingLeft: =25
+            PaddingRight: =25
+            Visible: =CashAdvance_Container_gp.Visible
+            Width: =Parent.Width
+            ZIndex: =5
+
+            Balance_Container As groupContainer.verticalAutoLayoutContainer:
+                Height: =Parent.Height
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGap: =5
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                LayoutMode: =LayoutMode.Auto
+                PaddingLeft: =15
+                PaddingTop: =5
+                Width: =Parent.Width / 2
+                ZIndex: =1
+
+                lbl_Balance_Title As label:
+                    Color: =RGBA(102, 102, 102, 1)
+                    Height: =If('Reports - Edit Screen'.Width <= 1024, 22, 28)
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
+                    Text: ="Balance"
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+                lbl_Balance_Value As label:
+                    FontWeight: =FontWeight.Bold
+                    Height: =If('Reports - Edit Screen'.Width <= 1024, 28, 35)
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Size: =If('Reports - Edit Screen'.Width <= 1024, 16, 24)
+                    Text: |-
+                        =If(
+                            IsBlank(ComboBox_MaptoCashAdvance.Selected.'Cash advance number'),
+                            "-",
+                            Concatenate(
+                                Text(Value(ComboBox_MaptoCashAdvance.Selected.Balance), "#,#0.00", varDefaultLanguage),
+                                " ",
+                                varDefaultCurrency
+                            )
+                        )
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =2
+
+            Remaining_Container As groupContainer.verticalAutoLayoutContainer:
+                Height: =Parent.Height
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutDirection: =LayoutDirection.Vertical
+                LayoutGap: =5
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                LayoutMode: =LayoutMode.Auto
+                PaddingLeft: =15
+                PaddingTop: =5
+                Width: =Parent.Width / 2
+                ZIndex: =2
+
+                lbl_Remaining_Title As label:
+                    Color: =RGBA(102, 102, 102, 1)
+                    Height: =If('Reports - Edit Screen'.Width <= 1024, 22, 28)
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
+                    Text: ="Remaining"
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+                lbl_Remaining_Value As label:
+                    Color: =If((Value(ComboBox_MaptoCashAdvance.Selected.Balance) - Value(Coalesce(varSelectedReport.AmountTotal, 0))) < 0, RGBA(217, 44, 44, 1), RGBA(0, 0, 0, 1))
+                    FontWeight: =FontWeight.Bold
+                    Height: =If('Reports - Edit Screen'.Width <= 1024, 28, 35)
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    LayoutMinHeight: =16
+                    LayoutMinWidth: =16
+                    Size: =If('Reports - Edit Screen'.Width <= 1024, 16, 24)
+                    Text: |-
+                        =If(
+                            IsBlank(ComboBox_MaptoCashAdvance.Selected.'Cash advance number'),
+                            "-",
+                            Concatenate(
+                                Text(
+                                    Value(ComboBox_MaptoCashAdvance.Selected.Balance) - Value(Coalesce(varSelectedReport.AmountTotal, 0)), 
+                                    "#,#0.00", 
+                                    varDefaultLanguage
+                                ),
+                                " ",
+                                varDefaultCurrency
+                            )
+                        )
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =2
+
         "'Location- Draft' As groupContainer.verticalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
             FillPortions: =0
@@ -1389,7 +1565,7 @@
                 */
                 false
             Width: =Parent.Width
-            ZIndex: =5
+            ZIndex: =6
 
             LocationContainer_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -1521,7 +1697,7 @@
             Visible: =varAppMode = "AirfareAllowance" && !IsBlank(varSelectedTravelReq)
             Width: =Parent.Width
             Y: =ComboBox_Location.Y + ComboBox_Location.Height + 60
-            ZIndex: =6
+            ZIndex: =7
 
             TravelDestinationContainer_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -1776,7 +1952,7 @@
                 
                 
             Width: =Parent.Width
-            ZIndex: =7
+            ZIndex: =8
 
             LegalEntityContainer_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -1923,7 +2099,7 @@
             LayoutOverflowY: =LayoutOverflow.Scroll
             PaddingTop: =10
             Width: =Parent.Width
-            ZIndex: =8
+            ZIndex: =9
 
             Container23_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
