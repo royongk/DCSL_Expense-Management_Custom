@@ -1069,7 +1069,8 @@
                 ZIndex: =2
 
         CashAdvance_Container_gp As groupContainer.horizontalAutoLayoutContainer:
-            Height: =225
+            FillPortions: =0
+            Height: =If('Reports - Edit Screen'.Width <= 1024, 100, 150)
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
@@ -1081,7 +1082,6 @@
             LayoutMinWidth: =16
             LayoutMode: =LayoutMode.Auto
             PaddingBottom: =8
-            PaddingLeft: =8
             PaddingRight: =8
             PaddingTop: =8
             Visible: |-
@@ -1096,9 +1096,9 @@
             "'Settlment - Draft' As groupContainer.horizontalAutoLayoutContainer":
                 AlignInContainer: =AlignInContainer.SetByContainer
                 FillPortions: =0
-                Height: =175
+                Height: =Parent.Height
                 LayoutDirection: =LayoutDirection.Vertical
-                LayoutGap: =10
+                LayoutGap: =5
                 LayoutGridColumnMinWidth: =0
                 LayoutGridColumns: =6
                 LayoutGridRowMinHeight: =0
@@ -1109,15 +1109,17 @@
                 LayoutMinHeight: =112
                 LayoutMinWidth: =Parent.Width
                 LayoutMode: =LayoutMode.Auto
-                LayoutOverflowY: =LayoutOverflow.Scroll
                 maximumHeight: =11360
                 maximumWidth: =640
                 PaddingLeft: =25
                 Visible: |-
-                    =If ( locReimaginedfeatureEnabled,
+                    =false
+                    /*
+                    If ( locReimaginedfeatureEnabled,
                          !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
                          !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
                     )
+                    */
                 Width: =Parent.Width/2
                 ZIndex: =13
 
@@ -1191,8 +1193,10 @@
                         ZIndex: =3
 
                 Toggle_Settlment_1 As toggleSwitch:
+                    Default: =If(varAppMode = "CashAdvance", true, false)
+                    DisplayMode: =If(varAppMode = "CashAdvance", DisplayMode.View, DisplayMode.Edit)
                     FalseText: ="No"
-                    Height: =49
+                    Height: =If('Reports - Edit Screen'.Width <= 1024, 45, 60)
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
                     LayoutMinHeight: =16
@@ -1214,9 +1218,9 @@
             "'MaptoCashAdvance- Draft' As groupContainer.horizontalAutoLayoutContainer":
                 AlignInContainer: =AlignInContainer.SetByContainer
                 FillPortions: =0
-                Height: =175
+                Height: =Parent.Height
                 LayoutDirection: =LayoutDirection.Vertical
-                LayoutGap: =10
+                LayoutGap: =5
                 LayoutGridColumnMinWidth: =0
                 LayoutGridColumns: =6
                 LayoutGridRowMinHeight: =0
@@ -1227,7 +1231,6 @@
                 LayoutMinHeight: =112
                 LayoutMinWidth: =Parent.Width
                 LayoutMode: =LayoutMode.Auto
-                LayoutOverflowY: =LayoutOverflow.Scroll
                 maximumHeight: =11360
                 maximumWidth: =640
                 PaddingLeft: =25
@@ -1236,7 +1239,7 @@
                          !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
                          !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
                     )
-                Width: =Parent.Width/2
+                Width: =Parent.Width
                 ZIndex: =14
 
                 MaptoCashAdvanceContainer_1 As groupContainer.horizontalAutoLayoutContainer:
@@ -1298,9 +1301,8 @@
                         LayoutMinWidth: =270
                         PaddingBottom: =0
                         PaddingTop: =0
-                        Size: =18
+                        Size: =If('Reports - Edit Screen'.Width <= 1024, 14, 18)
                         Text: ="Map to Cash Advance"
-                        VerticalAlign: =VerticalAlign.Top
                         Width: =Parent.Width
                         X: |-
                             =scr17_img_MaptoCashAdvance_1.X + scr17_img_MaptoCashAdvance_1.Width + 
@@ -1319,7 +1321,7 @@
                             DisplayMode.Edit,
                             DisplayMode.View
                         )
-                    Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                    Height: =If('Reports - Edit Screen'.Width <= 1024, 45, 60)
                     InputTextPlaceholder: ="Select Cash Advance"
                     Items: |
                         =Filter(
@@ -1354,7 +1356,7 @@
                     SearchFields: =["mserp_cashadvancenumber"]
                     SearchItems: =Search(Filter('DCSL TrvCash Advance Entity  (mserp)','Company Code'=Lower(varSelectedLegalEntity)&&'Cash advance status'='Cash advance status (mserp)'.Paid&&Balance>0&&Employee=userRecord.CreatingWorker),ComboBox_MaptoCashAdvance.SearchText,'Cash advance number')
                     SelectMultiple: =false
-                    Size: =21
+                    Size: =If('Reports - Edit Screen'.Width <= 1024, 16, 24)
                     Width: =Parent.Width -  Self.X*2
                     X: =40
                     Y: =scr17_hdr_TopHeader_1.Height + 66
