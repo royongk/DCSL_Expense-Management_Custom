@@ -769,12 +769,12 @@ Screens:
                             Control: Classic/Toggle@2.1.0
                             Properties:
                               BorderColor: =RGBA(0, 18, 107, 1)
+                              Default: =varSelectedReport.'Settlement from Cash Advance' = 'NoYes (mserp)'.Yes
                               DisplayMode: =DisplayMode.View
                               FalseText: ="No"
                               Font: =Font.'Open Sans'
                               LayoutMinHeight: =16
                               LayoutMinWidth: =16
-                              OnChange: =Reset(ComboBox_MaptoCashAdvance_1)
                               OnSelect: |-
                                 =UpdateContext({ctLabel1 : false});
                                 UpdateContext({ctLabel2 : false});
@@ -896,13 +896,11 @@ Screens:
                               Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                               HoverFill: =RGBA(186, 202, 226, 1)
                               InputTextPlaceholder: ="Select Cash Advance"
-                              Items: |
+                              Items: |-
                                 =Filter(
                                     'DCSL TrvCash Advance Entity  (mserp)', 
-                                    'Company Code' = Lower(varSelectedLegalEntity) &&
-                                    'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
-                                    Balance > 0 &&
-                                    Employee = userRecord.CreatingWorker
+                                    'Company Code' = Lower(varSelectedLegalEntity)
+                                    // 💡 [수정] Balance > 0 및 Employee 조건 삭제 (이미 사용된 잔액 0원 데이터도 렌더링하기 위함)
                                 )
                               LayoutMaxHeight: =
                               LayoutMaxWidth: =

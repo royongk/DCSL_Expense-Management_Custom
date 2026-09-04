@@ -749,6 +749,7 @@
                         ZIndex: =3
 
                 Toggle_Settlment_2 As toggleSwitch:
+                    Default: =varSelectedReport.'Settlement from Cash Advance' = 'NoYes (mserp)'.Yes
                     DisplayMode: =DisplayMode.View
                     FalseText: ="No"
                     Height: =49
@@ -756,7 +757,6 @@
                     LayoutMaxWidth: =0
                     LayoutMinHeight: =16
                     LayoutMinWidth: =16
-                    OnChange: =Reset(ComboBox_MaptoCashAdvance_1)
                     OnSelect: |-
                         =UpdateContext({ctLabel1 : false});
                         UpdateContext({ctLabel2 : false});
@@ -875,13 +875,11 @@
                     DisplayMode: =DisplayMode.View
                     Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
                     InputTextPlaceholder: ="Select Cash Advance"
-                    Items: |
+                    Items: |-
                         =Filter(
                             'DCSL TrvCash Advance Entity  (mserp)', 
-                            'Company Code' = Lower(varSelectedLegalEntity) &&
-                            'Cash advance status' = 'Cash advance status (mserp)'.Paid &&
-                            Balance > 0 &&
-                            Employee = userRecord.CreatingWorker
+                            'Company Code' = Lower(varSelectedLegalEntity)
+                            // 💡 [수정] Balance > 0 및 Employee 조건 삭제 (이미 사용된 잔액 0원 데이터도 렌더링하기 위함)
                         )
                     LayoutMaxHeight: =
                     LayoutMaxWidth: =
@@ -906,7 +904,7 @@
                     PaddingTop: =10
                     Reset: =true
                     SearchFields: =["mserp_cashadvancenumber"]
-                    SearchItems: =Search(Filter('DCSL TrvCash Advance Entity  (mserp)','Company Code'=Lower(varSelectedLegalEntity)&&'Cash advance status'='Cash advance status (mserp)'.Paid&&Balance>0&&Employee=userRecord.CreatingWorker),ComboBox_MaptoCashAdvance_1.SearchText,'Cash advance number')
+                    SearchItems: =Search(Filter('DCSL TrvCash Advance Entity  (mserp)','Company Code'=Lower(varSelectedLegalEntity)),ComboBox_MaptoCashAdvance_1.SearchText,mserp_cashadvancenumber)
                     SelectMultiple: =false
                     Size: =21
                     Width: =Parent.Width -  Self.X*2
