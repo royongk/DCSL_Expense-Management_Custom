@@ -787,7 +787,9 @@
         RadiusBottomRight: =18
         RadiusTopLeft: =18
         RadiusTopRight: =18
-        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
+        Visible: |-
+            =//IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts)
+            false
         Width: |
             =Parent.Width -  Self.X*2
         X: =24
@@ -811,7 +813,7 @@
         RadiusBottomRight: =8
         RadiusTopLeft: =8
         RadiusTopRight: =8
-        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage) 
+        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts)
         Width: |
             =Parent.Width -  Self.X*2
         X: =44
@@ -846,7 +848,7 @@
                 "Add Boarding pass, Itinerary, Receipt",
                 "Add Receipt"
             )
-        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && IsBlank(varReceiptImage) 
+        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts)
         Width: |
             =Parent.Width -  Self.X*2
         X: =26
@@ -871,7 +873,9 @@
         TabIndex: =0
         Text: |-
             =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ViewReceiptLabel'
-        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
+        Visible: |-
+            =//IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
+            false
         Width: =scr03_img_NoReceiptOuter_1.Width+1
         X: =scr03_img_NoReceiptOuter_1.X
         Y: =scr03_img_NoReceiptOuter_1.Y + (scr03_img_NoReceiptOuter_1.Height -Self.Height)+1
@@ -891,7 +895,9 @@
                 }
             )
         TabIndex: =0
-        Visible: =IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
+        Visible: |-
+            =//IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts) && !IsBlank(varReceiptImage)
+            false
         Width: =18
         X: =scr03_lbl_ChangeReceipt_1.X + 25
         Y: =scr03_lbl_ChangeReceipt_1.Y + (scr03_lbl_ChangeReceipt_1.Height-scr03_ico_ViewReceipt_1.Height)/2
@@ -13332,8 +13338,6 @@
                 // 흐름을 실행합니다. 흐름 내에 'PowerApp에 응답' 액션이 있으므로 완료 시까지 대기합니다.
                 ExpenseManagementSystemApps_Remove_Attachment.Run(Text(varDeleteReceiptId));
                 
-                // 위 흐름 호출이 실패(에러)하면 아래 코드는 무시되고 [Catch 영역]으로 넘어갑니다.
-                // 흐름이 정상적으로 끝났을 때만 아래 성공 로직이 순차적으로 실행됩니다.
                 Notify(
                     "The receipt has been successfully deleted.", 
                     NotificationType.Success, 
@@ -13345,7 +13349,16 @@
                 RemoveIf(colPendingReceipts, mserp_entrecid = varDeleteReceiptId);
                 
                 // 삭제할 영수증 ID 초기화
-                UpdateContext({ varDeleteReceiptId: Blank() }),
+                UpdateContext({ varDeleteReceiptId: Blank() }); // ⚠️ 주의: 다음 동작이 이어지므로 세미콜론(;)으로 변경
+            
+                // 👇 [전문가 권장 Step 3 추가] 캐시 데이터(전역 변수) 초기화
+                // 컬렉션에서 아이템을 삭제한 직후, 남은 영수증이 하나도 없다면 미리보기 변수를 비워줍니다.
+                If(
+                    IsEmpty(colAttachedReceipts) && IsEmpty(colPendingReceipts),
+                    Set(varReceiptImage, Blank());
+                    Set(varFileFormat, Blank());
+                    Set(varSelectedReceiptForView, Blank())
+                ), // ⚠️ 주의: Try 영역이 끝났음을 알리는 콤마(,) 위치
             
                 // ---------------- [Catch 영역] ----------------
                 // F&O 커넥터 에러, 흐름 시간 초과 등의 문제가 발생했을 때만 실행됩니다.
