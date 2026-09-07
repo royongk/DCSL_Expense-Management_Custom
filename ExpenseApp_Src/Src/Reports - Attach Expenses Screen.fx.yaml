@@ -81,6 +81,24 @@
             =// 1. 사용자가 눈으로 보고 체크한 항목을 첨부 컬렉션에 임시 확정
             ClearCollect(colAttachedExpenses, colExpensesToBeAttached);
             
+            // 💡 [핵심 추가] 1-1. 전달받은 Cash Advance ID가 존재할 경우, 선택된 개별 라인에 매핑 ID 저장
+            If(
+                !IsBlank(ctxTargetCashAdvanceRecId),
+                ForAll(
+                    colAttachedExpenses As CurrentExpenseItem,
+                    Patch(
+                        'DCSL Expense Line Expense Moblie Entity (mserp)',
+                        LookUp(
+                            'DCSL Expense Line Expense Moblie Entity (mserp)', 
+                            'Expense transaction number (mserp_exptransnumber)' = CurrentExpenseItem.'Expense transaction number (mserp_exptransnumber)'
+                        ),
+                        {
+                            'Mapped To Requisition Line': ctxTargetCashAdvanceRecId
+                        }
+                    )
+                )
+            );
+            
             // 2. ✨ [핵심 방어막] 보고서 번호를 고정 변수에 저장 (LookUp 실패 시 Blank가 되는 현상 방지)
             UpdateContext({locCurrentReportNum: varSelectedReport.'Expense report number'});
             
@@ -88,7 +106,7 @@
                 IsBlank(locCurrentReportNum),
                 Notify("Error: Expense Report Number is missing.", NotificationType.Error, gblParams.notificationTime),
                 
-                // 3. F&O 백엔드로 쉼표로 연결된 문자열(DEEXExpTransNumber) 전송
+                // 3. F&O 백엔드로 쉼표로 연결된 문자열(DEEXExpTransNumber) 전송 (헤더-라인 연결 트리거)
                 Clear(varError);
                 IfError(
                     Patch(

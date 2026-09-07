@@ -2448,6 +2448,12 @@
                 scr17_btn_AttachExpenses_1 As button:
                     BorderThickness: =0
                     Color: =RGBA(34, 102, 227, 1)
+                    DisplayMode: |-
+                        =If(
+                            varAppMode = "CashAdvance" && IsBlank(ComboBox_MaptoCashAdvance.Selected.'Cash advance number'),
+                            DisplayMode.Disabled,
+                            DisplayMode.Edit
+                        )
                     Fill: =RGBA(255, 255, 255, 1)
                     FocusedBorderThickness: =0
                     Font: =Font.'Segoe UI'
@@ -2459,8 +2465,7 @@
                     OnSelect: |-
                         =Set(gblNavigationDrawerVisibility, false);
                         
-                        // 1. 화면 이동 전 현재 UI에서 선택/입력된 목적(Purpose) 값을 미리 변수에 확정하여 저장 (타이밍 버그 방지)
-                        // Coalesce 함수는 나열된 값 중 가장 먼저 '비어 있지 않은(Non-blank)' 값을 찾아 반환합니다.
+                        // 1. 화면 이동 전 현재 UI에서 선택/입력된 값을 미리 변수에 확정하여 저장 (타이밍 버그 방지)
                         UpdateContext({
                             locTargetPurpose: Coalesce(
                                 ComboBox_Purpose.Selected.'Purpose (mserp_value)',
@@ -2468,7 +2473,17 @@
                                 varSelectedReport.Purpose
                             ),
                             varCreateError: Blank(), 
-                            varPurposeValidationFailed: false
+                            varPurposeValidationFailed: false,
+                            
+                            // 💡 [핵심 추가 1] Cash Advance를 매핑하기 위해 토글이 Yes일 경우 ReferenceId 조회
+                            ctxTargetCashAdvanceRecId: If(
+                                Toggle_Settlment_1.Value = true && !IsBlank(ComboBox_MaptoCashAdvance.Selected.'Cash advance number'),
+                                Value(LookUp(
+                                    'DCSL TrvCash Advance Entity  (mserp)', 
+                                    'Cash advance number' = ComboBox_MaptoCashAdvance.Selected.'Cash advance number'
+                                ).ReferenceId),
+                                Blank()
+                            )
                         });
                         
                         // 2. 필수 값 유효성 검사 (콤보박스 대신 locTargetPurpose 변수 사용)
@@ -2503,19 +2518,11 @@
                                                 'DCSL Expense Moblie Report (mserp)',
                                                 Defaults('DCSL Expense Moblie Report (mserp)'),
                                                 {                            
-                                                    // 💡 [핵심 수정 1] 생성(Patch) 시점에는 반드시 "현재 로그인한 접속자"를 전송합니다.
-                                                    // D365 서버의 무조건적인 본인 인증 검증(400 에러)을 통과하기 위함입니다.
                                                     Employee: Value(ComboBox_Employee.Selected.WorkerID),
-                        
                                                     Purpose: locTargetPurpose,
                                                     Description: Coalesce(scr17_txt_Description_1.Text, "New Expense Report"),
                                                     Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
-                                                    
-                                                    // 혹시 모를 대문자 에러를 방지하기 위해 여기도 Lower() 처리
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
-                                                    
-                                                    // 💡 [핵심 수정 2] 타겟 대리인의 ID는 오직 이곳(Delegated Worker)에만 담아 보냅니다.
-                                                    // 💡 타겟 대리인의 ID는 로그인한 접속자와 선택된 사용자가 '다를 경우'에만 담아 보냅니다.
                                                     'Delegated Worker': If(
                                                         !IsEmpty(colActiveDelegations) && Value(ComboBox_Employee.Selected.WorkerID) <> Value(userRecord.CreatingWorker), 
                                                         Value(ComboBox_Employee.Selected.WorkerID), 
@@ -2532,7 +2539,6 @@
                                                     Location : If(IsBlank(ComboBox_Location.Selected.Location), If(IsBlank(ComboBox_Location.SearchText), varSelectedReport.Location, ComboBox_Location.SearchText), ComboBox_Location.Selected.Location),
                                                     Description: scr17_txt_Description_1.Text,
                                                     'Legal entity for expenses': If(IsBlank(ComboBox_LegalEntity_ExpReport.Selected.Value), Lower(varSelectedLegalEntity), Lower(ComboBox_LegalEntity_ExpReport.Selected.Value)),
-                                                    // 💡 타겟 대리인의 ID는 로그인한 접속자와 선택된 사용자가 '다를 경우'에만 담아 보냅니다.
                                                     'Delegated Worker': If(
                                                         !IsEmpty(colActiveDelegations) && Value(ComboBox_Employee.Selected.WorkerID) <> Value(userRecord.CreatingWorker), 
                                                         Value(ComboBox_Employee.Selected.WorkerID), 
@@ -2541,7 +2547,7 @@
                                                 }
                                             )
                                         ),
-                                        // 💡 [개선] 빈 에러 메시지에도 대응하는 강력한 에러 핸들러
+                                        // 에러 핸들러
                                         UpdateContext({
                                             varCreateError: Coalesce(
                                                 If(
@@ -2556,11 +2562,10 @@
                                     )
                                 },
                                 
-                                // 💡 [핵심 해결 로직] Patch 성공 시 F&O에서 번호를 안 줬을 경우를 대비한 최신 데이터 재조회
+                                // Patch 성공 시 데이터 재조회
                                 If(
                                     IsBlank(varCreateError) && !IsBlank(patchedReport),
                                     If(
-                                        // 신규 생성인데 보고서 번호가 빈 값(Blank)으로 응답된 경우
                                         varIsCreateReport && IsBlank(patchedReport.'Expense report number'),
                                         Set(
                                             varSelectedReport,
@@ -2569,10 +2574,7 @@
                                                     Filter(
                                                         'DCSL Expense Moblie Report (mserp)', 
                                                         LegalEntity_DataArea = Upper(varSelectedLegalEntity), 
-                                                        
-                                                        // 💡 [핵심 수정 3] 다시 찾을 때(Re-fetch)는 F&O가 치환해 둔 '대리인(UI 선택자)'으로 검색해야 합니다!
                                                         Employee = Value(ComboBox_Employee.Selected.WorkerID),
-                                                        
                                                         Purpose = locTargetPurpose
                                                     ),
                                                     "mserp_reportcreateddatetime",
@@ -2580,7 +2582,6 @@
                                                 )
                                             )
                                         ),
-                                        // 정상적으로 번호가 왔거나(드문 경우) 기존 보고서 수정 모드일 때는 그대로 덮어씁니다.
                                         Set(varSelectedReport, patchedReport)
                                     )
                                 )
@@ -2590,7 +2591,6 @@
                         // 4. 에러 확인 후 네비게이션
                         If(
                             IsBlank(varCreateError),
-                            // 화면 이동 전 상태 변수를 변경하더라도 locTargetPurpose는 이미 고정되어 있으므로 안전합니다.
                             Set(varIsCreateReport, false);
                             Navigate(
                                 'Reports - Attach Expenses Screen', 
@@ -2598,7 +2598,10 @@
                                 {
                                     varCntBack_scr17: true,
                                     ctxSelectedWorkerID: ComboBox_Employee.Selected.WorkerID, 
-                                    ctxTargetPurpose: locTargetPurpose // 💡 더 이상 빈 값이 넘어가지 않습니다!
+                                    ctxTargetPurpose: locTargetPurpose,
+                                    
+                                    // 💡 [핵심 추가 2] 타겟 화면으로 조회해둔 Cash Advance ID를 전달
+                                    ctxTargetCashAdvanceRecId: ctxTargetCashAdvanceRecId 
                                 }
                             ),
                             Notify(Substitute(varCreateError, """", ""), NotificationType.Error, gblParams.notificationTime)
@@ -2627,9 +2630,11 @@
 
                 scr17_img_Plus_1 As image:
                     AccessibleLabel: =
+                    DisplayMode: =scr17_btn_AttachExpenses_1.DisplayMode
                     Height: =22
                     Image: =Shapeplus
-                    OnSelect: =Navigate('Reports - Attach Expenses Screen');
+                    OnSelect: =Select(scr17_btn_AttachExpenses_1);
+                    Transparency: =If(Self.DisplayMode = DisplayMode.Disabled, 0.6, 0)
                     Visible: =scr17_btn_AttachExpenses_1.Visible
                     Width: =22
                     X: =scr17_btn_AttachExpenses_1.X + 23
@@ -3036,6 +3041,65 @@
                                 )
                             )
                         )
+                    )
+                )
+            );
+            
+            // 5-3. 현금 선지급 매핑
+            If(
+                IsEmpty(varError) && !IsBlank(ComboBox_MaptoCashAdvance.Selected.'Cash advance number') && (Toggle_Settlment_1.Value = true),
+                
+                Patch(
+                    'DCSL Expense Moblie Report (mserp)',
+                    LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = varSelectedReport.'Expense report number'),
+                    {
+                        'Settlement from Cash Advance': 'NoYes (mserp)'.Yes
+                    }
+                );
+                With(
+                    {
+                        varCashAdvance: LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = ComboBox_MaptoCashAdvance.Selected.'Cash advance number'),
+                        // 💡 핵심 해결: 현금 매핑에서도 최신 ReferenceId 보장을 위해 재조회
+                        freshReportCash: LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = varSelectedReport.'Expense report number')
+                    },
+                    If(
+                        !IsBlank(varCashAdvance.ReferenceId) && !IsBlank(freshReportCash.DEEXReferenceId),
+                        With(
+                            {
+                                valExpId: Value(freshReportCash.DEEXReferenceId),
+                                valCompanyCode: Text(varSelectedLegalEntity),
+                                valCashAdvanceId: Value(varCashAdvance.ReferenceId)
+                            },
+                            With(
+                                {
+                                    varExistingMapping: LookUp('DCSL TrvExpTableTrvCashAdvanceTable Entity (mserp)', TrvExpTable = valExpId && 'Company Code' = valCompanyCode)
+                                },
+                                If(
+                                    IsBlank(varExistingMapping),
+                                    Patch(
+                                        'DCSL TrvExpTableTrvCashAdvanceTable Entity (mserp)',
+                                        Defaults('DCSL TrvExpTableTrvCashAdvanceTable Entity (mserp)'),
+                                        {
+                                            TrvCashAdvance: valCashAdvanceId,
+                                            'Company Code': valCompanyCode,
+                                            TrvExpTable: valExpId
+                                        }
+                                    );
+                                    Notify("Cash Advance mapping has been successfully added.", NotificationType.Success),
+                                    
+                                    varExistingMapping.TrvCashAdvance <> valCashAdvanceId,
+                                    Patch(
+                                        'DCSL TrvExpTableTrvCashAdvanceTable Entity (mserp)',
+                                        varExistingMapping, 
+                                        { TrvCashAdvance: valCashAdvanceId }
+                                    );
+                                    Notify("Cash Advance mapping modified to new value", NotificationType.Success),
+                                    
+                                    Notify("Cash advance information is the same and has not been changed.", NotificationType.Information)
+                                )
+                            )
+                        ),
+                        Notify("The identifier (DEEXReferenceId) of the cash advance payment or expense report cannot be determined on the server.", NotificationType.Error)
                     )
                 )
             );
