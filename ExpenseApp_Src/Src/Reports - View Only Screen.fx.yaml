@@ -256,9 +256,9 @@
         "'Description - In Review' As groupContainer.verticalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
             FillPortions: =0
-            Height: =175
+            Height: =If('Reports - View Only Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =10
+            LayoutGap: =5
             LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
             LayoutGridRowMinHeight: =0
@@ -320,7 +320,7 @@
                     LayoutMinWidth: =560
                     PaddingBottom: =0
                     PaddingTop: =0
-                    Size: =18
+                    Size: =If('Reports - View Only Screen'.Width <= 1024, 14, 18)
                     Text: ="Name of the report"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =126
@@ -341,7 +341,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 FocusedBorderThickness: =0
                 Font: =Font.'Segoe UI'
-                Height: ='Reports - View Only Screen'.Height*Value(0.0616,"en-US")
+                Height: =If('Reports - View Only Screen'.Width <= 1024, 45, 60)
                 HoverFill: =
                 LayoutMaxHeight: =
                 LayoutMaxWidth: =
@@ -355,7 +355,7 @@
                 RadiusBottomRight: =0
                 RadiusTopLeft: =0
                 RadiusTopRight: =0
-                Size: =22.5
+                Size: =If('Reports - View Only Screen'.Width <= 1024, 16, 24)
                 Width: =560
                 X: =40
                 Y: =scr20_hdr_ViewReport_1.Height + 332
@@ -364,9 +364,9 @@
         "'Title - In Review' As groupContainer.verticalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
             FillPortions: =0
-            Height: =175
+            Height: =If('Reports - View Only Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =10
+            LayoutGap: =5
             LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
             LayoutGridRowMinHeight: =0
@@ -428,7 +428,7 @@
                     LayoutMinWidth: =560
                     PaddingBottom: =0
                     PaddingTop: =0
-                    Size: =18
+                    Size: =If('Reports - View Only Screen'.Width <= 1024, 14, 18)
                     Text: |-
                         =GlobalLabels.Labels.'15062:LocalizedName,msdyn_ExpenseReportPurpose'
                     VerticalAlign: =VerticalAlign.Top
@@ -451,7 +451,7 @@
                 Fill: =RGBA(0, 0, 0, 0)
                 FocusedBorderThickness: =0
                 Font: =Font.'Segoe UI'
-                Height: =70
+                Height: =If('Reports - View Only Screen'.Width <= 1024, 45, 60)
                 HoverBorderColor: =RGBA(0, 0, 0, 1)
                 HoverColor: =
                 HoverFill: =
@@ -467,7 +467,7 @@
                 RadiusBottomRight: =0
                 RadiusTopLeft: =0
                 RadiusTopRight: =0
-                Size: =22.5
+                Size: =If('Reports - View Only Screen'.Width <= 1024, 16, 24)
                 Width: =560
                 X: =40
                 Y: =scr20_hdr_ViewReport_1.Height + 66
@@ -476,9 +476,9 @@
         "'Employee - In Review' As groupContainer.horizontalAutoLayoutContainer":
             AlignInContainer: =AlignInContainer.SetByContainer
             FillPortions: =0
-            Height: =175
+            Height: =If('Reports - View Only Screen'.Width <= 1024, 110, 150)
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =10
+            LayoutGap: =5
             LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
             LayoutGridRowMinHeight: =0
@@ -556,7 +556,7 @@
                     LayoutMinWidth: =560
                     PaddingBottom: =0
                     PaddingTop: =0
-                    Size: =18
+                    Size: =If('Reports - View Only Screen'.Width <= 1024, 14, 18)
                     Text: ="Delegate Employee"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =121 
@@ -588,7 +588,7 @@
                 DisplayFields: =["WorkerName"]
                 DisplayMode: =DisplayMode.View
                 Fill: =RGBA(0, 0, 0, 0)
-                Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                Height: =If('Reports - View Only Screen'.Width <= 1024, 45, 60)
                 InputTextPlaceholder: |-
                     ="Select Employee (Default: Myself)"
                 Items: =colCreatingWorkerOptions
@@ -618,14 +618,15 @@
                 SearchFields: =["WorkerName"]
                 SearchItems: =Search(colCreatingWorkerOptions,ComboBox_Employee_1.SearchText,WorkerName)
                 SelectMultiple: =false
-                Size: =24
+                Size: =If('Reports - View Only Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width -  Self.X*2
                 X: =40
                 Y: =scr17_hdr_TopHeader_1.Height + 66
                 ZIndex: =2
 
         CashAdvance_Container_gp_1 As groupContainer.horizontalAutoLayoutContainer:
-            Height: =225
+            FillPortions: =0
+            Height: =If('Reports - View Only Screen'.Width <= 1024, 100, 150)
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
@@ -639,7 +640,6 @@
             maximumHeight: =11360
             maximumWidth: =640
             PaddingBottom: =8
-            PaddingLeft: =8
             PaddingRight: =8
             PaddingTop: =8
             Visible: |-
@@ -654,9 +654,9 @@
             "'Settlment - In Review' As groupContainer.horizontalAutoLayoutContainer":
                 AlignInContainer: =AlignInContainer.SetByContainer
                 FillPortions: =0
-                Height: =175
+                Height: =Parent.Height
                 LayoutDirection: =LayoutDirection.Vertical
-                LayoutGap: =10
+                LayoutGap: =5
                 LayoutGridColumnMinWidth: =0
                 LayoutGridColumns: =6
                 LayoutGridRowMinHeight: =0
@@ -672,10 +672,13 @@
                 maximumWidth: =640
                 PaddingLeft: =25
                 Visible: |-
-                    =If ( locReimaginedfeatureEnabled,
+                    =/*
+                    If ( locReimaginedfeatureEnabled,
                          !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
                          !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
                     )
+                    */
+                    false
                 Width: =Parent.Width/2
                 ZIndex: =1
 
@@ -752,7 +755,7 @@
                     Default: =varSelectedReport.'Settlement from Cash Advance' = 'NoYes (mserp)'.Yes
                     DisplayMode: =DisplayMode.View
                     FalseText: ="No"
-                    Height: =49
+                    Height: =If('Reports - View Only Screen'.Width <= 1024, 45, 60)
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
                     LayoutMinHeight: =16
@@ -773,9 +776,9 @@
             "'MaptoCashAdvance- In Review' As groupContainer.horizontalAutoLayoutContainer":
                 AlignInContainer: =AlignInContainer.SetByContainer
                 FillPortions: =0
-                Height: =175
+                Height: =Parent.Height
                 LayoutDirection: =LayoutDirection.Vertical
-                LayoutGap: =10
+                LayoutGap: =5
                 LayoutGridColumnMinWidth: =0
                 LayoutGridColumns: =6
                 LayoutGridRowMinHeight: =0
@@ -795,7 +798,7 @@
                          !IsBlank(LookUp(gblExpenseReportFieldVisibilityReImaginedLookup, FieldName = "Txt2")),
                          !IsBlank(LookUp(gblExpenseReportFieldVisibilityLookup, FieldName = "Txt2"))
                     )
-                Width: =Parent.Width/2
+                Width: =Parent.Width
                 ZIndex: =2
 
                 MaptoCashAdvanceContainer_2 As groupContainer.horizontalAutoLayoutContainer:
@@ -857,7 +860,7 @@
                         LayoutMinWidth: =270
                         PaddingBottom: =0
                         PaddingTop: =0
-                        Size: =18
+                        Size: =If('Reports - View Only Screen'.Width <= 1024, 14, 18)
                         Text: ="Map to Cash Advance"
                         VerticalAlign: =VerticalAlign.Top
                         Width: =Parent.Width
@@ -873,7 +876,7 @@
                     DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance)
                     DisplayFields: =["mserp_cashadvancenumber"]
                     DisplayMode: =DisplayMode.View
-                    Height: ='Reports - Edit Screen'.Height*Value(0.0616,"en-US")
+                    Height: =If('Reports - View Only Screen'.Width <= 1024, 45, 60)
                     InputTextPlaceholder: ="Select Cash Advance"
                     Items: |-
                         =Filter(
@@ -906,7 +909,7 @@
                     SearchFields: =["mserp_cashadvancenumber"]
                     SearchItems: =Search(Filter('DCSL TrvCash Advance Entity  (mserp)','Company Code'=Lower(varSelectedLegalEntity)),ComboBox_MaptoCashAdvance_1.SearchText,mserp_cashadvancenumber)
                     SelectMultiple: =false
-                    Size: =21
+                    Size: =If('Reports - View Only Screen'.Width <= 1024, 16, 24)
                     Width: =Parent.Width -  Self.X*2
                     X: =40
                     Y: =scr17_hdr_TopHeader_1.Height + 66
