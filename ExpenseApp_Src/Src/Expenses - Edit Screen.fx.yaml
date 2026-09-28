@@ -18,10 +18,10 @@
                 
                 // 🚀 [수정됨] 오래된 데이터 롤백 버그를 유발하던 locOriginalAmount, locOriginalCurrency 파싱 로직 삭제
                 
-                // locCalculatedLCY에는 Value() 오류 방지를 위해, 실제로 환산된 '숫자'인 Transaction amount를 저장
+                // OnVisible 내부 locCalculatedLCY 할당 부분
                 locCalculatedLCY: If(
                     !varIsCreate, 
-                    Text(varSelectedExpenseDoc.'Transaction amount'), 
+                    Text(Coalesce(varSelectedExpenseDoc.LCY, Text(varSelectedExpenseDoc.'Transaction amount'))), 
                     Blank()
                 )
             })
@@ -3904,13 +3904,13 @@
                 Height: =50
                 Required: =currExpenseType <> 'TrvExpType (mserp)'.'Per diem'
                 Update: |-
-                    =Value(
-                        If(
-                            IsBlank(DataCardValue4_1.Text) || Value(DataCardValue4_1.Text) = 0,
-                            Blank(),
-                            Substitute(DataCardValue4_1.Text, ",", "")
-                        ),
-                        varDefaultLanguage
+                    =With(
+                        {
+                            // 환산된 KRW 값이 존재하면 최우선 사용, 없을 경우 입력값 fallback
+                            calculatedAmount: Value(locCalculatedLCY),
+                            rawInputAmount: Value(Substitute(DataCardValue4_1.Text, ",", ""))
+                        },
+                        Coalesce(calculatedAmount, rawInputAmount, 0)
                     )
                 Visible: =true && currExpenseType <> 'TrvExpType (mserp)'.Mileage && !(Breakfast_DataCard1.Visible)
                 Width: =Parent.Width/2 - 10
@@ -3992,58 +3992,50 @@
                             Notify("입력한 금액이 최대 허용 금액을 초과했습니다. 금액을 다시 확인해주세요.", NotificationType.Error, 4000)
                         );
                         
-                        // 3. 실제 저장될 변수(dirtyTransAmount)에 '순수 숫자'만 업데이트
+                        // 3. 실제 화면에 유지할 원본 입력 금액 변수 업데이트
                         UpdateContext({ dirtyTransAmount: locTempAmount });
                         
-                        // --- [수정] 환율 조회 및 LCY(KRW) 계산 로직 (캐싱된 컬렉션 활용) ---
-                        If(
-                            !IsBlank(ComboBox1_12.Selected.mserp_currencycode) && !IsBlank(varSelectedLegalEntity) && !IsBlank(locTempAmount),
-                            
-                            With(
-                                {
-                                    // 1. 메모리에 캐싱된 컬렉션(colExchangeRates)에서 환율 즉시 조회
-                                    fetchedRate: LookUp(
-                                        colExchangeRates,
-                                        Currency = ComboBox1_12.Selected.mserp_currencycode
-                                    ).'Exchange rate',
-                                    
-                                    // 2. 화면에 입력된 '현재 텍스트 값'을 실시간으로 가져와 강제 숫자 변환
-                                    currentAmount: Value(Substitute(DataCardValue4_1.Text, ",", ""))
-                                },
+                        // 4. [개선] 통화별 LCY(KRW) 환산 계산
+                        With(
+                            {
+                                selectedCurr: Coalesce(ComboBox1_12.Selected.mserp_currencycode, ComboBox1_12.Selected.mserp_currencycode, "KRW"),
+                                inputVal: Value(locTempAmount)
+                            },
+                            If(
+                                selectedCurr = "KRW",
+                                // KRW인 경우 환율 계산 없이 입력값 그대로 할당
+                                UpdateContext({ locCalculatedLCY: Text(Round(inputVal, 0)) }),
                                 
-                                // 3. 순수 계산 숫자만 변수에 저장 (무조건 100으로 나누고, Round 함수로 소수점 0자리까지만 남김)
-                                // [안전장치] Coalesce를 사용하여 환율 누락 시 계산식 오류 방지
-                                UpdateContext({ 
-                                    locCalculatedLCY: Text(
-                                        Round((currentAmount * Value(Coalesce(fetchedRate, 100))) / 100, 0)
-                                    )
-                                })
+                                // 외화인 경우 환율 조회 후 환산
+                                With(
+                                    {
+                                        fetchedRate: LookUp(colExchangeRates, Currency = selectedCurr).'Exchange rate'
+                                    },
+                                    UpdateContext({ 
+                                        locCalculatedLCY: Text(
+                                            Round((inputVal * Value(Coalesce(fetchedRate, 100))) / 100, 0)
+                                        )
+                                    })
+                                )
                             )
                         );
                         
-                        // 4. 편집 모드 종료
+                        // 5. 편집 모드 종료 및 컨트롤 리셋 (천 단위 콤마 포맷 유지)
                         UpdateContext({ locIsEditingAmount: false });
-                        
-                        // 5. 컨트롤 리셋 (이때 Default 로직이 돌아가며 천 단위 콤마가 예쁘게 적용됨)
                         Reset(Self);
                         
-                        // 6. 기타 필수 상태 업데이트
-                        UpdateContext({isDirty : true});
-                        UpdateContext({varOnChangeTriggered : true});
-                        
-                        // 🚀 [가장 중요한 수정] 기존에 있던 아래 코드는 절대 사용하면 안 됩니다. 삭제했습니다.
-                        // UpdateContext({dirtyTransAmount : Self.Text}); 
-                        
-                        UpdateContext({taxModifiedByUser:false});
-                        UpdateContext({msCallStartedForSalestaxCalculation : true});
+                        UpdateContext({ isDirty: true });
+                        UpdateContext({ varOnChangeTriggered: true });
+                        UpdateContext({ taxModifiedByUser: false });
+                        UpdateContext({ msCallStartedForSalestaxCalculation: true });
                         
                         If(
                             varOnChangeTriggered && varOnSelectTriggered,
-                            UpdateContext({varOnShowFields : true})
+                            UpdateContext({ varOnShowFields: true })
                         );
                         
                         Reset(DataCardValue25_1);
-                        UpdateContext({msCallStartedForSalestaxCalculation : false});
+                        UpdateContext({ msCallStartedForSalestaxCalculation: false });
                     OnSelect: |-
                         =UpdateContext({ locIsEditingAmount: true }); // 편집 모드 시작
                         UpdateContext({varOnSelectTriggered: true})
@@ -4291,85 +4283,41 @@
                             Name
                         )
                     OnChange: |-
-                        =UpdateContext({taxModifiedByUser:false});
-                        UpdateContext({varOnChangeTriggered : true});
-                        UpdateContext({msCallStartedForSalestaxCalculation : true});
+                        =UpdateContext({ taxModifiedByUser: false });
+                        UpdateContext({ varOnChangeTriggered: true });
+                        UpdateContext({ msCallStartedForSalestaxCalculation: true });
+                        
                         If(
                             varOnChangeTriggered && varOnSelectTriggered,
-                            UpdateContext({varOnShowFields : true})
-                        );
-                        // --- [수정] 환율 조회 및 LCY(KRW) 계산 로직 (직접 조회 방식) ---
-                        If(
-                            !IsBlank(DataCardValue4_1.Text) && !IsBlank(Self.Selected.mserp_currencycode),
-                            
-                            With(
-                                {
-                                    // 1. 'Currency table (mserp)' 테이블에서 선택한 통화 코드(Currency)로 환율(Exchange rate) 조회
-                                    fetchedRate: LookUp(
-                                        colExchangeRates,
-                                        Currency = Self.Selected.mserp_currencycode
-                                    ).'Exchange rate',
-                                    
-                                    // 2. 화면에 입력된 외화 금액의 콤마(,)를 제거하고 숫자로 변환
-                                    currentAmount: Value(Substitute(DataCardValue4_1.Text, ",", ""))
-                                },
-                                
-                                // 3. KRW 환산 금액 계산 및 로컬 변수(locCalculatedLCY)에 저장
-                                // 참고: 조회된 환율이 없을 경우(Blank) 수식 오류를 방지하기 위해 Coalesce로 기본값(100) 처리
-                                UpdateContext({ 
-                                    locCalculatedLCY: Text(
-                                        Round((currentAmount * Value(Coalesce(fetchedRate, 100))) / 100, 0)
-                                    )
-                                })
-                            )
-                        );
-                        /*
-                        If(
-                            varOnShowFields,
-                            If(
-                            !(IsBlank(ComboBox1_15.Selected.'Sales tax group') || IsBlank(ComboBox1_16.Selected.'Item sales tax group') || IsBlank(ComboBox1_12.Selected.mserp_currencycode) || IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")) || IsBlank(DataCardValue4_1.Text) || IsBlank(DataCardValue39_1.Selected.Value)),
-                            UpdateContext({
-                                varSalesTaxAmount : 
-                                IfError(
-                                Value('Expense mobile master data (mserp)'.mserp_getactualsalestaxamount(
-                                    LookUp('Expense mobile master data (mserp)',Email = User().Email,'Expense mobile master data (mserp)'),
-                                    {
-                                        TaxGroup : If(IsBlank(ComboBox1_15.Selected.'Sales tax group'), "", ComboBox1_15.Selected.'Sales tax group'),
-                                        TaxItemGroup : If(IsBlank(ComboBox1_16.Selected.'Item sales tax group'), "", ComboBox1_16.Selected.'Item sales tax group'),
-                                        ExchangeCode : If(IsBlank(ComboBox1_12.Selected.mserp_currencycode), "", ComboBox1_12.Selected.mserp_currencycode),
-                                        TransDate : If(IsBlank(Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")), "", Text(DateValue1_18.SelectedDate, "yyyy-mm-dd HH:mm:ssZ")),
-                                        AmountCurr : Text(Value(If(IsBlank(DataCardValue4_1.Text), "0", DataCardValue4_1.Text),varDefaultLanguage), "#,#0.00","en-US"),
-                                        LegalEntity : If(IsBlank(DataCardValue39_1.Selected.Value),"",Text(DataCardValue39_1.Selected.Value)),
-                                        TaxIncluded : If('Tax included_DataCard1_3'.Visible,If(Toggle1_1.Value, "Yes", "No"),If(LookUp('Expense management parameters (mserp)','Company Code'=varDefaultLegalEntity,'Tax included')='NoYes (mserp)'.Yes,"Yes", "No"))
-                                    }
-                                ).return,"en-US"),
-                                UpdateContext({
-                                    varErrorActualTaxCal : 
-                                    Substitute(
-                                        Match(
-                                            FirstError.Details.HttpResponse,
-                                            """message"":""([^""]*)"""
-                                        ).FullMatch,
-                                        """message"":""",
-                                        ""
-                                    )      
-                                })
-                                )
-                            });
-                        );
-                        If(!IsBlank(varErrorActualTaxCal),
-                        Notify(
-                            Left(varErrorActualTaxCal,Len(varErrorActualTaxCal)-1),
-                            NotificationType.Error,
-                            gblParams.notificationTime
-                        )
+                            UpdateContext({ varOnShowFields: true })
                         );
                         
-                        Reset(DataCardValue25_1);
-                        UpdateContext({isDirty : true});
+                        // [개선] 통화 변경 시 실시간 LCY 환산 계산
+                        If(
+                            !IsBlank(DataCardValue4_1.Text),
+                            With(
+                                {
+                                    selectedCurr: Coalesce(Self.Selected.mserp_currencycode, Self.Selected.mserp_currencycode, "KRW"),
+                                    inputVal: Value(Substitute(DataCardValue4_1.Text, ",", ""))
+                                },
+                                If(
+                                    selectedCurr = "KRW",
+                                    UpdateContext({ locCalculatedLCY: Text(Round(inputVal, 0)) }),
+                                    With(
+                                        {
+                                            fetchedRate: LookUp(colExchangeRates, Currency = selectedCurr).'Exchange rate'
+                                        },
+                                        UpdateContext({ 
+                                            locCalculatedLCY: Text(
+                                                Round((inputVal * Value(Coalesce(fetchedRate, 100))) / 100, 0)
+                                            )
+                                        })
+                                    )
+                                )
+                            )
                         );
-                        */
-                        UpdateContext({msCallStartedForSalestaxCalculation : false})
+                        
+                        UpdateContext({ msCallStartedForSalestaxCalculation: false });
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
                     SearchFields: =["mserp_currencycode"]
@@ -4798,21 +4746,12 @@
                 MaxLength: =DataSourceInfo([@'DCSL Expense Line Expense Moblie Entity (mserp)'], DataSourceInfo.MaxLength, LCY)
                 Required: =false
                 Update: |-
-                    =/*
-                    If(
-                        !IsBlank(locCalculatedLCY),
-                        locCalculatedLCY,                 // 새로 계산된 순수 숫자 전송
-                        Value(varSelectedExpenseDoc.LCY)  // 새로 계산된 적이 없다면 기존 문서의 순수 숫자 전송
-                    )
-                    */
-                    If(
-                        // 사용자가 금액과 통화를 모두 입력/선택한 상태라면
-                        !IsBlank(DataCardValue4_1.Text) && !IsBlank(ComboBox1_12.Selected.mserp_currencycode),
-                        // "입력금액 통화코드" 형태로 결합하여 텍스트로 저장 (예: "100 USD")
-                        DataCardValue4_1.Text & " " & ComboBox1_12.Selected.mserp_currencycode,
-                        
-                        // 신규 작성이 아니거나 값이 비어있는 경우 기존 문서의 LCY 값 유지
-                        varSelectedExpenseDoc.LCY
+                    =With(
+                        {
+                            calculatedAmount: Value(locCalculatedLCY),
+                            rawInputAmount: Value(Substitute(DataCardValue4_1.Text, ",", ""))
+                        },
+                        Text(Coalesce(calculatedAmount, rawInputAmount, 0))
                     )
                 Width: =640
                 WidthFit: =true

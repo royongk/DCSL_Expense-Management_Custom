@@ -873,7 +873,7 @@
                 ComboBox_MaptoCashAdvance_1 As combobox:
                     AccessibleLabel: ="Dropdown to enter Cash Advance"
                     Default: =Blank()
-                    DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance)
+                    DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.'Request number')
                     DisplayFields: =["mserp_cashadvancenumber"]
                     DisplayMode: =DisplayMode.View
                     Height: =If('Reports - View Only Screen'.Width <= 1024, 45, 60)
@@ -890,7 +890,7 @@
                     LayoutMinWidth: =575
                     OnChange: |-
                         =If(
-                            ComboBox_MaptoCashAdvance_1.Selected.'Cash advance number' <> varSelectedReport.DEEXMapToCashAdvance,
+                            ComboBox_MaptoCashAdvance_1.Selected.'Cash advance number' <> varSelectedReport.'Request number',
                                 UpdateContext({isExpReportDirty : true})
                         );
                     OnSelect: |-
@@ -907,7 +907,7 @@
                     PaddingTop: =10
                     Reset: =true
                     SearchFields: =["mserp_cashadvancenumber"]
-                    SearchItems: =Search(Filter('DCSL TrvCash Advance Entity  (mserp)','Company Code'=Lower(varSelectedLegalEntity)),ComboBox_MaptoCashAdvance_1.SearchText,mserp_cashadvancenumber)
+                    SearchItems: =Search(Filter('DCSL TrvCash Advance Entity  (mserp)','Company Code'=Lower(varSelectedLegalEntity)),ComboBox_MaptoCashAdvance_1.SearchText,'Cash advance number')
                     SelectMultiple: =false
                     Size: =If('Reports - View Only Screen'.Width <= 1024, 16, 24)
                     Width: =Parent.Width -  Self.X*2

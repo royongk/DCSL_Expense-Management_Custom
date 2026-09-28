@@ -899,7 +899,7 @@ Screens:
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
                               Default: =Blank()
-                              DefaultSelectedItems: "=If(\n    // \U0001F4A1 [변경] 신규 생성 모드일 경우 무조건 빈 값 반환\n    varIsCreateReport, \n    Blank(),\n    \n    // 기존 수정 모드일 경우 저장된 값 불러오기\n    LookUp(\n        'DCSL TrvCash Advance Entity  (mserp)', \n        'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance\n    )\n)"
+                              DefaultSelectedItems: "=If(\n    // \U0001F4A1 [변경] 신규 생성 모드일 경우 무조건 빈 값 반환\n    varIsCreateReport, \n    Blank(),\n    \n    // 기존 수정 모드일 경우 저장된 값 불러오기\n    LookUp(\n        'DCSL TrvCash Advance Entity  (mserp)', \n        'Cash advance number' = varSelectedReport.'Request number'\n    )\n)"
                               DisplayFields: =["mserp_cashadvancenumber"]
                               DisplayMode: |-
                                 =If(
@@ -923,7 +923,7 @@ Screens:
                               LayoutMaxWidth: =
                               OnChange: |-
                                 =If(
-                                    ComboBox_MaptoCashAdvance.Selected.'Cash advance number' <> varSelectedReport.DEEXMapToCashAdvance,
+                                    ComboBox_MaptoCashAdvance.Selected.'Cash advance number' <> varSelectedReport.'Request number',
                                         UpdateContext({isExpReportDirty : true})
                                 );
                               OnSelect: |-

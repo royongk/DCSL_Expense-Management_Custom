@@ -895,7 +895,7 @@ Screens:
                               ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
                               ChevronHoverFill: =RGBA(255, 255, 255, 1)
                               Default: =Blank()
-                              DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.DEEXMapToCashAdvance)
+                              DefaultSelectedItems: =LookUp('DCSL TrvCash Advance Entity  (mserp)', 'Cash advance number' = varSelectedReport.'Request number')
                               DisplayFields: =["mserp_cashadvancenumber"]
                               DisplayMode: =DisplayMode.View
                               Font: =Font.'Open Sans'
@@ -912,7 +912,7 @@ Screens:
                               LayoutMaxWidth: =
                               OnChange: |-
                                 =If(
-                                    ComboBox_MaptoCashAdvance_1.Selected.'Cash advance number' <> varSelectedReport.DEEXMapToCashAdvance,
+                                    ComboBox_MaptoCashAdvance_1.Selected.'Cash advance number' <> varSelectedReport.'Request number',
                                         UpdateContext({isExpReportDirty : true})
                                 );
                               OnSelect: |-
