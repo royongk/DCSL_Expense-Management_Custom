@@ -57,8 +57,10 @@
             !varIsCreate && !varIsAddingReceipt,
             With(
                 {
-                    rawLCY: Trim(Text(varSelectedExpenseDoc.LCY)),
-                    fallbackAmt: Coalesce(varSelectedExpenseDoc.'Transaction amount', 0)
+                    // 🚀 [보강] LCY와 mserp_deexcurrencyamountview를 모두 점검하여 문자열 확보
+                    rawLCY: Trim(Text(Coalesce(varSelectedExpenseDoc.LCY, varSelectedExpenseDoc.mserp_deexcurrencyamountview))),
+                    fallbackAmt: Coalesce(varSelectedExpenseDoc.'Transaction amount', 0),
+                    fallbackCurr: Coalesce(varSelectedExpenseDoc.'Currency (mserp_exchangecode)', "KRW")
                 },
                 With(
                     {
@@ -75,7 +77,7 @@
                             parsedCurrency: If(
                                 hasDelimiter,
                                 Upper(Trim(Last(Split(cleanLCY, " ")).Value)),
-                                "KRW"
+                                fallbackCurr
                             )
                         },
                         With(
@@ -97,7 +99,7 @@
                                 !IsBlank(varSelectedExpenseDoc.'Transaction amount') &&
                                 Round((parsedAmount * latestRate) / 100, 0) <> Value(varSelectedExpenseDoc.'Transaction amount'),
                                 Notify(
-                                    "The latest monthly exchange rates have been applied, and the amounts converted to Korean Won (KRW) have been updated automatically.",
+                                    "최신 월별 환율이 반영되어 원화(KRW) 환산 금액이 자동으로 갱신되었습니다.",
                                     NotificationType.Information,
                                     4000
                                 )

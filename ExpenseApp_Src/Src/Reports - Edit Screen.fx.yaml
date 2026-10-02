@@ -2656,31 +2656,25 @@
                 LayoutMaxWidth: =
                 LayoutMinHeight: =287
                 LayoutMinWidth: =320
-                OnSelect: |
-                    =//set details for the next screen 
+                OnSelect: |-
+                    =// scr17_glr_AttachedExpenses_4.OnSelect 수정
                     Concurrent(
-                        Set(
-                            varIsCreate,
-                            false
-                        ),
-                        Set(
-                            varReceiptImage,
-                            Blank()
-                        ),
-                        Set(
-                            varSelectedExpenseDoc,
-                            Blank()
-                        ),
-                        // [추가된 부분] 화면 진입 시 초기화 방지 플래그를 false로 초기화하여 OnVisible 로직이 정상 작동하게 함
+                        Set(varIsCreate, false),
+                        Set(varReceiptImage, Blank()),
+                        Set(varSelectedExpenseDoc, Blank()),
                         Set(varIsAddingReceipt, false)
                     );
-                    //assign the expense to a varSelectedExpenseDoc
+                    
+                    // 1. 선택된 경비 레코드 바인딩 (LookUp 실패 시 ThisItem Fallback)
                     Set(
                         varSelectedExpenseDoc,
-                        LookUp('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)')
+                        Coalesce(
+                            LookUp('DCSL Expense Line Expense Moblie Entity (mserp)', 'Expense transaction number (mserp_exptransnumber)' = ThisItem.'Expense transaction number (mserp_exptransnumber)'),
+                            ThisItem
+                        )
                     );
                     
-                    // 🚀 [개선 1] 단일 파일 LookUp 대신 Edit 화면과 완벽히 동일한 다중 영수증 컬렉션 업데이트
+                    // 2. 첨부 영수증 컬렉션 로드
                     ClearCollect(
                         colAttachedReceipts,
                         SortByColumns(
@@ -2693,18 +2687,6 @@
                         )
                     );
                     
-                    ClearCollect(
-                        colAttachedReceipts,
-                        SortByColumns(
-                            Filter(
-                                'Expense Mobile Attached Document Entity (mserp)',
-                                'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
-                            ),
-                            "mserp_documentcreateddatetime",
-                            SortOrder.Descending
-                        )
-                    );
-                    // 🚀 [개선 2] 미리보기 단일 이미지를 보여주는 UI를 위해, 컬렉션의 첫 번째 데이터 동기화
                     Set(
                         varReceiptImage,
                         If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_captureddocument, Blank())
@@ -2714,19 +2696,11 @@
                         If(!IsEmpty(colAttachedReceipts), First(colAttachedReceipts).mserp_fileextension, Blank())
                     );
                     
-                    Set(
-                        varExpenseAgainstWorkItem,
-                        Blank()
-                    );
-                    Set(
-                        varSelectedReceiptNumber,
-                        Blank()
-                    );
-                    UpdateContext({
-                        currExpenseType: varSelectedExpenseDoc.'Expense type'
-                    });
+                    Set(varExpenseAgainstWorkItem, Blank());
+                    Set(varSelectedReceiptNumber, Blank());
+                    UpdateContext({ currExpenseType: varSelectedExpenseDoc.'Expense type' });
                     
-                    //collect policy violations
+                    // 3. 위반 정책 수집
                     If(
                         varSelectedExpenseDoc.PolicyViolationCount,
                         ClearCollect(
@@ -2739,7 +2713,22 @@
                         UpdateContext({varMaxViolationLevel : 0});
                         UpdateContext({varNumViolation : 0})
                     );
-                    Navigate('Expenses - Edit Screen', ScreenTransition.None, {varNavigatedFrom : "scr17", varMaxViolationLevel : varMaxViolationLevel, varNumViolation: varNumViolation, currExpenseType:currExpenseType, varRemainingAmount: 0, locCategoryChange: false, locItemizeButtonVisibilityFlag: false})
+                    
+                    // 4. 🚀 [핵심 수정] varIsAddingReceipt: false 를 Context 변수로 명시적 전달
+                    Navigate(
+                        'Expenses - Edit Screen', 
+                        ScreenTransition.None, 
+                        {
+                            varNavigatedFrom: "scr17", 
+                            varMaxViolationLevel: varMaxViolationLevel, 
+                            varNumViolation: varNumViolation, 
+                            currExpenseType: currExpenseType, 
+                            varRemainingAmount: 0, 
+                            locCategoryChange: false, 
+                            locItemizeButtonVisibilityFlag: false,
+                            varIsAddingReceipt: false // 👈 이 플래그가 있어야 OnVisible 파싱 로직이 정상 실행됩니다!
+                        }
+                    )
                 ShowScrollbar: =false
                 TemplatePadding: =0
                 TemplateSize: =129
@@ -2812,8 +2801,44 @@
                     Size: =21
                     TabIndex: =If(IsBlank(Self.Text), -1, 0)
                     Text: |
-                        =Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", ThisItem.'Currency (mserp_exchangecode)')
+                        =//Concatenate(Text(Value(ThisItem.'Transaction amount'), "#,#0.00", varDefaultLanguage), " ", ThisItem.'Currency (mserp_exchangecode)')
                         //LookUp('Currencies (mserp)', 'Currency code' = ThisItem.'Currency (mserp_exchangecode)', 'Currency code')
+                        With(
+                            {
+                                // 1. D365 LCY 필드 텍스트 추출 (예: "15.00 USD" 또는 "20,667.00 KRW")
+                                rawLCY: Trim(Text(Coalesce(ThisItem.LCY, ThisItem.mserp_deexcurrencyamountview))),
+                                fallbackAmt: Coalesce(ThisItem.'Transaction amount', 0),
+                                fallbackCurr: Coalesce(ThisItem.'Currency (mserp_exchangecode)', "KRW")
+                            },
+                            With(
+                                {
+                                    hasDelimiter: Find(" ", rawLCY) > 0,
+                                    cleanLCY: Substitute(rawLCY, ",", "")
+                                },
+                                With(
+                                    {
+                                        // 2. 공백 기준 원본 숫자 파싱
+                                        origAmount: If(
+                                            hasDelimiter,
+                                            Value(First(Split(cleanLCY, " ")).Value),
+                                            Coalesce(Value(cleanLCY), fallbackAmt)
+                                        ),
+                                        // 3. 공백 기준 통화 코드 파싱
+                                        origCurrency: If(
+                                            hasDelimiter,
+                                            Upper(Trim(Last(Split(cleanLCY, " ")).Value)),
+                                            fallbackCurr
+                                        )
+                                    },
+                                    // 4. 원래 입력되었던 금액 포맷과 통화 코드로 화면 출력
+                                    Concatenate(
+                                        Text(origAmount, "#,##0.00", varDefaultLanguage),
+                                        " ",
+                                        origCurrency
+                                    )
+                                )
+                            )
+                        )
                     VerticalAlign: =VerticalAlign.Top
                     Width: =250
                     Wrap: =false

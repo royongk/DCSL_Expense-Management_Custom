@@ -1620,8 +1620,44 @@ Screens:
                               PaddingTop: =0
                               TabIndex: =If(IsBlank(Self.Text), -1, 0)
                               Text: |-
-                                =Concatenate(Text(Value(ThisItem.'Transaction amount'),"#,#0.00",varDefaultLanguage)," ",ThisItem.'Currency (mserp_exchangecode)')
+                                =//Concatenate(Text(Value(ThisItem.'Transaction amount'),"#,#0.00",varDefaultLanguage)," ",ThisItem.'Currency (mserp_exchangecode)')
                                 //LookUp('Currencies (mserp)','Currency code'=varDefaultCurrency,'Currency code')
+                                With(
+                                    {
+                                        // 1. D365 LCY 필드 텍스트 추출 (예: "15.00 USD" 또는 "20,667.00 KRW")
+                                        rawLCY: Trim(Text(Coalesce(ThisItem.LCY, ThisItem.mserp_deexcurrencyamountview))),
+                                        fallbackAmt: Coalesce(ThisItem.'Transaction amount', 0),
+                                        fallbackCurr: Coalesce(ThisItem.'Currency (mserp_exchangecode)', "KRW")
+                                    },
+                                    With(
+                                        {
+                                            hasDelimiter: Find(" ", rawLCY) > 0,
+                                            cleanLCY: Substitute(rawLCY, ",", "")
+                                        },
+                                        With(
+                                            {
+                                                // 2. 공백 기준 원본 숫자 파싱
+                                                origAmount: If(
+                                                    hasDelimiter,
+                                                    Value(First(Split(cleanLCY, " ")).Value),
+                                                    Coalesce(Value(cleanLCY), fallbackAmt)
+                                                ),
+                                                // 3. 공백 기준 통화 코드 파싱
+                                                origCurrency: If(
+                                                    hasDelimiter,
+                                                    Upper(Trim(Last(Split(cleanLCY, " ")).Value)),
+                                                    fallbackCurr
+                                                )
+                                            },
+                                            // 4. 원래 입력되었던 금액 포맷과 통화 코드로 화면 출력
+                                            Concatenate(
+                                                Text(origAmount, "#,##0.00", varDefaultLanguage),
+                                                " ",
+                                                origCurrency
+                                            )
+                                        )
+                                    )
+                                )
                               VerticalAlign: =VerticalAlign.Top
                               Width: =250
                               X: =Parent.Width - scr20_lbl_Amount_3.Width - 15
