@@ -138,16 +138,21 @@
         Items: |-
             =With(
                 {
-                    // 1. varAppMode에 매핑되는 Purpose 값을 사전에 정의합니다.
+                    // 1. DEV와 PROD의 모든 Purpose 변형을 포괄하여 매핑
                     mappedPurposes: Switch(
                         varAppMode,
-                        "ExpenseReport", ["Expense reimbursement"], 
+                        "ExpenseReport", ["Expense reimbursement", "Expense Reimbursement"], 
                         "BillingTripSettlement", ["Billing Trip Settlement"],
                         "CashAdvance", ["Cash Advance"],
                         "EmployeeBenefit", ["Employee Benefit"],
                         "SalaryAdvance", ["Salary Advance"],
-                        // 💡 다중 항목 매핑: AirfareAllowance 모드일 때 4개의 Purpose를 모두 포함
-                        "AirfareAllowance", ["Airfare-Child1", "Airfare-Child2", "Airfare-Spouse", "Airfare-Staff", "Shipping"],            
+                        
+                        // 💡 AirfareAllowance 하나에 항공료, Allowance, 배송비 관련 목적을 모두 담습니다.
+                        "AirfareAllowance", [
+                            "Airfare-Child1", "Airfare-Child2", "Airfare-Spouse", "Airfare-Staff", 
+                            "Allowance", "Shipping", "Shipping allowance"
+                        ],
+                        
                         Blank()
                     ),
                     
