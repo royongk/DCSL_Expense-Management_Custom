@@ -139,13 +139,15 @@
             =With(
                 {
                     // 1. varAppMode에 매핑되는 Purpose 값을 사전에 정의합니다.
-                    mappedPurpose: Switch(
+                    mappedPurposes: Switch(
                         varAppMode,
-                        "ExpenseReport", "Expense reimbursement",
-                        "BillingTripSettlement", "Billing Trip Settlement",
-                        "CashAdvance", "Cash Advance",
-                        "EmployeeBenefit", "Employee Benefit",
-                        "SalaryAdvance", "Salary Advance",
+                        "ExpenseReport", ["Expense reimbursement"], 
+                        "BillingTripSettlement", ["Billing Trip Settlement"],
+                        "CashAdvance", ["Cash Advance"],
+                        "EmployeeBenefit", ["Employee Benefit"],
+                        "SalaryAdvance", ["Salary Advance"],
+                        // 💡 다중 항목 매핑: AirfareAllowance 모드일 때 4개의 Purpose를 모두 포함
+                        "AirfareAllowance", ["Airfare-Child1", "Airfare-Child2", "Airfare-Spouse", "Airfare-Staff", "Shipping"],            
                         Blank()
                     ),
                     
@@ -191,7 +193,7 @@
                         Employee in colCreatingWorkerOptions.WorkerID,
                         
                         // AppMode에 따른 Purpose 필터링
-                        IsBlank(mappedPurpose) || Lower(Purpose) = Lower(mappedPurpose)
+                        IsBlank(mappedPurposes) || Purpose in mappedPurposes
                     ), 
                     "mserp_reportcreateddatetime", SortOrder.Descending
                 )
