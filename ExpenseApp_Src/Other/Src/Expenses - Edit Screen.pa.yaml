@@ -11642,18 +11642,7 @@ Screens:
                       Properties:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         Height: =Parent.Height - Self.Y
-                        Items: |-
-                          =// 현재 사용자의 기존 Expense 목록 불러오기 (조건은 비즈니스 로직에 맞게 조정 가능)
-                          SortByColumns(
-                              Filter(
-                                  'DCSL Expense Line Expense Moblie Entity (mserp)',
-                                  'Company (mserp_company)' = varSelectedLegalEntity && 
-                                  'Expense Type' = varTargetExpenseType &&
-                                  'Employee (mserp_creatingworker)' = userRecord.CreatingWorker
-                              ),
-                              "mserp_transdate",
-                              SortOrder.Descending
-                          )
+                        Items: "=If(\n    // \U0001F4A1 [핵심 방어 로직] 3개의 필수 변수 중 하나라도 비어있으면, 쿼리 자체를 차단하여 F&O 에러를 방지합니다.\n    IsBlank(varSelectedLegalEntity) || \n    IsBlank(varTargetExpenseType) || \n    IsBlank(userRecord.CreatingWorker),\n    \n    Blank(), // 변수가 세팅되기 전까지는 빈 데이터를 반환하여 대기함\n    \n    // 변수가 모두 정상적으로 세팅된 후에만 F&O 가상 테이블을 조회합니다.\n    SortByColumns(\n        Filter(\n            'DCSL Expense Line Expense Moblie Entity (mserp)',\n            \n            // \U0001F4A1 F&O 회사 코드는 일반적으로 대문자를 요구하므로 Upper() 처리로 안전성을 높입니다.\n            'Company (mserp_company)' = Upper(varSelectedLegalEntity) && \n            \n            // 현재 타겟이 되는 \"Allowance\" 등의 값으로 필터링\n            'Expense Type' = varTargetExpenseType &&\n            \n            // \U0001F4A1 [주의] Dataverse의 'Employee' 컬럼 타입(텍스트/숫자)에 맞춰 형변환합니다.\n            // 기존 소스들을 분석해보면 Value(userRecord.CreatingWorker) 형태로 쓰인 경우가 많아 Value()로 감쌌습니다. \n            // 만약 해당 필드가 Text 타입이라면 Text(userRecord.CreatingWorker)로 변경해 주세요.\n            'Employee (mserp_creatingworker)' = Value(userRecord.CreatingWorker) \n        ),\n        \"mserp_transdate\",\n        SortOrder.Descending\n    )\n)"
                         OnSelect: |-
                           =// 1. 선택한 기존 Expense 레코드를 폼의 Item으로 사용될 변수에 할당
                           Set(varSelectedExpenseDoc, ThisItem);
