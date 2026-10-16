@@ -134,30 +134,44 @@
             });
         
             // =========================================================================
-            // 🚀 Purpose가 매핑 테이블에 존재하는지 실제 검증
+            // 🚀 [수정] : Purpose가 'Item or Service'에 있는지 'Purchase Category'에 있는지 다단계로 검증합니다.
             // =========================================================================
             UpdateContext({
-                locMatchedMapping: If(
+                // 1. [3단계] Item or Service 필드에서 먼저 검색 (예: Airfare-staff)
+                locMatchedByItem: If(
                     varIsCreate && !IsBlank(ctxTargetPurpose),
-                    LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Item or Service' = ctxTargetPurpose),
+                    LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', Lower('Item or Service') = Lower(ctxTargetPurpose)),
+                    Blank()
+                ),
+                // 2. [2단계] Purchase Category 필드에서 검색 (예: Shipping)
+                locMatchedByPurchase: If(
+                    varIsCreate && !IsBlank(ctxTargetPurpose),
+                    LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', Lower('Purchase Category') = Lower(ctxTargetPurpose)),
                     Blank()
                 )
             });
         
-            UpdateContext({
-                // ctxTargetPurpose 값이 존재하고, 테이블 조회 결과도 빈 값이 아닐 때만 true (잠금 및 자동 주입)
-                varForceLock: varIsCreate && !IsBlank(ctxTargetPurpose) && !IsBlank(locMatchedMapping)
-            });
+            // 3. 검색 결과에 따른 동적 변수 매핑 및 잠금 제어
+            If(
+                !IsBlank(locMatchedByItem),
+                // 🟢 케이스 A: 3단계(Item or Service)까지 완벽히 일치하는 경우 (예: Airfare-staff)
+                UpdateContext({
+                    varForceLock: true, // 💡 완벽 매핑됨: 사용자가 수정할 필요가 없으므로 잠금(View) 처리
+                    varSelectedExpenseType: locMatchedByItem.'Expense Type',
+                    varSelectedPurchaseCategory: locMatchedByItem.'Purchase Category',
+                    varSelectedItemOrService: locMatchedByItem.'Item or Service' // 실제 DB값으로 세팅
+                }),
+                
+                !IsBlank(locMatchedByPurchase),
+                // 🟡 케이스 B: 2단계(Purchase Category)까지만 일치하는 경우 (예: Shipping)
+                UpdateContext({
+                    varForceLock: false, // 💡 하위 옵션이 존재함: 사용자가 3단계를 직접 선택해야 하므로 잠금 해제(Edit)
+                    varSelectedExpenseType: locMatchedByPurchase.'Expense Type',
+                    varSelectedPurchaseCategory: locMatchedByPurchase.'Purchase Category',
+                    varSelectedItemOrService: Blank() // 사용자가 DIR/IN_DIR 중 하나를 선택해야 함
+                })
+            );
             // =========================================================================
-        
-            // 1. Reports에서 넘겨받은 Purpose(ctxTargetPurpose)를 Item or Service에 자동 할당
-            UpdateContext({
-                varSelectedItemOrService: If(
-                    varForceLock, 
-                    ctxTargetPurpose,
-                    Coalesce(varSelectedExpenseDoc.'Item or Service', Blank())
-                )
-            });
         
             // 2. 자동 할당된 Item or Service와 Expense Type을 기반으로 Purchase Category 역추적 및 매핑
             UpdateContext({
@@ -1775,19 +1789,16 @@
                         )
                     DefaultSelectedItems: |-
                         =If(
-                            // 1. 신규 모드(Create)이면서 넘겨받은 데이터가 매핑 테이블에 존재하여 '강제 주입(varForceLock)' 상태인 경우
+                            // 1. 매핑 테이블에 3단계 데이터가 완벽히 존재하여 '강제 주입(varForceLock)' 상태인 경우
                             varIsCreate && varForceLock,
+                            // 💡 수정 전: Table({Value: ctxTargetPurpose})
+                            // 💡 수정 후: 이전 화면에서 넘겨받은 텍스트 대신 "실제 F&O 마스터 테이블에서 추출한 값" 사용
+                            Table({Value: varSelectedItemOrService}),
                             
-                            // 2. 이전 화면에서 넘어온 텍스트(ctxTargetPurpose)를 콤보박스가 인식할 수 있는 테이블 형태로 변환하여 강제 할당
-                            Table({Value: ctxTargetPurpose}),
-                            
-                            // 3. 매핑 테이블에 없거나("Shipping" 등), 기존 편집 모드(Edit)일 경우의 기본 동작
+                            // 2. 일반 편집 모드이거나, "Shipping"처럼 varForceLock이 false인 경우
                             If(
                                 !IsBlank(varSelectedExpenseDoc.'Item or Service'), 
                                 Table({Value: varSelectedExpenseDoc.'Item or Service'})
-                                // 💡 핵심: 신규 생성이면서 varForceLock이 false("Shipping")인 경우,
-                                // varSelectedExpenseDoc도 비어있으므로 결과적으로 아무 값도 세팅되지 않음(Blank).
-                                // 따라서 사용자가 콤보박스를 눌러 직접 선택할 수 있는 빈칸 상태가 됩니다!
                             )
                         )
                     DisplayFields: =["Value"]
@@ -1851,6 +1862,12 @@
                                 'Purchase Category' = ComboBox_PurchaseCategory.Selected.Value && 
                                 'Item or Service' = Self.Selected.Value
                             )
+                        });
+                        
+                        // 👇 [여기에 아래 코드를 추가합니다] 
+                        // 3단계 최종 선택이 완료되면, 매핑 테이블에서 찾은 실제 Expense Category로 Dummy 값을 덮어씁니다.
+                        UpdateContext({
+                            curCategory: locCurrentSetup.'Expense category'
                         });
                         
                         // 금액 필드 초기화 (선택 사항)
