@@ -1477,24 +1477,36 @@
                         )
                     NoSelectionText: ="Select Expense Type"
                     OnChange: |-
-                        =UpdateContext({varSelectedExpenseType: Parent.Update});
-                        Reset(ComboBox_PurchaseCategory);
-                        Reset(ComboBox_ItemOrService);
-                        Reset(ComboBox1_8);
-                        UpdateContext({varSelectedPurchaseCategory: Blank()});
-                        UpdateContext({varSelectedItemOrService: Blank()});
-                        // Reset project type when expense type changes
-                        UpdateContext({varSelectedProjectType: Blank()});
-                        UpdateContext({
-                            curCategory: If(
-                                !IsBlank(varSelectedLegalEntity),
-                                Coalesce(
-                                    LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
+                        =// 💡 [핵심 방어 로직] 기존에 저장된 varSelectedExpenseType과 현재 업데이트될 값(Parent.Update)이 다를 때만 하위 항목을 초기화합니다.
+                        If(
+                            varSelectedExpenseType <> Parent.Update,
+                            
+                            // 1. 값이 변경되었으므로 기준 변수를 새 값으로 업데이트
+                            UpdateContext({varSelectedExpenseType: Parent.Update});
+                            
+                            // 2. 하위 콤보박스 컨트롤 리셋
+                            Reset(ComboBox_PurchaseCategory);
+                            Reset(ComboBox_ItemOrService);
+                            Reset(ComboBox1_8);
+                            
+                            // 3. 하위 항목 상태 변수 초기화 (이 부분이 초기 로드 시 스킵되어야 기존 값이 보존됨)
+                            UpdateContext({varSelectedPurchaseCategory: Blank()});
+                            UpdateContext({varSelectedItemOrService: Blank()});
+                            
+                            // Reset project type when expense type changes
+                            UpdateContext({varSelectedProjectType: Blank()});
+                            
+                            UpdateContext({
+                                curCategory: If(
+                                    !IsBlank(varSelectedLegalEntity),
+                                    Coalesce(
+                                        LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
+                                        Blank()
+                                    ),
                                     Blank()
-                                ),
-                                Blank()
-                            )
-                        })
+                                )
+                            })
+                        )
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct('DCSL Expense Category Mapping Setup Entity (mserp)','Expense Type'),"Value",SortOrder.Ascending),ComboBox_ExpenseType.SearchText,Value)
                     SelectionColor: =Color.Black
@@ -1585,16 +1597,13 @@
                     DefaultSelectedItems: |-
                         =If(
                             !IsBlank(varSelectedPurchaseCategory) && !IsBlank(varSelectedExpenseType),
-                            LookUp(
-                                Distinct(
-                                    Filter(
-                                        'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                        'Expense Type' = varSelectedExpenseType
-                                    ),
-                                    'Purchase Category'
-                                ),
-                                Value = varSelectedPurchaseCategory
-                            ),
+                            
+                            // 💡 Distinct를 거치지 않고, Filter 결과에서 직접 레코드를 찾아 테이블로 감싸줍니다.
+                            // ComboBox의 Items가 Distinct(..., 'Purchase Category') 형태라면 아래와 같이 { Value: ... } 형태로 매칭합니다.
+                            {
+                                Value: varSelectedPurchaseCategory
+                            },
+                            
                             Blank()
                         )
                     DisplayFields: =["Value"]
@@ -1632,55 +1641,66 @@
                         )
                     NoSelectionText: ="Select Expense Category, e.g. CPD, Event etc."
                     OnChange: |-
-                        =UpdateContext({varSelectedPurchaseCategory: Parent.Update});
-                        UpdateContext({varSelectedPurchaseCategoryValue: Parent.Update});
-                        Reset(ComboBox1_8);
-                        Reset(ComboBox_ItemOrService);
-                        UpdateContext({
-                            curCategory: If(
-                                !IsBlank(varSelectedLegalEntity),
-                                Coalesce(
-                                    LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
-                                    Blank()
-                                ),
-                                Blank()
-                            )
-                        });
-                        UpdateContext({varSelectedItemOrService: Blank()});
-                        // Reset project type when purchase category changes
-                        UpdateContext({varSelectedProjectType: Blank()});
-                        
-                        // [추가] Expense Category 목록을 미리 조회하여 컬렉션 생성
+                        =// 💡 [핵심 방어 로직] 기존에 세팅된 varSelectedPurchaseCategory와 콤보박스에 새로 바인딩된 값(Parent.Update)이 다를 때만 실행
                         If(
-                            !IsBlank(varSelectedExpenseType),
-                            ClearCollect(
-                                colExpenseCategories, // 컬렉션 이름
-                                SortByColumns(
-                                    Filter(
-                                        ForAll(
-                                            Filter(
-                                                'DCSL Expense Category Mapping Setup Entity (mserp)',
-                                                !IsBlank('Expense category') &&
-                                                'Expense Type' = varSelectedExpenseType 
-                                                && 'Purchase Category' = varSelectedPurchaseCategory &&
-                                                (
-                                                    (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
-                                                    (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
-                                                )
-                                            ) As MappingRecord,
-                                            LookUp(
-                                                'Expense category (mserp)',
-                                                'Expense category' = MappingRecord.'Expense category' &&
-                                                Inactive = 'NoYes (mserp)'.No
-                                            )
-                                        ),
-                                        !IsBlank('Expense category') // 빈 레코드 제거
+                            varSelectedPurchaseCategory <> Parent.Update,
+                            
+                            // 1. 값이 변경되었으므로 기준 변수를 새 값으로 업데이트
+                            UpdateContext({varSelectedPurchaseCategory: Parent.Update});
+                            UpdateContext({varSelectedPurchaseCategoryValue: Parent.Update});
+                            
+                            // 2. 하위 콤보박스 컨트롤 리셋
+                            Reset(ComboBox1_8);
+                            Reset(ComboBox_ItemOrService);
+                            
+                            // 3. 3단계(Item or Service) 및 프로젝트 타입 관련 상태 변수 초기화
+                            // (화면 최초 진입 시에는 이 부분이 스킵되므로, OnVisible에서 세팅한 값이 안전하게 보존됨)
+                            UpdateContext({varSelectedItemOrService: Blank()});
+                            UpdateContext({varSelectedProjectType: Blank()});
+                            
+                            UpdateContext({
+                                curCategory: If(
+                                    !IsBlank(varSelectedLegalEntity),
+                                    Coalesce(
+                                        LookUp('Expense category (mserp)', 'Expense category' = "Dummy for Expense" && 'Company Code' = varSelectedLegalEntity).'Expense category',
+                                        Blank()
                                     ),
-                                    "mserp_expensecategory",
-                                    SortOrder.Ascending
+                                    Blank()
                                 )
-                            ),
-                            Clear(colExpenseCategories) // 조건 불충족 시 초기화
+                            });
+                        
+                            // 4. [유지] Expense Category 목록을 미리 조회하여 컬렉션 생성
+                            If(
+                                !IsBlank(varSelectedExpenseType),
+                                ClearCollect(
+                                    colExpenseCategories,
+                                    SortByColumns(
+                                        Filter(
+                                            ForAll(
+                                                Filter(
+                                                    'DCSL Expense Category Mapping Setup Entity (mserp)',
+                                                    !IsBlank('Expense category') &&
+                                                    'Expense Type' = varSelectedExpenseType 
+                                                    && 'Purchase Category' = varSelectedPurchaseCategory && // 업데이트된 변수 기반으로 필터링
+                                                    (
+                                                        (varAppMode = "AirfareAllowance" && Airfare = 'NoYes (mserp)'.Yes) ||
+                                                        (varAppMode <> "AirfareAllowance" && Airfare = 'NoYes (mserp)'.No)
+                                                    )
+                                                ) As MappingRecord,
+                                                LookUp(
+                                                    'Expense category (mserp)',
+                                                    'Expense category' = MappingRecord.'Expense category' &&
+                                                    Inactive = 'NoYes (mserp)'.No
+                                                )
+                                            ),
+                                            !IsBlank('Expense category') 
+                                        ),
+                                        "mserp_expensecategory",
+                                        SortOrder.Ascending
+                                    )
+                                ),
+                                Clear(colExpenseCategories)
+                            )
                         )
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType),'Purchase Category'),"Value",SortOrder.Ascending),ComboBox_PurchaseCategory.SearchText,Value)
