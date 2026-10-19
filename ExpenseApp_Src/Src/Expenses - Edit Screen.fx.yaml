@@ -113,12 +113,11 @@
         If(
             !varIsAddingReceipt, // 첨부 파일 추가 후 복귀한 상태가 아닐 때만 필드 초기화 실행
         
-            // 3-level category selection variables
+            // 3-level category selection variables (AppMode에 따른 기본 Expense Type 설정)
             UpdateContext({
                 varSelectedExpenseType: 
                 If(
                     varIsCreate, 
-                    // 신규 생성 시 varAppMode에 따라 기본값 설정
                     Switch(
                         varAppMode,
                         "ExpenseReport", "Expense Reimbursement",
@@ -128,22 +127,21 @@
                         "CashAdvance", "Cash Advance",
                         Blank()
                     ),
-                    // 수정 모드일 때는 초기화 (이후 로직에서 기존 값 매핑됨)
                     Coalesce(varSelectedExpenseDoc.'Expense Type', Blank())
                 )
             });
         
             // =========================================================================
-            // 🚀 [수정] : Purpose가 'Item or Service'에 있는지 'Purchase Category'에 있는지 다단계로 검증합니다.
+            // 🚀 [통합 개선] : Purpose가 'Item or Service'인지 'Purchase Category'인지 파악 후 변수 확정
             // =========================================================================
             UpdateContext({
-                // 1. [3단계] Item or Service 필드에서 먼저 검색 (예: Airfare-staff)
+                // 1. [3단계] Item or Service 필드에서 먼저 검색
                 locMatchedByItem: If(
                     varIsCreate && !IsBlank(ctxTargetPurpose),
                     LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', Lower('Item or Service') = Lower(ctxTargetPurpose)),
                     Blank()
                 ),
-                // 2. [2단계] Purchase Category 필드에서 검색 (예: Shipping)
+                // 2. [2단계] Purchase Category 필드에서 검색 (Item 매핑이 실패했을 때만)
                 locMatchedByPurchase: If(
                     varIsCreate && !IsBlank(ctxTargetPurpose),
                     LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', Lower('Purchase Category') = Lower(ctxTargetPurpose)),
@@ -151,49 +149,40 @@
                 )
             });
         
-            // 3. 검색 결과에 따른 동적 변수 매핑 및 잠금 제어
-            If(
-                !IsBlank(locMatchedByItem),
-                // 🟢 케이스 A: 3단계(Item or Service)까지 완벽히 일치하는 경우 (예: Airfare-staff)
-                UpdateContext({
-                    varForceLock: true, // 💡 완벽 매핑됨: 사용자가 수정할 필요가 없으므로 잠금(View) 처리
-                    varSelectedExpenseType: locMatchedByItem.'Expense Type',
-                    varSelectedPurchaseCategory: locMatchedByItem.'Purchase Category',
-                    varSelectedItemOrService: locMatchedByItem.'Item or Service' // 실제 DB값으로 세팅
-                }),
-                
-                !IsBlank(locMatchedByPurchase),
-                // 🟡 케이스 B: 2단계(Purchase Category)까지만 일치하는 경우 (예: Shipping)
-                UpdateContext({
-                    varForceLock: false, // 💡 하위 옵션이 존재함: 사용자가 3단계를 직접 선택해야 하므로 잠금 해제(Edit)
-                    varSelectedExpenseType: locMatchedByPurchase.'Expense Type',
-                    varSelectedPurchaseCategory: locMatchedByPurchase.'Purchase Category',
-                    varSelectedItemOrService: Blank() // 사용자가 DIR/IN_DIR 중 하나를 선택해야 함
-                })
-            );
-            // =========================================================================
-        
-            // 2. 자동 할당된 Item or Service와 Expense Type을 기반으로 Purchase Category 역추적 및 매핑
+            // 3. 변수 할당 로직 (기존의 중복/충돌 로직을 제거하고 여기서 한 번에 확정합니다)
             UpdateContext({
+                // 3단계까지 완벽하게 매치된 경우에만 강제 잠금(ForceLock) 적용
+                varForceLock: varIsCreate && !IsBlank(locMatchedByItem),
+        
+                // Expense Type 확정
+                varSelectedExpenseType: If(
+                    varIsCreate && !IsBlank(ctxTargetPurpose),
+                    Coalesce(locMatchedByItem.'Expense Type', locMatchedByPurchase.'Expense Type', varSelectedExpenseType),
+                    Coalesce(varSelectedExpenseDoc.'Expense Type', varSelectedExpenseType)
+                ),
+        
+                // Purchase Category 확정 ("Shipping"과 같은 2단계 값이 넘어오면 여기서 매핑됨)
                 varSelectedPurchaseCategory: If(
-                    varForceLock,
-                    Coalesce(
-                        LookUp(
-                            'DCSL Expense Category Mapping Setup Entity (mserp)',
-                            'Expense Type' = varSelectedExpenseType && 'Item or Service' = ctxTargetPurpose,
-                            'Purchase Category'
-                        ),
-                        Blank()
-                    ),
+                    varIsCreate && !IsBlank(ctxTargetPurpose),
+                    Coalesce(locMatchedByItem.'Purchase Category', locMatchedByPurchase.'Purchase Category', Blank()),
                     Coalesce(varSelectedExpenseDoc.'Purchase Category', Blank())
+                ),
+        
+                // Item or Service 확정 (2단계 값만 넘어온 경우 사용자가 직접 선택해야 하므로 Blank 처리)
+                varSelectedItemOrService: If(
+                    varIsCreate && !IsBlank(ctxTargetPurpose),
+                    If(!IsBlank(locMatchedByItem), locMatchedByItem.'Item or Service', Blank()),
+                    Coalesce(varSelectedExpenseDoc.'Item or Service', Blank())
                 )
             });
+            // =========================================================================
+            
             UpdateContext({varSelectedPurchaseCategoryValue: ""});
             UpdateContext({
                 curCategory: If(
                     !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
                     varSelectedExpenseDoc.'Expense category (mserp_costtype)',
-                    // 신규 생성 시: 매핑 엔티티에서 3가지 조건으로 올바른 카테고리 실시간 조회
+                    // 신규 생성 시: 확정된 3단계 변수를 기반으로 Expense Category 실시간 조회
                     If(
                         varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedItemOrService),
                         Coalesce(
@@ -210,7 +199,8 @@
                     )
                 )
             });
-            // 3. Purchase Category가 자동 세팅되었으므로, 하위 4단계인 Expense Category 컬렉션(colExpenseCategories) 미리 로드
+        
+            // 4. Purchase Category가 세팅되었으므로, 하위 Expense Category 컬렉션 미리 로드
             If(
                 varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory),
                 ClearCollect(
@@ -241,7 +231,7 @@
                     )
                 );
                 
-                // 4. 추가로 환율 및 고정금액 처리를 위한 현재 셋업(locCurrentSetup) 데이터 메모리 로드
+                // 추가로 환율 및 고정금액 처리를 위한 현재 셋업(locCurrentSetup) 데이터 로드
                 UpdateContext({
                     locCurrentSetup: LookUp(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
@@ -251,6 +241,7 @@
                     )
                 })
             );
+        
             // Cost Center context
             UpdateContext({varSelectedCostCenter: Blank()});
             // TargetText context
@@ -264,9 +255,10 @@
                     )
                 })
             );
+        
             // Project context
             UpdateContext({varSelectedProject: Blank()});
-            // Project type context (will be derived from Expense Type / Purchase Category / Item or Service)
+            // Project type context
             UpdateContext({
                 varSelectedProjectType: If(
                     !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory) && !IsBlank(varSelectedItemOrService),
@@ -294,7 +286,7 @@
             );
         );
         
-        // Load existing Department and Benefit Type from Expense Category (reverse lookup)
+        // Load existing Department and Benefit Type from Expense Category (Reverse Lookup 방어 로직)
         If(
             !varIsCreate && 
             !IsBlank(varSelectedExpenseDoc.'Expense Type') &&
@@ -312,12 +304,8 @@
                 If(
                     !IsBlank(mappingRecord),
                     UpdateContext({
-                        varSelectedExpenseType: mappingRecord.'Expense Type'
-                    });
-                    UpdateContext({
-                        varSelectedPurchaseCategory: mappingRecord.'Purchase Category'
-                    });
-                    UpdateContext({
+                        varSelectedExpenseType: mappingRecord.'Expense Type',
+                        varSelectedPurchaseCategory: mappingRecord.'Purchase Category',
                         varSelectedItemOrService: mappingRecord.'Item or Service'
                     })
                 )
@@ -332,6 +320,7 @@
         UpdateContext({curBillIssuedToSelected: varSelectedExpenseDoc.'Hotel bill issued to'});
         UpdateContext({taxModifiedByUser: false});
         UpdateContext({varLoadingSpinner : true});
+        
         If(
             !varIsCreate && 
             !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)') &&
@@ -348,6 +337,7 @@
             ),
             UpdateContext({locItemizeButtonVisibilityFlag: false})
         );
+        
         If(
             !varIsCreate && gblIsProjectValidationFlag,
             Clear(colGetProjectsBasedOnResourceCategory);
@@ -397,6 +387,7 @@
                 })
             );
         );
+        
         UpdateContext({locItemizationCheck : locItemizeButtonVisibilityFlag});
         UpdateContext(
             {
@@ -408,6 +399,7 @@
                 locAllowNavigationBack: true
             }
         );
+        
         // populate the current expense type of the selected document
         UpdateContext(
             {
@@ -425,14 +417,15 @@
                 )
             }
         );
+        
         If(
             !varIsCreate,
             UpdateContext({msCallStartedForSalestaxCalculation: true});
             UpdateContext({varOnShowFields: false});
             UpdateContext({varOnSelectTriggered: false});
             UpdateContext({varOnChangeTriggered: false});
-            
         );
+        
         UpdateContext(
             {
                 featureEnabled: If(
@@ -447,6 +440,7 @@
                 )
             }
         );
+        
         //Check if the itemization is over or under distributed
         If(
             !varIsCreate,
@@ -464,6 +458,7 @@
                 )
             )
         );
+        
         If(
             currExpenseType = 'TrvExpType (mserp)'.'Per diem' && (featureEnabled = "False" || perdiemFeatureEnabled = "False"),
             Notify(
@@ -472,6 +467,7 @@
                 gblParams.notificationTime
             )
         );
+        
         //if labelTableLookUp not empty
         If(
             CountRows(labelTableLookUp) <= 0,
@@ -572,6 +568,7 @@
                 )
             )
         );
+        
         UpdateContext({varLoadingSpinner : false});
         Set(
             varDefaultSalesTaxGroupCode,
@@ -603,33 +600,17 @@
             {
                 dropDownHeight: 60,
                 dorpDownBorderThickness: 2,
-                dropDownBorderColor: RGBA(
-                    34,
-                    102,
-                    227,
-                    1
-                ),
+                dropDownBorderColor: RGBA(34, 102, 227, 1),
                 dropDownLabelColor: Color.Black,
-                dropDownHoverFill: RGBA(
-                    204,
-                    222,
-                    255,
-                    1
-                ),
+                dropDownHoverFill: RGBA(204, 222, 255, 1),
                 errorMessageSize: 18,
                 dropDownFontSize: 24,
-                expenseDataCardViewOnly: RGBA(
-                    110,
-                    110,
-                    110,
-                    1
-                ),
+                expenseDataCardViewOnly: RGBA(110, 110, 110, 1),
                 notificationTime: 4000
             }
         );
         //varibale determines whether any fields were changed
         UpdateContext({isDirty: false});
-        
         UpdateContext({categoryModified: false});
         UpdateContext({varDefaultItemSalesTaxError: ""});
         UpdateContext({varDefaultSalesTaxError: ""});
@@ -1609,8 +1590,9 @@
                     DisplayFields: =["Value"]
                     DisplayMode: |-
                         =If(
-                            // 조건 1: 매핑 테이블에 데이터가 완벽히 존재하여 강제 주입된 경우 -> 잠금(View)
-                            varIsCreate && varForceLock, 
+                            // 🚀 [수정됨] Reports 화면에서 넘어온 Purpose 값이 Item이든 Purchase Category든, 
+                            // 매핑 테이블에서 정상적으로 값을 찾았다면 Purchase Category 레벨은 사용자가 임의로 변경하지 못하도록 잠금 처리합니다.
+                            varIsCreate && (!IsBlank(locMatchedByItem) Or !IsBlank(locMatchedByPurchase)), 
                             DisplayMode.View,
                             
                             // 조건 2: 상위 항목인 ExpenseType이 비어있는 경우 (기존 로직 유지) -> 비활성화(Disabled)
@@ -1618,7 +1600,7 @@
                             IsBlank(ComboBox_ExpenseType.Selected), 
                             DisplayMode.Disabled,
                             
-                            // 조건 3: "Shipping" 등 매핑에 실패하여 직접 선택해야 하거나 일반 편집 모드 -> 활성화(Edit)
+                            // 조건 3: 아예 매핑에 실패했거나(예: 알 수 없는 텍스트), 일반 편집 모드로 진입한 경우 -> 활성화(Edit)
                             Parent.DisplayMode
                         )
                     FocusedBorderThickness: =2
