@@ -8,6 +8,8 @@
         Reset(cb_Purpose);
         Reset(txt_RequestedAmount);
         Reset(cb_Currency);
+        Reset(txt_RequestName);
+        Reset(txt_Comment);
         // --- [신규 추가] 금액 천단위 콤마 표시용 변수 초기화 ---
         UpdateContext({ locIsEditingAmount: false, dirtyTransAmount: Blank() });
 
@@ -41,9 +43,72 @@
         LayoutGridRowMinHeight: =0
         LayoutMode: =LayoutMode.Auto
         LayoutOverflowY: =LayoutOverflow.Scroll
-        Width: =Parent.Width
+        Width: =Min(Parent.Width, 680)
+        X: =Max(0, (Parent.Width - Self.Width) / 2)
         Y: =CashAdvanceEdit_Header.Height
         ZIndex: =3
+
+        RequestName_Container As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =LblContainer_RequestName.Height + txt_RequestName.Height + 20
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Width: =Parent.Width
+            ZIndex: =1
+
+            LblContainer_RequestName As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =35
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =Parent.Width
+                ZIndex: =1
+
+                lbl_RequestName As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    Size: =18
+                    Text: ="Request Name (input trip name year groups)"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+            txt_RequestName As text:
+                Default: |-
+                    =If(
+                        !varIsCreateCashAdvance,
+                        varSelectedCashAdvance.'Request Name',
+                        ""
+                    )
+                Height: =48
+                HintText: ="Enter trip name and year groups"
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                Size: =21
+                Width: =Parent.Width
+                ZIndex: =3
 
         CollectionMethod_Container As groupContainer.horizontalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
@@ -61,7 +126,7 @@
             maximumWidth: =640
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =1
+            ZIndex: =2
 
             LblContainer_CollectionMethod As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -94,7 +159,7 @@
                 DefaultSelectedItems: =If(!varIsCreateCashAdvance, [varSelectedCashAdvance.'Collection method'])
                 DisplayFields: =["Value"]
                 FillPortions: =1
-                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                Height: =48
                 InputTextPlaceholder: ="Select method"
                 Items: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection method')
                 LayoutMaxHeight: =0
@@ -103,8 +168,7 @@
                 SearchItems: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection method',cb_CollectionMethod.SearchText)
                 SelectMultiple: =false
                 Size: =21
-                Width: =Parent.Width - Self.X*2
-                X: =40
+                Width: =Parent.Width
                 ZIndex: =2
 
         CollectionTransferDate_Container As groupContainer.horizontalAutoLayoutContainer:
@@ -143,7 +207,7 @@
             maximumWidth: =640
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =2
+            ZIndex: =3
 
             LblContainer_CollectionTrasferDate As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -181,7 +245,7 @@
                     )
                 FillPortions: =1
                 Format: ="yyyy-mm-dd"
-                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                Height: =48
                 HoverDateFill: =App.Theme.Colors.Lighter70
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
@@ -189,8 +253,7 @@
                 maximumWidth: =640
                 SelectedDateFill: =App.Theme.Colors.Primary
                 Size: =21
-                Width: =Parent.Width - Self.X*2
-                X: =40
+                Width: =Parent.Width
                 ZIndex: =2
 
             lbl_CollectionTransferDateWarning As label:
@@ -243,7 +306,7 @@
                     false
                 )
             Width: =Parent.Width
-            ZIndex: =3
+            ZIndex: =4
 
             LblContainer_SalaryDeductionPeriod As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -301,7 +364,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =4
+            ZIndex: =5
 
             LblContainer_RequestedDate As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -349,7 +412,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =5
+            ZIndex: =6
 
             LblContainer_Location As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -391,6 +454,70 @@
                 X: =40
                 ZIndex: =2
 
+        Comment_Container As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =LblContainer_Comment.Height + txt_Comment.Height + 20
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Width: =Parent.Width
+            ZIndex: =7
+
+            LblContainer_Comment As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =35
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =Parent.Width
+                ZIndex: =1
+
+                lbl_Comment As label:
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    Size: =18
+                    Text: ="Leave an optional comment to approver/finance team"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+            txt_Comment As text:
+                Default: |-
+                    =If(
+                        !varIsCreateCashAdvance,
+                        varSelectedCashAdvance.Note,
+                        ""
+                    )
+                Height: =80
+                HintText: ="Enter comments (optional)"
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                Mode: =TextMode.MultiLine
+                Size: =21
+                Width: =Parent.Width - Self.X*2
+                X: =40
+                ZIndex: =2
+
         Purpose_Container As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
             Height: =LblContainer_Purpose.Height + cb_Purpose.Height + 20
@@ -403,7 +530,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =6
+            ZIndex: =8
 
             LblContainer_Purpose As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -477,7 +604,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =7
+            ZIndex: =9
 
             LblContainer_RequestedAmount As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -546,7 +673,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =8
+            ZIndex: =10
 
             LblContainer_Currency As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -610,7 +737,7 @@
                     false
                 )
             Width: =Parent.Width
-            ZIndex: =9
+            ZIndex: =11
 
             LblContainer_CostCenter As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -678,7 +805,7 @@
                     false
                 )
             Width: =Parent.Width
-            ZIndex: =10
+            ZIndex: =12
 
             LblContainer_ProjectCode As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -773,7 +900,8 @@
         LayoutGridColumns: =6
         LayoutGridRowMinHeight: =0
         LayoutGridRows: =6
-        Width: =Parent.Width
+        Width: =Min(Parent.Width, 680)
+        X: =Max(0, (Parent.Width - Self.Width) / 2)
         Y: =Parent.Height - Self.Height
         ZIndex: =4
 
@@ -790,6 +918,8 @@
                         'DCSL TrvCash Advance Entity  (mserp)',
                         If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),
                         {
+                            'Request Name': txt_RequestName.Text,
+                            Note: txt_Comment.Text,
                             'Requested date': DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
                             Location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
                             Purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
@@ -834,6 +964,8 @@
                             'DCSL TrvCash Advance Entity  (mserp)',
                             If(varIsCreateCashAdvance, Defaults('DCSL TrvCash Advance Entity  (mserp)'), varSelectedCashAdvance),
                             {
+                                'Request Name': txt_RequestName.Text,
+                                Note: txt_Comment.Text,
                                 'Requested date': DateTime(Year(dtp_RequestedDate.SelectedDate), Month(dtp_RequestedDate.SelectedDate), Day(dtp_RequestedDate.SelectedDate), 0, 0, 0),
                                 Location: If(IsBlank(cb_Location.Selected.Location), cb_Location.SearchText, cb_Location.Selected.Location),
                                 Purpose: If(IsBlank(cb_Purpose.Selected.'Purpose (mserp_value)'), cb_Purpose.SearchText, cb_Purpose.Selected.'Purpose (mserp_value)'),
