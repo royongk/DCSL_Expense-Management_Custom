@@ -392,12 +392,11 @@
             dtp_RequestedDate As datepicker:
                 DefaultDate: =If(varIsCreateCashAdvance, Today(), varSelectedCashAdvance.'Requested date')
                 FillPortions: =1
-                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                Height: =48
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
                 Size: =21
-                Width: =Parent.Width - Self.X*2
-                X: =40
+                Width: =Parent.Width
                 ZIndex: =2
 
         Location_Container As groupContainer.verticalAutoLayoutContainer:
@@ -441,7 +440,7 @@
                 DefaultSelectedItems: =If(!varIsCreateCashAdvance, LookUp('Travel locations (mserp)', Location = varSelectedCashAdvance.Location), Blank())
                 DisplayFields: =["mserp_destination"]
                 FillPortions: =1
-                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                Height: =48
                 InputTextPlaceholder: ="Select Location"
                 Items: =Filter('Travel locations (mserp)','Company Code' = varSelectedLegalEntity)
                 LayoutMaxHeight: =0
@@ -450,8 +449,7 @@
                 SearchItems: =Search(Filter('Travel locations (mserp)','Company Code'=varSelectedLegalEntity),cb_Location.SearchText,Location)
                 SelectMultiple: =false
                 Size: =21
-                Width: =Parent.Width - Self.X*2
-                X: =40
+                Width: =Parent.Width
                 ZIndex: =2
 
         Comment_Container As groupContainer.horizontalAutoLayoutContainer:
@@ -579,7 +577,7 @@
                         DisplayMode.Edit
                     )
                 FillPortions: =1
-                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                Height: =48
                 InputTextPlaceholder: ="Select Purpose"
                 Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
                 LayoutMaxHeight: =0
@@ -588,8 +586,7 @@
                 SearchItems: =Search(Filter('DimAttributeTrvTravelTxtEntity (mserp)','Company Code'=varSelectedLegalEntity),cb_Purpose.SearchText,'Purpose (mserp_value)')
                 SelectMultiple: =false
                 Size: =21
-                Width: =Parent.Width - Self.X*2
-                X: =40
+                Width: =Parent.Width
                 ZIndex: =2
 
         RequestedAmount_Container As groupContainer.verticalAutoLayoutContainer:
@@ -646,7 +643,7 @@
                         )
                     )
                 FillPortions: =1
-                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                Height: =48
                 HintText: ="0.00"
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
@@ -657,8 +654,7 @@
                 OnSelect: |-
                     =UpdateContext({ locIsEditingAmount: true })
                 Size: =21
-                Width: =Parent.Width - Self.X*2
-                X: =40
+                Width: =Parent.Width
                 ZIndex: =2
 
         Currency_Container As groupContainer.verticalAutoLayoutContainer:
@@ -702,7 +698,7 @@
                 DefaultSelectedItems: =LookUp('Currencies (mserp)', 'Currency code' = Coalesce(varSelectedCashAdvance.Currency, varDefaultCurrency))
                 DisplayFields: =["mserp_currencycode"]
                 FillPortions: =1
-                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                Height: =48
                 InputTextPlaceholder: ="Find items"
                 Items: =ShowColumns('Currencies (mserp)','Currency code',Name)
                 LayoutMaxHeight: =0
@@ -711,8 +707,7 @@
                 SearchItems: =Search(ShowColumns('Currencies (mserp)','Currency code',Name),cb_Currency.SearchText,mserp_currencycode)
                 SelectMultiple: =false
                 Size: =21
-                Width: =Parent.Width - Self.X*2
-                X: =40
+                Width: =Parent.Width
                 ZIndex: =2
 
         CostCenter_Container As groupContainer.horizontalAutoLayoutContainer:
@@ -770,7 +765,7 @@
                 DefaultSelectedItems: =LookUp('DCSL Financial Dimension CostCenter (mserp)', 'Combination display' = varSelectedCashAdvance.CostCenter)
                 DisplayFields: =["mserp_dimensionvalue","mserp_description"]
                 FillPortions: =1
-                Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                Height: =48
                 InputTextPlaceholder: ="Select Cost Cencter"
                 Items: =ShowColumns('DCSL Financial Dimension CostCenter (mserp)','Combination display',Name)
                 LayoutMaxHeight: =0
@@ -779,8 +774,7 @@
                 SearchItems: =Search(ShowColumns('DCSL Financial Dimension CostCenter (mserp)','Combination display',Name),cb_CostCenter.SearchText,mserp_dimensionvalue,mserp_description)
                 SelectMultiple: =false
                 Size: =21
-                Width: =Parent.Width - Self.X*2
-                X: =40
+                Width: =Parent.Width
                 ZIndex: =2
 
         ProjectCode_Container As groupContainer.horizontalAutoLayoutContainer:
