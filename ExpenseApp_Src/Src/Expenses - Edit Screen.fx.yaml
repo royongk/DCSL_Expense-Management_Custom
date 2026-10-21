@@ -1,29 +1,23 @@
 "'Expenses - Edit Screen' As screen.'phoneDetailEditLayout_ver3.0'":
     Fill: =RGBA(248, 248, 248, 1)
     OnVisible: |-
-        =// OnVisible 최상단에 조건문 추가
+        =// 1. 첨부 파일 추가 후 복귀 상태가 아닐 때(화면 최초/신규 진입) 상태 변수 전체 초기화
         If(
-            !varIsAddingReceipt, // 첨부 파일 추가 중이 아닐 때만(즉, 처음 진입 시에만) 초기화
-            UpdateContext({ 
+            !varIsAddingReceipt,
+            UpdateContext({
+                locResetCategoryControls: true,
                 locCurrentSetup: Blank(),
                 dirtyTransAmount: Blank(),
                 locIsEditingAmount: false,
                 locCategoryChange: false,
-                
-                // 🚀 1. ctxTargetPurpose 초기화 로직 삭제 (이전 화면에서 넘긴 "Shipping" 값을 그대로 살림)
-                
                 varViewOnly: false,
                 varStateSelected: Blank(),
                 varZipCodeSelectedRecId: -1,
                 varProjectHierarchyId: Blank(),
                 onReloadButtonClick: false,
-                
-                // 화면 진입 시 원본 보존/환산 변수 초기화
                 locOriginalAmount: Blank(),
                 locOriginalCurrency: Blank(),
-                locCalculatedLCY: Blank(),
-        
-                // 🚀 [해결 1] Power Apps의 조건부 Blank 덮어쓰기 버그를 방지하기 위해 진입 즉시 강제 삭제
+                locCalculatedLCY: Blank(), // 👈 원화 환산 금액 명시적 초기화
                 varSelectedExpenseType: Blank(),
                 varSelectedPurchaseCategory: Blank(),
                 varSelectedItemOrService: Blank(),
@@ -31,14 +25,14 @@
             })
         );
         
-        // 신규 경비 작성 모드 진입 시(영수증 추가를 위한 리프레시 상태가 아닐 때) 임시 영수증 비우기
+        // 2. 신규 경비 작성 모드 진입 시 임시 영수증 컬렉션 비우기
         If(
             varIsCreate && !varIsAddingReceipt,
             Clear(colPendingReceipts);
             Clear(colAttachedReceipts)
         );
         
-        // 통화 데이터를 가져와서 미리 정렬한 뒤 'colSortedCurrencies'라는 컬렉션에 저장합니다.
+        // 3. 통화 및 환율 마스터 데이터 로드
         ClearCollect(
             colCurrencies,
             'Currencies (mserp)'
@@ -57,15 +51,13 @@
             )
         );
         
-        // 환율 정보 조회
         ClearCollect(colExchangeRates, 'Currency table (mserp)');
         
-        // 🚀 [신규 추가] D365 LCY 역파싱 및 최신 환율 기반 KRW 재계산
+        // 4. 기존 경비 편집 시 D365 LCY 역파싱 및 최신 환율 기반 KRW 재계산
         If(
             !varIsCreate && !varIsAddingReceipt,
             With(
                 {
-                    // 🚀 [보강] LCY와 mserp_deexcurrencyamountview를 모두 점검하여 문자열 확보
                     rawLCY: Trim(Text(Coalesce(varSelectedExpenseDoc.LCY, varSelectedExpenseDoc.LCY))),
                     fallbackAmt: Coalesce(varSelectedExpenseDoc.'Transaction amount', 0),
                     fallbackCurr: Coalesce(varSelectedExpenseDoc.'Currency (mserp_exchangecode)', "KRW")
@@ -118,13 +110,12 @@
             )
         );
         
+        // 2. 카테고리 매핑 및 컨트롤 리셋 블록
         If(
-            !varIsAddingReceipt, // 첨부 파일 추가 후 복귀한 상태가 아닐 때만 필드 초기화 실행
+            !varIsAddingReceipt,
         
-            // 3-level category selection variables (AppMode에 따른 기본 Expense Type 설정)
             UpdateContext({
-                varSelectedExpenseType: 
-                If(
+                varSelectedExpenseType: If(
                     varIsCreate, 
                     Switch(
                         varAppMode,
@@ -139,67 +130,80 @@
                 )
             });
         
-            // =========================================================================
-            // 🚀 [통합 개선] : Purpose가 'Item or Service'인지 'Purchase Category'인지 파악 후 변수 확정
-            // =========================================================================
-            UpdateContext({
-                // 1. [3단계] Item or Service 필드에서 먼저 검색
-                // 🚀 [해결 2] Lower()를 제거하여 Dataverse 쿼리 실패 및 위임 경고를 원천 차단합니다.
-                locMatchedByItem: If(
-                    varIsCreate && !IsBlank(ctxTargetPurpose),
-                    LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Item or Service' = ctxTargetPurpose),
-                    Blank()
-                ),
-                locMatchedByPurchase: If(
-                    varIsCreate && !IsBlank(ctxTargetPurpose),
-                    LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Purchase Category' = ctxTargetPurpose),
-                    Blank()
-                )
-            });
+            // 🚀 OData 위임 안전 검색 (열 이름에 함수를 쓰지 않고 파라미터 변형으로 조회)
+            With(
+                {
+                    targetP: Trim(Coalesce(ctxTargetPurpose, "")),
+                    targetWithSpaces: Substitute(Trim(Coalesce(ctxTargetPurpose, "")), "-", " - "),
+                    targetWithoutHyphen: Substitute(Trim(Coalesce(ctxTargetPurpose, "")), "-", " ")
+                },
+                UpdateContext({
+                    locMatchedByItem: If(
+                        varIsCreate && !IsBlank(targetP),
+                        Coalesce(
+                            LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Item or Service' = targetP),
+                            LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Item or Service' = targetWithSpaces),
+                            LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Item or Service' = targetWithoutHyphen)
+                        ),
+                        Blank()
+                    ),
+                    locMatchedByPurchase: If(
+                        varIsCreate && !IsBlank(targetP),
+                        Coalesce(
+                            LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Purchase Category' = targetP),
+                            LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Purchase Category' = targetWithSpaces),
+                            LookUp('DCSL Expense Category Mapping Setup Entity (mserp)', 'Purchase Category' = targetWithoutHyphen),
+                            If(
+                                varAppMode = "AirfareAllowance" && ("Airfare" in targetP),
+                                LookUp(
+                                    'DCSL Expense Category Mapping Setup Entity (mserp)', 
+                                    'Expense Type' = "Allowance" && 'Purchase Category' = "Airfare"
+                                ),
+                                Blank()
+                            )
+                        ),
+                        Blank()
+                    )
+                })
+            );
         
-            // 3. 변수 할당 로직 (기존의 중복/충돌 로직을 제거하고 여기서 한 번에 확정합니다)
+            // 3단계 변수 확정
             UpdateContext({
-                // 3단계까지 완벽하게 매치된 경우에만 강제 잠금(ForceLock) 적용
                 varForceLock: varIsCreate && !IsBlank(locMatchedByItem),
         
-                // Expense Type 확정
                 varSelectedExpenseType: If(
                     varIsCreate && !IsBlank(ctxTargetPurpose),
                     Coalesce(locMatchedByItem.'Expense Type', locMatchedByPurchase.'Expense Type', varSelectedExpenseType),
                     Coalesce(varSelectedExpenseDoc.'Expense Type', varSelectedExpenseType)
                 ),
         
-                // Purchase Category 확정 ("Shipping"과 같은 2단계 값이 넘어오면 여기서 매핑됨)
                 varSelectedPurchaseCategory: If(
                     varIsCreate && !IsBlank(ctxTargetPurpose),
                     Coalesce(locMatchedByItem.'Purchase Category', locMatchedByPurchase.'Purchase Category', Blank()),
                     Coalesce(varSelectedExpenseDoc.'Purchase Category', Blank())
                 ),
         
-                // Item or Service 확정 (2단계 값만 넘어온 경우 사용자가 직접 선택해야 하므로 Blank 처리)
                 varSelectedItemOrService: If(
                     varIsCreate && !IsBlank(ctxTargetPurpose),
                     If(!IsBlank(locMatchedByItem), locMatchedByItem.'Item or Service', Blank()),
                     Coalesce(varSelectedExpenseDoc.'Item or Service', Blank())
                 )
             });
-            // 🚀 [여기에 해결 코드 추가] 
-            // 변수 세팅이 끝난 직후, UI 컨트롤들의 '이전 세션 캐시(Dirty State)'를 강제로 비워 새 값을 화면에 반영합니다.
+        
+            // 💡 신규 생성 모드라면 NewForm을 호출하여 이전 세션 캐시 제거
             If(
-                !varIsAddingReceipt, // 화면 최초 진입 시에만 UI를 리셋함
-                Reset(ComboBox_ExpenseType);
-                Reset(ComboBox_PurchaseCategory);
-                Reset(ComboBox_ItemOrService);
-                Reset(ComboBox1_8) // 하위 Expense category 콤보박스
+                varIsCreate,
+                NewForm(EditExpenseForm),
+                ResetForm(EditExpenseForm)
             );
-            // =========================================================================
-            
+        
+            UpdateContext({ locResetCategoryControls: false });
+        
             UpdateContext({varSelectedPurchaseCategoryValue: ""});
             UpdateContext({
                 curCategory: If(
                     !varIsCreate && !IsBlank(varSelectedExpenseDoc.'Expense category (mserp_costtype)'),
                     varSelectedExpenseDoc.'Expense category (mserp_costtype)',
-                    // 신규 생성 시: 확정된 3단계 변수를 기반으로 Expense Category 실시간 조회
                     If(
                         varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedItemOrService),
                         Coalesce(
@@ -217,7 +221,7 @@
                 )
             });
         
-            // 4. Purchase Category가 세팅되었으므로, 하위 Expense Category 컬렉션 미리 로드
+            // Purchase Category 기반 하위 Expense Category 컬렉션 로드
             If(
                 varIsCreate && !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory),
                 ClearCollect(
@@ -248,7 +252,6 @@
                     )
                 );
                 
-                // 추가로 환율 및 고정금액 처리를 위한 현재 셋업(locCurrentSetup) 데이터 로드
                 UpdateContext({
                     locCurrentSetup: LookUp(
                         'DCSL Expense Category Mapping Setup Entity (mserp)',
@@ -259,9 +262,8 @@
                 })
             );
         
-            // Cost Center context
+            // Cost Center 초기화
             UpdateContext({varSelectedCostCenter: Blank()});
-            // TargetText context
             UpdateContext({TargetText: ""});
             If(
                 !varIsCreate && !IsBlank(varSelectedExpenseDoc.CostCenter),
@@ -273,9 +275,8 @@
                 })
             );
         
-            // Project context
+            // Project 및 Project Type 초기화
             UpdateContext({varSelectedProject: Blank()});
-            // Project type context
             UpdateContext({
                 varSelectedProjectType: If(
                     !IsBlank(varSelectedExpenseType) && !IsBlank(varSelectedPurchaseCategory) && !IsBlank(varSelectedItemOrService),
@@ -303,7 +304,7 @@
             );
         );
         
-        // Load existing Department and Benefit Type from Expense Category (Reverse Lookup 방어 로직)
+        // 6. 기존 경비 수정 시 역방향 매핑 (Edit 모드 방어 로직)
         If(
             !varIsCreate && 
             !IsBlank(varSelectedExpenseDoc.'Expense Type') &&
@@ -329,6 +330,7 @@
             )
         );
         
+        // 7. 법인 및 프로젝트 컨텍스트 바인딩
         UpdateContext({curIntercompanyLE: Coalesce(DataCardValue39_1.Selected.Value, varSelectedExpenseDoc.'Legal entity')});
         UpdateContext({curInterCompanyProjectCategory: varSelectedExpenseDoc.'Intercompany project category'});
         UpdateContext({curProjIdSelected: varSelectedExpenseDoc.'Project ID'});
@@ -417,7 +419,6 @@
             }
         );
         
-        // populate the current expense type of the selected document
         UpdateContext(
             {
                 currExpenseType: Coalesce(
@@ -458,7 +459,6 @@
             }
         );
         
-        //Check if the itemization is over or under distributed
         If(
             !varIsCreate,
             If(
@@ -485,7 +485,6 @@
             )
         );
         
-        //if labelTableLookUp not empty
         If(
             CountRows(labelTableLookUp) <= 0,
             Collect(
@@ -626,7 +625,6 @@
                 notificationTime: 4000
             }
         );
-        //varibale determines whether any fields were changed
         UpdateContext({isDirty: false});
         UpdateContext({categoryModified: false});
         UpdateContext({varDefaultItemSalesTaxError: ""});
@@ -687,17 +685,13 @@
         UpdateContext({varProjectChanged: false});
         UpdateContext({varShowDeleteReceiptDialog: false});
         UpdateContext({varDeleteReceiptId: Blank()});
-        
-        // 복사 팝업창 가시성 제어 변수
         UpdateContext({ locShowCopyPopup: false });
         
-        // 1. 접속한 사용자의 마스터 정보 가져오기
         Set(
             varCurrentD365User,
             LookUp('Expense mobile master data (mserp)', Email = User().Email)
         );
         
-        // 2. 물리적 텍스트 필드로 위임자 조회
         ClearCollect(
             colActiveDelegations,
             Filter(
@@ -708,7 +702,6 @@
             )
         );
         
-        // 3. 콤보박스 선택지 생성 (접속자 본인)
         ClearCollect(
             colCreatingWorkerOptions,
             {
@@ -717,7 +710,6 @@
             }
         );
         
-        // 4. 콤보박스 선택지 추가 (대리 신청 대상자)
         ForAll(
             colActiveDelegations,
             Collect(
@@ -729,11 +721,7 @@
             )
         );
         
-        // 위에서 새롭게 계산된 카테고리 변수(Shipping 등)를 화면에 강제로 덮어씌웁니다.
-        If(
-            !varIsAddingReceipt,
-            ResetForm(EditExpenseForm)
-        );
+        // ⚠️ 기존 최하단에 있던 ResetForm(EditExpenseForm)은 완전히 삭제되었습니다.
 
     scr03_ico_Back_4 As icon.ChevronLeft:
         Color: =icongconfig_backbutton.Color
@@ -741,13 +729,13 @@
         Height: =icongconfig_backbutton.Height
         Icon: =Icon.ChevronLeft
         OnSelect: |-
-            =
+            =// scr03_ico_Back_4 OnSelect
             Switch(
                 varNavigatedFrom,
                 "scr17",
                 Navigate('Reports - Edit Screen'),
-                "scr17_Create",                         // [신규 추가]
-                Navigate('Reports - Edit Screen'),      // [신규 추가]
+                "scr17_Create",
+                Navigate('Reports - Edit Screen'),
                 "scr20",
                 Navigate('Reports - View Only Screen'),
                 "scr18",
@@ -757,21 +745,21 @@
                 Blank(),
                 Navigate('Expenses - List Screen')
             );
+            
             UpdateContext({
                 varNavigatedFrom: Blank(),
-                ctxTargetPurpose: Blank() // 👇 [신규 추가] 화면을 벗어날 때 초기화
+                ctxTargetPurpose: Blank(),
+                dirtyTransAmount: Blank(),
+                dirtyTransDate: Blank(),
+                dirtyMerchant: Blank(),    
+                varOnSelectTriggered: false,
+                varOnShowFields: false,
+                varOnChangeTriggered: false,
+                varSalesTaxAmount: Blank(),
+                locCalculatedLCY: Blank(),
+                varIsAddingReceipt: false // 👈 반드시 false로 리셋
             });
-            UpdateContext(
-                {
-                    dirtyTransAmount : Blank(),
-                    dirtyTransDate : Blank(),
-                    dirtyMerchant : Blank(),    
-                    varOnSelectTriggered: false,
-                    varOnShowFields:false,
-                    varOnChangeTriggered:false,
-                    varSalesTaxAmount: Blank()
-                }
-            );
+            Set(varSelectedExpenseDoc, Blank());
         Visible: =false
         Width: =icongconfig_backbutton.Width
         X: =303
@@ -1148,7 +1136,8 @@
         Height: =icongconfig_backbutton.Height
         Icon: =Icon.ChevronLeft
         OnSelect: |-
-            =If(
+            =// scr03_ico_Back_1 OnSelect
+            If(
                 varExpenseButtonClicked,
                 UpdateContext({varCntSelect: false});
                 Navigate('Expenses - List Screen'),
@@ -1156,17 +1145,24 @@
                     varIsCreate || isDirty,
                     UpdateContext({ctVarExpenseDetailsBack: true}),
                     Select(scr03_ico_Back_4)
-                );
-                
+                )
             );
-            UpdateContext({dirtyTransAmount: Blank()});
-            UpdateContext({varSalesTaxAmount: Blank()});
-            UpdateContext({ctxTargetPurpose: Blank()}); // 👇 [신규 추가] 화면을 벗어날 때 초기화
+            
+            // 💡 [추가 및 보강] 화면 이탈 시 임시 상태 및 영수증 추가 플래그 완전 초기화
+            UpdateContext({
+                dirtyTransAmount: Blank(),
+                dirtyTransDate: Blank(),
+                dirtyMerchant: Blank(),
+                varSalesTaxAmount: Blank(),
+                ctxTargetPurpose: Blank(),
+                locOriginalAmount: Blank(),
+                locOriginalCurrency: Blank(),
+                locCalculatedLCY: Blank(),
+                varIsAddingReceipt: false // 👈 반드시 false로 리셋
+            });
+            Set(varSelectedExpenseDoc, Blank());
             Set(varIsCopyMode, false);
-            Set(
-                gblNavigationDrawerVisibility,
-                false
-            );
+            Set(gblNavigationDrawerVisibility, false);
         TabIndex: =0
         Width: =icongconfig_backbutton.Width
         X: =22.5
@@ -1496,6 +1492,7 @@
                                 )
                             })
                         )
+                    Reset: =locResetCategoryControls
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct('DCSL Expense Category Mapping Setup Entity (mserp)','Expense Type'),"Value",SortOrder.Ascending),ComboBox_ExpenseType.SearchText,Value)
                     SelectionColor: =Color.Black
@@ -1686,6 +1683,7 @@
                                 Clear(colExpenseCategories)
                             )
                         )
+                    Reset: =locResetCategoryControls
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType),'Purchase Category'),"Value",SortOrder.Ascending),ComboBox_PurchaseCategory.SearchText,Value)
                     SelectionColor: =Color.Black
@@ -1792,26 +1790,23 @@
                             0   // 정상 상태에서는 두께를 1로 설정
                         )
                     DefaultSelectedItems: |-
-                        =// 🚀 [해결 3] 복잡한 조건식을 버리고, OnVisible에서 확정해준 변수만 순수하게 바라보도록 설정합니다.
-                        If(
+                        =If(
                             !IsBlank(varSelectedItemOrService),
-                            { Value: varSelectedItemOrService },
+                            Table({ Value: varSelectedItemOrService }),
                             Blank()
                         )
                     DisplayFields: =["Value"]
                     DisplayMode: |-
                         =If(
-                            // 1순위: 매핑 테이블에 데이터가 완벽히 존재하여 강제 주입된 경우 -> 무조건 비활성화(View)
-                            varIsCreate && varForceLock, 
+                            // 1순위: 3단계 항목이 사전에 매핑되어 값이 존재하고, 강제 잠금 플래그가 켜진 경우에만 잠금(View)
+                            varIsCreate && varForceLock && !IsBlank(varSelectedItemOrService), 
                             DisplayMode.View,
                             
-                            // 2순위: 최상위 항목(Expense Type)이 비어있어 아직 선택할 단계가 아닌 경우 -> 비활성화(Disabled)
-                            // 💡 [전문가 수정]: Purchase Category는 Item or Service 선택 후 채워져야 하므로, 
-                            // IsBlank(ComboBox_PurchaseCategory.Selected) 조건은 여기서 삭제하는 것이 안전합니다.
-                            IsBlank(ComboBox_ExpenseType.Selected), 
+                            // 2순위: 최상위 항목(Expense Type) 또는 상위 카테고리(Purchase Category)가 비어 있는 경우 선택 불가(Disabled)
+                            IsBlank(ComboBox_ExpenseType.Selected) || IsBlank(ComboBox_PurchaseCategory.Selected), 
                             DisplayMode.Disabled,
                             
-                            // 3순위: 위 조건에 해당하지 않는 경우 (예: "Shipping" 매핑 실패 또는 일반 편집 모드) -> 활성화
+                            // 3순위: 상위 항목은 선택되었으나 Item or Service 값이 비어 있는 경우(예: Shipping 등 2단계만 매핑된 경우) -> 사용자가 선택 가능(Edit)
                             Parent.DisplayMode
                         )
                     FocusedBorderThickness: =2
@@ -1901,6 +1896,7 @@
                                 )
                             )
                         );
+                    Reset: =locResetCategoryControls
                     SearchFields: =["Value"]
                     SearchItems: =Search(SortByColumns(Distinct(Filter('DCSL Expense Category Mapping Setup Entity (mserp)',!IsBlank('Expense category')&&!IsBlank(varSelectedExpenseType)&&'Expense Type'=varSelectedExpenseType&&!IsBlank(varSelectedPurchaseCategory)&&'Purchase Category'=varSelectedPurchaseCategory),'Item or Service'),"Value",SortOrder.Ascending),ComboBox_ItemOrService.SearchText,Value)
                     SelectionColor: =Color.Black
@@ -2404,7 +2400,7 @@
                         UpdateContext({taxModifiedByUser: false});
                     OnSelect: |-
                         =UpdateContext({varOnSelectTriggered: true});
-                    Reset: =true
+                    Reset: =locResetCategoryControls
                     SearchFields: =["mserp_expensecategory"]
                     SearchItems: =Search(colExpenseCategories,ComboBox1_8.SearchText,'Expense category')
                     SelectionColor: =Color.Black
@@ -4802,19 +4798,22 @@
                     Default: |-
                         =With(
                             {
-                                // 오류 없이 안전한 숫자 데이터만 추출
                                 displayNumber: If(
                                     !IsBlank(locCalculatedLCY), 
                                     Value(locCalculatedLCY),
-                                    // Fallback: 계산값이 없으면 저장된 Transaction amount를 직접 가져옴
-                                    Value(varSelectedExpenseDoc.'Transaction amount')
+                                    // 💡 [수정] 신규 생성 중일 때는 이전 문서(varSelectedExpenseDoc)의 금액을 절대 가져오지 않음
+                                    If(
+                                        !varIsCreate,
+                                        Value(varSelectedExpenseDoc.'Transaction amount'),
+                                        Blank()
+                                    )
                                 ),
-                                localCurrencyCode: "KRW" // 환산된 LCY 금액의 통화는 항상 KRW로 고정
+                                localCurrencyCode: "KRW"
                             },
                             If(
-                                !IsBlank(displayNumber),
+                                !IsBlank(displayNumber) && displayNumber > 0,
                                 Text(displayNumber, "#,##0.00") & " " & localCurrencyCode,
-                                Blank()
+                                Blank() // 신규 진입 시 깔끔하게 빈 값 유지
                             )
                         )
                     DelayOutput: =true
