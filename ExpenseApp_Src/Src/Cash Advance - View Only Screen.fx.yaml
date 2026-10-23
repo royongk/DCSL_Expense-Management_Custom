@@ -1,7 +1,8 @@
 "'Cash Advance - View Only Screen' As screen.'phoneDetailEditLayout_ver3.0'":
     Fill: =RGBA(248, 248, 248, 1)
     OnVisible: |-
-        =UpdateContext({ctVarCashDetailsBack: false})
+        =UpdateContext({ctVarCashDetailsBack: false});
+        Set(varIsCreateCashAdvance, false)
 
     CashAdvanceEdit_Header_1 As hdr02_Header:
         Fill: =CashAdvanceEdit_Header_1.paramFill
@@ -95,9 +96,9 @@
         Y: =CashAdvanceEdit_Header_1.Height
         ZIndex: =4
 
-        CollectionMethod_Container_1 As groupContainer.horizontalAutoLayoutContainer:
+        RequestName_Container_1 As groupContainer.horizontalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_CollectionMethod_1.Height + cb_CollectionMethod_1.Height + 20
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -111,7 +112,80 @@
             maximumWidth: =640
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =3
+            ZIndex: =1
+
+            LblContainer_RequestName_1 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =35
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =Parent.Width
+                ZIndex: =1
+
+                lbl_RequestName_1 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
+                    Text: ="Request Name (input trip name year groups)"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+            txt_RequestName_1 As text:
+                BorderColor: =RGBA(0, 18, 107, 1)
+                BorderThickness: =2
+                Color: =RGBA(0, 0, 0, 1)
+                Default: =varSelectedCashAdvance.'Request Name'
+                DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                DisabledColor: =RGBA(166, 166, 166, 1)
+                DisabledFill: =RGBA(244, 244, 244, 1)
+                DisplayMode: =DisplayMode.View
+                FocusedBorderThickness: =4
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
+                HintText: ="Enter trip name and year groups"
+                HoverBorderColor: =RGBA(0, 18, 107, 1)
+                HoverColor: =RGBA(0, 0, 0, 1)
+                HoverFill: =RGBA(186, 202, 226, 1)
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                Width: =Parent.Width - Self.X*2
+                X: =40
+                ZIndex: =2
+
+        CollectionMethod_Container_1 As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Width: =Parent.Width
+            ZIndex: =2
 
             LblContainer_CollectionMethod_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -134,14 +208,18 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="Collection Method"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
                     ZIndex: =5
 
             cb_CollectionMethod_1 As combobox:
-                DefaultSelectedItems: =If(!varIsCreateCashAdvance, [varSelectedCashAdvance.'Collection method'])
+                DefaultSelectedItems: |-
+                    =Filter(
+                            Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection method'),
+                            Value = varSelectedCashAdvance.'Collection method'
+                        )
                 DisplayFields: =["Value"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
@@ -174,7 +252,7 @@
             maximumWidth: =640
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =7
+            ZIndex: =3
 
             LblContainer_CollectionTrasferDate_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -197,7 +275,7 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="Collection/Transfer Date"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
@@ -205,11 +283,7 @@
 
             dtp_CollectionTrasferDate_1 As datepicker:
                 CalendarHeaderFill: =App.Theme.Colors.Primary
-                DefaultDate: |-
-                    =If(
-                        varIsCreateCashAdvance, Today(), 
-                        varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexcollectiontransferdate)'
-                    )
+                DefaultDate: =varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexcollectiontransferdate)'
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
                 Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
@@ -246,7 +320,7 @@
                     false
                 )
             Width: =Parent.Width
-            ZIndex: =11
+            ZIndex: =4
 
             LblContainer_SalaryDeductionPeriod_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -269,14 +343,18 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="Salary deduction period"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
                     ZIndex: =13
 
             cb_SalaryDeductionPeriod_1 As combobox:
-                DefaultSelectedItems: =If(!varIsCreateCashAdvance, [varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexsalarydeductionperiod)'])
+                DefaultSelectedItems: |-
+                    =Filter(
+                        Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection/Transfer Date (mserp_deexsalarydeductionperiod)'),
+                        Value = varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexsalarydeductionperiod)'
+                    )
                 DisplayFields: =["Value"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
@@ -295,7 +373,7 @@
 
         RequestedDate_Container_1 As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_RequestedDate_1.Height + dtp_RequestedDate_1.Height + 20
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -305,7 +383,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =15
+            ZIndex: =5
 
             LblContainer_RequestedDate_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -324,14 +402,14 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="* Requested Date"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
                     ZIndex: =17
 
             dtp_RequestedDate_1 As datepicker:
-                DefaultDate: =If(varIsCreateCashAdvance, Today(), varSelectedCashAdvance.'Requested date')
+                DefaultDate: =varSelectedCashAdvance.'Requested date'
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
                 Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
@@ -344,7 +422,7 @@
 
         Location_Container_1 As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_Location_1.Height + cb_Location_1.Height + 20
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -354,7 +432,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =19
+            ZIndex: =6
 
             LblContainer_Location_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -373,14 +451,14 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="Location"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
                     ZIndex: =21
 
             cb_Location_1 As combobox:
-                DefaultSelectedItems: =If(!varIsCreateCashAdvance, LookUp('Travel locations (mserp)', Location = varSelectedCashAdvance.Location), Blank())
+                DefaultSelectedItems: =LookUp('Travel locations (mserp)', Location = varSelectedCashAdvance.Location)
                 DisplayFields: =["mserp_destination"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
@@ -397,9 +475,83 @@
                 X: =40
                 ZIndex: =22
 
+        Comment_Container_1 As groupContainer.horizontalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.SetByContainer
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 140, 190)
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =10
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMode: =LayoutMode.Auto
+            maximumHeight: =11360
+            maximumWidth: =640
+            PaddingLeft: =25
+            Width: =Parent.Width
+            ZIndex: =7
+
+            LblContainer_Comment_1 As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.SetByContainer
+                Height: =35
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMode: =LayoutMode.Auto
+                maximumHeight: =11360
+                maximumWidth: =640
+                Width: =Parent.Width
+                ZIndex: =1
+
+                lbl_Comment_1 As label:
+                    BorderColor: =RGBA(0, 18, 107, 1)
+                    Color: =RGBA(0, 0, 0, 1)
+                    DisabledColor: =RGBA(166, 166, 166, 1)
+                    Font: =Font.'Segoe UI'
+                    Height: =32
+                    LayoutMaxHeight: =0
+                    LayoutMaxWidth: =0
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
+                    Text: ="Leave an optional comment to approver/finance team"
+                    VerticalAlign: =VerticalAlign.Top
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+            txt_Comment_1 As text:
+                BorderColor: =RGBA(0, 18, 107, 1)
+                BorderThickness: =2
+                Color: =RGBA(0, 0, 0, 1)
+                Default: =varSelectedCashAdvance.Note
+                DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                DisabledColor: =RGBA(166, 166, 166, 1)
+                DisabledFill: =RGBA(244, 244, 244, 1)
+                DisplayMode: =DisplayMode.View
+                FocusedBorderThickness: =4
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 80, 120)
+                HintText: ="Enter comments (optional)"
+                HoverBorderColor: =RGBA(0, 18, 107, 1)
+                HoverColor: =RGBA(0, 0, 0, 1)
+                HoverFill: =RGBA(186, 202, 226, 1)
+                LayoutMaxHeight: =0
+                LayoutMaxWidth: =0
+                LayoutMinHeight: =16
+                LayoutMinWidth: =16
+                Mode: =TextMode.MultiLine
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 20)
+                Width: =Parent.Width - Self.X*2
+                X: =40
+                ZIndex: =2
+
         Purpose_Container_1 As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_Purpose_1.Height + cb_Purpose_1.Height + 20
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -409,7 +561,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =23
+            ZIndex: =8
 
             LblContainer_Purpose_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -428,28 +580,14 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="Purpose"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
                     ZIndex: =25
 
             cb_Purpose_1 As combobox:
-                DefaultSelectedItems: |-
-                    =If(
-                        !varIsCreateCashAdvance, 
-                        // 1. 기존 데이터를 수정하는 경우 (기존 로직 유지)
-                        LookUp(
-                            'DimAttributeTrvTravelTxtEntity (mserp)', 
-                            'Purpose (mserp_value)' = varSelectedCashAdvance.Purpose
-                        ), 
-                        
-                        // 2. 신규 생성하는 경우 (AppMode에 따른 자동 선택 로직 추가)
-                        LookUp(
-                            'DimAttributeTrvTravelTxtEntity (mserp)', 
-                            'Purpose (mserp_value)' = If(varAppMode = "SalaryAdvance", "Salary Advance", "Cash Advance")
-                        )
-                    )
+                DefaultSelectedItems: =LookUp('DimAttributeTrvTravelTxtEntity (mserp)', 'Purpose (mserp_value)' = varSelectedCashAdvance.Purpose)
                 DisplayFields: =["mserp_value"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
@@ -468,7 +606,7 @@
 
         RequestedAmount_Container_1 As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_RequestedAmount_1.Height + txt_RequestedAmount_1.Height + 20
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -478,7 +616,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =27
+            ZIndex: =9
 
             LblContainer_RequestedAmount_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -497,7 +635,7 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="* Requested Amount"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
@@ -505,20 +643,7 @@
 
             txt_RequestedAmount_1 As text:
                 Default: |-
-                    =If(
-                        varIsCreateCashAdvance && IsBlank(dirtyTransAmount),
-                        "",
-                        With(
-                            { 
-                                baseAmount: Value(Coalesce(dirtyTransAmount, Text(varSelectedCashAdvance.'Requested amount'))) 
-                            },
-                            If(
-                                locIsEditingAmount, 
-                                Text(baseAmount, "#"),                   
-                                Text(baseAmount, "#,##0.00", "en-US") // 소수점이 필요없다면 "#,##0" 으로 변경 가능
-                            )
-                        )
-                    )
+                    =Text(Value(varSelectedCashAdvance.'Requested amount'), "#,##0.00", "en-US")
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
                 Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
@@ -538,7 +663,7 @@
 
         Currency_Container_1 As groupContainer.verticalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_Currency_1.Height + cb_Currency_1.Height + 20
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -548,7 +673,7 @@
             LayoutMode: =LayoutMode.Auto
             PaddingLeft: =25
             Width: =Parent.Width
-            ZIndex: =31
+            ZIndex: =10
 
             LblContainer_Currency_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -567,7 +692,7 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="Currency"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
@@ -593,7 +718,7 @@
 
         CostCenter_Container_1 As groupContainer.horizontalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_CostCenter_1.Height + cb_CostCenter_1.Height + 20
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -613,7 +738,7 @@
                     false
                 )
             Width: =Parent.Width
-            ZIndex: =35
+            ZIndex: =11
 
             LblContainer_CostCenter_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer
@@ -636,7 +761,7 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="* Cost Center"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
@@ -662,7 +787,7 @@
 
         ProjectCode_Container_1 As groupContainer.horizontalAutoLayoutContainer:
             AlignInContainer: =AlignInContainer.SetByContainer
-            Height: =LblContainer_ProjectCode_1.Height + cb_ProjectCode_1.Height + 20
+            Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =10
             LayoutGridColumnMinWidth: =0
@@ -682,7 +807,7 @@
                     false
                 )
             Width: =Parent.Width
-            ZIndex: =39
+            ZIndex: =12
 
             LblContainer_ProjectCode_1 As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.SetByContainer

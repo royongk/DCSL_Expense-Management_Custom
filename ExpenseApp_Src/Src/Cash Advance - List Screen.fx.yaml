@@ -188,12 +188,10 @@
                     RemoveIf(colSelectedCashAdvanceIds, cashAdvanceNumber = ThisItem.'Cash advance number')
                 ),
                 Set(varSelectedCashAdvance, ThisItem);
+                Set(varIsCreateCashAdvance, false);
                 If(
                     ThisItem.'Cash advance status' = 'Cash advance status (mserp)'.Draft,
-                    Set(varIsCreateCashAdvance, false);
                     Navigate('Cash Advance - Edit Screen', ScreenTransition.Fade),
-            
-                    // Draft가 아니면 (Submitted, In Review 등) 무조건 View Only Screen으로 이동
                     Navigate('Cash Advance - View Only Screen', ScreenTransition.Fade)
                 )
             )
@@ -433,10 +431,20 @@
                         Size: =21
                         TabIndex: =If(IsBlank(Self.Text), -1, 0)
                         Text: |-
-                            =Concatenate(
-                                Text(Value(ThisItem.'Requested amount'), "#,#0.00", varDefaultLanguage),
-                                " ",
-                                varDefaultCurrency
+                            =With(
+                                {
+                                    curr: Coalesce(ThisItem.Currency, varDefaultCurrency),
+                                    amt: Value(ThisItem.'Requested amount')
+                                },
+                                Concatenate(
+                                    If(
+                                        curr in ["KRW", "JPY"],
+                                        Text(amt, "#,##0", varDefaultLanguage),
+                                        Text(amt, "#,#0.00", varDefaultLanguage)
+                                    ),
+                                    " ",
+                                    curr
+                                )
                             )
                         Width: =Parent.Width
                         ZIndex: =1

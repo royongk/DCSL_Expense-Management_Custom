@@ -65,8 +65,7 @@ Screens:
             RadiusBottomRight: =0
             RadiusTopLeft: =0
             RadiusTopRight: =0
-            Width: =Min(Parent.Width, 680)
-            X: =Max(0, (Parent.Width - Self.Width) / 2)
+            Width: =Parent.Width
             Y: =CashAdvanceEdit_Header.Height
           Children:
             - RequestName_Container:
@@ -75,7 +74,7 @@ Screens:
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_RequestName.Height + txt_RequestName.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -112,7 +111,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="Request Name (input trip name year groups)"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -126,21 +125,23 @@ Screens:
                               varSelectedCashAdvance.'Request Name',
                               ""
                           )
-                        Font: =Font.'Open Sans'
-                        Height: =48
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         HintText: ="Enter trip name and year groups"
                         HoverBorderColor: =RGBA(0, 18, 107, 1)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         LayoutMinHeight: =16
                         LayoutMinWidth: =16
-                        Width: =Parent.Width
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
             - CollectionMethod_Container:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_CollectionMethod.Height + cb_CollectionMethod.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -177,7 +178,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="Collection Method"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -192,13 +193,13 @@ Screens:
                         DefaultSelectedItems: =If(!varIsCreateCashAdvance, [varSelectedCashAdvance.'Collection method'])
                         DisplayFields: =["Value"]
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =48
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select method"
                         Items: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection method')
                         LayoutMinHeight: =40
-                        LayoutMinWidth: =328
+                        LayoutMinWidth: =16
                         PaddingBottom: =5
                         PaddingLeft: =5
                         PaddingRight: =5
@@ -209,7 +210,9 @@ Screens:
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
-                        Width: =Parent.Width
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
             - CollectionTransferDate_Container:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
@@ -273,7 +276,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="Collection/Transfer Date (minimum 5 working days)"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -287,15 +290,16 @@ Screens:
                               varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexcollectiontransferdate)'
                           )
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
+                        Font: =Font.'Segoe UI'
                         Format: ="yyyy-mm-dd"
-                        Height: =48
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         IconBackground: =RGBA(56, 96, 178, 1)
                         IconFill: =RGBA(255, 255, 255, 1)
                         LayoutMinHeight: =40
-                        LayoutMinWidth: =328
-                        Size: =21
-                        Width: =Parent.Width
+                        LayoutMinWidth: =16
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
                   - lbl_CollectionTransferDateWarning:
                       Control: Label@2.5.1
                       Properties:
@@ -388,7 +392,7 @@ Screens:
                         DefaultSelectedItems: =If(!varIsCreateCashAdvance, [varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexsalarydeductionperiod)'])
                         DisplayFields: =["Value"]
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
+                        Font: =Font.'Segoe UI'
                         Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Salary deduction period"
@@ -413,7 +417,7 @@ Screens:
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_RequestedDate.Height + dtp_RequestedDate.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -450,7 +454,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="* Requested Date"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -460,21 +464,22 @@ Screens:
                         BorderColor: =RGBA(0, 18, 107, 1)
                         DefaultDate: =If(varIsCreateCashAdvance, Today(), varSelectedCashAdvance.'Requested date')
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =48
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         IconBackground: =RGBA(56, 96, 178, 1)
                         IconFill: =RGBA(255, 255, 255, 1)
                         LayoutMinHeight: =40
-                        LayoutMinWidth: =328
-                        Size: =21
-                        Width: =Parent.Width
+                        LayoutMinWidth: =16
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
             - Location_Container:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_Location.Height + cb_Location.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -511,7 +516,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="Location"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -526,13 +531,13 @@ Screens:
                         DefaultSelectedItems: =If(!varIsCreateCashAdvance, LookUp('Travel locations (mserp)', Location = varSelectedCashAdvance.Location), Blank())
                         DisplayFields: =["mserp_destination"]
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =48
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Location"
                         Items: =Filter('Travel locations (mserp)','Company Code' = varSelectedLegalEntity)
                         LayoutMinHeight: =40
-                        LayoutMinWidth: =328
+                        LayoutMinWidth: =16
                         PaddingBottom: =5
                         PaddingLeft: =5
                         PaddingRight: =5
@@ -543,14 +548,16 @@ Screens:
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
-                        Width: =Parent.Width
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
             - Comment_Container:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_Comment.Height + txt_Comment.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 140, 190)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -587,7 +594,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="Leave an optional comment to approver/finance team"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -601,14 +608,15 @@ Screens:
                               varSelectedCashAdvance.Note,
                               ""
                           )
-                        Font: =Font.'Open Sans'
-                        Height: =80
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 80, 120)
                         HintText: ="Enter comments (optional)"
                         HoverBorderColor: =RGBA(0, 18, 107, 1)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         LayoutMinHeight: =16
                         LayoutMinWidth: =16
                         Mode: =TextMode.MultiLine
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 20)
                         Width: =Parent.Width - Self.X*2
                         X: =40
             - Purpose_Container:
@@ -617,7 +625,7 @@ Screens:
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_Purpose.Height + cb_Purpose.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -654,7 +662,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="Purpose"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -675,13 +683,13 @@ Screens:
                               DisplayMode.Edit
                           )
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =48
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Purpose"
                         Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
                         LayoutMinHeight: =40
-                        LayoutMinWidth: =328
+                        LayoutMinWidth: =16
                         PaddingBottom: =5
                         PaddingLeft: =5
                         PaddingRight: =5
@@ -692,14 +700,16 @@ Screens:
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
-                        Width: =Parent.Width
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
             - RequestedAmount_Container:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_RequestedAmount.Height + txt_RequestedAmount.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -736,7 +746,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="* Requested Amount"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -760,27 +770,29 @@ Screens:
                               )
                           )
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =48
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         HintText: ="0.00"
                         HoverBorderColor: =RGBA(0, 18, 107, 1)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         LayoutMinHeight: =40
-                        LayoutMinWidth: =320
+                        LayoutMinWidth: =16
                         OnChange: |-
                           =UpdateContext({ dirtyTransAmount: Substitute(Self.Text, ",", "") });
                           UpdateContext({ locIsEditingAmount: false });
                           Reset(Self);
                         OnSelect: |-
                           =UpdateContext({ locIsEditingAmount: true })
-                        Width: =Parent.Width
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
             - Currency_Container:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_Currency.Height + cb_Currency.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -817,7 +829,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="Currency"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -832,13 +844,13 @@ Screens:
                         DefaultSelectedItems: =LookUp('Currencies (mserp)', 'Currency code' = Coalesce(varSelectedCashAdvance.Currency, varDefaultCurrency))
                         DisplayFields: =["mserp_currencycode"]
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =48
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Find items"
                         Items: =ShowColumns('Currencies (mserp)','Currency code',Name)
                         LayoutMinHeight: =40
-                        LayoutMinWidth: =328
+                        LayoutMinWidth: =16
                         PaddingBottom: =5
                         PaddingLeft: =5
                         PaddingRight: =5
@@ -849,14 +861,16 @@ Screens:
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
-                        Width: =Parent.Width
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
             - CostCenter_Container:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_CostCenter.Height + cb_CostCenter.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -899,7 +913,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="* Cost Center"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -914,13 +928,13 @@ Screens:
                         DefaultSelectedItems: =LookUp('DCSL Financial Dimension CostCenter (mserp)', 'Combination display' = varSelectedCashAdvance.CostCenter)
                         DisplayFields: =["mserp_dimensionvalue","mserp_description"]
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =48
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Cost Cencter"
                         Items: =ShowColumns('DCSL Financial Dimension CostCenter (mserp)','Combination display',Name)
                         LayoutMinHeight: =40
-                        LayoutMinWidth: =328
+                        LayoutMinWidth: =16
                         PaddingBottom: =5
                         PaddingLeft: =5
                         PaddingRight: =5
@@ -931,14 +945,16 @@ Screens:
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
-                        Width: =Parent.Width
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
+                        Width: =Parent.Width - Self.X*2
+                        X: =40
             - ProjectCode_Container:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   DropShadow: =DropShadow.None
-                  Height: =LblContainer_ProjectCode.Height + cb_ProjectCode.Height + 20
+                  Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 100, 150)
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =10
                   LayoutMinHeight: =32
@@ -981,7 +997,7 @@ Screens:
                               Height: =32
                               LayoutMinHeight: =40
                               LayoutMinWidth: =150
-                              Size: =18
+                              Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                               Text: ="Project Code"
                               VerticalAlign: =VerticalAlign.Top
                               Width: =Parent.Width
@@ -1021,8 +1037,8 @@ Screens:
                           )
                         DisplayFields: =["DisplayName"]
                         FillPortions: =1
-                        Font: =Font.'Open Sans'
-                        Height: =Min('Cash Advance - Edit Screen'.Height * 0.0616, 50)
+                        Font: =Font.'Segoe UI'
+                        Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                         HoverFill: =RGBA(186, 202, 226, 1)
                         InputTextPlaceholder: ="Select Project Code"
                         Items: |-
@@ -1044,7 +1060,7 @@ Screens:
                               mserp_projectvalue & " - " & mserp_projectname 
                           )
                         LayoutMinHeight: =40
-                        LayoutMinWidth: =328
+                        LayoutMinWidth: =16
                         PaddingBottom: =5
                         PaddingLeft: =5
                         PaddingRight: =5
@@ -1055,6 +1071,7 @@ Screens:
                         SelectMultiple: =false
                         SelectionColor: =RGBA(255, 255, 255, 1)
                         SelectionFill: =RGBA(56, 96, 178, 1)
+                        Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                         Width: =Parent.Width - Self.X*2
                         X: =40
       - CashAdvanceEdit_ButtonsButtonsContainer:
@@ -1067,8 +1084,7 @@ Screens:
             RadiusBottomRight: =0
             RadiusTopLeft: =0
             RadiusTopRight: =0
-            Width: =Min(Parent.Width, 680)
-            X: =Max(0, (Parent.Width - Self.Width) / 2)
+            Width: =Parent.Width
             Y: =Parent.Height - Self.Height
           Children:
             - CashAdvanceEdit_SaveDraftButton:
