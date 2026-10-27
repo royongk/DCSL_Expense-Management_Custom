@@ -223,15 +223,17 @@
                 DisplayFields: =["Value"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
-                Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                 InputTextPlaceholder: ="Select method"
                 Items: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection method')
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
+                LayoutMinWidth: =16
                 SearchFields: =["Value"]
                 SearchItems: =Choices('DCSL TrvCash Advance Entity  (mserp)'.'Collection method',cb_CollectionMethod_1.SearchText)
                 SelectMultiple: =false
-                Size: =21
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =6
@@ -286,14 +288,16 @@
                 DefaultDate: =varSelectedCashAdvance.'Collection/Transfer Date (mserp_deexcollectiontransferdate)'
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
-                Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                 HoverDateFill: =App.Theme.Colors.Lighter70
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
+                LayoutMinWidth: =16
                 maximumHeight: =1136
                 maximumWidth: =640
                 SelectedDateFill: =App.Theme.Colors.Primary
-                Size: =21
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =10
@@ -412,10 +416,12 @@
                 DefaultDate: =varSelectedCashAdvance.'Requested date'
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
-                Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
-                Size: =21
+                LayoutMinWidth: =16
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =18
@@ -462,15 +468,17 @@
                 DisplayFields: =["mserp_destination"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
-                Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                 InputTextPlaceholder: ="Select Location"
                 Items: =Filter('Travel locations (mserp)','Company Code' = varSelectedLegalEntity)
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
+                LayoutMinWidth: =16
                 SearchFields: =["mserp_destination"]
                 SearchItems: =Search(Filter('Travel locations (mserp)','Company Code'=varSelectedLegalEntity),cb_Location_1.SearchText,Location)
                 SelectMultiple: =false
-                Size: =21
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =22
@@ -591,15 +599,17 @@
                 DisplayFields: =["mserp_value"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
-                Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                 InputTextPlaceholder: ="Select Purpose"
                 Items: =Filter('DimAttributeTrvTravelTxtEntity (mserp)', 'Company Code' = varSelectedLegalEntity)
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
+                LayoutMinWidth: =16
                 SearchFields: =["mserp_value"]
                 SearchItems: =Search(Filter('DimAttributeTrvTravelTxtEntity (mserp)','Company Code'=varSelectedLegalEntity),cb_Purpose_1.SearchText,'Purpose (mserp_value)')
                 SelectMultiple: =false
-                Size: =21
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =26
@@ -646,17 +656,19 @@
                     =Text(Value(varSelectedCashAdvance.'Requested amount'), "#,##0.00", "en-US")
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
-                Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                 HintText: ="0.00"
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
+                LayoutMinWidth: =16
                 OnChange: |-
                     =UpdateContext({ dirtyTransAmount: Substitute(Self.Text, ",", "") });
                     UpdateContext({ locIsEditingAmount: false });
                     Reset(Self);
                 OnSelect: |-
                     =UpdateContext({ locIsEditingAmount: true })
-                Size: =21
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =30
@@ -703,15 +715,17 @@
                 DisplayFields: =["mserp_currencycode"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
-                Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                 InputTextPlaceholder: ="Find items"
                 Items: =ShowColumns('Currencies (mserp)','Currency code',Name)
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
+                LayoutMinWidth: =16
                 SearchFields: =["mserp_currencycode"]
                 SearchItems: =Search(ShowColumns('Currencies (mserp)','Currency code',Name),cb_Currency_1.SearchText,mserp_currencycode)
                 SelectMultiple: =false
-                Size: =21
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =34
@@ -772,15 +786,17 @@
                 DisplayFields: =["mserp_dimensionvalue"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
-                Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                 InputTextPlaceholder: ="Select Cost Cencter"
                 Items: =ShowColumns('DCSL Financial Dimension CostCenter (mserp)','Combination display',Name)
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
+                LayoutMinWidth: =16
                 SearchFields: =["mserp_dimensionvalue"]
                 SearchItems: =Search(ShowColumns('DCSL Financial Dimension CostCenter (mserp)','Combination display',Name),cb_CostCenter_1.SearchText,mserp_dimensionvalue)
                 SelectMultiple: =false
-                Size: =21
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =38
@@ -830,7 +846,7 @@
                     Height: =32
                     LayoutMaxHeight: =0
                     LayoutMaxWidth: =0
-                    Size: =18
+                    Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 14, 18)
                     Text: ="Project Code"
                     VerticalAlign: =VerticalAlign.Top
                     Width: =Parent.Width
@@ -850,7 +866,8 @@
                 DisplayFields: =["mserp_projectvalue"]
                 DisplayMode: =DisplayMode.View
                 FillPortions: =1
-                Height: =Min('Cash Advance - View Only Screen'.Height * 0.0616, 50)
+                Font: =Font.'Segoe UI'
+                Height: =If('Cash Advance - Edit Screen'.Width <= 1024, 45, 60)
                 InputTextPlaceholder: ="Select Project Code"
                 Items: |-
                     =SortByColumns(
@@ -867,10 +884,11 @@
                     )
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
+                LayoutMinWidth: =16
                 SearchFields: =["mserp_projectvalue"]
                 SearchItems: =Search(SortByColumns(GroupBy(Filter('DCSL ProjectTypeProjectValue Entity (mserp)','Company Code'=Lower(varSelectedLegalEntity)),Project,Description),"mserp_projectvalue",SortOrder.Ascending),cb_ProjectCode_1.SearchText,mserp_projectvalue)
                 SelectMultiple: =false
-                Size: =21
+                Size: =If('Cash Advance - Edit Screen'.Width <= 1024, 16, 24)
                 Width: =Parent.Width - Self.X*2
                 X: =40
                 ZIndex: =42
