@@ -57,8 +57,7 @@
                 Set(varFinanceEmail, globalSettings.'Contact Finance'),
                 Set(varHREmail, globalSettings.'Contact HR'),
                 Set(varTechEmail, globalSettings.'Contact for technical support'),
-                Set(varInstructionLink, globalSettings.'Instruction material Link'),
-                Set(varVideoLink, globalSettings.'Introduction video Link')
+                Set(varInstructionLink, globalSettings.'Instruction material Link')
             )
         );
 
@@ -66,10 +65,12 @@
         Height: =Parent.Height
         LayoutAlignItems: =LayoutAlignItems.Center
         LayoutDirection: =LayoutDirection.Vertical
+        LayoutGap: =If(App.Width >= 1024, 40, 20)
         LayoutGridColumnMinWidth: =0
         LayoutGridColumns: =6
         LayoutGridRowMinHeight: =0
         LayoutGridRows: =6
+        LayoutJustifyContent: =LayoutJustifyContent.Center
         LayoutMode: =LayoutMode.Auto
         LayoutOverflowY: =LayoutOverflow.Scroll
         PaddingBottom: =8
@@ -96,6 +97,7 @@
             LayoutMaxWidth: =0
             LayoutMinHeight: =320
             LayoutMinWidth: =320
+            PaddingTop: =40
             Width: =If(App.Width >= 1024, 550, 300)
             X: =(Parent.Width - Self.Width) / 2
             Y: =If(App.Width >= 1024, App.Height * 0.08, 20)
@@ -145,7 +147,7 @@
             LayoutJustifyContent: =LayoutJustifyContent.Center
             LayoutMaxHeight: =0
             LayoutMaxWidth: =0
-            LayoutMinHeight: =112
+            LayoutMinHeight: =Max(conFinanceSection.Height, conHRSection.Height)
             LayoutMinWidth: =250
             LayoutMode: =LayoutMode.Auto
             LayoutWrap: =true
@@ -178,7 +180,11 @@
                 LayoutGridRows: =6
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
-                LayoutMinHeight: =16
+                LayoutMinHeight: |-
+                    =Max(
+                        conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
+                        conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
+                    )
                 LayoutMinWidth: =16
                 LayoutMode: =LayoutMode.Auto
                 maximumHeight: =11360
@@ -351,7 +357,11 @@
                 LayoutGridRows: =6
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
-                LayoutMinHeight: =16
+                LayoutMinHeight: |-
+                    =Max(
+                        conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
+                        conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
+                    )
                 LayoutMinWidth: =16
                 LayoutMode: =LayoutMode.Auto
                 maximumHeight: =11360
@@ -506,8 +516,20 @@
                     Width: =Parent.Width
                     ZIndex: =4
 
+        lblspacertxt As label:
+            FillPortions: =1
+            Height: =0
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =0
+            LayoutMinWidth: =16
+            Size: =21
+            Text: =""
+            Width: =560
+            ZIndex: =6
+
         conFooterLayout As groupContainer.horizontalAutoLayoutContainer:
-            Height: =lblTechSupport.Height + lblInstructionLink.Height + conVideoWrapper.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
+            Height: =lblTechSupport.Height + lblInstructionLink.Height + Self.LayoutGap + Self.PaddingTop + Self.PaddingBottom
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Vertical
             LayoutGap: =20
@@ -529,7 +551,7 @@
             Width: =conMainLayout.Width
             X: =conMainLayout.X
             Y: =40
-            ZIndex: =6
+            ZIndex: =7
 
             lblTechSupport As label:
                 Align: =Align.Center
@@ -564,47 +586,4 @@
                 Underline: =true
                 Width: =Parent.Width
                 ZIndex: =2
-
-            conVideoWrapper As groupContainer.manualLayoutContainer:
-                Height: |-
-                    =Min(
-                        /* 1. 기존 너비 기반 16:9 이상적 높이 */
-                        (If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40)) * (9/16),
-                        /* 2. 화면에 남은 실제 가용 높이 (여백 포함) */
-                        Max(100, App.Height - conFooterLayout.Y - 216)
-                    )
-                LayoutGridColumnMinWidth: =0
-                LayoutGridColumns: =6
-                LayoutGridRowMinHeight: =0
-                LayoutGridRows: =6
-                LayoutMaxHeight: =0
-                LayoutMaxWidth: =0
-                LayoutMinHeight: =Self.Height
-                LayoutMinWidth: =Self.Width
-                maximumHeight: =11360
-                maximumWidth: =640
-                Width: |-
-                    =Min(
-                        If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40),
-                        Max(100, App.Height - conFooterLayout.Y - 216) * (16/9)
-                    )
-                ZIndex: =3
-
-                vidIntroVideo As videoPlayback:
-                    Height: =Parent.Height
-                    Media: =varVideoLink
-                    Width: =Parent.Width
-                    ZIndex: =1
-
-                btnMobileVideoPlay As button:
-                    Fill: =RGBA(0, 0, 0, 0)
-                    Height: =Parent.Height
-                    HoverFill: =RGBA(0, 0, 0, 0.1)
-                    OnSelect: =Launch(varVideoLink & "?web=1")
-                    PressedFill: =RGBA(0, 0, 0, 0.2)
-                    Size: =24
-                    Text: =""
-                    Visible: =Host.OSType = "iOS" Or Host.OSType = "Android"
-                    Width: =Parent.Width
-                    ZIndex: =2
 

@@ -68,8 +68,7 @@ Screens:
                 Set(varFinanceEmail, globalSettings.'Contact Finance'),
                 Set(varHREmail, globalSettings.'Contact HR'),
                 Set(varTechEmail, globalSettings.'Contact for technical support'),
-                Set(varInstructionLink, globalSettings.'Instruction material Link'),
-                Set(varVideoLink, globalSettings.'Introduction video Link')
+                Set(varInstructionLink, globalSettings.'Instruction material Link')
             )
         );
     Children:
@@ -81,6 +80,8 @@ Screens:
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =If(App.Width >= 1024, 40, 20)
+            LayoutJustifyContent: =LayoutJustifyContent.Center
             LayoutOverflowY: =LayoutOverflow.Scroll
             PaddingBottom: =8
             PaddingLeft: =8
@@ -108,6 +109,7 @@ Screens:
                   BorderColor: =RGBA(0, 18, 107, 1)
                   Height: =If(App.Width >= 1024, 180, 100)
                   Image: =DCSL_Logo
+                  PaddingTop: =40
                   Width: =If(App.Width >= 1024, 550, 300)
                   X: =(Parent.Width - Self.Width) / 2
                   Y: =If(App.Width >= 1024, App.Height * 0.08, 20)
@@ -149,6 +151,7 @@ Screens:
                   LayoutDirection: =LayoutDirection.Horizontal
                   LayoutGap: =If(App.Width >= 1024, 60, 20)
                   LayoutJustifyContent: =LayoutJustifyContent.Center
+                  LayoutMinHeight: =Max(conFinanceSection.Height, conHRSection.Height)
                   LayoutWrap: =true
                   PaddingBottom: =8
                   PaddingLeft: =8
@@ -178,7 +181,11 @@ Screens:
                           )
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Vertical
-                        LayoutMinHeight: =16
+                        LayoutMinHeight: |-
+                          =Max(
+                              conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
+                              conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
+                          )
                         LayoutMinWidth: =16
                         PaddingBottom: =If(App.Width >= 1024, 30, 16)
                         PaddingLeft: =If(App.Width >= 1024, 30, 16)
@@ -344,7 +351,11 @@ Screens:
                           )
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Vertical
-                        LayoutMinHeight: =16
+                        LayoutMinHeight: |-
+                          =Max(
+                              conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
+                              conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
+                          )
                         LayoutMinWidth: =16
                         PaddingBottom: =If(App.Width >= 1024, 30, 16)
                         PaddingLeft: =If(App.Width >= 1024, 30, 16)
@@ -494,12 +505,22 @@ Screens:
                               Text: |-
                                 ="Contact HR: " & Char(10) & Coalesce(varHREmail, "Loading...")
                               Width: =Parent.Width
+            - lblspacertxt:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  FillPortions: =1
+                  Font: =Font.'Open Sans'
+                  Height: =0
+                  LayoutMinHeight: =0
+                  LayoutMinWidth: =16
+                  Text: =""
             - conFooterLayout:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   DropShadow: =DropShadow.None
-                  Height: =lblTechSupport.Height + lblInstructionLink.Height + conVideoWrapper.Height + (Self.LayoutGap * 2) + Self.PaddingTop + Self.PaddingBottom
+                  Height: =lblTechSupport.Height + lblInstructionLink.Height + Self.LayoutGap + Self.PaddingTop + Self.PaddingBottom
                   LayoutAlignItems: =LayoutAlignItems.Center
                   LayoutDirection: =LayoutDirection.Vertical
                   LayoutGap: =20
@@ -546,54 +567,3 @@ Screens:
                           ="Instruction material:" & Char(10) & "Link to more instruction material: SharePoint folder"
                         Underline: =true
                         Width: =Parent.Width
-                  - conVideoWrapper:
-                      Control: GroupContainer@1.5.0
-                      Variant: ManualLayout
-                      Properties:
-                        DropShadow: =DropShadow.None
-                        Height: |-
-                          =Min(
-                              /* 1. 기존 너비 기반 16:9 이상적 높이 */
-                              (If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40)) * (9/16),
-                              /* 2. 화면에 남은 실제 가용 높이 (여백 포함) */
-                              Max(100, App.Height - conFooterLayout.Y - 216)
-                          )
-                        LayoutMinHeight: =Self.Height
-                        LayoutMinWidth: =Self.Width
-                        RadiusBottomLeft: =0
-                        RadiusBottomRight: =0
-                        RadiusTopLeft: =0
-                        RadiusTopRight: =0
-                        Width: |-
-                          =Min(
-                              If(App.Width >= 1024, Min(App.Width * 0.5, 800), Parent.Width - 40),
-                              Max(100, App.Height - conFooterLayout.Y - 216) * (16/9)
-                          )
-                      Children:
-                        - vidIntroVideo:
-                            Control: Video@2.4.2
-                            Properties:
-                              BorderColor: =RGBA(0, 18, 107, 1)
-                              Fill: =RGBA(56, 96, 178, 1)
-                              Height: =Parent.Height
-                              Media: =varVideoLink
-                              Width: =Parent.Width
-                        - btnMobileVideoPlay:
-                            Control: Classic/Button@2.2.0
-                            Properties:
-                              BorderColor: =ColorFade(Self.Fill, -15%)
-                              Color: =RGBA(255, 255, 255, 1)
-                              DisabledBorderColor: =RGBA(166, 166, 166, 1)
-                              Fill: =RGBA(0, 0, 0, 0)
-                              Font: =Font.'Open Sans'
-                              Height: =Parent.Height
-                              HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
-                              HoverColor: =RGBA(255, 255, 255, 1)
-                              HoverFill: =RGBA(0, 0, 0, 0.1)
-                              OnSelect: =Launch(varVideoLink & "?web=1")
-                              PressedBorderColor: =Self.Fill
-                              PressedColor: =Self.Fill
-                              PressedFill: =RGBA(0, 0, 0, 0.2)
-                              Text: =""
-                              Visible: =Host.OSType = "iOS" Or Host.OSType = "Android"
-                              Width: =Parent.Width
