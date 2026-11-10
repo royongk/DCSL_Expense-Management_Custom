@@ -80,8 +80,7 @@ Screens:
             Height: =Parent.Height
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =If(App.Width >= 1024, 40, 20)
-            LayoutJustifyContent: =LayoutJustifyContent.Center
+            LayoutGap: =If(App.Width >= 1024, 40, 15)
             LayoutOverflowY: =LayoutOverflow.Scroll
             PaddingBottom: =8
             PaddingLeft: =8
@@ -103,13 +102,23 @@ Screens:
                   Width: =0
                   X: =40
                   Y: =40
+            - lblTopSpacer:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  FillPortions: =1
+                  Font: =Font.'Open Sans'
+                  Height: =0
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =0
+                  Text: =""
             - MainScreen_Logo:
                 Control: Image@2.2.3
                 Properties:
                   BorderColor: =RGBA(0, 18, 107, 1)
-                  Height: =If(App.Width >= 1024, 180, 100)
+                  Height: =If(App.Width >= 1024, 180, 64)
                   Image: =DCSL_Logo
-                  PaddingTop: =40
+                  PaddingTop: =If(App.Width >= 1024, 40, 0)
                   Width: =If(App.Width >= 1024, 550, 300)
                   X: =(Parent.Width - Self.Width) / 2
                   Y: =If(App.Width >= 1024, App.Height * 0.08, 20)
@@ -146,7 +155,8 @@ Screens:
                 Variant: AutoLayout
                 Properties:
                   DropShadow: =DropShadow.None
-                  Height: =Max(conFinanceSection.Height, conHRSection.Height)
+                  FillPortions: =0
+                  Height: =Max(conFinanceSection.Height, conHRSection.Height) + Self.PaddingTop + Self.PaddingBottom
                   LayoutAlignItems: =LayoutAlignItems.Center
                   LayoutDirection: =LayoutDirection.Horizontal
                   LayoutGap: =If(App.Width >= 1024, 60, 20)
@@ -181,11 +191,7 @@ Screens:
                           )
                         LayoutAlignItems: =LayoutAlignItems.Center
                         LayoutDirection: =LayoutDirection.Vertical
-                        LayoutMinHeight: |-
-                          =Max(
-                              conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
-                              conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
-                          )
+                        LayoutMinHeight: =0
                         LayoutMinWidth: =16
                         PaddingBottom: =If(App.Width >= 1024, 30, 16)
                         PaddingLeft: =If(App.Width >= 1024, 30, 16)
@@ -323,6 +329,7 @@ Screens:
                             Control: Label@2.5.1
                             Properties:
                               Align: =Align.Center
+                              AutoHeight: =true
                               BorderColor: =RGBA(0, 18, 107, 1)
                               Color: =RGBA(0, 100, 255, 1)
                               Font: =FontWeight.Semibold
@@ -493,6 +500,7 @@ Screens:
                             Control: Label@2.5.1
                             Properties:
                               Align: =Align.Center
+                              AutoHeight: =true
                               BorderColor: =RGBA(0, 18, 107, 1)
                               Color: =RGBA(0, 100, 255, 1)
                               Font: =FontWeight.Semibold
@@ -505,25 +513,16 @@ Screens:
                               Text: |-
                                 ="Contact HR: " & Char(10) & Coalesce(varHREmail, "Loading...")
                               Width: =Parent.Width
-            - lblspacertxt:
-                Control: Label@2.5.1
-                Properties:
-                  BorderColor: =RGBA(0, 18, 107, 1)
-                  FillPortions: =1
-                  Font: =Font.'Open Sans'
-                  Height: =0
-                  LayoutMinHeight: =0
-                  LayoutMinWidth: =16
-                  Text: =""
             - conFooterLayout:
                 Control: GroupContainer@1.5.0
                 Variant: AutoLayout
                 Properties:
                   DropShadow: =DropShadow.None
+                  FillPortions: =0
                   Height: =lblTechSupport.Height + lblInstructionLink.Height + Self.LayoutGap + Self.PaddingTop + Self.PaddingBottom
                   LayoutAlignItems: =LayoutAlignItems.Center
                   LayoutDirection: =LayoutDirection.Vertical
-                  LayoutGap: =20
+                  LayoutGap: =If(App.Width >= 1024, 20, 8)
                   PaddingBottom: =8
                   PaddingLeft: =8
                   PaddingRight: =8
@@ -540,6 +539,7 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Center
+                        AutoHeight: =true
                         BorderColor: =RGBA(0, 18, 107, 1)
                         Color: =RGBA(80, 80, 80, 1)
                         Font: =Font.'Open Sans'
@@ -547,7 +547,7 @@ Screens:
                         LayoutMinHeight: =16
                         LayoutMinWidth: =16
                         OnSelect: =Launch("mailto:" & varTechEmail)
-                        Size: =If(App.Width >= 1024, 22, 16)
+                        Size: =If(App.Width >= 1024, 22, 14)
                         Text: |-
                           ="Contact for technical support: " & Char(10) & Coalesce(varTechEmail, "Loading...")
                         Width: =Parent.Width
@@ -555,6 +555,7 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Center
+                        AutoHeight: =true
                         BorderColor: =RGBA(0, 18, 107, 1)
                         Color: =RGBA(0, 100, 255, 1)
                         Font: =Font.'Open Sans'
@@ -562,8 +563,20 @@ Screens:
                         LayoutMinHeight: =16
                         LayoutMinWidth: =16
                         OnSelect: =Launch(varInstructionLink)
-                        Size: =If(App.Width >= 1024, 22, 16)
+                        Size: =If(App.Width >= 1024, 22, 14)
                         Text: |-
                           ="Instruction material:" & Char(10) & "Link to more instruction material: SharePoint folder"
                         Underline: =true
                         Width: =Parent.Width
+            - lblBottomSpacer:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  FillPortions: =1
+                  Font: =Font.'Open Sans'
+                  Height: =0
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =0
+                  Text: =""
+                  X: =40
+                  Y: =40

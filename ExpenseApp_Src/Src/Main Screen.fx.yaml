@@ -65,12 +65,11 @@
         Height: =Parent.Height
         LayoutAlignItems: =LayoutAlignItems.Center
         LayoutDirection: =LayoutDirection.Vertical
-        LayoutGap: =If(App.Width >= 1024, 40, 20)
+        LayoutGap: =If(App.Width >= 1024, 40, 15)
         LayoutGridColumnMinWidth: =0
         LayoutGridColumns: =6
         LayoutGridRowMinHeight: =0
         LayoutGridRows: =6
-        LayoutJustifyContent: =LayoutJustifyContent.Center
         LayoutMode: =LayoutMode.Auto
         LayoutOverflowY: =LayoutOverflow.Scroll
         PaddingBottom: =8
@@ -90,18 +89,30 @@
             Y: =40
             ZIndex: =1
 
+        lblTopSpacer As label:
+            FillPortions: =1
+            Height: =0
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =16
+            LayoutMinWidth: =0
+            Size: =21
+            Text: =""
+            Width: =560
+            ZIndex: =2
+
         MainScreen_Logo As image:
-            Height: =If(App.Width >= 1024, 180, 100)
+            Height: =If(App.Width >= 1024, 180, 64)
             Image: =DCSL_Logo
             LayoutMaxHeight: =0
             LayoutMaxWidth: =0
             LayoutMinHeight: =320
             LayoutMinWidth: =320
-            PaddingTop: =40
+            PaddingTop: =If(App.Width >= 1024, 40, 0)
             Width: =If(App.Width >= 1024, 550, 300)
             X: =(Parent.Width - Self.Width) / 2
             Y: =If(App.Width >= 1024, App.Height * 0.08, 20)
-            ZIndex: =2
+            ZIndex: =3
 
         MainScreen_TitleLabel As label:
             Align: =Align.Center
@@ -118,7 +129,7 @@
             Width: =Parent.Width - 40
             X: =(Parent.Width - Self.Width) / 2
             Y: =MainScreen_Logo.Y + MainScreen_Logo.Height + 40
-            ZIndex: =3
+            ZIndex: =4
 
         MainScreen_WelcomeLabel As label:
             Align: =Align.Center
@@ -134,10 +145,11 @@
             Width: =Parent.Width - 40
             X: =(Parent.Width - Self.Width) / 2
             Y: =MainScreen_TitleLabel.Y + MainScreen_TitleLabel.Height + 10
-            ZIndex: =4
+            ZIndex: =5
 
         conMainLayout As groupContainer.horizontalAutoLayoutContainer:
-            Height: =Max(conFinanceSection.Height, conHRSection.Height)
+            FillPortions: =0
+            Height: =Max(conFinanceSection.Height, conHRSection.Height) + Self.PaddingTop + Self.PaddingBottom
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutGap: =If(App.Width >= 1024, 60, 20)
             LayoutGridColumnMinWidth: =0
@@ -160,7 +172,7 @@
             Width: =App.Width - If(App.Width >= 1024, 80, 40)
             X: =(App.Width - Self.Width) / 2
             Y: =MainScreen_WelcomeLabel.Y + MainScreen_WelcomeLabel.Height + If(App.Width >= 1024, 60, 30)
-            ZIndex: =5
+            ZIndex: =6
 
             conFinanceSection As groupContainer.horizontalAutoLayoutContainer:
                 AlignInContainer: =AlignInContainer.Start
@@ -180,11 +192,7 @@
                 LayoutGridRows: =6
                 LayoutMaxHeight: =0
                 LayoutMaxWidth: =0
-                LayoutMinHeight: |-
-                    =Max(
-                        conFinanceHeader.Height + (CountRows(galFinanceMenu.AllItems) * galFinanceMenu.TemplateHeight) + lblContactFinance.Height + 60,
-                        conHRHeader.Height + (CountRows(galHRMenu.AllItems) * galHRMenu.TemplateHeight) + lblContactHR.Height + 60
-                    )
+                LayoutMinHeight: =0
                 LayoutMinWidth: =16
                 LayoutMode: =LayoutMode.Auto
                 maximumHeight: =11360
@@ -324,6 +332,7 @@
 
                 lblContactFinance As label:
                     Align: =Align.Center
+                    AutoHeight: =true
                     Color: =RGBA(0, 100, 255, 1)
                     Font: =FontWeight.Semibold
                     HoverColor: =RGBA(0, 50, 150, 1)
@@ -501,6 +510,7 @@
 
                 lblContactHR As label:
                     Align: =Align.Center
+                    AutoHeight: =true
                     Color: =RGBA(0, 100, 255, 1)
                     Font: =FontWeight.Semibold
                     HoverColor: =RGBA(0, 50, 150, 1)
@@ -516,23 +526,12 @@
                     Width: =Parent.Width
                     ZIndex: =4
 
-        lblspacertxt As label:
-            FillPortions: =1
-            Height: =0
-            LayoutMaxHeight: =0
-            LayoutMaxWidth: =0
-            LayoutMinHeight: =0
-            LayoutMinWidth: =16
-            Size: =21
-            Text: =""
-            Width: =560
-            ZIndex: =6
-
         conFooterLayout As groupContainer.horizontalAutoLayoutContainer:
+            FillPortions: =0
             Height: =lblTechSupport.Height + lblInstructionLink.Height + Self.LayoutGap + Self.PaddingTop + Self.PaddingBottom
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =20
+            LayoutGap: =If(App.Width >= 1024, 20, 8)
             LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
             LayoutGridRowMinHeight: =0
@@ -555,6 +554,7 @@
 
             lblTechSupport As label:
                 Align: =Align.Center
+                AutoHeight: =true
                 Color: =RGBA(80, 80, 80, 1)
                 FontWeight: =FontWeight.Bold
                 Height: =70
@@ -564,7 +564,7 @@
                 LayoutMinWidth: =16
                 OnSelect: |-
                     =Launch("mailto:" & varTechEmail)
-                Size: =If(App.Width >= 1024, 22, 16)
+                Size: =If(App.Width >= 1024, 22, 14)
                 Text: |-
                     ="Contact for technical support: " & Char(10) & Coalesce(varTechEmail, "Loading...")
                 Width: =Parent.Width
@@ -572,6 +572,7 @@
 
             lblInstructionLink As label:
                 Align: =Align.Center
+                AutoHeight: =true
                 Color: =RGBA(0, 100, 255, 1)
                 FontWeight: =FontWeight.Bold
                 Height: =70
@@ -580,10 +581,27 @@
                 LayoutMinHeight: =16
                 LayoutMinWidth: =16
                 OnSelect: =Launch(varInstructionLink)
-                Size: =If(App.Width >= 1024, 22, 16)
+                Size: =If(App.Width >= 1024, 22, 14)
                 Text: |-
                     ="Instruction material:" & Char(10) & "Link to more instruction material: SharePoint folder"
                 Underline: =true
                 Width: =Parent.Width
                 ZIndex: =2
+
+        lblBottomSpacer As label:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 0, 0, 1)
+            DisabledColor: =RGBA(166, 166, 166, 1)
+            FillPortions: =1
+            Height: =0
+            LayoutMaxHeight: =0
+            LayoutMaxWidth: =0
+            LayoutMinHeight: =16
+            LayoutMinWidth: =0
+            Size: =21
+            Text: =""
+            Width: =560
+            X: =40
+            Y: =40
+            ZIndex: =8
 
