@@ -11,28 +11,28 @@
         // 2. [성능 최적화 및 속성 예외 처리] Office 365 그룹 권한 체크
         Concurrent(
             Set(
-                varIsLocal, 
+                varIsLocal,
                 !IsBlank(
                     LookUp(
-                        Office365그룹.ListGroupMembers("b9c7b018-c604-4a68-b9ab-e61b0a265f23").value, 
+                        Office365그룹.ListGroupMembers("b9c7b018-c604-4a68-b9ab-e61b0a265f23", {'$top': 999}).value,
                         Lower(userPrincipalName) = Lower(varUserEmail) Or Lower(mail) = Lower(varUserEmail)
                     )
                 )
             ),
             Set(
-                varIsFull, 
+                varIsFull,
                 !IsBlank(
                     LookUp(
-                        Office365그룹.ListGroupMembers("f135e183-009e-48d8-b88a-71850795b8cf").value, 
+                        Office365그룹.ListGroupMembers("f135e183-009e-48d8-b88a-71850795b8cf", {'$top': 999}).value,
                         Lower(userPrincipalName) = Lower(varUserEmail) Or Lower(mail) = Lower(varUserEmail)
                     )
                 )
             ),
             Set(
-                varIsExpat, 
+                varIsExpat,
                 !IsBlank(
                     LookUp(
-                        Office365그룹.ListGroupMembers("f7691104-2166-43db-a229-fbb15179fc47").value, 
+                        Office365그룹.ListGroupMembers("f7691104-2166-43db-a229-fbb15179fc47", {'$top': 999}).value,
                         Lower(userPrincipalName) = Lower(varUserEmail) Or Lower(mail) = Lower(varUserEmail)
                     )
                 )
