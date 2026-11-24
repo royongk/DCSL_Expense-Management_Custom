@@ -143,7 +143,7 @@
             Width: =50
             X: =16
             Y: =(Parent.TemplateHeight / 2) - (Self.Height / 2)
-            ZIndex: =6
+            ZIndex: =2
 
         scr19_lbl_LineNumber As label:
             BorderColor: =RGBA(0, 0, 0, 1)
@@ -163,14 +163,14 @@
             Width: =373
             X: =71
             Y: =40
-            ZIndex: =7
+            ZIndex: =3
 
         scr19_shp_Seprator As rectangle:
             Fill: =RGBA(225, 225, 225, 1)
             Height: =1
             Width: =Parent.TemplateWidth
             Y: =Parent.TemplateHeight - 1
-            ZIndex: =8
+            ZIndex: =4
 
         scr19_lbl_Amount As label:
             Align: =Align.Right
@@ -222,9 +222,9 @@
                 
             VerticalAlign: =VerticalAlign.Top
             Width: =250
-            X: =Parent.Width - Self.Width - 15
+            X: =Parent.Width - Self.Width - 15 - If(scr19_ico_DeleteLine.Visible, scr19_ico_DeleteLine.Width + 10, 0)
             Y: =40
-            ZIndex: =9
+            ZIndex: =5
 
         scr19_lbl_Date As label:
             Align: =Align.Right
@@ -248,7 +248,7 @@
             VerticalAlign: =VerticalAlign.Top
             X: =scr19_lbl_Amount.X + scr19_lbl_Amount.Width - Self.Width 
             Y: =86
-            ZIndex: =10
+            ZIndex: =6
 
         scr19_lbl_ProjectName As label:
             BorderColor: =RGBA(0, 0, 0, 1)
@@ -269,7 +269,7 @@
             Width: =scr19_lbl_LineNumber.Width
             X: =scr19_lbl_LineNumber.X
             Y: =scr19_lbl_LineNumber.Y + scr19_lbl_LineNumber.Height + 4
-            ZIndex: =11
+            ZIndex: =7
 
         scr19_lbl_Warning As label:
             BorderColor: =RGBA(0, 0, 0, 1)
@@ -298,7 +298,46 @@
             Width: =scr19_lbl_LineNumber.Width
             X: =scr19_lbl_LineNumber.X
             Y: =scr19_lbl_LineNumber.Y + scr19_lbl_LineNumber.Height + 4
-            ZIndex: =12
+            ZIndex: =8
+
+        scr19_ico_DeleteLine As icon:
+            AccessibleLabel: ="Delete expense line"
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: |-
+                =If(
+                    CountRows(colAttachedExpensesForReport) <= 1,
+                    RGBA(186, 186, 186, 1),
+                    RGBA(195, 39, 39, 1)
+                )
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledColor: =RGBA(244, 244, 244, 1)
+            DisplayMode: =If(locDeletingLine, DisplayMode.Disabled, DisplayMode.Edit)
+            Height: =40
+            HoverColor: =ColorFade(Self.Color, -20%)
+            Icon: =Icon.Trash
+            OnSelect: |-
+                =If(
+                    CountRows(colAttachedExpensesForReport) <= 1,
+                    Notify(
+                        "The last expense line cannot be deleted. To cancel the whole report, withdraw it and delete the report from the Draft list.",
+                        NotificationType.Warning,
+                        gblParams.notificationTime
+                    ),
+                    UpdateContext({
+                        locDeleteTransNo: ThisItem.'Expense transaction number (mserp_exptransnumber)',
+                        locDeleteLineInfo:
+                            Text(DateTimeValue(ThisItem.'Transaction date'), "yyyy-mm-dd") & " / " &
+                            Text(ThisItem.'Transaction amount', "[$-ko-KR]#,##0"),
+                        locShowDeleteLineDialog: true
+                    })
+                )
+            TabIndex: =0
+            Tooltip: =If(CountRows(colAttachedExpensesForReport) <= 1, "The last expense line cannot be deleted", "Delete line")
+            Visible: =varSelectedReport.'Document Status' = 'Document Status (mserp)'.Rejected
+            Width: =40
+            X: =Parent.TemplateWidth - Self.Width - 15
+            Y: =(Parent.TemplateHeight - Self.Height) / 2
+            ZIndex: =9
 
     scr19_EditAttachedExpenses As button:
         BorderColor: =RGBA(34, 102, 227, 1)
@@ -383,4 +422,104 @@
         X: =22
         Y: =(scr03_hdr_TopHeader_1.Height-Self.Height)/2
         ZIndex: =6
+
+    scr19_cmp_DeleteLineDialog As cmp02_ConfirmationDialog:
+        ContentLanguage: =""
+        controlName: ="scr20_cmp_DeleteLineDialog"
+        EnableChildFocus: =true
+        OnLeftButtonClick: |-
+            =UpdateContext({locShowDeleteLineDialog: false, locDeleteTransNo: Blank()})
+        OnRightButtonClick: |-
+            =// [Ticket #10107] Rejected 보고서 라인 삭제
+            UpdateContext({
+                locShowDeleteLineDialog: false,
+                locDeletingLine: true,
+                locDeleteLineError: Blank(),
+                locReportNo: varSelectedReport.'Expense report number'
+            });
+            
+            // 1. 동시성 방어: 삭제 직전 보고서 최신 상태 재조회 (DBNull 대비 IfError + Coalesce)
+            Refresh('DCSL Expense Moblie Report (mserp)');   // 👈 추가
+            Set(
+                varSelectedReport,
+                Coalesce(
+                    IfError(LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = locReportNo), Blank()),
+                    varSelectedReport
+                )
+            );
+            
+            // 2. 삭제 대상 라인 최신 레코드 재조회
+            UpdateContext({
+                locTargetLine: IfError(
+                    LookUp(
+                        'DCSL Expense Line Expense Moblie Entity (mserp)',
+                        'Expense transaction number (mserp_exptransnumber)' = locDeleteTransNo
+                    ),
+                    Blank()
+                )
+            });
+            
+            // 3. 검증 후 삭제
+            If(
+                varSelectedReport.'Document Status' <> 'Document Status (mserp)'.Rejected,
+                Notify("This report is no longer in Rejected status. Lines can only be deleted from a rejected report.", NotificationType.Warning, gblParams.notificationTime),
+            
+                IsBlank(locTargetLine),
+                Notify("This expense line could not be found. It may have already been deleted.", NotificationType.Warning, gblParams.notificationTime),
+            
+                CountRows(colAttachedExpensesForReport) <= 1,
+                Notify("The last expense line cannot be deleted. To cancel the whole report, withdraw it and delete the report from the Draft list.", NotificationType.Warning, gblParams.notificationTime),
+            
+                IfError(
+                    Remove('DCSL Expense Line Expense Moblie Entity (mserp)', locTargetLine),
+                    UpdateContext({
+                        locDeleteLineError: Coalesce(
+                            Substitute(
+                                Match(FirstError.Details.HttpResponse, """message"":""([^""]*)""").FullMatch,
+                                """message"":", ""
+                            ),
+                            FirstError.Message
+                        )
+                    })
+                );
+                If(
+                    IsBlank(locDeleteLineError),
+                    Notify("The expense line has been deleted.", NotificationType.Success, gblParams.notificationTime),
+                    Notify(Substitute(locDeleteLineError, """", ""), NotificationType.Error, gblParams.notificationTime)
+                )
+            );
+            
+            // 4. 화면 데이터 최신화 (성공/실패와 무관하게 실행)
+            Refresh('DCSL Expense Line Expense Moblie Entity (mserp)');
+            Refresh('DCSL Expense Moblie Report (mserp)');
+            ClearCollect(
+                colAttachedExpensesForReport,
+                Filter(
+                    'DCSL Expense Line Expense Moblie Entity (mserp)',
+                    'Expense report number (mserp_expnumber)' = locReportNo &&
+                    'Expense line type' <> 'Expense line type (mserp)'.'Itemized line'
+                )
+            );
+            ClearCollect(colAttachedExpenses, colAttachedExpensesForReport);
+            Set(
+                varSelectedReport,
+                Coalesce(
+                    IfError(LookUp('DCSL Expense Moblie Report (mserp)', 'Expense report number' = locReportNo), Blank()),
+                    varSelectedReport
+                )
+            );
+            Set(varSelectedReportStatusItem, varSelectedReport.'Document Status');
+            UpdateContext({locDeletingLine: false, locDeleteTransNo: Blank(), locTargetLine: Blank()})
+        parmInDescriptionText: ="Line (" & locDeleteLineInfo & ") will be permanently deleted from D365. This cannot be undone."
+        parmInHeaderText: ="Delete expense line?"
+        parmInLeftButtonColor: =RGBA(34, 102, 227, 1)
+        parmInLeftButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_CancelLabel'
+        parmInRightButtonColor: =RGBA(195, 39, 39, 1)
+        parmInRightButtonText: |-
+            =GlobalLabels.Labels.'15062:LocalizedName,msdyn_DeleteLabel'
+        returnFocus: ="scr20_ico_Back_1"
+        Visible: =locShowDeleteLineDialog
+        Y: =0
+        ZIndex: =7
 
