@@ -33,11 +33,20 @@
                 ClearCollect(
                     colAttachedReceipts,
                     SortByColumns(
-                        Filter(
-                            'Expense Mobile Attached Document Entity (mserp)',
-                            'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                        ForAll(
+                            Filter(
+                                'DCSL Expense Moblie Attached Document Entity (mserp)',
+                                'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                            ) As doc,
+                            {
+                                mserp_entrecid: doc.EntRecId,
+                                mserp_captureddocument: doc.CapturedDocument,
+                                mserp_fileextension: doc.FileExtension,
+                                mserp_filename: Coalesce(doc.Description, "Receipt-" & Text(doc.EntRecId)),
+                                mserp_createddatetime: doc.CreatingDateTime
+                            }
                         ),
-                        "mserp_documentcreateddatetime", // Attached 테이블의 실제 생성일시 필드명
+                        "mserp_createddatetime",
                         SortOrder.Descending
                     )
                 )
@@ -122,11 +131,11 @@
                     !IsBlank(varSelectedExpenseDoc.AttachedReceiptId),
                     Set(
                         varReceiptImage,
-                        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), CapturedDocument)
+                        LookUp('DCSL Expense Moblie Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), CapturedDocument)
                     );
                     Set(
                         varFileFormat,
-                        LookUp('Expense Mobile Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
+                        LookUp('DCSL Expense Moblie Attached Document Entity (mserp)', EntRecId = Value(varSelectedExpenseDoc.AttachedReceiptId), FileExtension)
                     );
                     Set(
                         varSelectedReceiptForView,

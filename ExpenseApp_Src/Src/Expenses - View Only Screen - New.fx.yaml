@@ -12816,15 +12816,24 @@
                     )
                 );
                 // Refresh receipts collection from Expense Mobile Attached Document Entity (mserp)
-                Refresh('Expense Mobile Attached Document Entity (mserp)');
+                Refresh('DCSL Expense Moblie Attached Document Entity (mserp)');
                 ClearCollect(
                     colAttachedReceipts,
                     SortByColumns(
-                        Filter(
-                            'Expense Mobile Attached Document Entity (mserp)',
-                            'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                        ForAll(
+                            Filter(
+                                'DCSL Expense Moblie Attached Document Entity (mserp)',
+                                'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                            ) As doc,
+                            {
+                                mserp_entrecid: doc.EntRecId,
+                                mserp_captureddocument: doc.CapturedDocument,
+                                mserp_fileextension: doc.FileExtension,
+                                mserp_filename: Coalesce(doc.Description, "Receipt-" & Text(doc.EntRecId)),
+                                mserp_createddatetime: doc.CreatingDateTime
+                            }
                         ),
-                        "mserp_documentcreateddatetime",
+                        "mserp_createddatetime",
                         SortOrder.Descending
                     )
                 );
@@ -13125,7 +13134,7 @@
                     colAttachedReceipts,
                     ForAll(
                         Filter(
-                            'Expense Mobile Attached Document Entity (mserp)',
+                            'DCSL Expense Moblie Attached Document Entity (mserp)',
                             'Reference record ID' = Value(varSubmittedExpRecId)
                         ),
                         {

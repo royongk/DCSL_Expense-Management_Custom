@@ -1890,16 +1890,35 @@ Screens:
                           );
 
                           // 2. 첨부 영수증 컬렉션 로드
-                          ClearCollect(
-                              colAttachedReceipts,
-                              SortByColumns(
-                                  Filter(
-                                      'Expense Mobile Attached Document Entity (mserp)',
-                                      'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                          // [스니펫 A] 첨부 로드 - DCSL 커스텀 엔티티 기준, 정규화 스키마
+                          If(
+                              Coalesce(Value(varSelectedExpenseDoc.ExpenseRecId), 0) > 0,
+                              IfError(
+                                  ClearCollect(
+                                      colAttachedReceipts,
+                                      SortByColumns(
+                                          ForAll(
+                                              Filter(
+                                                  'DCSL Expense Moblie Attached Document Entity (mserp)',
+                                                  'Reference record ID' = Value(varSelectedExpenseDoc.ExpenseRecId)
+                                              ) As doc,
+                                              {
+                                                  mserp_entrecid: doc.EntRecId,
+                                                  mserp_captureddocument: doc.CapturedDocument,
+                                                  mserp_fileextension: doc.FileExtension,
+                                                  mserp_filename: Coalesce(doc.Description, "Receipt-" & Text(doc.EntRecId)),
+                                                  mserp_createddatetime: doc.CreatingDateTime
+                                              }
+                                          ),
+                                          "mserp_createddatetime",
+                                          SortOrder.Descending
+                                      )
                                   ),
-                                  "mserp_documentcreateddatetime",
-                                  SortOrder.Descending
-                              )
+                                  Notify("Failed to load attachments. Please try again.", NotificationType.Warning, gblParams.notificationTime);
+                                  Clear(colAttachedReceipts);
+                                  colAttachedReceipts
+                              ),
+                              Clear(colAttachedReceipts)
                           );
 
                           Set(
